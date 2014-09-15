@@ -1,0 +1,18 @@
+<package>
+  <description brief="Graph-SLAM Frontend">
+  Graph-based frontend for 3D-SLAM using PCL.
+  </description>
+  <author>Sebastian Kasperski/sebastian.kasperski@dfki.de</author>
+  <license></license>
+  <url>http://</url>
+  <logo>http://</logo>
+  <depend package="base/cmake" />
+  <!--
+   To add any dependencies use the depend tag
+  <depend package="dummy-dependency-0" />
+	...
+  <depend package="dummy-dependency-n-1" />
+  <depend package="dummy-dependency-n" />
+  -->
+  <depend package="base/types" />
+</package>
