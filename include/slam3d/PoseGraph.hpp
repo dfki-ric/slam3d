@@ -27,6 +27,13 @@ namespace slam3d
 		Node* mSource;
 		Node* mTarget;
 	};
+	
+	class PoseGraph
+	{
+	public:
+		PoseGraph();
+		~PoseGraph();
+	};
 }
 
 #endif

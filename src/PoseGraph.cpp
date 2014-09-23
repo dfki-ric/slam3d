@@ -1,4 +1,4 @@
-#include "PoseGraph.hpp"
+#include <slam3d/PoseGraph.hpp>
 
 using namespace slam3d;
 
@@ -18,6 +18,16 @@ Edge::Edge()
 }
 
 Edge::~Edge()
+{
+	
+}
+
+PoseGraph::PoseGraph()
+{
+	
+}
+
+PoseGraph::~PoseGraph()
 {
 	
 }

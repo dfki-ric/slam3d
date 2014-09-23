@@ -1,7 +1,7 @@
 #ifndef SLAM3D_MAPPER_HPP
 #define SLAM3D_MAPPER_HPP
 
-#include "PoseGraph.hpp"
+#include <slam3d/PoseGraph.hpp>
 
 namespace slam3d
 {
