@@ -90,10 +90,12 @@
     </Configuration>
   </Settings>
   <VirtualDirectory Name="include">
-    <File Name="src/PoseGraph.hpp"/>
+    <File Name="include/slam3d/Mapper.hpp"/>
+    <File Name="include/slam3d/PoseGraph.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
+    <File Name="src/Mapper.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
