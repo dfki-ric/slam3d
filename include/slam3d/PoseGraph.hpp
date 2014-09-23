@@ -5,7 +5,10 @@
 #include <pcl/point_types.h>
 
 namespace slam3d
-{	
+{
+	typedef pcl::PointXYZI PointType;
+	typedef pcl::PointCloud<PointType> PointCloud;
+	
 	class Node
 	{
 	public:
@@ -13,7 +16,7 @@ namespace slam3d
 		~Node();
 		
 	private:
-		pcl::PointCloud<pcl::PointXYZ>* mPointCloud;
+		PointCloud* mPointCloud;
 		
 	};
 	
