@@ -1,5 +1,7 @@
 #include <slam3d/Mapper.hpp>
 
+#include <pcl/filters/voxel_grid.h>
+
 #include <string.h>
 
 using namespace slam3d;
@@ -21,13 +23,20 @@ std::string Mapper::getStatusMessage()
 
 void Mapper::addScan(PointCloud::ConstPtr scan)
 {
+	// Downsample the scan
+	PointCloud::Ptr filtered_scan(new PointCloud);
+	pcl::VoxelGrid<PointType> grid;
+	grid.setLeafSize (0.25, 0.25, 0.25);
+	grid.setInputCloud(scan);
+	grid.filter(*filtered_scan);
+	
 	Node newNode;
 	if(mPoseGraph.getNodeCount() == 0)
 	{
-		newNode.setPointCloud(scan);
+		newNode.setPointCloud(filtered_scan);
 	}else
 	{
-		mICP.setInputSource(scan);
+		mICP.setInputSource(filtered_scan);
 		mICP.setInputTarget(mPoseGraph.getLastNode().getPointCloud());
 		
 		PointCloud* icp_result = new PointCloud();
@@ -41,4 +50,9 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 	}
 
 	mPoseGraph.addNode(newNode);
+}
+
+PointCloud::ConstPtr Mapper::getLastScan()
+{
+	return mPoseGraph.getLastNode().getPointCloud();
 }

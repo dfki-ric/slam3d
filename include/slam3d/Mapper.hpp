@@ -17,6 +17,7 @@ namespace slam3d
 		
 		std::string getStatusMessage();
 		void addScan(PointCloud::ConstPtr scan);
+		PointCloud::ConstPtr getLastScan();
 		
 	private:
 		PoseGraph mPoseGraph;
