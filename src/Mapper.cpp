@@ -8,7 +8,7 @@ using namespace slam3d;
 
 Mapper::Mapper()
 {
-
+	mCurrentPosition = ICP::Matrix4::Identity();
 }
 
 Mapper::~Mapper()
@@ -45,8 +45,11 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 		
 		mStatusMessage.str(std::string());
 		mStatusMessage << "Converged: " << mICP.hasConverged() << " / score: " << mICP.getFitnessScore() << std::endl;
-		ICP::Matrix4 transform = mICP.getFinalTransformation();
-		newNode.setPointCloud(icp_result_ptr);
+		
+		// Get position of the new scan
+		mCurrentPosition = mICP.getFinalTransformation() * mCurrentPosition;
+		
+		newNode.setPointCloud(filtered_scan);
 	}
 
 	mPoseGraph.addNode(newNode);
