@@ -19,6 +19,7 @@ namespace slam3d
 		std::string getStatusMessage();
 		void addScan(PointCloud::ConstPtr scan);
 		PointCloud::ConstPtr getLastScan();
+		PointCloud::ConstPtr getMap();
 		
 		ICP::Matrix4 getCurrentPosition() { return mCurrentPosition; }
 		
