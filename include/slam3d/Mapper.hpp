@@ -20,19 +20,19 @@ namespace slam3d
 		void addScan(PointCloud::ConstPtr scan);
 		PointCloud::Ptr getLastScan() const;
 
-		/**
-		 * @brief Construct a single Pointcloud from all scans using their corrected poses.
-		 * @return Accumulated PointCloud from all scans
-		 */
-		PointCloud::Ptr getAccumulatedCloud() const;
+		PointCloud::Ptr getAccumulatedCloud() const { return mAccumulatedCloud; }
 		
 		Pose getCurrentPose() { return mCurrentPose; }
 		
-	private:
+	protected:
+		void createAccumulatedCloud();
+		
+	protected:
 		PoseGraph mPoseGraph;
 		
 		ICP mICP;
 		Pose mCurrentPose;
+		PointCloud::Ptr mAccumulatedCloud;
 		
 		std::stringstream mStatusMessage;
 	};

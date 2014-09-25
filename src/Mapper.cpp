@@ -35,7 +35,7 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 
 	for(PointCloud::iterator p = filtered_scan->begin(); p < filtered_scan->end(); p++)
 	{
-		if(p->z > 1)
+		if(p->z > -1)
 			filtered_scan_2->push_back(*p);
 	}
 	
@@ -59,6 +59,7 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 	}
 
 	mPoseGraph.addNode(newNode);
+	createAccumulatedCloud();
 }
 
 PointCloud::Ptr Mapper::getLastScan() const
@@ -67,14 +68,13 @@ PointCloud::Ptr Mapper::getLastScan() const
 	return pc;
 }
 
-PointCloud::Ptr Mapper::getAccumulatedCloud() const
+void Mapper::createAccumulatedCloud()
 {
 	PointCloud::Ptr accumulatedCloud(new PointCloud);
 	NodeList allNodes = mPoseGraph.getAllNodes();
 	for(NodeList::iterator n = allNodes.begin(); n < allNodes.end(); n++)
 	{
 		Pose p = n->getCorrectedPose();
-//		p = p.inverse();
 		PointCloud::ConstPtr pc = n->getPointCloud();
 		
 		PointCloud pc_tf;
@@ -82,5 +82,14 @@ PointCloud::Ptr Mapper::getAccumulatedCloud() const
 		*accumulatedCloud += pc_tf;
 	}
 	accumulatedCloud->header.frame_id = "map";
-	return accumulatedCloud;
+	
+	// Downsample the result
+	PointCloud::Ptr filtered_cloud(new PointCloud);
+	pcl::VoxelGrid<PointType> grid;
+	grid.setLeafSize (0.25, 0.25, 0.25);
+	grid.setInputCloud(accumulatedCloud);
+	grid.filter(*filtered_cloud);
+
+	mAccumulatedCloud = filtered_cloud;
 }
+
