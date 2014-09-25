@@ -4,7 +4,8 @@ using namespace slam3d;
 
 Node::Node()
 {
-	
+	mOdometricPose = Pose::Identity();
+	mCorrectedPose = Pose::Identity();
 }
 
 Node::~Node()
@@ -37,7 +38,7 @@ void PoseGraph::addNode(Node& n)
 	mNodeList.push_back(n);
 }
 
-Node PoseGraph::getLastNode()
+Node PoseGraph::getLastNode() const
 {
 	if(mNodeList.empty())
 	{

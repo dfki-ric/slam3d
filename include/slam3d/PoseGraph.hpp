@@ -8,9 +8,20 @@
 
 namespace slam3d
 {
+	// Type definitions of various components
+	typedef float ScalarType;
 	typedef pcl::PointXYZI PointType;
 	typedef pcl::PointCloud<PointType> PointCloud;
+	typedef Eigen::Matrix<ScalarType, 4, 4> Pose;
 	
+	/**
+	 * @class Node
+	 * @author Sebastian Kasperski
+	 * @date 09/25/14
+	 * @file PoseGraph.hpp
+	 * @brief Represents a node in the PoseGraph, containing a PointCloud
+	 * and the odometric/corrected Pose where it has been collected.
+	 */
 	class Node
 	{
 	public:
@@ -23,8 +34,17 @@ namespace slam3d
 	private:
 		PointCloud::ConstPtr mPointCloud;
 		
+		Pose mOdometricPose;
+		Pose mCorrectedPose;
 	};
 	
+	/**
+	 * @class Edge
+	 * @author Sebastian Kasperski
+	 * @date 09/25/14
+	 * @file PoseGraph.hpp
+	 * @brief 
+	 */
 	class Edge
 	{
 	public:
@@ -36,6 +56,13 @@ namespace slam3d
 		Node* mTarget;
 	};
 	
+	/**
+	 * @class PoseGraph
+	 * @author Sebastian Kasperski
+	 * @date 09/25/14
+	 * @file PoseGraph.hpp
+	 * @brief 
+	 */
 	class PoseGraph
 	{
 	public:
@@ -47,7 +74,7 @@ namespace slam3d
 		
 		void addNode(Node& n);
 		void addEdge(Node& source, Node& target);
-		Node getLastNode();
+		Node getLastNode() const;
 		
 	private:
 		std::vector<Node> mNodeList;

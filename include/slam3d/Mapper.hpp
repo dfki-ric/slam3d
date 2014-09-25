@@ -8,7 +8,7 @@
 
 namespace slam3d
 {
-	typedef pcl::IterativeClosestPoint<PointType, PointType> ICP;
+	typedef pcl::IterativeClosestPoint<PointType, PointType, ScalarType> ICP;
 	
 	class Mapper
 	{
@@ -16,18 +16,23 @@ namespace slam3d
 		Mapper();
 		~Mapper();
 		
-		std::string getStatusMessage();
+		std::string getStatusMessage() const;
 		void addScan(PointCloud::ConstPtr scan);
-		PointCloud::ConstPtr getLastScan();
-		PointCloud::ConstPtr getMap();
+		PointCloud::Ptr getLastScan() const;
+
+		/**
+		 * @brief Construct a single Pointcloud from all scans using their corrected poses.
+		 * @return Accumulated PointCloud from all scans
+		 */
+		PointCloud::Ptr getAccumulatedCloud() const;
 		
-		ICP::Matrix4 getCurrentPosition() { return mCurrentPosition; }
+		Pose getCurrentPose() { return mCurrentPose; }
 		
 	private:
 		PoseGraph mPoseGraph;
 		
 		ICP mICP;
-		ICP::Matrix4 mCurrentPosition;
+		Pose mCurrentPose;
 		
 		std::stringstream mStatusMessage;
 	};
