@@ -10,9 +10,10 @@ namespace slam3d
 {
 	// Type definitions of various components
 	typedef float ScalarType;
+	typedef Eigen::Matrix<ScalarType, 4, 4> Pose;
+	
 	typedef pcl::PointXYZI PointType;
 	typedef pcl::PointCloud<PointType> PointCloud;
-	typedef Eigen::Matrix<ScalarType, 4, 4> Pose;
 	
 	/**
 	 * @class Node
@@ -31,7 +32,12 @@ namespace slam3d
 		void setPointCloud(PointCloud::ConstPtr pcl) { mPointCloud = pcl; }
 		PointCloud::ConstPtr getPointCloud() { return mPointCloud; }
 		
-	private:
+		Pose getOdometricPose() const { return mOdometricPose; }
+		Pose getCorrectedPose() const { return mCorrectedPose; }
+		
+		void setCorrectedPose(Pose p) { mCorrectedPose = p; }
+		
+	protected:
 		PointCloud::ConstPtr mPointCloud;
 		
 		Pose mOdometricPose;
@@ -51,10 +57,13 @@ namespace slam3d
 		Edge();
 		~Edge();
 		
-	private:
+	protected:
 		Node* mSource;
 		Node* mTarget;
 	};
+	
+	typedef std::vector<Node> NodeList;
+	typedef std::vector<Edge> EdgeList;
 	
 	/**
 	 * @class PoseGraph
@@ -74,11 +83,16 @@ namespace slam3d
 		
 		void addNode(Node& n);
 		void addEdge(Node& source, Node& target);
+
+		NodeList getAllNodes() const { return mNodeList; }
+		EdgeList getAllEdges() const { return mEdgeList; }
+		
+		// Temporary stuff
 		Node getLastNode() const;
 		
-	private:
-		std::vector<Node> mNodeList;
-		std::vector<Edge> mEdgeList;
+	protected:
+		NodeList mNodeList;
+		EdgeList mEdgeList;
 	};
 }
 

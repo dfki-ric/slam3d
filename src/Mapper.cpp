@@ -55,6 +55,7 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 		
 		// Get position of the new scan
 		mCurrentPose = mICP.getFinalTransformation() * mCurrentPose;
+		newNode.setCorrectedPose(mCurrentPose);
 	}
 
 	mPoseGraph.addNode(newNode);
@@ -69,5 +70,17 @@ PointCloud::Ptr Mapper::getLastScan() const
 PointCloud::Ptr Mapper::getAccumulatedCloud() const
 {
 	PointCloud::Ptr accumulatedCloud(new PointCloud);
+	NodeList allNodes = mPoseGraph.getAllNodes();
+	for(NodeList::iterator n = allNodes.begin(); n < allNodes.end(); n++)
+	{
+		Pose p = n->getCorrectedPose();
+//		p = p.inverse();
+		PointCloud::ConstPtr pc = n->getPointCloud();
+		
+		PointCloud pc_tf;
+		pcl::transformPointCloud(*pc, pc_tf, p);
+		*accumulatedCloud += pc_tf;
+	}
+	accumulatedCloud->header.frame_id = "map";
 	return accumulatedCloud;
 }
