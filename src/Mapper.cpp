@@ -3,6 +3,7 @@
 #include <pcl/filters/voxel_grid.h>
 
 #include <string.h>
+#include <iostream>
 
 using namespace slam3d;
 
@@ -30,13 +31,27 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 	grid.setInputCloud(scan);
 	grid.filter(*filtered_scan);
 	
+	PointCloud::Ptr filtered_scan_2(new PointCloud);
+	filtered_scan_2->header = filtered_scan->header;
+//	double min = 1000;
+//	double max = -1000;
+	for(PointCloud::iterator p = filtered_scan->begin(); p < filtered_scan->end(); p++)
+	{
+//		if(p->z < min) min = p->z;
+//		if(p->z > max) max = p->z;
+		if(p->z > 1)
+		{
+			filtered_scan_2->push_back(*p);
+		}
+	}
+//	std::cout << "Height-Range: " << min << " .. " << max << std::endl;
+	
 	Node newNode;
-	if(mPoseGraph.getNodeCount() == 0)
+	newNode.setPointCloud(filtered_scan_2);
+	
+	if(mPoseGraph.getNodeCount() > 0)
 	{
-		newNode.setPointCloud(filtered_scan);
-	}else
-	{
-		mICP.setInputSource(filtered_scan);
+		mICP.setInputSource(filtered_scan_2);
 		mICP.setInputTarget(mPoseGraph.getLastNode().getPointCloud());
 		
 		PointCloud* icp_result = new PointCloud();
@@ -48,8 +63,6 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 		
 		// Get position of the new scan
 		mCurrentPosition = mICP.getFinalTransformation() * mCurrentPosition;
-		
-		newNode.setPointCloud(filtered_scan);
 	}
 
 	mPoseGraph.addNode(newNode);
