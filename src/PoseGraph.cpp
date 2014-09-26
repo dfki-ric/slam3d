@@ -8,6 +8,13 @@ Node::Node()
 	mCorrectedPose = Pose::Identity();
 }
 
+Node::Node(PointCloud::ConstPtr pcl, Pose p)
+{
+	mPointCloud = pcl;
+	mOdometricPose = p;
+	mCorrectedPose = p;
+}
+
 Node::~Node()
 {
 	

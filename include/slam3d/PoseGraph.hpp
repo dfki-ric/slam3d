@@ -27,15 +27,15 @@ namespace slam3d
 	{
 	public:
 		Node();
+		Node(PointCloud::ConstPtr pcl, Pose p);
 		~Node();
 		
-		void setPointCloud(PointCloud::ConstPtr pcl) { mPointCloud = pcl; }
 		PointCloud::ConstPtr getPointCloud() { return mPointCloud; }
-		
 		Pose getOdometricPose() const { return mOdometricPose; }
 		Pose getCorrectedPose() const { return mCorrectedPose; }
 		
 		void setCorrectedPose(Pose p) { mCorrectedPose = p; }
+
 		
 	protected:
 		PointCloud::ConstPtr mPointCloud;

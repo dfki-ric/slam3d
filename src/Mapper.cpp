@@ -21,7 +21,7 @@ std::string Mapper::getStatusMessage() const
 	return mStatusMessage.str();
 }
 
-void Mapper::addScan(PointCloud::ConstPtr scan)
+void Mapper::addScan(PointCloud::ConstPtr scan, Pose pose)
 {
 	// Downsample the scan
 	PointCloud::Ptr filtered_scan(new PointCloud);
@@ -30,6 +30,7 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 	grid.setInputCloud(scan);
 	grid.filter(*filtered_scan);
 	
+	// Remove ground plane (hack)
 	PointCloud::Ptr filtered_scan_2(new PointCloud);
 	filtered_scan_2->header = filtered_scan->header;
 
@@ -39,13 +40,23 @@ void Mapper::addScan(PointCloud::ConstPtr scan)
 			filtered_scan_2->push_back(*p);
 	}
 	
-	Node newNode;
-	newNode.setPointCloud(filtered_scan_2);
+	Node newNode(filtered_scan_2, pose);
 	
 	if(mPoseGraph.getNodeCount() > 0)
 	{
-		mICP.setInputSource(filtered_scan_2);
-		mICP.setInputTarget(mPoseGraph.getLastNode().getPointCloud());
+		// Set corrected pose based on last node's correction
+		Node lastNode = mPoseGraph.getLastNode();
+		Pose diff = lastNode.getCorrectedPose() * lastNode.getOdometricPose().inverse();
+		newNode.setCorrectedPose(pose * diff);
+		
+		// Transform pointcloud to map coordinates
+		PointCloud::Ptr transformed_scan(new PointCloud);
+		pcl::transformPointCloud(*filtered_scan_2, *transformed_scan, newNode.getCorrectedPose());
+		
+		mICP.setInputSource(transformed_scan);
+//		mICP.setInputSource(filtered_scan_2);
+//		mICP.setInputTarget(lastNode.getPointCloud());
+		mICP.setInputTarget(mAccumulatedCloud);
 		
 		PointCloud icp_result;
 		mICP.align(icp_result);

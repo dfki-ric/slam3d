@@ -17,7 +17,7 @@ namespace slam3d
 		~Mapper();
 		
 		std::string getStatusMessage() const;
-		void addScan(PointCloud::ConstPtr scan);
+		void addScan(PointCloud::ConstPtr scan, Pose pose = Pose::Identity());
 		PointCloud::Ptr getLastScan() const;
 
 		PointCloud::Ptr getAccumulatedCloud() const { return mAccumulatedCloud; }
