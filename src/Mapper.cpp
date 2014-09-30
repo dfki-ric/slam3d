@@ -4,6 +4,8 @@
 
 #include <string.h>
 
+#define FLT_SIZE 0.05
+
 using namespace slam3d;
 
 Mapper::Mapper()
@@ -26,10 +28,13 @@ void Mapper::addScan(PointCloud::ConstPtr scan, Pose pose)
 	// Downsample the scan
 	PointCloud::Ptr filtered_scan(new PointCloud);
 	pcl::VoxelGrid<PointType> grid;
-	grid.setLeafSize (0.25, 0.25, 0.25);
+	grid.setLeafSize (FLT_SIZE, FLT_SIZE, FLT_SIZE);
 	grid.setInputCloud(scan);
 	grid.filter(*filtered_scan);
 	
+	Node newNode(filtered_scan, pose);
+
+/*	
 	// Remove ground plane (hack)
 	PointCloud::Ptr filtered_scan_2(new PointCloud);
 	filtered_scan_2->header = filtered_scan->header;
@@ -41,7 +46,7 @@ void Mapper::addScan(PointCloud::ConstPtr scan, Pose pose)
 	}
 	
 	Node newNode(filtered_scan_2, pose);
-	
+*/	
 	if(mPoseGraph.getNodeCount() > 0)
 	{
 		// Set corrected pose based on last node's correction
@@ -49,23 +54,20 @@ void Mapper::addScan(PointCloud::ConstPtr scan, Pose pose)
 		Pose diff = lastNode.getCorrectedPose() * lastNode.getOdometricPose().inverse();
 		newNode.setCorrectedPose(pose * diff);
 		
-		// Transform pointcloud to map coordinates
-		PointCloud::Ptr transformed_scan(new PointCloud);
-		pcl::transformPointCloud(*filtered_scan_2, *transformed_scan, newNode.getCorrectedPose());
-		
-		mICP.setInputSource(transformed_scan);
-//		mICP.setInputSource(filtered_scan_2);
-//		mICP.setInputTarget(lastNode.getPointCloud());
+		mICP.setInputSource(filtered_scan);
 		mICP.setInputTarget(mAccumulatedCloud);
 		
+		mICP.setMaxCorrespondenceDistance(0.5);
+		mICP.setTransformationEpsilon (1e-6);
+
 		PointCloud icp_result;
-		mICP.align(icp_result);
+		mICP.align(icp_result, newNode.getCorrectedPose());
 		
 		mStatusMessage.str(std::string());
 		mStatusMessage << "Converged: " << mICP.hasConverged() << " / score: " << mICP.getFitnessScore() << std::endl;
 		
 		// Get position of the new scan
-		mCurrentPose = mICP.getFinalTransformation() * mCurrentPose;
+		mCurrentPose = mICP.getFinalTransformation();
 		newNode.setCorrectedPose(mCurrentPose);
 	}
 
@@ -93,11 +95,13 @@ void Mapper::createAccumulatedCloud()
 		*accumulatedCloud += pc_tf;
 	}
 	accumulatedCloud->header.frame_id = "map";
+	accumulatedCloud->header.stamp = mPoseGraph.getLastNode().getPointCloud()->header.stamp;
 	
 	// Downsample the result
 	PointCloud::Ptr filtered_cloud(new PointCloud);
 	pcl::VoxelGrid<PointType> grid;
-	grid.setLeafSize (0.25, 0.25, 0.25);
+	
+	grid.setLeafSize (FLT_SIZE, FLT_SIZE, FLT_SIZE);
 	grid.setInputCloud(accumulatedCloud);
 	grid.filter(*filtered_cloud);
 
