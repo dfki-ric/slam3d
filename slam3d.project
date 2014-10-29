@@ -92,10 +92,13 @@
   <VirtualDirectory Name="include">
     <File Name="include/slam3d/Mapper.hpp"/>
     <File Name="include/slam3d/PoseGraph.hpp"/>
+    <File Name="include/slam3d/LaserOdometry.hpp"/>
+    <File Name="include/slam3d/Types.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
     <File Name="src/Mapper.cpp"/>
+    <File Name="src/LaserOdometry.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>

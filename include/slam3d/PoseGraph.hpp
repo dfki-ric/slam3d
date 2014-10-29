@@ -1,20 +1,12 @@
 #ifndef SLAM3D_POSEGRAPH_HPP
 #define SLAM3D_POSEGRAPH_HPP
 
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+#include "Types.hpp"
 
 #include <vector>
 
 namespace slam3d
-{
-	// Type definitions of various components
-	typedef float ScalarType;
-	typedef Eigen::Matrix<ScalarType, 4, 4> Pose;
-	
-	typedef pcl::PointXYZI PointType;
-	typedef pcl::PointCloud<PointType> PointCloud;
-	
+{	
 	/**
 	 * @class Node
 	 * @author Sebastian Kasperski

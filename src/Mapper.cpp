@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#define FLT_SIZE 0.05
+#define FLT_SIZE 0.025
 
 using namespace slam3d;
 
@@ -55,19 +55,22 @@ void Mapper::addScan(PointCloud::ConstPtr scan, Pose pose)
 		newNode.setCorrectedPose(pose * diff);
 		
 		mICP.setInputSource(filtered_scan);
-		mICP.setInputTarget(mAccumulatedCloud);
+		mICP.setInputTarget(mPoseGraph.getLastNode().getPointCloud());
 		
-		mICP.setMaxCorrespondenceDistance(0.5);
-		mICP.setTransformationEpsilon (1e-6);
+//		mICP.setMaxCorrespondenceDistance(0.5);
+//		mICP.setTransformationEpsilon (1e-6);
+
+		// Calculate odometry difference between last scan and this one
+		Pose odom = lastNode.getOdometricPose().inverse() * pose;
 
 		PointCloud icp_result;
-		mICP.align(icp_result, newNode.getCorrectedPose());
+		mICP.align(icp_result, odom);
 		
 		mStatusMessage.str(std::string());
 		mStatusMessage << "Converged: " << mICP.hasConverged() << " / score: " << mICP.getFitnessScore() << std::endl;
 		
 		// Get position of the new scan
-		mCurrentPose = mICP.getFinalTransformation();
+		mCurrentPose = mCurrentPose * mICP.getFinalTransformation();
 		newNode.setCorrectedPose(mCurrentPose);
 	}
 
@@ -85,7 +88,8 @@ void Mapper::createAccumulatedCloud()
 {
 	PointCloud::Ptr accumulatedCloud(new PointCloud);
 	NodeList allNodes = mPoseGraph.getAllNodes();
-	for(NodeList::iterator n = allNodes.begin(); n < allNodes.end(); n++)
+	int count = 0;
+	for(NodeList::reverse_iterator n = allNodes.rbegin(); n != allNodes.rend(); n++)
 	{
 		Pose p = n->getCorrectedPose();
 		PointCloud::ConstPtr pc = n->getPointCloud();
@@ -93,6 +97,8 @@ void Mapper::createAccumulatedCloud()
 		PointCloud pc_tf;
 		pcl::transformPointCloud(*pc, pc_tf, p);
 		*accumulatedCloud += pc_tf;
+		count++;
+		if(count > 10) break;
 	}
 	accumulatedCloud->header.frame_id = "map";
 	accumulatedCloud->header.stamp = mPoseGraph.getLastNode().getPointCloud()->header.stamp;
