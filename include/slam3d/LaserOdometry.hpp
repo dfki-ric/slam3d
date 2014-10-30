@@ -11,14 +11,13 @@ namespace slam3d
 		LaserOdometry();
 		~LaserOdometry();
 		
-		void addScan(PointCloud::ConstPtr scan, double timestamp);
+		void addScan(PointCloud::ConstPtr scan);
 		void finishSweep();
-	
-	protected:
-	
+
 		PointCloud mSurfacePoints;
 		PointCloud mEdgePoints;
 		PointCloud mExtraPoints;
+		PointCloud mLastSweep;
 	};
 }
 

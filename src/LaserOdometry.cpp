@@ -19,9 +19,11 @@ LaserOdometry::~LaserOdometry()
 	
 }
 
-void LaserOdometry::addScan(PointCloud::ConstPtr scan, double timestamp)
+void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 {
 	unsigned int cloudSize = scan->points.size();
+	mEdgePoints.header = scan->header;
+	mSurfacePoints.header = scan->header;
 
 	// Points flagged in this array are filtered from being used as features
 	int filter[cloudSize];
@@ -165,5 +167,11 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan, double timestamp)
 
 void LaserOdometry::finishSweep()
 {
+	mLastSweep = mEdgePoints;
+	mLastSweep += mSurfacePoints;
+	mLastSweep += mExtraPoints;
 	
+	mEdgePoints.clear();
+	mSurfacePoints.clear();
+	mExtraPoints.clear();
 }
