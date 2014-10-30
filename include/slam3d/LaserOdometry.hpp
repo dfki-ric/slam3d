@@ -18,6 +18,7 @@ namespace slam3d
 	
 		PointCloud mSurfacePoints;
 		PointCloud mEdgePoints;
+		PointCloud mExtraPoints;
 	};
 }
 

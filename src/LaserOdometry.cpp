@@ -7,6 +7,8 @@
 
 using namespace slam3d;
 
+typedef std::vector< std::pair<double, unsigned int> > ValueList;
+
 LaserOdometry::LaserOdometry()
 {
 	
@@ -21,41 +23,6 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan, double timestamp)
 {
 	unsigned int cloudSize = scan->points.size();
 
-	// Calculate c-Values [LOAM: V-A (1)]
-	std::vector< std::pair<double, unsigned int> > c_values[4];
-	unsigned int sectionSize = (cloudSize - 10) / 4.0;
-	unsigned int i = 5;
-	for(unsigned int section = 0; section < 4; section++)
-	{
-		for(unsigned int c = 0; c < sectionSize; c++, i++)
-		{
-			// TODO: Multiply with defined kernel instead of this...
-			double diffX = scan->points[i - 5].x + scan->points[i - 4].x 
-				+ scan->points[i - 3].x + scan->points[i - 2].x 
-				+ scan->points[i - 1].x - 10 * scan->points[i].x 
-				+ scan->points[i + 1].x + scan->points[i + 2].x
-				+ scan->points[i + 3].x + scan->points[i + 4].x
-				+ scan->points[i + 5].x;
-			double diffY = scan->points[i - 5].y + scan->points[i - 4].y 
-				+ scan->points[i - 3].y + scan->points[i - 2].y 
-				+ scan->points[i - 1].y - 10 * scan->points[i].y 
-				+ scan->points[i + 1].y + scan->points[i + 2].y
-				+ scan->points[i + 3].y + scan->points[i + 4].y
-				+ scan->points[i + 5].y;
-			double diffZ = scan->points[i - 5].z + scan->points[i - 4].z 
-				+ scan->points[i - 3].z + scan->points[i - 2].z 
-				+ scan->points[i - 1].z - 10 * scan->points[i].z 
-				+ scan->points[i + 1].z + scan->points[i + 2].z
-				+ scan->points[i + 3].z + scan->points[i + 4].z
-				+ scan->points[i + 5].z;
-
-			c_values[section].push_back(std::make_pair(diffX * diffX + diffY * diffY + diffZ * diffZ, i));
-		}
-		
-		// Sort the points based on their c-value
-		std::sort(c_values[section].begin(), c_values[section].end());
-	}
-	
 	// Points flagged in this array are filtered from being used as features
 	int filter[cloudSize];
 	memset(filter, 0, sizeof(filter));
@@ -122,6 +89,76 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan, double timestamp)
 		if (diff > (0.25 * 0.25) / (20 * 20) * dis && diff2 > (0.25 * 0.25) / (20 * 20) * dis)
 		{
 			filter[i] = 1;
+		}
+	}
+
+	// Calculate c-Values [LOAM: V-A (1)]
+	ValueList c_values[4];
+	unsigned int sectionSize = (cloudSize - 10) / 4.0;
+	unsigned int i = 5;
+	for(unsigned int section = 0; section < 4; section++)
+	{
+		for(unsigned int c = 0; c < sectionSize; c++, i++)
+		{
+			// TODO: Multiply with defined kernel instead of this...
+			double diffX = scan->points[i - 5].x + scan->points[i - 4].x 
+				+ scan->points[i - 3].x + scan->points[i - 2].x 
+				+ scan->points[i - 1].x - 10 * scan->points[i].x 
+				+ scan->points[i + 1].x + scan->points[i + 2].x
+				+ scan->points[i + 3].x + scan->points[i + 4].x
+				+ scan->points[i + 5].x;
+			double diffY = scan->points[i - 5].y + scan->points[i - 4].y 
+				+ scan->points[i - 3].y + scan->points[i - 2].y 
+				+ scan->points[i - 1].y - 10 * scan->points[i].y 
+				+ scan->points[i + 1].y + scan->points[i + 2].y
+				+ scan->points[i + 3].y + scan->points[i + 4].y
+				+ scan->points[i + 5].y;
+			double diffZ = scan->points[i - 5].z + scan->points[i - 4].z 
+				+ scan->points[i - 3].z + scan->points[i - 2].z 
+				+ scan->points[i - 1].z - 10 * scan->points[i].z 
+				+ scan->points[i + 1].z + scan->points[i + 2].z
+				+ scan->points[i + 3].z + scan->points[i + 4].z
+				+ scan->points[i + 5].z;
+
+			c_values[section].push_back(std::make_pair(diffX * diffX + diffY * diffY + diffZ * diffZ, i));
+		}
+		
+		// Sort the points based on their c-value
+		std::sort(c_values[section].begin(), c_values[section].end());
+	
+		// Select the points with largest c-Value (edges)
+		int largestPickedNum = 0;
+		for (ValueList::reverse_iterator i = c_values[section].rbegin(); i != c_values[section].rend(); i++)
+		{
+			if (filter[i->second] == 0)
+			{
+				largestPickedNum++;
+				if (largestPickedNum <= 2)
+				{
+					mEdgePoints.push_back(scan->points[i->second]);
+				} else if (largestPickedNum <= 20)
+				{
+					mExtraPoints.push_back(scan->points[i->second]);
+				}else
+				{
+					break;
+				}
+			}
+		}
+	
+		// Select the points with smallest c-Value (surfaces)
+		int smallestPickedNum = 0;
+		for (ValueList::iterator i = c_values[section].begin(); i != c_values[section].end(); i++)
+		{
+			if (filter[i->second] == 0)
+			{
+				smallestPickedNum++;
+				mSurfacePoints.push_back(scan->points[i->second]);
+				if (smallestPickedNum >= 4)
+				{
+					break;
+				}
+			}
 		}
 	}
 }
