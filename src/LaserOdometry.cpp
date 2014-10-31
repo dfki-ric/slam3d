@@ -2,6 +2,7 @@
 
 #include <utility> 
 #include <algorithm>
+#include <iostream>
 
 // [LOAM] Zhang, J., & Singh, S. LOAM : Lidar Odometry and Mapping in Real-time.
 
@@ -132,7 +133,7 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 		int largestPickedNum = 0;
 		for (ValueList::reverse_iterator i = c_values[section].rbegin(); i != c_values[section].rend(); i++)
 		{
-			if (filter[i->second] == 0)
+			if (filter[i->second] == 0 && i->first > 0.1)
 			{
 				largestPickedNum++;
 				if (largestPickedNum <= 2)
@@ -145,6 +146,18 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 				{
 					break;
 				}
+				
+				// Invalidate points nearby
+				for (int k = i->second-5; k <= i->second+5; k++)
+				{
+					float diffX = scan->points[k].x - scan->points[i->second].x;
+					float diffY = scan->points[k].y - scan->points[i->second].y;
+					float diffZ = scan->points[k].z - scan->points[i->second].z;
+					if (diffX * diffX + diffY * diffY + diffZ * diffZ <= 0.2)
+					{
+						filter[k] = 1;
+					}
+				}
 			}
 		}
 	
@@ -152,13 +165,27 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 		int smallestPickedNum = 0;
 		for (ValueList::iterator i = c_values[section].begin(); i != c_values[section].end(); i++)
 		{
-			if (filter[i->second] == 0)
+			if (filter[i->second] == 0 && i->first < 0.1)
 			{
 				smallestPickedNum++;
-				mSurfacePoints.push_back(scan->points[i->second]);
-				if (smallestPickedNum >= 4)
+				if (smallestPickedNum <= 4)
 				{
-					break;
+					mSurfacePoints.push_back(scan->points[i->second]);
+				}else
+				{
+					mExtraPoints.push_back(scan->points[i->second]);
+				}
+					
+				// Invalidate  points nearby
+				for (int k = i->second-5; k <= i->second+5; k++)
+				{
+					float diffX = scan->points[k].x - scan->points[i->second].x;
+					float diffY = scan->points[k].y - scan->points[i->second].y;
+					float diffZ = scan->points[k].z - scan->points[i->second].z;
+					if (diffX * diffX + diffY * diffY + diffZ * diffZ <= 0.2)
+					{
+						filter[k] = 1;
+					}
 				}
 			}
 		}
