@@ -12,7 +12,12 @@ typedef std::vector< std::pair<double, unsigned int> > ValueList;
 
 LaserOdometry::LaserOdometry()
 {
+	mMaxSurfaceAngleDeg = 20;
+	mLaserAngleDeg = 0.25;
 	
+	double sin1 = sin(DEG2RAD(mLaserAngleDeg));
+	double sin2 = sin(DEG2RAD(mMaxSurfaceAngleDeg));
+	mDistanceRelation = (sin1 * sin1) / (sin2 * sin2);
 }
 
 LaserOdometry::~LaserOdometry()
@@ -25,6 +30,7 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 	unsigned int cloudSize = scan->points.size();
 	mEdgePoints.header = scan->header;
 	mSurfacePoints.header = scan->header;
+	mExtraPoints.header = scan->header;
 
 	// Points flagged in this array are filtered from being used as features
 	int filter[cloudSize];
@@ -37,12 +43,13 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 		float diffZ = scan->points[i + 1].z - scan->points[i].z;
 		float diff = diffX * diffX + diffY * diffY + diffZ * diffZ;
 
+		float depth1 = sqrt(scan->points[i].x * scan->points[i].x + 
+			scan->points[i].y * scan->points[i].y +
+			scan->points[i].z * scan->points[i].z);
+
+		// Filter points on boundaries of occluded regions
 		if (diff > 0.05)
 		{
-			float depth1 = sqrt(scan->points[i].x * scan->points[i].x + 
-				scan->points[i].y * scan->points[i].y +
-				scan->points[i].z * scan->points[i].z);
-
 			float depth2 = sqrt(scan->points[i + 1].x * scan->points[i + 1].x + 
 				scan->points[i + 1].y * scan->points[i + 1].y +
 				scan->points[i + 1].z * scan->points[i + 1].z);
@@ -80,16 +87,13 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 			}
 		}
 
+		// Filter points that are raughly parallel using law of sines
 		float diffX2 = scan->points[i].x - scan->points[i - 1].x;
 		float diffY2 = scan->points[i].y - scan->points[i - 1].y;
 		float diffZ2 = scan->points[i].z - scan->points[i - 1].z;
 		float diff2 = diffX2 * diffX2 + diffY2 * diffY2 + diffZ2 * diffZ2;
 
-		float dis = scan->points[i].x * scan->points[i].x
-			+ scan->points[i].y * scan->points[i].y
-			+ scan->points[i].z * scan->points[i].z;
-
-		if (diff > (0.25 * 0.25) / (20 * 20) * dis && diff2 > (0.25 * 0.25) / (20 * 20) * dis)
+		if (diff > mDistanceRelation * depth1 && diff2 > mDistanceRelation * depth1)
 		{
 			filter[i] = 1;
 		}
@@ -125,7 +129,7 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 
 			c_values[section].push_back(std::make_pair(diffX * diffX + diffY * diffY + diffZ * diffZ, i));
 		}
-		
+
 		// Sort the points based on their c-value
 		std::sort(c_values[section].begin(), c_values[section].end());
 	
@@ -176,7 +180,7 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 					mExtraPoints.push_back(scan->points[i->second]);
 				}
 					
-				// Invalidate  points nearby
+				// Invalidate points nearby
 				for (int k = i->second-5; k <= i->second+5; k++)
 				{
 					float diffX = scan->points[k].x - scan->points[i->second].x;

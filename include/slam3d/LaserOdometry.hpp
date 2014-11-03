@@ -18,6 +18,11 @@ namespace slam3d
 		PointCloud mEdgePoints;
 		PointCloud mExtraPoints;
 		PointCloud mLastSweep;
+		
+	private:
+		double mLaserAngleDeg;
+		double mMaxSurfaceAngleDeg;
+		double mDistanceRelation;
 	};
 }
 
