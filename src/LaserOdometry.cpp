@@ -27,12 +27,17 @@ LaserOdometry::~LaserOdometry()
 
 void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 {
-	unsigned int cloudSize = scan->points.size();
 	mEdgePoints.header = scan->header;
 	mSurfacePoints.header = scan->header;
 	mExtraPoints.header = scan->header;
 
+	extractFeatures(scan);
+}
+
+void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
+{
 	// Points flagged in this array are filtered from being used as features
+	unsigned int cloudSize = scan->points.size();
 	int filter[cloudSize];
 	memset(filter, 0, sizeof(filter));
 

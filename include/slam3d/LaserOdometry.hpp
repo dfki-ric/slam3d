@@ -20,6 +20,8 @@ namespace slam3d
 		PointCloud mLastSweep;
 		
 	private:
+		void extractFeatures(PointCloud::ConstPtr scan);
+		
 		double mLaserAngleDeg;
 		double mMaxSurfaceAngleDeg;
 		double mDistanceRelation;
