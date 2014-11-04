@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <boost/make_shared.hpp>
+
 // [LOAM] Zhang, J., & Singh, S. LOAM : Lidar Odometry and Mapping in Real-time.
 
 using namespace slam3d;
@@ -214,6 +216,9 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 
 void LaserOdometry::calculatePose()
 {
+	if(mLastEdgePoints.size() == 0)
+		return;
+	
 	// Correspondences for edge points
 	std::vector<int> pointSearchInd;
 	std::vector<float> pointSearchSqDis;
@@ -337,8 +342,8 @@ void LaserOdometry::finishSweep(double timestamp)
 	mLastEdgePoints = mEdgePoints;
 	mLastSurfacePoints = mSurfacePoints;
 	
-	mEdgeTree.setInputCloud(PointCloud::Ptr(&mLastEdgePoints));
-	mSurfaceTree.setInputCloud(PointCloud::Ptr(&mLastSurfacePoints));
+	mEdgeTree.setInputCloud(boost::make_shared<PointCloud>(mLastEdgePoints));
+	mSurfaceTree.setInputCloud(boost::make_shared<PointCloud>(mLastSurfacePoints));
 	
 	// Shouldn't this be done before setting the kdTree?
 	timeShift(mLastEdgePoints, timestamp);
