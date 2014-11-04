@@ -12,19 +12,29 @@ namespace slam3d
 		~LaserOdometry();
 		
 		void addScan(PointCloud::ConstPtr scan);
-		void finishSweep();
+		void finishSweep(double timestamp);
 
 		PointCloud mSurfacePoints;
 		PointCloud mEdgePoints;
 		PointCloud mExtraPoints;
+
+		PointCloud mLastSurfacePoints;
+		PointCloud mLastEdgePoints;
 		PointCloud mLastSweep;
 		
 	private:
 		void extractFeatures(PointCloud::ConstPtr scan);
+		void calculatePose();
+		void timeShift(PointCloud& pointcloud, double timestamp);
 		
 		double mLaserAngleDeg;
 		double mMaxSurfaceAngleDeg;
 		double mDistanceRelation;
+		
+		SearchTree mEdgeTree;
+		SearchTree mSurfaceTree;
+		
+		int mScanSize;
 	};
 }
 

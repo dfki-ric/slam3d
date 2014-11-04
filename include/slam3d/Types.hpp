@@ -3,6 +3,7 @@
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/kdtree/kdtree_flann.h>
 
 namespace slam3d
 {
@@ -12,6 +13,8 @@ namespace slam3d
 	
 	typedef pcl::PointXYZI PointType;
 	typedef pcl::PointCloud<PointType> PointCloud;
+	
+	typedef pcl::KdTreeFLANN<PointType> SearchTree;
 }
 
 #endif

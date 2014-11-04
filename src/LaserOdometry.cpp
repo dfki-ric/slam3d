@@ -1,6 +1,6 @@
 #include <slam3d/LaserOdometry.hpp>
 
-#include <utility> 
+#include <utility>
 #include <algorithm>
 #include <iostream>
 
@@ -18,6 +18,8 @@ LaserOdometry::LaserOdometry()
 	double sin1 = sin(DEG2RAD(mLaserAngleDeg));
 	double sin2 = sin(DEG2RAD(mMaxSurfaceAngleDeg));
 	mDistanceRelation = (sin1 * sin1) / (sin2 * sin2);
+	
+	mScanSize = -1;
 }
 
 LaserOdometry::~LaserOdometry()
@@ -27,11 +29,16 @@ LaserOdometry::~LaserOdometry()
 
 void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 {
+	// Set scan size
+	if(mScanSize < 0)
+		mScanSize = scan->size();
+	
 	mEdgePoints.header = scan->header;
 	mSurfacePoints.header = scan->header;
 	mExtraPoints.header = scan->header;
 
 	extractFeatures(scan);
+	calculatePose();
 }
 
 void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
@@ -144,10 +151,12 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 		{
 			if (filter[i->second] == 0 && i->first > 0.1)
 			{
+				PointType newFeature = scan->points[i->second];
+				newFeature.intensity = scan->header.stamp;
 				largestPickedNum++;
 				if (largestPickedNum <= 2)
 				{
-					mEdgePoints.push_back(scan->points[i->second]);
+					mEdgePoints.push_back(newFeature);
 				} else if (largestPickedNum <= 20)
 				{
 					mExtraPoints.push_back(scan->points[i->second]);
@@ -176,13 +185,15 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 		{
 			if (filter[i->second] == 0 && i->first < 0.1)
 			{
+				PointType newFeature = scan->points[i->second];
+				newFeature.intensity = scan->header.stamp;
 				smallestPickedNum++;
 				if (smallestPickedNum <= 4)
 				{
-					mSurfacePoints.push_back(scan->points[i->second]);
+					mSurfacePoints.push_back(newFeature);
 				}else
 				{
-					mExtraPoints.push_back(scan->points[i->second]);
+					mExtraPoints.push_back(newFeature);
 				}
 					
 				// Invalidate points nearby
@@ -201,13 +212,144 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 	}
 }
 
-void LaserOdometry::finishSweep()
+void LaserOdometry::calculatePose()
+{
+	// Correspondences for edge points
+	std::vector<int> pointSearchInd;
+	std::vector<float> pointSearchSqDis;
+		
+	for(PointCloud::iterator point_i = mEdgePoints.begin(); point_i < mEdgePoints.end(); point_i++)
+	{
+		// Transform point to ??? time
+		PointType point_i_sh = *point_i; // timeShift(*point_i, timestamp);
+		
+		// Let j be the nearest neighbor of i within the previous sweep
+		mEdgeTree.nearestKSearch(point_i_sh, 1, pointSearchInd, pointSearchSqDis);
+		int index_j = pointSearchInd[0];
+		double time_j = mLastEdgePoints[index_j].intensity;
+		
+		if (pointSearchSqDis[0] > 1.0)
+			continue;
+		PointCloud::iterator point_j = mLastEdgePoints.begin() + index_j;
+
+		// Let l be the nearest neighbor of i within an adjacent scan
+		int index_l = 1;
+		double min_dis_l = 1;
+		
+		int begin = std::max(0, index_j - (2*mScanSize));
+		int end = std::min((int)mLastEdgePoints.size(), index_j + (2*mScanSize));
+		for(int l = begin; l < end; l++)
+		{
+			// Check if it is an adjacent scan via the timestamp (-_-)
+			if (!((mLastEdgePoints[l].intensity < time_j - 0.005 && mLastEdgePoints[l].intensity > time_j - 0.07) || 
+			      (mLastEdgePoints[l].intensity > time_j + 0.005 && mLastEdgePoints[l].intensity < time_j + 0.07)))
+				continue;
+
+			// Calculate distance between Points i and l (why?)
+			double sq_dis_i_l = (mLastEdgePoints[l].x - point_i_sh.x) * (mLastEdgePoints[l].x - point_i_sh.x) +
+			             (mLastEdgePoints[l].x - point_i_sh.y) * (mLastEdgePoints[l].x - point_i_sh.y) + 
+			             (mLastEdgePoints[l].x - point_i_sh.z) * (mLastEdgePoints[l].x - point_i_sh.z);
+
+			if (sq_dis_i_l < min_dis_l)
+			{
+				min_dis_l = sq_dis_i_l;
+				index_l = l;
+			}
+		}
+/*
+		if (minPointInd2 >= 0)
+		{
+			tripod1 = laserCloudCornerPtr->points[closestPointInd];
+			tripod2 = laserCloudCornerPtr->points[minPointInd2];
+
+			float x0 = extreSel.x;
+			float y0 = extreSel.y;
+			float z0 = extreSel.z;
+			float x1 = tripod1.x;
+			float y1 = tripod1.y;
+			float z1 = tripod1.z;
+			float x2 = tripod2.x;
+			float y2 = tripod2.y;
+			float z2 = tripod2.z;
+
+			float a012 = sqrt(((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1))
+				* ((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
+				+ ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))
+				* ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
+				+ ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))
+				* ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1)));
+
+			float l12 = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2));
+
+			float la = ((y1 - y2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
+			+ (z1 - z2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))) / a012 / l12;
+
+			float lb = -((x1 - x2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
+			- (z1 - z2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / a012 / l12;
+
+			float lc = -((x1 - x2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
+			+ (y1 - y2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / a012 / l12;
+
+			float ld2 = a012 / l12;
+
+			extreProj = extreSel;
+			extreProj.x -= la * ld2;
+			extreProj.y -= lb * ld2;
+			extreProj.z -= lc * ld2;
+
+			float s = 2 * (1 - 8 * fabs(ld2));
+
+			coeff.x = s * la;
+			coeff.y = s * lb;
+			coeff.z = s * lc;
+			coeff.h = s * ld2;
+
+			if (s > 0.4)
+			{
+				laserCloudExtreOri->push_back(extreOri);
+				//laserCloudExtreSel->push_back(extreSel);
+				//laserCloudExtreProj->push_back(extreProj);
+				//laserCloudSel->push_back(tripod1);
+				//laserCloudSel->push_back(tripod2);
+				coeffSel->push_back(coeff);
+
+				if (isPointSel)
+				{
+					pointSelInd[3 * i] = closestPointInd;
+					pointSelInd[3 * i + 1] = minPointInd2;
+				}
+			}
+			else
+			{
+			//	laserCloudExtreUnsel->push_back(extreSel);
+			}
+		}
+*/	}
+	// Correspondences for surface points
+}
+
+void LaserOdometry::finishSweep(double timestamp)
 {
 	mLastSweep = mEdgePoints;
 	mLastSweep += mSurfacePoints;
 	mLastSweep += mExtraPoints;
 	
+	mLastEdgePoints = mEdgePoints;
+	mLastSurfacePoints = mSurfacePoints;
+	
+	mEdgeTree.setInputCloud(PointCloud::Ptr(&mLastEdgePoints));
+	mSurfaceTree.setInputCloud(PointCloud::Ptr(&mLastSurfacePoints));
+	
+	// Shouldn't this be done before setting the kdTree?
+	timeShift(mLastEdgePoints, timestamp);
+	timeShift(mLastSurfacePoints, timestamp);
+	
 	mEdgePoints.clear();
 	mSurfacePoints.clear();
 	mExtraPoints.clear();
+}
+
+void LaserOdometry::timeShift(PointCloud& pointcloud, double timestamp)
+{
+	
 }
