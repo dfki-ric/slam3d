@@ -219,6 +219,10 @@ void LaserOdometry::calculatePose()
 	if(mLastEdgePoints.size() == 0)
 		return;
 	
+	// Some definitions from LOAM
+	PointCloud laserCloudExtreOri;
+	PointCloud coeffSel;
+	
 	// Correspondences for edge points
 	std::vector<int> pointSearchInd;
 	std::vector<float> pointSearchSqDis;
@@ -261,15 +265,16 @@ void LaserOdometry::calculatePose()
 				index_l = l;
 			}
 		}
-/*
-		if (minPointInd2 >= 0)
-		{
-			tripod1 = laserCloudCornerPtr->points[closestPointInd];
-			tripod2 = laserCloudCornerPtr->points[minPointInd2];
 
-			float x0 = extreSel.x;
-			float y0 = extreSel.y;
-			float z0 = extreSel.z;
+		// Calculate distance of i to line (j,l)
+		if (index_l >= 0)
+		{
+			PointType tripod1 = mLastEdgePoints[index_j];
+			PointType tripod2 = mLastEdgePoints[index_l];
+
+			float x0 = point_i_sh.x;
+			float y0 = point_i_sh.y;
+			float z0 = point_i_sh.z;
 			float x1 = tripod1.x;
 			float y1 = tripod1.y;
 			float z1 = tripod1.z;
@@ -297,40 +302,38 @@ void LaserOdometry::calculatePose()
 
 			float ld2 = a012 / l12;
 
-			extreProj = extreSel;
-			extreProj.x -= la * ld2;
-			extreProj.y -= lb * ld2;
-			extreProj.z -= lc * ld2;
+			PointType point_i_proj = point_i_sh;
+			point_i_proj.x -= la * ld2;
+			point_i_proj.y -= lb * ld2;
+			point_i_proj.z -= lc * ld2;
 
 			float s = 2 * (1 - 8 * fabs(ld2));
 
+			PointType coeff;
 			coeff.x = s * la;
 			coeff.y = s * lb;
 			coeff.z = s * lc;
-			coeff.h = s * ld2;
+			coeff.intensity = s * ld2;
 
 			if (s > 0.4)
 			{
-				laserCloudExtreOri->push_back(extreOri);
-				//laserCloudExtreSel->push_back(extreSel);
-				//laserCloudExtreProj->push_back(extreProj);
-				//laserCloudSel->push_back(tripod1);
-				//laserCloudSel->push_back(tripod2);
-				coeffSel->push_back(coeff);
-
-				if (isPointSel)
-				{
-					pointSelInd[3 * i] = closestPointInd;
-					pointSelInd[3 * i + 1] = minPointInd2;
-				}
-			}
-			else
-			{
-			//	laserCloudExtreUnsel->push_back(extreSel);
+				laserCloudExtreOri.push_back(*point_i);
+				coeffSel.push_back(coeff);
 			}
 		}
-*/	}
+	}
+
 	// Correspondences for surface points
+	// TODO
+	
+	
+	// Calculate the motion between current scan and last sweep
+	int extrePointSelNum = laserCloudExtreOri.points.size();
+	std::cout << "PointCloud laserCloudExtreOri has " << extrePointSelNum << " Points." << std::endl;
+//	if (extrePointSelNum < 10)
+//	{
+//		continue;
+//	}
 }
 
 void LaserOdometry::finishSweep(double timestamp)
