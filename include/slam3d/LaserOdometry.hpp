@@ -26,6 +26,7 @@ namespace slam3d
 		void extractFeatures(PointCloud::ConstPtr scan);
 		void calculatePose();
 		void timeShift(PointCloud& pointcloud, double timestamp);
+		bool doNonlinearOptimization(int iteration);
 		
 		double mLaserAngleDeg;
 		double mMaxSurfaceAngleDeg;
@@ -35,6 +36,16 @@ namespace slam3d
 		SearchTree mSurfaceTree;
 		
 		int mScanSize;
+		
+		// Transformations, replace with something appropriate
+		float transform[6];
+		float transformRec[6];
+		float transformSum[6];
+		
+		double mCurrentSweepStart;
+		double mLastSweepStart;
+		double mLastScanTime;
+		double mRelativeSweepTime;
 	};
 }
 
