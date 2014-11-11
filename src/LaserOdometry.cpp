@@ -7,6 +7,8 @@
 #include <boost/make_shared.hpp>
 #include <Eigen/Dense>
 
+#define MAGIC_PARAM 1.0
+
 // [LOAM] Zhang, J., & Singh, S. LOAM : Lidar Odometry and Mapping in Real-time.
 
 using namespace slam3d;
@@ -59,10 +61,16 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 	mRelativeSweepTime = (mCurrentScanTime - mCurrentSweepStart) / (mCurrentSweepStart - mLastSweepStart);
 
 	extractFeatures(scan);
-//	if(mLastSweepStart > 0)
-//	{
+	if(mLastSweepStart > 0)
+	{
+		double s = (mCurrentScanTime - mLastScanTime) / (mCurrentSweepStart - mLastSweepStart);
+		assert(s == s);
+		for (int i = 0; i < 6; i++)
+		{
+			transform[i] += s * transformRec[i];
+		}
 		calculatePose();
-//	}
+	}
 }
 
 void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
@@ -240,11 +248,14 @@ void LaserOdometry::calculatePose()
 {
 	if(mLastEdgePoints.size() == 0)
 		return;
-		
-	for(int i = 0; i < 1; i++)
+
+	for(int i = 1; i <= 50; i++)
 	{
 		if(doNonlinearOptimization(i))
+		{
+			std::cout << "Optimization succeeded after " << i << " iterations." << std::endl;
 			break;
+		}
 	}
 }
 
@@ -261,7 +272,7 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	for(PointCloud::iterator point_i = mEdgePoints.begin(); point_i < mEdgePoints.end(); point_i++)
 	{
 		// Transform point to ??? time
-		PointType point_i_sh = *point_i; // timeShift(*point_i, timestamp);
+		PointType point_i_sh = shiftToStart(*point_i);
 		
 		// Let j be the nearest neighbor of i within the previous sweep
 		mEdgeTree.nearestKSearch(point_i_sh, 1, pointSearchInd, pointSearchSqDis);
@@ -365,7 +376,7 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	
 	// Calculate the motion between current scan and last sweep
 	int extrePointSelNum = laserCloudExtreOri.points.size();
-	std::cout << "PointCloud laserCloudExtreOri has " << extrePointSelNum << " Points." << std::endl;
+//	std::cout << "PointCloud laserCloudExtreOri has " << extrePointSelNum << " Points." << std::endl;
 	if (extrePointSelNum < 10)
 	{
 		return false;
@@ -379,6 +390,8 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	Eigen::Matrix<float, 6, 1> matAtB;
 	Eigen::Matrix<float, 6, 1> matX;
 	
+	float s =  (mCurrentScanTime - mLastScanTime) / (mCurrentSweepStart- mLastSweepStart);
+//	printf("s: %f4 / %.4f / %.4f / %.4f / %.4f\n",s ,mCurrentScanTime, mLastScanTime, mCurrentSweepStart, mLastSweepStart);
 	for (int i = 0; i < extrePointSelNum; i++)
 	{
 		PointType extreOri = laserCloudExtreOri[i];
@@ -386,8 +399,6 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 
 		// Scan time / Sweep time
 //		float s = (timeLasted - timeLastedRec) / (startTimeCur - startTimeLast);
-		float s =  (extreOri.intensity - mLastScanTime) / (mCurrentSweepStart- mLastSweepStart);
-		printf("%.4f - %.4f - %.4f - %.4f\n", extreOri.intensity, mLastScanTime, mCurrentSweepStart, mLastSweepStart);
 
 		float srx = sin(s * transform[0]);
 		float crx = cos(s * transform[0]);
@@ -440,18 +451,17 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 		matA(i, 5) = atz;
 		matB(i, 0) = -0.015 * mRelativeSweepTime * d2;
 	}
-	return true;
 	
-	std::cout << "Matrix A:\n" << matA << std::endl;
-	std::cout << "Matrix B:\n" << matB << std::endl;
+//	std::cout << "Matrix A:\n" << matA << std::endl;
+//	std::cout << "Matrix B:\n" << matB << std::endl;
 	matAt = matA.transpose();
-	std::cout << "Matrix At:\n" << matAt << std::endl;
+//	std::cout << "Matrix At:\n" << matAt << std::endl;
 	matAtA = matAt * matA;
-	std::cout << "Matrix AtA:\n" << matAtA << std::endl;
+//	std::cout << "Matrix AtA:\n" << matAtA << std::endl;
 	matAtB = matAt * matB;
-	std::cout << "Matrix AtB:\n" << matAtB << std::endl;
+//	std::cout << "Matrix AtB:\n" << matAtB << std::endl;
 	matX = matAtA.colPivHouseholderQr().solve(matAtB);
-	std::cout << "Matrix X:\n" << matX << std::endl;
+//	std::cout << "Matrix X:\n" << matX << std::endl;
 
 	if (fabs(matX(0, 0)) < 0.005 &&
 		fabs(matX(1, 0)) < 0.005 &&
@@ -469,6 +479,7 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	}else
 	{
 		std::cout << "Odometry update out of bound!" << std::endl;
+		return false;
 	}
 
 	float deltaR = sqrt(RAD2DEG(matX(0, 0)) * RAD2DEG(matX(0, 0))
@@ -478,7 +489,7 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	                  + matX(4, 0) * 100 * matX(4, 0) * 100
 	                  + matX(5, 0) * 100 * matX(5, 0) * 100);
 
-	std::cout << "Iteration " << iteration << ": DeltaR = " << deltaR << " / DeltaT = " << deltaT << std::endl;
+//	std::cout << "Iteration " << iteration << ": DeltaR = " << deltaR << " / DeltaT = " << deltaT << std::endl;
 
 	if (deltaR < 0.02 && deltaT < 0.02)
 	{
@@ -489,6 +500,8 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 
 void LaserOdometry::finishSweep(double timestamp)
 {
+	accumulateRotation();
+	
 	mLastSweep = mEdgePoints;
 	mLastSweep += mSurfacePoints;
 	mLastSweep += mExtraPoints;
@@ -500,8 +513,8 @@ void LaserOdometry::finishSweep(double timestamp)
 	mSurfaceTree.setInputCloud(boost::make_shared<PointCloud>(mLastSurfacePoints));
 	
 	// Shouldn't this be done before setting the kdTree?
-	timeShift(mLastEdgePoints, timestamp);
-	timeShift(mLastSurfacePoints, timestamp);
+//	timeShift(mLastEdgePoints, timestamp);
+//	timeShift(mLastSurfacePoints, timestamp);
 	
 	mEdgePoints.clear();
 	mSurfacePoints.clear();
@@ -509,9 +522,90 @@ void LaserOdometry::finishSweep(double timestamp)
 	
 	mLastSweepStart = mCurrentSweepStart;
 	mCurrentSweepStart = timestamp - mInitialTime;
+	
+	// Reset Transformations
+	for (int i = 0; i < 6; i++)
+	{
+		transformRec[i] = transform[i];
+		transform[i] = 0;
+	}
 }
 
-void LaserOdometry::timeShift(PointCloud& pointcloud, double timestamp)
+PointType LaserOdometry::shiftToStart(PointType& pi)
 {
+	assert(pi.x == pi.x);
+	assert(pi.y == pi.y);
+	assert(pi.z == pi.z);
 	
+	assert(transform[0] == transform[0]);
+	assert(transform[1] == transform[1]);
+	assert(transform[2] == transform[2]);
+	assert(transform[3] == transform[3]);
+	assert(transform[4] == transform[4]);
+	assert(transform[5] == transform[5]);
+	
+//	double s = (pi->h - startTime) / (endTime - startTime);
+	double s = (pi.intensity - mCurrentSweepStart) / (mCurrentScanTime - mCurrentSweepStart);
+
+	double rx = s * transform[0];
+	double ry = s * transform[1];
+	double rz = s * transform[2];
+	double tx = s * transform[3];
+	double ty = s * transform[4];
+	double tz = s * transform[5];
+
+	double x1 = cos(rz) * (pi.x - tx) + sin(rz) * (pi.y - ty);
+	double y1 = -sin(rz) * (pi.x - tx) + cos(rz) * (pi.y - ty);
+	double z1 = (pi.z - tz);
+
+	double x2 = x1;
+	double y2 = cos(rx) * y1 + sin(rx) * z1;
+	double z2 = -sin(rx) * y1 + cos(rx) * z1;
+
+	PointType po;
+	po.x = cos(ry) * x2 - sin(ry) * z2;
+	po.y = y2;
+	po.z = sin(ry) * x2 + cos(ry) * z2;
+	po.intensity = pi.intensity;
+	
+	assert(po.x == po.x);
+	assert(po.y == po.y);
+	assert(po.z == po.z);
+	return po;
+}
+
+void LaserOdometry::accumulateRotation()
+{
+	float cx = transformSum[0];
+	float cy = transformSum[1];
+	float cz = transformSum[2];
+	float lx = -transform[0];
+	float ly = -transform[1] * MAGIC_PARAM;
+	float lz = -transform[2];
+	float srx = cos(lx)*cos(cx)*sin(ly)*sin(cz) - cos(cx)*cos(cz)*sin(lx) - cos(lx)*cos(ly)*sin(cx);
+	float rx = -asin(srx);
+	float srycrx = sin(lx)*(cos(cy)*sin(cz) - cos(cz)*sin(cx)*sin(cy)) + cos(lx)*sin(ly)*(cos(cy)*cos(cz)
+	+ sin(cx)*sin(cy)*sin(cz)) + cos(lx)*cos(ly)*cos(cx)*sin(cy);
+	float crycrx = cos(lx)*cos(ly)*cos(cx)*cos(cy) - cos(lx)*sin(ly)*(cos(cz)*sin(cy)
+	- cos(cy)*sin(cx)*sin(cz)) - sin(lx)*(sin(cy)*sin(cz) + cos(cy)*cos(cz)*sin(cx));
+	float ry = atan2(srycrx / cos(rx), crycrx / cos(rx));
+	float srzcrx = sin(cx)*(cos(lz)*sin(ly) - cos(ly)*sin(lx)*sin(lz)) + cos(cx)*sin(cz)*(cos(ly)*cos(lz)
+	+ sin(lx)*sin(ly)*sin(lz)) + cos(lx)*cos(cx)*cos(cz)*sin(lz);
+	float crzcrx = cos(lx)*cos(lz)*cos(cx)*cos(cz) - cos(cx)*sin(cz)*(cos(ly)*sin(lz)
+	- cos(lz)*sin(lx)*sin(ly)) - sin(cx)*(sin(ly)*sin(lz) + cos(ly)*cos(lz)*sin(lx));
+	float rz = atan2(srzcrx / cos(rx), crzcrx / cos(rx));
+	float x1 = cos(rz) * (transform[3])
+	- sin(rz) * (transform[4]);
+	float y1 = sin(rz) * (transform[3])
+	+ cos(rz) * (transform[4]);
+	float z1 = transform[5] * MAGIC_PARAM;
+	float x2 = x1;
+	float y2 = cos(rx) * y1 - sin(rx) * z1;
+	float z2 = sin(rx) * y1 + cos(rx) * z1;
+	transformSum[0] = rx;
+	transformSum[1] = ry;
+	transformSum[2] = rz;
+	transformSum[3] = transformSum[3] - (cos(ry) * x2 + sin(ry) * z2);
+	transformSum[4] = transformSum[4] - y2;
+	transformSum[5] = transformSum[5] - (-sin(ry) * x2 + cos(ry) * z2);
 }

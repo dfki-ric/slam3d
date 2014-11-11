@@ -22,11 +22,18 @@ namespace slam3d
 		PointCloud mLastEdgePoints;
 		PointCloud mLastSweep;
 		
+		// Transformations, replace with something appropriate
+		float transform[6];
+		float transformRec[6];
+		float transformSum[6];
+		
 	private:
 		void extractFeatures(PointCloud::ConstPtr scan);
 		void calculatePose();
-		void timeShift(PointCloud& pointcloud, double timestamp);
+		PointType shiftToStart(PointType& point);
 		bool doNonlinearOptimization(int iteration);
+		
+		void accumulateRotation();
 		
 		double mLaserAngleDeg;
 		double mMaxSurfaceAngleDeg;
@@ -37,11 +44,7 @@ namespace slam3d
 		
 		int mScanSize;
 		
-		// Transformations, replace with something appropriate
-		float transform[6];
-		float transformRec[6];
-		float transformSum[6];
-		
+		// Timestamp stuff from LOAM
 		double mInitialTime;
 		double mCurrentSweepStart;
 		double mLastSweepStart;
