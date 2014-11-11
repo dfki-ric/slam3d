@@ -30,6 +30,10 @@ LaserOdometry::LaserOdometry()
 		transformRec[i] = 0;
 		transformSum[i] = 0;	
 	}
+	
+	mInitialTime = -1;
+	mCurrentSweepStart = -1;
+	mLastSweepStart = -1;
 }
 
 LaserOdometry::~LaserOdometry()
@@ -39,21 +43,26 @@ LaserOdometry::~LaserOdometry()
 
 void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 {
-	// Set scan size
+	// First scan, do some initializaition
 	if(mScanSize < 0)
+	{
 		mScanSize = scan->size();
-	
+		mInitialTime = (double)scan->header.stamp / 1000000;
+	}
 	mEdgePoints.header = scan->header;
 	mSurfacePoints.header = scan->header;
 	mExtraPoints.header = scan->header;
+	mLastScanTime = mCurrentScanTime;
+	mCurrentScanTime = (double)scan->header.stamp / 1000000 - mInitialTime;
 
 //	st = (timeLasted - startTime) / (startTimeCur - startTimeLast);
-	mRelativeSweepTime = (scan->header.stamp - mCurrentSweepStart) / (mCurrentSweepStart - mLastSweepStart);
+	mRelativeSweepTime = (mCurrentScanTime - mCurrentSweepStart) / (mCurrentSweepStart - mLastSweepStart);
 
 	extractFeatures(scan);
-	calculatePose();
-	
-	mLastScanTime = scan->header.stamp;
+//	if(mLastSweepStart > 0)
+//	{
+		calculatePose();
+//	}
 }
 
 void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
@@ -167,14 +176,14 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 			if (filter[i->second] == 0 && i->first > 0.1)
 			{
 				PointType newFeature = scan->points[i->second];
-				newFeature.intensity = scan->header.stamp;
+				newFeature.intensity = mCurrentScanTime;
 				largestPickedNum++;
 				if (largestPickedNum <= 2)
 				{
 					mEdgePoints.push_back(newFeature);
 				} else if (largestPickedNum <= 20)
 				{
-					mExtraPoints.push_back(scan->points[i->second]);
+					mExtraPoints.push_back(newFeature);
 				}else
 				{
 					break;
@@ -201,7 +210,7 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 			if (filter[i->second] == 0 && i->first < 0.1)
 			{
 				PointType newFeature = scan->points[i->second];
-				newFeature.intensity = scan->header.stamp;
+				newFeature.intensity = mCurrentScanTime;
 				smallestPickedNum++;
 				if (smallestPickedNum <= 4)
 				{
@@ -232,7 +241,7 @@ void LaserOdometry::calculatePose()
 	if(mLastEdgePoints.size() == 0)
 		return;
 		
-	for(int i = 0; i < 25; i++)
+	for(int i = 0; i < 1; i++)
 	{
 		if(doNonlinearOptimization(i))
 			break;
@@ -364,7 +373,7 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	
 	// Levenberg-Marquardt-Algorithm
 	Eigen::Matrix<float, Eigen::Dynamic, 6> matA(extrePointSelNum, 6);
-	Eigen::Matrix<float, Eigen::Dynamic, 6> matAt(extrePointSelNum, 6);
+	Eigen::Matrix<float, 6, Eigen::Dynamic> matAt(6, extrePointSelNum);
 	Eigen::Matrix<float, 6, 6> matAtA;
 	Eigen::Matrix<float, Eigen::Dynamic, 1> matB(extrePointSelNum, 1);
 	Eigen::Matrix<float, 6, 1> matAtB;
@@ -378,6 +387,7 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 		// Scan time / Sweep time
 //		float s = (timeLasted - timeLastedRec) / (startTimeCur - startTimeLast);
 		float s =  (extreOri.intensity - mLastScanTime) / (mCurrentSweepStart- mLastSweepStart);
+		printf("%.4f - %.4f - %.4f - %.4f\n", extreOri.intensity, mLastScanTime, mCurrentSweepStart, mLastSweepStart);
 
 		float srx = sin(s * transform[0]);
 		float crx = cos(s * transform[0]);
@@ -430,15 +440,18 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 		matA(i, 5) = atz;
 		matB(i, 0) = -0.015 * mRelativeSweepTime * d2;
 	}
-//	cv::transpose(matA, matAt);
-//	matAtA = matAt * matA; //+ 0.1 * cv::Mat::eye(6, 6, CV_32F);
-//	matAtB = matAt * matB;
-//	cv::solve(matAtA, matAtB, matX, cv::DECOMP_QR);
+	return true;
 	
+	std::cout << "Matrix A:\n" << matA << std::endl;
+	std::cout << "Matrix B:\n" << matB << std::endl;
 	matAt = matA.transpose();
+	std::cout << "Matrix At:\n" << matAt << std::endl;
 	matAtA = matAt * matA;
+	std::cout << "Matrix AtA:\n" << matAtA << std::endl;
 	matAtB = matAt * matB;
+	std::cout << "Matrix AtB:\n" << matAtB << std::endl;
 	matX = matAtA.colPivHouseholderQr().solve(matAtB);
+	std::cout << "Matrix X:\n" << matX << std::endl;
 
 	if (fabs(matX(0, 0)) < 0.005 &&
 		fabs(matX(1, 0)) < 0.005 &&
@@ -464,6 +477,8 @@ bool LaserOdometry::doNonlinearOptimization(int iteration)
 	float deltaT = sqrt(matX(3, 0) * 100 * matX(3, 0) * 100
 	                  + matX(4, 0) * 100 * matX(4, 0) * 100
 	                  + matX(5, 0) * 100 * matX(5, 0) * 100);
+
+	std::cout << "Iteration " << iteration << ": DeltaR = " << deltaR << " / DeltaT = " << deltaT << std::endl;
 
 	if (deltaR < 0.02 && deltaT < 0.02)
 	{
@@ -493,7 +508,7 @@ void LaserOdometry::finishSweep(double timestamp)
 	mExtraPoints.clear();
 	
 	mLastSweepStart = mCurrentSweepStart;
-	mCurrentSweepStart = timestamp;
+	mCurrentSweepStart = timestamp - mInitialTime;
 }
 
 void LaserOdometry::timeShift(PointCloud& pointcloud, double timestamp)

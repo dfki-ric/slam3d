@@ -42,8 +42,10 @@ namespace slam3d
 		float transformRec[6];
 		float transformSum[6];
 		
+		double mInitialTime;
 		double mCurrentSweepStart;
 		double mLastSweepStart;
+		double mCurrentScanTime;
 		double mLastScanTime;
 		double mRelativeSweepTime;
 	};
