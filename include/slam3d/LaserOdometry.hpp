@@ -14,6 +14,10 @@ namespace slam3d
 		void addScan(PointCloud::ConstPtr scan);
 		void finishSweep(double timestamp);
 
+		Affine getPose();
+		Affine getTransform() {return mTransform;}
+		Affine getAccTransform() {return mAccTransform;}
+
 		PointCloud mSurfacePoints;
 		PointCloud mEdgePoints;
 		PointCloud mExtraPoints;
@@ -27,6 +31,8 @@ namespace slam3d
 		void calculatePose();
 		void findCorrespondences();
 		
+		void transformToEnd(PointCloud& pc);
+		
 		double mLaserAngleDeg;
 		double mMaxSurfaceAngleDeg;
 		double mDistanceRelation;
@@ -35,6 +41,9 @@ namespace slam3d
 		SearchTree mSurfaceTree;
 		
 		int mScanSize;
+		
+		Affine mTransform;
+		Affine mAccTransform;
 		
 		// Timestamp stuff from LOAM
 		double mInitialTime;

@@ -7,7 +7,7 @@
 #include <boost/make_shared.hpp>
 #include <Eigen/Dense>
 
-#define MAGIC_PARAM 1.0
+#include <pcl/common/transforms.h>
 
 // [LOAM] Zhang, J., & Singh, S. LOAM : Lidar Odometry and Mapping in Real-time.
 
@@ -29,6 +29,9 @@ LaserOdometry::LaserOdometry()
 	mInitialTime = -1;
 	mCurrentSweepStart = -1;
 	mLastSweepStart = -1;
+	
+	mTransform = Affine::Identity();
+	mAccTransform = Affine::Identity();
 }
 
 LaserOdometry::~LaserOdometry()
@@ -50,20 +53,11 @@ void LaserOdometry::addScan(PointCloud::ConstPtr scan)
 	mLastScanTime = mCurrentScanTime;
 	mCurrentScanTime = (double)scan->header.stamp / 1000000 - mInitialTime;
 
-//	st = (timeLasted - startTime) / (startTimeCur - startTimeLast);
 	mRelativeSweepTime = (mCurrentScanTime - mCurrentSweepStart) / (mCurrentSweepStart - mLastSweepStart);
 
 	extractFeatures(scan);
-	if(mLastSweepStart > 0)
-	{
-		double s = (mCurrentScanTime - mLastScanTime) / (mCurrentSweepStart - mLastSweepStart);
-		assert(s == s);
-//		for (int i = 0; i < 6; i++)
-//		{
-//			transform[i] += s * transformRec[i];
-//		}
-		calculatePose();
-	}
+
+	mTransform.translate(Translation(0.1, 0, 0));
 }
 
 void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
@@ -369,23 +363,47 @@ void LaserOdometry::findCorrespondences()
 }
 
 void LaserOdometry::finishSweep(double timestamp)
-{	
-	mLastSweep = mEdgePoints;
-	mLastSweep += mSurfacePoints;
-	mLastSweep += mExtraPoints;
+{
 	
 	mLastEdgePoints = mEdgePoints;
 	mLastSurfacePoints = mSurfacePoints;
 	mLastSweepStart = mCurrentSweepStart;
 	mCurrentSweepStart = timestamp - mInitialTime;
 	
+	// Transform Feature-Clouds to sweep end time
+	transformToEnd(mLastEdgePoints);
+	transformToEnd(mLastSurfacePoints);
+	transformToEnd(mExtraPoints);
+	
+	// Add to one pointcloud (this will be input for the mapper)
+	mLastSweep = mLastEdgePoints;
+	mLastSweep += mLastSurfacePoints;
+	mLastSweep += mExtraPoints;
+	
 	mEdgeTree.setInputCloud(boost::make_shared<PointCloud>(mLastEdgePoints));
 	mSurfaceTree.setInputCloud(boost::make_shared<PointCloud>(mLastSurfacePoints));
-	
-	// TODO: Transform Feature-Clouds to sweep end time
 	
 	mEdgePoints.clear();
 	mSurfacePoints.clear();
 	mExtraPoints.clear();
 	
+	// Reset Transformations
+	mAccTransform = mTransform * mAccTransform;
+	mTransform.setIdentity();
+}
+
+Affine LaserOdometry::getPose()
+{
+	return mTransform;
+}
+
+void LaserOdometry::transformToEnd(PointCloud& pc)
+{
+	for(PointCloud::iterator i = pc.begin(); i < pc.end(); i++)
+	{
+		double s = (i->intensity - mLastSweepStart) / (mCurrentSweepStart - mLastSweepStart);
+		Affine scaledTransform = mTransform;
+		scaledTransform.linear() = scaledTransform.linear() * s;
+		*i = pcl::transformPoint(*i, scaledTransform);
+	}
 }
