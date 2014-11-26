@@ -32,6 +32,7 @@ namespace slam3d
 		void findCorrespondences();
 		
 		void transformToEnd(PointCloud& pc);
+		PointType transformToStart(PointType p);
 		
 		double mLaserAngleDeg;
 		double mMaxSurfaceAngleDeg;

@@ -69,19 +69,19 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 
 	for (int i = 5; i < cloudSize - 6; i++)
 	{
-		float diffX = scan->points[i + 1].x - scan->points[i].x;
-		float diffY = scan->points[i + 1].y - scan->points[i].y;
-		float diffZ = scan->points[i + 1].z - scan->points[i].z;
-		float diff = diffX * diffX + diffY * diffY + diffZ * diffZ;
+		ScalarType diffX = scan->points[i + 1].x - scan->points[i].x;
+		ScalarType diffY = scan->points[i + 1].y - scan->points[i].y;
+		ScalarType diffZ = scan->points[i + 1].z - scan->points[i].z;
+		ScalarType diff = diffX * diffX + diffY * diffY + diffZ * diffZ;
 
-		float depth1 = sqrt(scan->points[i].x * scan->points[i].x + 
+		ScalarType depth1 = sqrt(scan->points[i].x * scan->points[i].x + 
 			scan->points[i].y * scan->points[i].y +
 			scan->points[i].z * scan->points[i].z);
 
 		// Filter points on boundaries of occluded regions
 		if (diff > 0.05)
 		{
-			float depth2 = sqrt(scan->points[i + 1].x * scan->points[i + 1].x + 
+			ScalarType depth2 = sqrt(scan->points[i + 1].x * scan->points[i + 1].x + 
 				scan->points[i + 1].y * scan->points[i + 1].y +
 				scan->points[i + 1].z * scan->points[i + 1].z);
 
@@ -119,10 +119,10 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 		}
 
 		// Filter points that are raughly parallel using law of sines
-		float diffX2 = scan->points[i].x - scan->points[i - 1].x;
-		float diffY2 = scan->points[i].y - scan->points[i - 1].y;
-		float diffZ2 = scan->points[i].z - scan->points[i - 1].z;
-		float diff2 = diffX2 * diffX2 + diffY2 * diffY2 + diffZ2 * diffZ2;
+		ScalarType diffX2 = scan->points[i].x - scan->points[i - 1].x;
+		ScalarType diffY2 = scan->points[i].y - scan->points[i - 1].y;
+		ScalarType diffZ2 = scan->points[i].z - scan->points[i - 1].z;
+		ScalarType diff2 = diffX2 * diffX2 + diffY2 * diffY2 + diffZ2 * diffZ2;
 
 		if (diff > mDistanceRelation * depth1 && diff2 > mDistanceRelation * depth1)
 		{
@@ -187,9 +187,9 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 				// Invalidate points nearby
 				for (int k = i->second-5; k <= i->second+5; k++)
 				{
-					float diffX = scan->points[k].x - scan->points[i->second].x;
-					float diffY = scan->points[k].y - scan->points[i->second].y;
-					float diffZ = scan->points[k].z - scan->points[i->second].z;
+					ScalarType diffX = scan->points[k].x - scan->points[i->second].x;
+					ScalarType diffY = scan->points[k].y - scan->points[i->second].y;
+					ScalarType diffZ = scan->points[k].z - scan->points[i->second].z;
 					if (diffX * diffX + diffY * diffY + diffZ * diffZ <= 0.2)
 					{
 						filter[k] = 1;
@@ -218,9 +218,9 @@ void LaserOdometry::extractFeatures(PointCloud::ConstPtr scan)
 				// Invalidate points nearby
 				for (int k = i->second-5; k <= i->second+5; k++)
 				{
-					float diffX = scan->points[k].x - scan->points[i->second].x;
-					float diffY = scan->points[k].y - scan->points[i->second].y;
-					float diffZ = scan->points[k].z - scan->points[i->second].z;
+					ScalarType diffX = scan->points[k].x - scan->points[i->second].x;
+					ScalarType diffY = scan->points[k].y - scan->points[i->second].y;
+					ScalarType diffZ = scan->points[k].z - scan->points[i->second].z;
 					if (diffX * diffX + diffY * diffY + diffZ * diffZ <= 0.2)
 					{
 						filter[k] = 1;
@@ -254,7 +254,7 @@ void LaserOdometry::findCorrespondences()
 	
 	// Correspondences for edge points
 	std::vector<int> pointSearchInd;
-	std::vector<float> pointSearchSqDis;
+	std::vector<ScalarType> pointSearchSqDis;
 		
 	for(PointCloud::iterator point_i = mEdgePoints.begin(); point_i < mEdgePoints.end(); point_i++)
 	{
@@ -295,58 +295,56 @@ void LaserOdometry::findCorrespondences()
 			}
 		}
 
-		// Calculate distance of i to line (j,l)
+		// Calculate Jacobian
 		if (index_l >= 0)
 		{
 			PointType tripod1 = mLastEdgePoints[index_j];
 			PointType tripod2 = mLastEdgePoints[index_l];
 
-			float x0 = point_i_sh.x;
-			float y0 = point_i_sh.y;
-			float z0 = point_i_sh.z;
-			float x1 = tripod1.x;
-			float y1 = tripod1.y;
-			float z1 = tripod1.z;
-			float x2 = tripod2.x;
-			float y2 = tripod2.y;
-			float z2 = tripod2.z;
+			// Distance to edge correspondence (eq. 2)
+			ScalarType x0 = point_i_sh.x;
+			ScalarType y0 = point_i_sh.y;
+			ScalarType z0 = point_i_sh.z;
+			ScalarType x1 = tripod1.x;
+			ScalarType y1 = tripod1.y;
+			ScalarType z1 = tripod1.z;
+			ScalarType x2 = tripod2.x;
+			ScalarType y2 = tripod2.y;
+			ScalarType z2 = tripod2.z;
 
-			float a012 = sqrt(((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1))
-				* ((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
-				+ ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))
-				* ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
-				+ ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))
-				* ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1)));
+			// ||(xi-xj) x (xi-xl)||
+			ScalarType a012 = sqrt(
+			      ((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) * ((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1))   // z: OK
+//				+ ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) * ((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))   // y: WRONG
+				+ ((x0 - x2)*(z0 - z1) - (x0 - x2)*(z0 - z2)) * ((x0 - x2)*(z0 - z1) - (x0 - x2)*(z0 - z2))   // y: OK
+				+ ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1)) * ((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))); // x: OK
 
-			float l12 = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2));
+			// ||(xj-xl)||
+			ScalarType l12 = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2));
 
-			float la = ((y1 - y2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
-			+ (z1 - z2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))) / a012 / l12;
+			// Distance of i to line (j,l)
+			ScalarType ld2 = a012 / l12;
 
-			float lb = -((x1 - x2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
-			- (z1 - z2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / a012 / l12;
+			// Some values needed for calculation of Jacobian
+			ScalarType la = ((y1 - y2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
+			              +  (z1 - z2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1))) / ld2;
 
-			float lc = -((x1 - x2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
-			+ (y1 - y2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / a012 / l12;
+			ScalarType lb = -((x1 - x2)*((x0 - x1)*(y0 - y2) - (x0 - x2)*(y0 - y1)) 
+			              -   (z1 - z2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / ld2;
 
-			float ld2 = a012 / l12;
-
-			PointType point_i_proj = point_i_sh;
-			point_i_proj.x -= la * ld2;
-			point_i_proj.y -= lb * ld2;
-			point_i_proj.z -= lc * ld2;
+			ScalarType lc = -((x1 - x2)*((x0 - x1)*(z0 - z2) - (x0 - x2)*(z0 - z1)) 
+			              +   (y1 - y2)*((y0 - y1)*(z0 - z2) - (y0 - y2)*(z0 - z1))) / ld2;
 
 			// What is "s" ???
-			float s = 2 * (1 - 8 * fabs(ld2));
-
-			PointType coeff;
-			coeff.x = s * la;
-			coeff.y = s * lb;
-			coeff.z = s * lc;
-			coeff.intensity = s * ld2;
-
-			if (s > 0.4)
+			if(fabs(ld2) > 0.1)
 			{
+				ScalarType s = 2 * (1 - 8 * fabs(ld2));
+				PointType coeff;
+				coeff.x = s * la;
+				coeff.y = s * lb;
+				coeff.z = s * lc;
+				coeff.intensity = s * ld2;
+
 				laserCloudExtreOri.push_back(*point_i);
 				coeffSel.push_back(coeff);
 			}
@@ -360,6 +358,111 @@ void LaserOdometry::findCorrespondences()
 	// laserCloudExtreOri: Feature points from current sweep, that have 
 	//                     correspondences in the last sweep
 	// coeffSel: ???
+	
+	// Levenberg-Marquardt-Algorithm
+	Eigen::Matrix<ScalarType, Eigen::Dynamic, 6> matA(extrePointSelNum, 6);
+	Eigen::Matrix<ScalarType, Eigen::Dynamic, 6> matAt(extrePointSelNum, 6);
+	Eigen::Matrix<ScalarType, 6, 6> matAtA;
+	Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> matB(extrePointSelNum, 1);
+	Eigen::Matrix<ScalarType, 6, 1> matAtB;
+	Eigen::Matrix<ScalarType, 6, 1> matX;
+	
+	for (int i = 0; i < extrePointSelNum; i++)
+	{
+		PointType extreOri = laserCloudExtreOri[i];
+		PointType coeff = coeffSel[i];
+
+		// Scan time / Sweep time
+//		ScalarType s = (timeLasted - timeLastedRec) / (startTimeCur - startTimeLast);
+		ScalarType s =  (extreOri.intensity - mLastScanTime) / (mCurrentSweepStart- mLastSweepStart);
+
+		ScalarType srx = sin(s * transform[0]);
+		ScalarType crx = cos(s * transform[0]);
+		ScalarType sry = sin(s * transform[1]);
+		ScalarType cry = cos(s * transform[1]);
+		ScalarType srz = sin(s * transform[2]);
+		ScalarType crz = cos(s * transform[2]);
+		ScalarType tx = s * transform[3];
+		ScalarType ty = s * transform[4];
+		ScalarType tz = s * transform[5];
+
+		ScalarType arx = (-s*crx*sry*srz*extreOri.x + s*crx*crz*sry*extreOri.y + s*srx*sry*extreOri.z 
+		+ s*tx*crx*sry*srz - s*ty*crx*crz*sry - s*tz*srx*sry) * coeff.x
+		+ (s*srx*srz*extreOri.x - s*crz*srx*extreOri.y + s*crx*extreOri.z
+		+ s*ty*crz*srx - s*tz*crx - s*tx*srx*srz) * coeff.y
+		+ (s*crx*cry*srz*extreOri.x - s*crx*cry*crz*extreOri.y - s*cry*srx*extreOri.z
+		+ s*tz*cry*srx + s*ty*crx*cry*crz - s*tx*crx*cry*srz) * coeff.z;
+
+		ScalarType ary = ((-s*crz*sry - s*cry*srx*srz)*extreOri.x 
+		+ (s*cry*crz*srx - s*sry*srz)*extreOri.y - s*crx*cry*extreOri.z 
+		+ tx*(s*crz*sry + s*cry*srx*srz) + ty*(s*sry*srz - s*cry*crz*srx) 
+		+ s*tz*crx*cry) * coeff.x
+		+ ((s*cry*crz - s*srx*sry*srz)*extreOri.x 
+		+ (s*cry*srz + s*crz*srx*sry)*extreOri.y - s*crx*sry*extreOri.z
+		+ s*tz*crx*sry - ty*(s*cry*srz + s*crz*srx*sry) 
+		- tx*(s*cry*crz - s*srx*sry*srz)) * coeff.z;
+
+		ScalarType arz = ((-s*cry*srz - s*crz*srx*sry)*extreOri.x + (s*cry*crz - s*srx*sry*srz)*extreOri.y
+		+ tx*(s*cry*srz + s*crz*srx*sry) - ty*(s*cry*crz - s*srx*sry*srz)) * coeff.x
+		+ (-s*crx*crz*extreOri.x - s*crx*srz*extreOri.y
+		+ s*ty*crx*srz + s*tx*crx*crz) * coeff.y
+		+ ((s*cry*crz*srx - s*sry*srz)*extreOri.x + (s*crz*sry + s*cry*srx*srz)*extreOri.y
+		+ tx*(s*sry*srz - s*cry*crz*srx) - ty*(s*crz*sry + s*cry*srx*srz)) * coeff.z;
+
+		ScalarType atx = -s*(cry*crz - srx*sry*srz) * coeff.x + s*crx*srz * coeff.y 
+		- s*(crz*sry + cry*srx*srz) * coeff.z;
+
+		ScalarType aty = -s*(cry*srz + crz*srx*sry) * coeff.x - s*crx*crz * coeff.y 
+		- s*(sry*srz - cry*crz*srx) * coeff.z;
+
+		ScalarType atz = s*crx*sry * coeff.x - s*srx * coeff.y - s*crx*cry * coeff.z;
+
+		ScalarType d2 = coeff.intensity;
+
+		matA(i, 0) = arx;
+		matA(i, 1) = ary;
+		matA(i, 2) = arz;
+		matA(i, 3) = atx;
+		matA(i, 4) = aty;
+		matA(i, 5) = atz;
+		matB(i, 0) = -0.015 * mRelativeSweepTime * d2;
+	}
+	
+	matAt = matA.transpose();
+	matAtA = matAt * matA;
+	matAtB = matAt * matB;
+	matX = matAtA.colPivHouseholderQr().solve(matAtB);
+
+	if (fabs(matX(0, 0)) < 0.005 &&
+		fabs(matX(1, 0)) < 0.005 &&
+		fabs(matX(2, 0)) < 0.005 &&
+		fabs(matX(3, 0)) < 0.01 &&
+		fabs(matX(4, 0)) < 0.01 &&
+		fabs(matX(5, 0)) < 0.01)
+	{
+		transform[0] += 0.1 * matX(0, 0);
+		transform[1] += 0.1 * matX(1, 0);
+		transform[2] += 0.1 * matX(2, 0);
+		transform[3] += matX(3, 0);
+		transform[4] += matX(4, 0);
+		transform[5] += matX(5, 0);
+	}else
+	{
+		std::cout << "Odometry update out of bound!" << std::endl;
+	}
+
+	ScalarType deltaR = sqrt(RAD2DEG(matX(0, 0)) * RAD2DEG(matX(0, 0))
+	                  + RAD2DEG(matX(1, 0)) * RAD2DEG(matX(1, 0))
+	                  + RAD2DEG(matX(2, 0)) * RAD2DEG(matX(2, 0)));
+	ScalarType deltaT = sqrt(matX(3, 0) * 100 * matX(3, 0) * 100
+	                  + matX(4, 0) * 100 * matX(4, 0) * 100
+	                  + matX(5, 0) * 100 * matX(5, 0) * 100);
+
+	if (deltaR < 0.02 && deltaT < 0.02)
+	{
+		return true;
+	}
+	return false;
 }
 
 void LaserOdometry::finishSweep(double timestamp)
@@ -401,9 +504,19 @@ void LaserOdometry::transformToEnd(PointCloud& pc)
 {
 	for(PointCloud::iterator i = pc.begin(); i < pc.end(); i++)
 	{
-		double s = (i->intensity - mLastSweepStart) / (mCurrentSweepStart - mLastSweepStart);
+		ScalarType s = (i->intensity - mLastSweepStart) / (mCurrentSweepStart - mLastSweepStart);
 		Affine scaledTransform = mTransform;
 		scaledTransform.linear() = scaledTransform.linear() * s;
+		scaledTransform.translation() = scaledTransform.translation() * s;
 		*i = pcl::transformPoint(*i, scaledTransform);
 	}
+}
+
+PointType LaserOdometry::transformToStart(PointType p)
+{
+	ScalarType s = (p.intensity - mCurrentSweepStart) / (mCurrentSweepStart - mLastSweepStart);
+	Affine scaledTransform = mTransform;
+	scaledTransform.linear() = scaledTransform.linear() * s;
+	scaledTransform.translation() = scaledTransform.translation() * s;
+	return pcl::transformPoint(p, scaledTransform);
 }
