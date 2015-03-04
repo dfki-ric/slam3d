@@ -90,15 +90,11 @@
     </Configuration>
   </Settings>
   <VirtualDirectory Name="include">
-    <File Name="include/slam3d/Mapper.hpp"/>
-    <File Name="include/slam3d/PoseGraph.hpp"/>
-    <File Name="include/slam3d/LaserOdometry.hpp"/>
-    <File Name="include/slam3d/Types.hpp"/>
+    <File Name="include/Measurement.hpp"/>
+    <File Name="include/PoseGraph.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
-    <File Name="src/Mapper.cpp"/>
-    <File Name="src/LaserOdometry.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
@@ -106,4 +102,7 @@
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
+  <VirtualDirectory Name="test">
+    <File Name="test/pose_graph.cpp"/>
+  </VirtualDirectory>
 </CodeLite_Project>
