@@ -1,6 +1,6 @@
 <package>
   <description brief="Graph-SLAM Frontend">
-  Graph-based frontend for 3D-SLAM using PCL.
+    Graph-based frontend for 3D-SLAM using PCL.
   </description>
   <author>Sebastian Kasperski/sebastian.kasperski@dfki.de</author>
   <license></license>
@@ -8,4 +8,6 @@
   <logo>http://</logo>
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
+  
+  <depend package="cholmod" />
 </package>
