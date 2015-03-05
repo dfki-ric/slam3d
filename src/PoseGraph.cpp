@@ -8,6 +8,11 @@ PoseGraph::PoseGraph()
 	mNextEdgeId = 0;
 }
 
+PoseGraph::~PoseGraph()
+{
+	
+}
+
 Vertex PoseGraph::addVertex(Measurement* m)
 {
 	Vertex n = boost::add_vertex(mGraph);

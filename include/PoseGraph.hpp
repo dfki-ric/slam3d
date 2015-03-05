@@ -1,5 +1,5 @@
-#ifndef GRAPH_SLAM_POSEGRAPH_H
-#define GRAPH_SLAM_POSEGRAPH_H
+#ifndef GRAPH_SLAM_POSEGRAPH_HPP
+#define GRAPH_SLAM_POSEGRAPH_HPP
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -10,11 +10,15 @@ namespace slam
 {
 	struct VertexObject
 	{
+		Transform odometric_pose;
+		Transform corrected_pose;
 		Measurement* measurement;
 	};
 	
 	struct EdgeObject
 	{
+		Transform transform;
+		Covariance covariance;
 	};
 	
 	// Definitions of boost-graph related types
@@ -25,17 +29,18 @@ namespace slam
 	typedef boost::property<boost::edge_index_t, int, EdgeObject> EProp;
 	typedef boost::adjacency_list<VRep, ERep, GType, VProp, EProp> AdjacencyGraph;
 	
-	typedef typename boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
-	typedef typename boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
+	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
+	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
 	
-	typedef typename boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
-	typedef	typename std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
+	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
+	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
 	
 	class PoseGraph
 	{
 	public:
 	
 		PoseGraph();
+		~PoseGraph();
 		
 		Vertex addVertex(Measurement* m);
 		Edge addEdge(Vertex source, Vertex target);
@@ -48,7 +53,7 @@ namespace slam
 
 		void dumpGraphViz(std::ostream& out);
 
-//	private:
+	private:
 		AdjacencyGraph mGraph;
 		unsigned int mNextVertexId;
 		unsigned int mNextEdgeId;

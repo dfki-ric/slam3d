@@ -92,9 +92,14 @@
   <VirtualDirectory Name="include">
     <File Name="include/Measurement.hpp"/>
     <File Name="include/PoseGraph.hpp"/>
+    <File Name="include/Solver.hpp"/>
+    <File Name="include/GraphMapper.hpp"/>
+    <File Name="include/G2oSolver.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
+    <File Name="src/GraphMapper.cpp"/>
+    <File Name="src/G2oSolver.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
