@@ -12,8 +12,8 @@ namespace slam
 		G2oSolver();
 		~G2oSolver();
 		
-		void addNode();
-		void addConstraint();
+		void addNode(const VertexObject &v, int id);
+		void addConstraint(const EdgeObject &e, int source, int target);
 		void compute();
 		
 		IdPoseVector getCorrections();

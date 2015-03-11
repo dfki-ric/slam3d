@@ -5,7 +5,7 @@
 
 namespace slam
 {
-	typedef Eigen::Affine3d Transform;
+	typedef Eigen::Isometry3d Transform;
 	typedef Eigen::Matrix<double,6,6> Covariance;
 	
 	class Measurement
