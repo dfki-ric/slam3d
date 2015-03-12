@@ -46,6 +46,11 @@ void G2oSolver::addConstraint(const EdgeObject &edge, int source, int target)
 	// Set source and target
 	constraint->vertices()[0] = mOptimizer.vertex(source);
 	constraint->vertices()[1] = mOptimizer.vertex(target);
+	if(constraint->vertices()[0] == NULL || constraint->vertices()[1] == NULL)
+	{
+		delete constraint;
+		throw BadEdge(source, target);
+	}
 	
 	// Set the measurement (odometry distance between vertices)
 	constraint->setMeasurement(edge.transform);   // Eigen::Isometry3d
@@ -70,10 +75,7 @@ void G2oSolver::compute()
 	mOptimizer.initializeOptimization();
 	mOptimizer.computeActiveErrors();
 	int iter = mOptimizer.optimize(500);
-	if (iter > 0)
-	{
-//		ROS_INFO("[g2o] Optimization finished after %d iterations.", iter);
-	}else
+	if (iter <= 0)
 	{
 //		ROS_ERROR("[g2o] Optimization failed, result might be invalid!");
 		return;
@@ -87,30 +89,10 @@ void G2oSolver::compute()
 	for (g2o::SparseOptimizer::VertexContainer::const_iterator n = nodes.begin(); n != nodes.end(); n++)
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*>(*n);
-		if(vertex)
-		{
-			Eigen::Isometry3d iso = vertex->estimate();
-			mCorrections.push_back(IdPose((*n)->id(), iso));
-		}else
-		{
-			// dynamic_cast failed, n did not point to a VertexSE3
-			assert(true);
-		}
-/*
-		int dim = (*n)->estimateDimension();
-		if(dim > 0)
-		{
-			double estimate[dim];
-			if((*n)->getEstimateData(estimate))
-			{
-	//			karto::Pose2 pose(estimate[0], estimate[1], estimate[2]);
-	//			mCorrections.Add(karto::Pair<int, karto::Pose2>((*n)->id(), pose));
-			}else
-			{
-	//			ROS_ERROR("[g2o] Could not get estimated pose from Optimizer!");
-			}
-		}
-*/	}
+		assert(vertex);
+		Eigen::Isometry3d iso = vertex->estimate();
+		mCorrections.push_back(IdPose((*n)->id(), iso));
+	}
 }
 
 IdPoseVector G2oSolver::getCorrections()
