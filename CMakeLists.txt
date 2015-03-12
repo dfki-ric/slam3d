@@ -8,6 +8,8 @@ rock_standard_layout()
 
 include_directories(include)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 ############################################################
 # Define the slam3d library
 ############################################################
@@ -30,10 +32,19 @@ rock_library(slam3d
 		Cholmod)
 
 ############################################################
+# Define a simple test executable
+############################################################
+rock_executable(dummy
+	SOURCES
+		test/g2o_solver.cpp
+	DEPS
+		slam3d)
+
+############################################################
 # Build test cases
 ############################################################
 rock_testsuite(TestPoseGraph
-  SOURCES
-    test/pose_graph.cpp
-  DEPS
-    slam3d)
+	SOURCES
+		test/pose_graph.cpp
+	DEPS
+		slam3d)

@@ -7,26 +7,11 @@
 #include <exception>
 
 namespace slam
-{
-	class BadEdge: public std::exception
-	{
-	public:
-		BadEdge(int s, int t):source(s),target(t){}
-		virtual const char* what() const throw()
-		{
-			char error[100];
-			sprintf(error, "Failed to create edge from node %d to %d!", source, target);
-			return error;
-		}
-		
-		int source;
-		int target;
-	};
-	
+{	
 	class G2oSolver : public Solver
 	{
 	public:
-		G2oSolver();
+		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
 		void addNode(const VertexObject &v, int id);

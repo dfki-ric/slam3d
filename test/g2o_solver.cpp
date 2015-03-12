@@ -1,24 +1,32 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN
-
-#define BOOST_TEST_MODULE G2O_SOLVER
-
-#include <boost/test/unit_test.hpp>
 #include <G2oSolver.hpp>
 
 #include <iostream>
 
-
-BOOST_AUTO_TEST_CASE(g2o_solver_1)
+int main()
 {
-	slam::G2oSolver solver;
+	slam::Logger logger;
+	slam::G2oSolver* solver = new slam::G2oSolver(&logger);
 	slam::VertexObject v1, v2, v3;
+	v1.odometric_pose.translation() = Eigen::Vector3d(0,0,0);
+	v2.odometric_pose.translation() = Eigen::Vector3d(1.5,0,0);
+	v3.odometric_pose.translation() = Eigen::Vector3d(3,0,0);
+
 	slam::EdgeObject e1,e2, e3;
-	solver.addNode(v1, 1);
-	solver.addNode(v2, 2);
-	solver.addNode(v3, 3);
+	e1.transform.translation() = Eigen::Vector3d(1,0,0);
+	e2.transform.translation() = Eigen::Vector3d(1,0,0);
+	solver->addNode(v1, 0);
+	solver->addNode(v2, 1);
+	solver->addNode(v3, 2);
 	
-	solver.addConstraint(e1, 1,2);
-	solver.addConstraint(e2, 2,3);
-	BOOST_CHECK_THROW(solver.addConstraint(e3, 3,4), slam::BadEdge);
+	solver->addConstraint(e1, 0,1);
+	solver->addConstraint(e2, 1,2);
+	
+	solver->compute();
+	slam::IdPoseVector corr = solver->getCorrections();
+	std::cout << "Results:" << std::endl;
+	for(slam::IdPoseVector::iterator c = corr.begin(); c < corr.end(); c++)
+	{
+		std::cout << "Vertex " << c->first << ": Correction = " << c->second.translation() << std::endl;
+	}
+	return 0;
 }

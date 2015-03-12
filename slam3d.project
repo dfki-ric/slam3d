@@ -95,6 +95,7 @@
     <File Name="include/Solver.hpp"/>
     <File Name="include/GraphMapper.hpp"/>
     <File Name="include/G2oSolver.hpp"/>
+    <File Name="include/Logger.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
