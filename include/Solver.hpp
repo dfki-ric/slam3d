@@ -48,6 +48,7 @@ namespace slam
 		virtual void addNode(const VertexObject &v, int id) = 0;
 		virtual void addConstraint(const EdgeObject &e, int source, int target) = 0;
 		virtual void compute() = 0;
+		virtual void saveGraph(std::string filename) = 0;
 		
 		virtual IdPoseVector getCorrections() = 0;
 		

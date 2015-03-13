@@ -6,6 +6,7 @@
 #include "g2o/core/optimization_algorithm_gauss_newton.h"
 #include "g2o/types/slam3d/types_slam3d.h"
 #include "g2o/solvers/cholmod/linear_solver_cholmod.h"
+#include "g2o/core/sparse_optimizer_terminate_action.h"
 
 #include "boost/format.hpp"
 
@@ -21,14 +22,18 @@ G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
 	linearSolver->setBlockOrdering(false);
 	SlamBlockSolver* blockSolver = new SlamBlockSolver(linearSolver);
 	mOptimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(blockSolver));
+	
+	// Set the default terminate action
+	g2o::SparseOptimizerTerminateAction* terminateAction = new g2o::SparseOptimizerTerminateAction;
+	mOptimizer.addPostIterationAction(terminateAction);
 }
 
 G2oSolver::~G2oSolver()
 {
 	// Destroy all the singletons
-	g2o::Factory::destroy();
-	g2o::OptimizationAlgorithmFactory::destroy();
-	g2o::HyperGraphActionLibrary::destroy();
+//	g2o::Factory::destroy();
+//	g2o::OptimizationAlgorithmFactory::destroy();
+//	g2o::HyperGraphActionLibrary::destroy();
 }
 
 void G2oSolver::addNode(const VertexObject &vertex, int id)
@@ -63,8 +68,8 @@ void G2oSolver::addConstraint(const EdgeObject &edge, int source, int target)
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	constraint->setMeasurement(edge.transform);   // Eigen::Isometry3d
-	constraint->setInformation(edge.covariance);  // Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(edge.transform);   // slam::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(edge.covariance);  // slam::Covariance aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);
@@ -82,6 +87,9 @@ void G2oSolver::compute()
 	first->setFixed(true);
 
 	// Do the graph optimization
+	if(!mOptimizer.verifyInformationMatrices(true))
+		return;
+
 	mOptimizer.initializeOptimization();
 	mOptimizer.computeActiveErrors();
 	int iter = mOptimizer.optimize(500);
@@ -90,9 +98,6 @@ void G2oSolver::compute()
 		mLogger->message(ERROR, "Optimization failed!");
 		return;
 	}
-
-//	std::cout << "Optimization finished after " << iter << " iterations." << std::endl;
-	
 	mLogger->message(INFO ,(boost::format("Optimization finished after %1% iterations.") % iter).str());
 
 	// Clear previous optimization result
@@ -112,4 +117,15 @@ void G2oSolver::compute()
 IdPoseVector G2oSolver::getCorrections()
 {
 	return mCorrections;
+}
+
+void G2oSolver::saveGraph(std::string filename)
+{
+	if(mOptimizer.save(filename.c_str()))
+	{
+		mLogger->message(INFO, (boost::format("Saved current g2o graph in %1%.") % filename).str());
+	}else
+	{
+		mLogger->message(ERROR, (boost::format("Could not save %1%.") % filename).str());
+	}
 }
