@@ -1,7 +1,8 @@
 #ifndef SLAM_LOGGER_HPP
 #define SLAM_LOGGER_HPP
 
-#include <sys/time.h>
+//#include <sys/time.h>
+#include "Clock.hpp"
 
 namespace slam
 {
@@ -20,7 +21,7 @@ namespace slam
 		/**
 		 * @brief Default constructor, which sets the log-level to INFO.
 		 */
-		Logger():mLogLevel(INFO){}
+		Logger(Clock c) : mClock(c), mLogLevel(INFO){}
 		~Logger(){}
 		
 		/**
@@ -39,8 +40,7 @@ namespace slam
 			if(lvl < mLogLevel)
 				return;
 				
-			struct timeval tp;
-			gettimeofday(&tp, NULL);
+			timeval tp = mClock.now();
 
 			switch(lvl)
 			{
@@ -63,6 +63,7 @@ namespace slam
 		}
 		
 	protected:
+		Clock mClock;
 		LOG_LEVEL mLogLevel;
 	};
 }

@@ -13,6 +13,7 @@ namespace slam
 		~GraphMapper();
 		
 		void setSolver(Solver* solver);
+		bool optimize();
 		
 	protected:
 		

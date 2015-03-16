@@ -4,7 +4,8 @@
 
 int main()
 {
-	slam::Logger logger;
+	slam::Clock clock;
+	slam::Logger logger(clock);
 	slam::G2oSolver* solver = new slam::G2oSolver(&logger);
 	slam::VertexObject v1, v2, v3;
 	v1.corrected_pose = Eigen::Translation<double, 3>(0,0,0);

@@ -44,7 +44,8 @@ BOOST_AUTO_TEST_CASE(pose_graph_1)
 
 BOOST_AUTO_TEST_CASE(g2o_solver_1)
 {
-	slam::Logger logger;
+	slam::Clock clock;
+	slam::Logger logger(clock);
 	slam::G2oSolver* solver = new slam::G2oSolver(&logger);
 	
 	// Create the nodes

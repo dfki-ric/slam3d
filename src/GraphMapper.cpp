@@ -18,3 +18,9 @@ void GraphMapper::setSolver(Solver* solver)
 {
 	mSolver = solver;
 }
+
+bool GraphMapper::optimize()
+{
+	// Give the graph structure to the solver
+
+}
