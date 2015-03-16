@@ -9,17 +9,23 @@
 
 BOOST_AUTO_TEST_CASE(pose_graph_1)
 {
+	slam::PoseGraph graph;
 	slam::Measurement m1(1);
 	slam::Measurement m2(2);
 	slam::Measurement m3(3);
-	slam::PoseGraph graph;
-	slam::Vertex v1 = graph.addVertex(&m1);
-	slam::Vertex v2 = graph.addVertex(&m2);
-	slam::Vertex v3 = graph.addVertex(&m3);
+
+	slam::VertexObject v_obj;
+	v_obj.measurement = &m1;
+	slam::Vertex v1 = graph.addVertex(v_obj);
+	v_obj.measurement = &m2;
+	slam::Vertex v2 = graph.addVertex(v_obj);
+	v_obj.measurement = &m3;
+	slam::Vertex v3 = graph.addVertex(v_obj);
 	
-	graph.addEdge(v1, v2);
-	graph.addEdge(v2, v3);
-	graph.addEdge(v3, v1);
+	slam::EdgeObject e_obj;
+	graph.addEdge(v1, v2, e_obj);
+	graph.addEdge(v2, v3, e_obj);
+	graph.addEdge(v3, v1, e_obj);
 	
 	BOOST_CHECK(graph.getMeasurement(v1) == &m1);
 	BOOST_CHECK(graph.getMeasurement(v2) == &m2);

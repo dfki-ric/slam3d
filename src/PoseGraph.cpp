@@ -13,19 +13,20 @@ PoseGraph::~PoseGraph()
 	
 }
 
-Vertex PoseGraph::addVertex(Measurement* m)
+Vertex PoseGraph::addVertex(const VertexObject& object)
 {
 	Vertex n = boost::add_vertex(mGraph);
-	mGraph[n].measurement = m;
+	mGraph[n] = object;
 	boost::put(boost::vertex_index_t(), mGraph, n, mNextVertexId);
 	mNextVertexId++;
 	return n;
 }
 
-Edge PoseGraph::addEdge(Vertex source, Vertex target)
+Edge PoseGraph::addEdge(Vertex source, Vertex target, const EdgeObject& object)
 {
 	std::pair<Edge, bool> result = boost::add_edge(source, target, mGraph);
 	Edge n = result.first;
+	mGraph[n] = object;
 	boost::put(boost::edge_index_t(), mGraph, n, mNextEdgeId);
 	mNextEdgeId++;
 	return n;
