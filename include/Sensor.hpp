@@ -1,27 +1,31 @@
 #ifndef SLAM_SENSOR_HPP
 #define SLAM_SENSOR_HPP
 
-#include "PoseGraph.hpp"
+#include "GraphMapper.hpp"
 
 namespace slam
 {
+	typedef std::vector<Measurement*> MeasurementList;
+	
 	class Sensor
 	{
 	public:
-		Sensor(PoseGraph* g):mPoseGraph(g){}
+		Sensor(GraphMapper* m):mMapper(m){}
 		~Sensor(){}
 	
 	protected:
 		void addReading(Measurement* m)
 		{
-			VertexObject object;
-			object.measurement = m;
-			mPoseGraph->addVertex()
+			mReadings.push_back(m);
+			mMapper->addReading(m);
 		}
 		
+		MeasurementList getAllReadings() { return mReadings; }
+		Measurement getLastReading() { return mReadings.at(mReadings.size()-1); }
+		
 	protected:
-		std::vector<Measurement*> mReadings;
-		PoseGraph* mPoseGraph;
+		GraphMapper* mMapper;
+		MeasurementList mReadings;
 	};
 }
 

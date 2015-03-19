@@ -22,6 +22,7 @@ namespace slam
 		Transform odometric_pose;
 		Transform corrected_pose;
 		Measurement* measurement;
+		unsigned int id;
 	};
 	
 	/**
@@ -47,7 +48,12 @@ namespace slam
 	typedef boost::adjacency_list<VRep, ERep, GType, VProp, EProp> AdjacencyGraph;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
+	typedef graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
+	typedef std::pair<VertexIterator, VertexIterator> VertexRange;
+	
 	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
+	typedef graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
+	typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
 	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;

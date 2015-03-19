@@ -20,6 +20,7 @@ namespace slam
 	public:
 		/**
 		 * @brief Default constructor, which sets the log-level to INFO.
+		 * @param c Clock to get timestamps for messages
 		 */
 		Logger(Clock c) : mClock(c), mLogLevel(INFO){}
 		~Logger(){}

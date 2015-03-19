@@ -17,6 +17,7 @@ Vertex PoseGraph::addVertex(const VertexObject& object)
 {
 	Vertex n = boost::add_vertex(mGraph);
 	mGraph[n] = object;
+	mGraph[n].id = mNextVertexId;
 	boost::put(boost::vertex_index_t(), mGraph, n, mNextVertexId);
 	mNextVertexId++;
 	return n;
