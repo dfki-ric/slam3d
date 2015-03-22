@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="slam3d" InternalType="">
   <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
     <Plugin Name="CMakePlugin">
       <![CDATA[[{
   "name": "Debug",
@@ -13,9 +16,6 @@
   "parentProject": ""
  }]]]>
     </Plugin>
-    <Plugin Name="qmake">
-      <![CDATA[00010001N0005Debug000000000000]]>
-    </Plugin>
   </Plugins>
   <Description/>
   <Dependencies/>
@@ -23,7 +23,6 @@
     <File Name="include/Measurement.hpp"/>
     <File Name="include/PoseGraph.hpp"/>
     <File Name="include/Solver.hpp"/>
-    <File Name="include/GraphMapper.hpp"/>
     <File Name="include/G2oSolver.hpp"/>
     <File Name="include/Logger.hpp"/>
     <File Name="include/Sensor.hpp"/>
@@ -34,6 +33,7 @@
     <File Name="src/PoseGraph.cpp"/>
     <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
+    <File Name="src/Sensor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
@@ -44,6 +44,7 @@
   <VirtualDirectory Name="test">
     <File Name="test/pose_graph.cpp"/>
     <File Name="test/g2o_solver.cpp"/>
+    <File Name="include/GraphMapper.hpp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>

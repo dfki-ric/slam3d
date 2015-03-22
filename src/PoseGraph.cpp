@@ -58,3 +58,10 @@ void PoseGraph::dumpGraphViz(std::ostream& out)
 {
 	boost::write_graphviz(out, mGraph);
 }
+
+VertexObject PoseGraph::getLastVertexObject()
+{
+	unsigned int s = boost::num_vertices(mGraph);
+	Vertex desc = boost::vertex(s-1, mGraph);
+	return mGraph[desc];
+}

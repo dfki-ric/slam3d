@@ -1,7 +1,11 @@
 #ifndef SLAM_SENSOR_HPP
 #define SLAM_SENSOR_HPP
 
+#include "Measurement.hpp"
 #include "GraphMapper.hpp"
+
+#include <vector>
+#include <string>
 
 namespace slam
 {
@@ -10,20 +14,17 @@ namespace slam
 	class Sensor
 	{
 	public:
-		Sensor(GraphMapper* m):mMapper(m){}
+		Sensor(std::string n, GraphMapper* m):mName(n),mMapper(m){}
 		~Sensor(){}
 	
 	protected:
-		void addReading(Measurement* m)
-		{
-			mReadings.push_back(m);
-			mMapper->addReading(m);
-		}
+		void addReading(Measurement* m);
 		
-		MeasurementList getAllReadings() { return mReadings; }
-		Measurement getLastReading() { return mReadings.at(mReadings.size()-1); }
+		MeasurementList getAllReadings();
+		Measurement* getLastReading();
 		
 	protected:
+		std::string mName;
 		GraphMapper* mMapper;
 		MeasurementList mReadings;
 	};

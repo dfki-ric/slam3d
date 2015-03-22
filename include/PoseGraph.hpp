@@ -48,11 +48,11 @@ namespace slam
 	typedef boost::adjacency_list<VRep, ERep, GType, VProp, EProp> AdjacencyGraph;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
-	typedef graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
+	typedef boost::graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
 	typedef std::pair<VertexIterator, VertexIterator> VertexRange;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
-	typedef graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
+	typedef boost::graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
 	typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
@@ -106,6 +106,8 @@ namespace slam
 		 * @param e
 		 */
 		void removeEdge(Edge e);
+	
+		VertexObject getLastVertexObject();
 	
 		AdjacencyRange getAdjacentVertices(Vertex v);
 

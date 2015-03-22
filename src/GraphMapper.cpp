@@ -22,7 +22,7 @@ bool GraphMapper::optimize()
 {
 	if(!mSolver)
 	{
-		mLogger.message(ERROR, "A solver must be set before optimize() is called!")
+		mLogger->message(ERROR, "A solver must be set before optimize() is called!");
 		return false;
 	}
 	
@@ -30,7 +30,7 @@ bool GraphMapper::optimize()
 	
 	return true;
 }
-
+/*
 void GraphMapper::registerSensor(std::string& name, Sensor* s)
 {
 	std::pair<SensorList::iterator, bool> result;
@@ -41,12 +41,11 @@ void GraphMapper::registerSensor(std::string& name, Sensor* s)
 		return;
 	}
 }
-
+*/
 void GraphMapper::addReading(Measurement* m)
 {
 	// Get the odometric pose for this measurement
-	Transform pose;
-	mOdometry->getOdometricPose(m->getTimestamp(), pose);
+	Transform pose = mOdometry->getOdometricPose(m->getTimestamp());
 
 	// Add the vertex to the pose graph
 	VertexObject v;
@@ -55,19 +54,13 @@ void GraphMapper::addReading(Measurement* m)
 	v.measurement = m;
 	Vertex newVertex = mPoseGraph.addVertex(v);
 	
-	// Get the last added vertex from this sensor
-	SensorList::iterator sensor = mSensors.find(m->getSensorName());
-	if(sensor == mSensors.end())
-	{
-		mLogger.message(ERROR, (boost::format("Sensor with name %1% does not exist!") % m->getSensorName()).str());
-		return;
-	}
-	timeval previous = sensor->second.getLastReading().getTimestamp();
+	// Get the last added vertex 
+	timeval previous = mPoseGraph.getLastVertexObject().measurement->getTimestamp();
 	
 	// Add an edge representing the odometry information
 	EdgeObject e;
 	TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
 	e.transform = twc.transform;
 	e.covariance = twc.covariance;
-	mPoseGraph.addEdge(prevVertex, newVertex, e);
+//	mPoseGraph.addEdge(prevVertex, newVertex, e);
 }
