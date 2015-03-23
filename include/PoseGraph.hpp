@@ -3,8 +3,10 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <map>
+#include <vector>
 
-#include <Measurement.hpp>
+#include "Measurement.hpp"
 
 namespace slam
 {
@@ -58,6 +60,12 @@ namespace slam
 	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
 	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
 	
+	typedef std::map<unsigned int, Vertex> VertexMap;
+	typedef std::vector<VertexObject> VertexList;
+	typedef std::vector<EdgeObject> EdgeList;
+	
+	class Solver;
+	
 	/**
 	 * @class PoseGraph
 	 * @author Sebastian Kasperski
@@ -107,14 +115,23 @@ namespace slam
 		 */
 		void removeEdge(Edge e);
 	
+		/**
+		 * @brief Set the corrected transform for the given vertex.
+		 * @param id
+		 * @param tf
+		 */
+		void setCorrectedPose(unsigned int id, Transform tf);
+	
 		VertexObject getLastVertexObject();
 	
 		AdjacencyRange getAdjacentVertices(Vertex v);
 
+		void initializeSolver(Solver* solver);
+
 		Measurement* getMeasurement(Vertex v);
 
 		/**
-		 * @brief Write the cuurent graph in DOT-format to the given stream.
+		 * @brief Write the current graph in DOT-format to the given stream.
 		 * @param out
 		 */
 		void dumpGraphViz(std::ostream& out);
@@ -123,6 +140,9 @@ namespace slam
 		AdjacencyGraph mGraph;
 		unsigned int mNextVertexId;
 		unsigned int mNextEdgeId;
+		
+		// Map used to get a vertex by its id
+		VertexMap mVertexMap;
 	};
 }
 

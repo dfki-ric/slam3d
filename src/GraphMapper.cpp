@@ -4,6 +4,7 @@ using namespace slam;
 
 GraphMapper::GraphMapper(Logger* log)
 {
+	mOdometry = NULL;
 	mSolver = NULL;
 	mLogger = log;
 }
@@ -27,6 +28,17 @@ bool GraphMapper::optimize()
 	}
 	
 	// Give the graph structure to the solver
+	mPoseGraph.initializeSolver(mSolver);
+	
+	// Write the result back
+	mSolver->compute();
+	IdPoseVector res = mSolver->getCorrections();
+	for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+	{
+		unsigned int id = it->first;
+		Transform tf = it->second;
+		mPoseGraph.setCorrectedPose(id, tf);
+	}
 	
 	return true;
 }

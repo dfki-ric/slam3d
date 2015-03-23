@@ -4,9 +4,14 @@
 #include "PoseGraph.hpp"
 #include "Solver.hpp"
 #include "Odometry.hpp"
+#include "Sensor.hpp"
+
+#include <vector>
 
 namespace slam
 {
+	typedef std::vector<Sensor*> SensorList;
+	
 	class GraphMapper
 	{
 	public:
@@ -22,6 +27,7 @@ namespace slam
 		Solver* mSolver;
 		Logger* mLogger;
 		Odometry* mOdometry;
+		SensorList mSensors;
 	};
 }
 
