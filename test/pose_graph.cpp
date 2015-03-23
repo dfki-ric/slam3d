@@ -9,10 +9,12 @@
 
 BOOST_AUTO_TEST_CASE(pose_graph_1)
 {
+	slam::Clock clock;
+	
 	slam::PoseGraph graph;
-	slam::Measurement m1(1);
-	slam::Measurement m2(2);
-	slam::Measurement m3(3);
+	slam::Measurement m1(1, clock.now(), "Sensor");
+	slam::Measurement m2(2, clock.now(), "Sensor");
+	slam::Measurement m3(3, clock.now(), "Sensor");
 
 	slam::VertexObject v_obj;
 	v_obj.measurement = &m1;

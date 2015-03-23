@@ -6,17 +6,17 @@
 #include "Odometry.hpp"
 
 namespace slam
-{	
+{
 	class GraphMapper
 	{
 	public:
 		GraphMapper(Logger* log);
 		~GraphMapper();
-		
+
 		void setSolver(Solver* solver);
 		bool optimize();
 		void addReading(Measurement* m);
-		
+
 	private:
 		PoseGraph mPoseGraph;
 		Solver* mSolver;

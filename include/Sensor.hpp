@@ -2,7 +2,6 @@
 #define SLAM_SENSOR_HPP
 
 #include "Measurement.hpp"
-#include "GraphMapper.hpp"
 
 #include <vector>
 #include <string>
@@ -10,6 +9,9 @@
 namespace slam
 {
 	typedef std::vector<Measurement*> MeasurementList;
+	
+	// Forward declaration of GraphMapper
+	class GraphMapper;
 	
 	class Sensor
 	{
