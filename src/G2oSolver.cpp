@@ -36,18 +36,18 @@ G2oSolver::~G2oSolver()
 //	g2o::HyperGraphActionLibrary::destroy();
 }
 
-void G2oSolver::addNode(const VertexObject &vertex, int id)
+void G2oSolver::addNode(const VertexObject &v)
 {
 	// Check that given id has not been added before
-	if(mOptimizer.vertex(id) != NULL)
+	if(mOptimizer.vertex(v.id) != NULL)
 	{
-		throw DuplicateVertex(id);
+		throw DuplicateVertex(v.id);
 	}
 	
 	// Set current pose and id
 	g2o::VertexSE3* poseVertex = new g2o::VertexSE3;
-	poseVertex->setEstimate(vertex.corrected_pose);  //Eigen::Isometry3d
-	poseVertex->setId(id);
+	poseVertex->setEstimate(v.corrected_pose);  //Eigen::Isometry3d
+	poseVertex->setId(v.id);
 	
 	// Add the vertex to the optimizer
 	mOptimizer.addVertex(poseVertex);

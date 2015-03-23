@@ -38,10 +38,15 @@ BOOST_AUTO_TEST_CASE(pose_graph_1)
 	
 //	slam::AdjacencyRange range = graph.getAdjacentVertices(v2);
 	
+	// Test file output
 	std::ofstream file;
 	file.open("construction_test.dot");
 	graph.dumpGraphViz(file);
 	file.close();
+	
+	// Set an odometric pose
+//	slam::Transform tf;
+//	graph.setCorrectedPose(v3, tf);
 }
 
 BOOST_AUTO_TEST_CASE(g2o_solver_1)
@@ -52,13 +57,16 @@ BOOST_AUTO_TEST_CASE(g2o_solver_1)
 	
 	// Create the nodes
 	slam::VertexObject v1, v2, v3;
+	v1.id = 1;
+	v2.id = 2;
+	v3.id = 3;
 	v1.corrected_pose = Eigen::Translation<double, 3>(0,0,0);
 	v2.corrected_pose = Eigen::Translation<double, 3>(0,0,0);
 	v3.corrected_pose = Eigen::Translation<double, 3>(0,0,0);
-	solver->addNode(v1, 0);
-	solver->addNode(v2, 1);
-	solver->addNode(v3, 2);
-	BOOST_CHECK_THROW(solver->addNode(v3, 2), slam::DuplicateVertex);
+	solver->addNode(v1);
+	solver->addNode(v2);
+	solver->addNode(v3);
+	BOOST_CHECK_THROW(solver->addNode(v3), slam::DuplicateVertex);
 
 	// Create the edges
 	slam::EdgeObject e1,e2, e3;

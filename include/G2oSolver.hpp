@@ -20,7 +20,7 @@ namespace slam
 		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
-		void addNode(const VertexObject &v, int id);
+		void addNode(const VertexObject &v);
 		void addConstraint(const EdgeObject &e, int source, int target);
 		void compute();
 		void saveGraph(std::string filename);

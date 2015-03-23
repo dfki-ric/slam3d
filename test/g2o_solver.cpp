@@ -8,6 +8,9 @@ int main()
 	slam::Logger logger(clock);
 	slam::G2oSolver* solver = new slam::G2oSolver(&logger);
 	slam::VertexObject v1, v2, v3;
+	v1.id = 1;
+	v2.id = 2;
+	v3.id = 3;
 	v1.corrected_pose = Eigen::Translation<double, 3>(0,0,0);
 	v2.corrected_pose = Eigen::Translation<double, 3>(0,0,0);
 	v3.corrected_pose = Eigen::Translation<double, 3>(0,0,0);
@@ -20,13 +23,13 @@ int main()
 	e2.covariance = slam::Covariance::Identity();
 	e3.covariance = slam::Covariance::Identity();
 	
-	solver->addNode(v1, 0);
-	solver->addNode(v2, 1);
-	solver->addNode(v3, 2);
+	solver->addNode(v1);
+	solver->addNode(v2);
+	solver->addNode(v3);
 	
-	solver->addConstraint(e1, 0,1);
-	solver->addConstraint(e2, 1,2);
-	solver->addConstraint(e3, 2,0);
+	solver->addConstraint(e1, v1.id, v2.id);
+	solver->addConstraint(e2, v2.id, v3.id);
+	solver->addConstraint(e3, v3.id, v1.id);
 	
 	solver->saveGraph("dummy.g2o");
 	solver->compute();

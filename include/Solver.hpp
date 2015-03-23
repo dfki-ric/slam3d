@@ -76,7 +76,7 @@ namespace slam
 		 * @param v VertexObject from the PoseGraph
 		 * @param id Unique identifier of the vertex
 		 */
-		virtual void addNode(const VertexObject &v, int id) = 0;
+		virtual void addNode(const VertexObject &v) = 0;
 		
 		/**
 		 * @brief Add a constraint between two nodes in the graph.
