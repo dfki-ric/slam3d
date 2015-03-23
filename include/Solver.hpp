@@ -33,6 +33,27 @@ namespace slam
 	};
 
 	/**
+	 * @class UnknownVertex
+	 * @author Sebastian Kasperski
+	 * @date 03/23/15
+	 * @file Solver.hpp
+	 * @brief Exception thrown when a requested Vertex-ID does not exist
+	 */
+	class UnknownVertex: public std::exception
+	{
+	public:
+		UnknownVertex(int id):vertex_id(id){}
+		virtual const char* what() const throw()
+		{
+			std::ostringstream msg;
+			msg << "Node with ID: " << vertex_id << " does not exist!";
+			return msg.str().c_str();
+		}
+		
+		int vertex_id;
+	};
+
+	/**
 	 * @class BadEdge
 	 * @author Sebastian Kasperski
 	 * @date 03/13/15
@@ -86,6 +107,13 @@ namespace slam
 		 * @param target The edge's to-node
 		 */
 		virtual void addConstraint(const EdgeObject &e, int source, int target) = 0;
+		
+		/**
+		 * @brief Fix the node with the given id, so it is not moved during optimization.
+		 * At least one node must be fixed in order to hold the map in place.
+		 * @param id
+		 */
+		virtual void setFixed(int id) = 0;
 		
 		/**
 		 * @brief Start optimization of the defined graph.

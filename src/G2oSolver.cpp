@@ -75,17 +75,20 @@ void G2oSolver::addConstraint(const EdgeObject &edge, int source, int target)
 	mOptimizer.addEdge(constraint);
 }
 
+void G2oSolver::setFixed(int id)
+{
+	// Fix the node in the graph to hold the map in place
+	g2o::OptimizableGraph::Vertex* v = mOptimizer.vertex(id);
+	if(!v)
+	{
+		mLogger->message(ERROR, (boost::format("Could not fix node with ID %1%!") % id).str());
+		throw UnknownVertex(id);
+	}
+	v->setFixed(true);
+}
+
 void G2oSolver::compute()
 {
-	// Fix the first node in the graph to hold the map in place
-	g2o::OptimizableGraph::Vertex* first = mOptimizer.vertex(0);
-	if(!first)
-	{
-		mLogger->message(ERROR, "No Node with ID 0 found!");
-		return;
-	}
-	first->setFixed(true);
-
 	// Do the graph optimization
 	if(!mOptimizer.verifyInformationMatrices(true))
 		return;

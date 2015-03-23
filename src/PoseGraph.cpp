@@ -19,6 +19,7 @@ Vertex PoseGraph::addVertex(const VertexObject& object)
 	mGraph[n] = object;
 	mGraph[n].id = mNextVertexId;
 	boost::put(boost::vertex_index_t(), mGraph, n, mNextVertexId);
+	mVertexMap.insert(VertexMap::value_type(mNextVertexId, n));
 	mNextVertexId++;
 	return n;
 }
@@ -35,6 +36,7 @@ Edge PoseGraph::addEdge(Vertex source, Vertex target, const EdgeObject& object)
 
 void PoseGraph::removeVertex(Vertex v)
 {
+	mVertexMap.erase(mGraph[v].id);
 	boost::clear_vertex(v, mGraph);
 	boost::remove_vertex(v, mGraph);
 }
@@ -64,4 +66,9 @@ VertexObject PoseGraph::getLastVertexObject()
 	unsigned int s = boost::num_vertices(mGraph);
 	Vertex desc = boost::vertex(s-1, mGraph);
 	return mGraph[desc];
+}
+
+void PoseGraph::setCorrectedPose(unsigned int id, Transform tf)
+{
+	mGraph[mVertexMap.at(id)].corrected_pose = tf;
 }

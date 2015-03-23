@@ -76,10 +76,14 @@ BOOST_AUTO_TEST_CASE(g2o_solver_1)
 	e1.covariance = slam::Covariance::Identity();
 	e2.covariance = slam::Covariance::Identity();
 	e3.covariance = slam::Covariance::Identity();
-	solver->addConstraint(e1, 0,1);
-	solver->addConstraint(e2, 1,2);
-	solver->addConstraint(e3, 2,0);
+	solver->addConstraint(e1, v1.id, v2.id);
+	solver->addConstraint(e2, v2.id, v3.id);
+	solver->addConstraint(e3, v3.id, v1.id);
 	BOOST_CHECK_THROW(solver->addConstraint(e3, 3,4), slam::BadEdge);
+	
+	// Start the optimization
+	solver->setFixed(v1.id);
+	BOOST_CHECK_THROW(solver->setFixed(99), slam::UnknownVertex);
 	
 	solver->compute();
 }

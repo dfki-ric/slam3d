@@ -22,6 +22,7 @@ namespace slam
 		
 		void addNode(const VertexObject &v);
 		void addConstraint(const EdgeObject &e, int source, int target);
+		void setFixed(int id);
 		void compute();
 		void saveGraph(std::string filename);
 		
