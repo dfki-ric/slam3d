@@ -2,15 +2,17 @@
 #define BOOST_TEST_MODULE slam3d
 
 #include <boost/test/unit_test.hpp>
+
 #include <PoseGraph.hpp>
 #include <G2oSolver.hpp>
+#include <FileLogger.hpp>
 
 #include <iostream>
 
 BOOST_AUTO_TEST_CASE(pose_graph_1)
 {
 	slam::Clock clock;
-	slam::Logger logger(clock);
+	slam::FileLogger logger(clock, "pose_graph_1.log");
 	
 	slam::PoseGraph graph;
 	slam::Measurement m1(1, clock.now(), "Sensor");

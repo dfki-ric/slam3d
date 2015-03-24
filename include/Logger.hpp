@@ -1,7 +1,6 @@
 #ifndef SLAM_LOGGER_HPP
 #define SLAM_LOGGER_HPP
 
-//#include <sys/time.h>
 #include "Clock.hpp"
 
 namespace slam

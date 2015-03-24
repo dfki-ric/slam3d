@@ -29,6 +29,7 @@
     <File Name="include/Odometry.hpp"/>
     <File Name="include/Clock.hpp"/>
     <File Name="include/GraphMapper.hpp"/>
+    <File Name="include/FileLogger.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
