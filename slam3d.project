@@ -44,7 +44,7 @@
   <Dependencies Name="Release"/>
   <VirtualDirectory Name="test">
     <File Name="test/pose_graph.cpp"/>
-    <File Name="test/g2o_solver.cpp"/>
+    <File Name="test/dummy.cpp"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>

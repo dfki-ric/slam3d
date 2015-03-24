@@ -36,7 +36,7 @@ rock_library(slam3d
 ############################################################
 rock_executable(dummy
 	SOURCES
-		test/g2o_solver.cpp
+		test/dummy.cpp
 	DEPS
 		slam3d)
 

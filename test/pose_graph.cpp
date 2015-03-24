@@ -10,23 +10,38 @@
 BOOST_AUTO_TEST_CASE(pose_graph_1)
 {
 	slam::Clock clock;
+	slam::Logger logger(clock);
 	
 	slam::PoseGraph graph;
 	slam::Measurement m1(1, clock.now(), "Sensor");
 	slam::Measurement m2(2, clock.now(), "Sensor");
 	slam::Measurement m3(3, clock.now(), "Sensor");
 
+	// Create the vertices
 	slam::VertexObject v_obj;
+	v_obj.odometric_pose = Eigen::Translation<double, 3>(0,0,0);
+	v_obj.corrected_pose = Eigen::Translation<double, 3>(0,0,0);	
+
 	v_obj.measurement = &m1;
 	slam::Vertex v1 = graph.addVertex(v_obj);
+
 	v_obj.measurement = &m2;
 	slam::Vertex v2 = graph.addVertex(v_obj);
+
 	v_obj.measurement = &m3;
 	slam::Vertex v3 = graph.addVertex(v_obj);
 	
+	// Create the edges
 	slam::EdgeObject e_obj;
+	e_obj.covariance = slam::Covariance::Identity();
+	
+	e_obj.transform = Eigen::Translation<double, 3>(1,0,0);
 	graph.addEdge(v1, v2, e_obj);
+	
+	e_obj.transform = Eigen::Translation<double, 3>(1,0,0);
 	graph.addEdge(v2, v3, e_obj);
+	
+	e_obj.transform = Eigen::Translation<double, 3>(-0.8, -0.7, 0.2);
 	graph.addEdge(v3, v1, e_obj);
 	
 	BOOST_CHECK(graph.getMeasurement(v1) == &m1);
@@ -36,17 +51,16 @@ BOOST_AUTO_TEST_CASE(pose_graph_1)
 	BOOST_CHECK(graph.getMeasurement(v1) != &m2);
 	BOOST_CHECK(graph.getMeasurement(v1) != &m3);
 	
-//	slam::AdjacencyRange range = graph.getAdjacentVertices(v2);
-	
 	// Test file output
 	std::ofstream file;
 	file.open("construction_test.dot");
 	graph.dumpGraphViz(file);
 	file.close();
 	
-	// Set an odometric pose
-//	slam::Transform tf;
-//	graph.setCorrectedPose(v3, tf);
+	// Optimize the graph
+	slam::Solver* solver = new slam::G2oSolver(&logger);
+	graph.optimize(solver);
+
 }
 
 BOOST_AUTO_TEST_CASE(g2o_solver_1)

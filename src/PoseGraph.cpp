@@ -69,13 +69,9 @@ VertexObject PoseGraph::getLastVertexObject()
 	return mGraph[desc];
 }
 
-void PoseGraph::setCorrectedPose(unsigned int id, Transform tf)
+void PoseGraph::optimize(Solver* solver)
 {
-	mGraph[mVertexMap.at(id)].corrected_pose = tf;
-}
-
-void PoseGraph::initializeSolver(Solver* solver)
-{
+	// Add vertices to the solver
 	VertexIterator v_begin, v_end;
 	boost::tie(v_begin, v_end) = boost::vertices(mGraph);
 	for(VertexIterator it = v_begin; it != v_end; it++)
@@ -83,6 +79,7 @@ void PoseGraph::initializeSolver(Solver* solver)
 		solver->addNode(mGraph[*it]);
 	}
 	
+	// Add edges to the solver
 	EdgeIterator e_begin, e_end;
 	boost::tie(e_begin,e_end) = boost::edges(mGraph);
 	for(EdgeIterator it = e_begin; it != e_end; it++)
@@ -90,5 +87,17 @@ void PoseGraph::initializeSolver(Solver* solver)
 		Vertex source = boost::source(*it, mGraph);
 		Vertex target = boost::target(*it, mGraph);
 		solver->addConstraint(mGraph[*it], mGraph[source].id, mGraph[target].id);
+	}
+	
+	// Optimize
+	solver->compute();
+
+	// Retrieve results
+	IdPoseVector res = solver->getCorrections();
+	for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+	{
+		unsigned int id = it->first;
+		Transform tf = it->second;
+		mGraph[mVertexMap.at(id)].corrected_pose = tf;
 	}
 }
