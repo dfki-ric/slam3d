@@ -31,9 +31,10 @@ int main()
 	solver->addConstraint(e2, v2.id, v3.id);
 	solver->addConstraint(e3, v3.id, v1.id);
 	
-	solver->saveGraph("dummy.g2o");
+	solver->saveGraph("dummy1.g2o");
 	solver->setFixed(v1.id);
 	solver->compute();
+	solver->saveGraph("dummy2.g2o");
 	slam::IdPoseVector corr = solver->getCorrections();
 	std::cout << "Results:" << std::endl;
 	for(slam::IdPoseVector::iterator c = corr.begin(); c < corr.end(); c++)

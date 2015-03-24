@@ -112,6 +112,8 @@ namespace slam
 		 */
 		void removeEdge(Edge e);
 
+		VertexObject getVertex(unsigned int id);
+
 		/**
 		 * @brief Optimize the graph using the given solver.
 		 * @param solver

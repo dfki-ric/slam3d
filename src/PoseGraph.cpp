@@ -47,6 +47,11 @@ void PoseGraph::removeEdge(Edge e)
 	boost::remove_edge(e, mGraph);
 }
 
+VertexObject PoseGraph::getVertex(unsigned int id)
+{
+	return mGraph[mVertexMap.at(id)];
+}
+
 AdjacencyRange PoseGraph::getAdjacentVertices(Vertex v)
 {
 	return boost::adjacent_vertices(v, mGraph);
@@ -78,6 +83,9 @@ void PoseGraph::optimize(Solver* solver)
 	{
 		solver->addNode(mGraph[*it]);
 	}
+	
+	// Fix first node in the graph
+	solver->setFixed(mGraph[*v_begin].id);
 	
 	// Add edges to the solver
 	EdgeIterator e_begin, e_end;
