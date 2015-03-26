@@ -2,6 +2,7 @@
 #define SLAM_SENSOR_HPP
 
 #include "Measurement.hpp"
+#include "Logger.hpp"
 
 #include <vector>
 #include <string>
@@ -16,7 +17,8 @@ namespace slam
 	class Sensor
 	{
 	public:
-		Sensor(std::string n, GraphMapper* m):mName(n),mMapper(m){}
+		Sensor(std::string n, GraphMapper* m, Logger* l)
+		 :mName(n), mMapper(m), mLogger(l){}
 		~Sensor(){}
 	
 	protected:
@@ -29,6 +31,7 @@ namespace slam
 		std::string mName;
 		GraphMapper* mMapper;
 		MeasurementList mReadings;
+		Logger* mLogger;
 	};
 }
 

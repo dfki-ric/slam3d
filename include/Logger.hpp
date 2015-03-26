@@ -3,6 +3,8 @@
 
 #include "Clock.hpp"
 
+#include <iostream>
+
 namespace slam
 {
 	enum LOG_LEVEL{DEBUG, INFO, WARNING, ERROR, FATAL};
