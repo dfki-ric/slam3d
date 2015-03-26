@@ -30,12 +30,14 @@
     <File Name="include/Clock.hpp"/>
     <File Name="include/GraphMapper.hpp"/>
     <File Name="include/FileLogger.hpp"/>
+    <File Name="include/PointCloudSensor.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
     <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/Sensor.cpp"/>
+    <File Name="src/PointCloudSensor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
