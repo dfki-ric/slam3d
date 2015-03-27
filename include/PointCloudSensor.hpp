@@ -64,7 +64,7 @@ namespace slam
 		void setConfiguaration(GICPConfiguration c) { mConfiguration = c; }
 		void addPointCloud(PointCloud cloud);
 		
-		TransformWithCovariance calculateTransform(const PointCloud* pc1, const PointCloud* pc2) const;
+		TransformWithCovariance calculateTransform(PointCloud::ConstPtr source, PointCloud::ConstPtr target) const;
 		
 	protected:
 		GICPConfiguration mConfiguration;

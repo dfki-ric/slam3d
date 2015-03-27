@@ -37,6 +37,7 @@
     <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/Sensor.cpp"/>
+    <File Name="src/PointCloudSensor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
