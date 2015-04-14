@@ -19,15 +19,13 @@ namespace slam
 	{
 	public:
 		Measurement(){}
-		Measurement(unsigned int id, timeval t, std::string s)
-			:mID(id), mStamp(t), mSensorName(s){}
+		Measurement(timeval t, std::string s)
+			:mStamp(t), mSensorName(s){}
 		
-		unsigned int getID() const { return mID; }
 		timeval getTimestamp() const { return mStamp; }
 		std::string getSensorName() const { return mSensorName; }
 		
 	protected:
-		unsigned int mID;
 		timeval mStamp;
 		std::string mSensorName;
 	};

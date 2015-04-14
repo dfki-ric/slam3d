@@ -15,9 +15,8 @@ namespace slam
 	class PointCloudMeasurement : public Measurement
 	{
 	public:
-		PointCloudMeasurement(const PointCloud& cloud, unsigned int id, std::string s)
+		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, std::string s)
 		{
-			mID = id;
 			mSensorName = s;
 			mPointCloud = cloud;
 
@@ -26,10 +25,10 @@ namespace slam
 			mStamp.tv_usec = cloud.header.stamp % 1000000;
 		}
 		
-		const PointCloud* getPointCloud() const {return &mPointCloud;}
+		const PointCloud::ConstPtr getPointCloud() const {return mPointCloud;}
 		
 	protected:
-		PointCloud mPointCloud;
+		PointCloud::ConstPtr mPointCloud;
 	};
 
 	struct GICPConfiguration
