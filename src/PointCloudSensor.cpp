@@ -1,12 +1,13 @@
 #include "PointCloudSensor.hpp"
 
-#include <pcl/registration/icp.h>
 #include "pcl/registration/gicp.h"
 #include <pcl/filters/voxel_grid.h>
 
 #define FLT_SIZE 2.0
 
 using namespace slam;
+
+typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
 
 PointCloudSensor::PointCloudSensor(std::string n, GraphMapper* m, Logger* l)
  : Sensor(n, m, l)
@@ -41,16 +42,14 @@ TransformWithCovariance PointCloudSensor::calculateTransform(PointCloud::ConstPt
 	grid.filter(*filtered_target);
 	
 	// Configure Generalized-ICP
-//	typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
-	typedef pcl::IterativeClosestPoint<PointType, PointType, float> ICP;
 	ICP icp;
-//	icp.setMaxCorrespondenceDistance(mConfiguration.max_correspondence_distance);
-//	icp.setMaximumIterations(mConfiguration.maximum_iterations);
-//	icp.setTransformationEpsilon(mConfiguration.transformation_epsilon);
-//	icp.setEuclideanFitnessEpsilon(mConfiguration.euclidean_fitness_epsilon);
-//	icp.setCorrespondenceRandomness(mConfiguration.correspondence_randomness);
-//	icp.setMaximumOptimizerIterations(mConfiguration.maximum_optimizer_iterations);
-//	icp.setRotationEpsilon(mConfiguration.rotation_epsilon);
+	icp.setMaxCorrespondenceDistance(mConfiguration.max_correspondence_distance);
+	icp.setMaximumIterations(mConfiguration.maximum_iterations);
+	icp.setTransformationEpsilon(mConfiguration.transformation_epsilon);
+	icp.setEuclideanFitnessEpsilon(mConfiguration.euclidean_fitness_epsilon);
+	icp.setCorrespondenceRandomness(mConfiguration.correspondence_randomness);
+	icp.setMaximumOptimizerIterations(mConfiguration.maximum_optimizer_iterations);
+	icp.setRotationEpsilon(mConfiguration.rotation_epsilon);
 	
 	// We cannot use the "guess" parameter from align() due to a bug in PCL.
 	// Instead we have to shift the source cloud to the target frame before
