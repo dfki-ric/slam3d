@@ -7,6 +7,7 @@ PoseGraph::PoseGraph()
 {
 	mNextVertexId = 0;
 	mNextEdgeId = 0;
+	mLastVertex = getNullVertex();
 }
 
 PoseGraph::~PoseGraph()
@@ -22,6 +23,7 @@ Vertex PoseGraph::addVertex(const VertexObject& object)
 	boost::put(boost::vertex_index_t(), mGraph, n, mNextVertexId);
 	mVertexMap.insert(VertexMap::value_type(mNextVertexId, n));
 	mNextVertexId++;
+	mLastVertex = n;
 	return n;
 }
 

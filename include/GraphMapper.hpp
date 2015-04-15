@@ -11,6 +11,7 @@
 namespace slam
 {
 	typedef std::map<std::string, Sensor*> SensorList;
+	typedef std::map<std::string, Vertex> LastVertexList;
 	
 	class GraphMapper
 	{
@@ -20,8 +21,10 @@ namespace slam
 
 		void setSolver(Solver* solver);
 		void setOdometry(Odometry* odom);
+		void registerSensor(Sensor* s);
 		bool optimize();
 		void addReading(Measurement* m);
+		Transform getCurrentPose() { return mCurrentPose; }
 
 	private:
 		PoseGraph mPoseGraph;
@@ -29,6 +32,9 @@ namespace slam
 		Logger* mLogger;
 		Odometry* mOdometry;
 		SensorList mSensors;
+		LastVertexList mLastVertices;
+		
+		Transform mCurrentPose;
 	};
 }
 

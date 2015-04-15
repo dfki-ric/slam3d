@@ -30,8 +30,10 @@ namespace slam
 		Sensor(std::string n, GraphMapper* m, Logger* l)
 		 :mName(n), mMapper(m), mLogger(l){}
 		~Sensor(){}
+		
+		std::string getName(){ return mName; }
 	
-	protected:
+//	protected:
 		void addReading(Measurement* m);
 		
 		MeasurementList getAllReadings();

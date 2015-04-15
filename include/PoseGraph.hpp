@@ -44,8 +44,8 @@ namespace slam
 	typedef boost::listS VRep;
 	typedef boost::listS ERep;
 	typedef boost::undirectedS GType;
-	typedef boost::property<boost::vertex_index_t, int, VertexObject> VProp;
-	typedef boost::property<boost::edge_index_t, int, EdgeObject> EProp;
+	typedef boost::property<boost::vertex_index_t, std::size_t, VertexObject> VProp;
+	typedef boost::property<boost::edge_index_t, std::size_t, EdgeObject> EProp;
 	typedef boost::adjacency_list<VRep, ERep, GType, VProp, EProp> AdjacencyGraph;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
@@ -130,11 +130,22 @@ namespace slam
 		Measurement* getMeasurement(Vertex v);
 		VertexObject getLastVertexObject();
 		AdjacencyRange getAdjacentVertices(Vertex v);
+		Vertex getLastVertex()
+		{
+			return mLastVertex;
+		}
+		
+		Vertex getNullVertex()
+		{
+			return boost::graph_traits<AdjacencyGraph>::null_vertex();
+		}
 
 	private:
 		AdjacencyGraph mGraph;
 		unsigned int mNextVertexId;
 		unsigned int mNextEdgeId;
+		
+		Vertex mLastVertex;
 		
 		// Map used to get a vertex by its id
 		VertexMap mVertexMap;
