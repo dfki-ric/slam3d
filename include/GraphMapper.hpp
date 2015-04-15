@@ -6,11 +6,11 @@
 #include "Odometry.hpp"
 #include "Sensor.hpp"
 
-#include <vector>
+#include <map>
 
 namespace slam
 {
-	typedef std::vector<Sensor*> SensorList;
+	typedef std::map<std::string, Sensor*> SensorList;
 	
 	class GraphMapper
 	{
@@ -19,6 +19,7 @@ namespace slam
 		~GraphMapper();
 
 		void setSolver(Solver* solver);
+		void setOdometry(Odometry* odom);
 		bool optimize();
 		void addReading(Measurement* m);
 

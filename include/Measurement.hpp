@@ -21,6 +21,7 @@ namespace slam
 		Measurement(){}
 		Measurement(timeval t, std::string s)
 			:mStamp(t), mSensorName(s){}
+		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
 		std::string getSensorName() const { return mSensorName; }

@@ -21,8 +21,8 @@ namespace slam
 			mPointCloud = cloud;
 
 			// PCL header should contain microseconds
-			mStamp.tv_sec  = cloud.header.stamp / 1000000;
-			mStamp.tv_usec = cloud.header.stamp % 1000000;
+			mStamp.tv_sec  = cloud->header.stamp / 1000000;
+			mStamp.tv_usec = cloud->header.stamp % 1000000;
 		}
 		
 		const PointCloud::ConstPtr getPointCloud() const {return mPointCloud;}
@@ -61,9 +61,9 @@ namespace slam
 		~PointCloudSensor();
 		
 		void setConfiguaration(GICPConfiguration c) { mConfiguration = c; }
-		void addPointCloud(PointCloud cloud);
+		void addPointCloud(PointCloud::ConstPtr &cloud);
 		
-		TransformWithCovariance calculateTransform(PointCloud::ConstPtr source, PointCloud::ConstPtr target) const;
+		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const;
 		
 	protected:
 		GICPConfiguration mConfiguration;

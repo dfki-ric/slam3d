@@ -20,25 +20,34 @@ PointCloudSensor::~PointCloudSensor()
 
 }
 
-void PointCloudSensor::addPointCloud(PointCloud cloud)
+void PointCloudSensor::addPointCloud(PointCloud::ConstPtr &cloud)
 {
 	
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(PointCloud::ConstPtr source, PointCloud::ConstPtr target) const
+TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target) const
 {
 	mLogger->message(INFO, "PointCloudSensor::calculateTransform()");
+	
+	// Cast to this sensors measurement type
+	PointCloudMeasurement* sourceCloud = dynamic_cast<PointCloudMeasurement*>(source);
+	PointCloudMeasurement* targetCloud = dynamic_cast<PointCloudMeasurement*>(target);
+	if(!sourceCloud || !targetCloud)
+	{
+		mLogger->message(ERROR, "Measurement given to calculateTransform() is not a PointCloud!");
+		throw BadMeasurementType();
+	}
 	
 	// Downsample the scan
 	pcl::VoxelGrid<PointType> grid;
 	grid.setLeafSize (FLT_SIZE, FLT_SIZE, FLT_SIZE);
 	
 	PointCloud::Ptr filtered_source(new PointCloud);
-	grid.setInputCloud(source);
+	grid.setInputCloud(sourceCloud->getPointCloud());
 	grid.filter(*filtered_source);
 
 	PointCloud::Ptr filtered_target(new PointCloud);
-	grid.setInputCloud(PointCloud::ConstPtr(target));
+	grid.setInputCloud(PointCloud::ConstPtr(targetCloud->getPointCloud()));
 	grid.filter(*filtered_target);
 	
 	// Configure Generalized-ICP

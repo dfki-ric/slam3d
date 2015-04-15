@@ -11,6 +11,16 @@ namespace slam
 {
 	typedef std::vector<Measurement*> MeasurementList;
 	
+	class BadMeasurementType: public std::exception
+	{
+	public:
+		BadMeasurementType(){}
+		virtual const char* what() const throw()
+		{
+			return "Measurement type does not match sensor type!";
+		}
+	};
+	
 	// Forward declaration of GraphMapper
 	class GraphMapper;
 	
@@ -26,6 +36,8 @@ namespace slam
 		
 		MeasurementList getAllReadings();
 		Measurement* getLastReading();
+		
+		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const = 0;
 		
 	protected:
 		std::string mName;

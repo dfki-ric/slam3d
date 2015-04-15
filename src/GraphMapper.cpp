@@ -19,6 +19,11 @@ void GraphMapper::setSolver(Solver* solver)
 	mSolver = solver;
 }
 
+void GraphMapper::setOdometry(Odometry* odom)
+{
+	mOdometry = odom;
+}
+
 bool GraphMapper::optimize()
 {
 	if(!mSolver)
@@ -45,8 +50,16 @@ void GraphMapper::registerSensor(std::string& name, Sensor* s)
 */
 void GraphMapper::addReading(Measurement* m)
 {
+	// Get the sensor responsible for this measurement
+	// Can throw std::out_of_range if sensor is not registered
+	Sensor* sensor = mSensors.at(m->getSensorName());
+	
 	// Get the odometric pose for this measurement
-	Transform pose = mOdometry->getOdometricPose(m->getTimestamp());
+	Transform pose = Transform::Identity();
+	if(mOdometry)
+	{
+		pose = mOdometry->getOdometricPose(m->getTimestamp());
+	}
 
 	// Add the vertex to the pose graph
 	VertexObject v;
@@ -59,9 +72,20 @@ void GraphMapper::addReading(Measurement* m)
 	timeval previous = mPoseGraph.getLastVertexObject().measurement->getTimestamp();
 	
 	// Add an edge representing the odometry information
-	EdgeObject e;
-	TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
-	e.transform = twc.transform;
-	e.covariance = twc.covariance;
-//	mPoseGraph.addEdge(prevVertex, newVertex, e);
+	if(mOdometry)
+	{
+		EdgeObject odomEdge;
+		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
+		odomEdge.transform = twc.transform;
+		odomEdge.covariance = twc.covariance;
+//		mPoseGraph.addEdge(prevVertex, newVertex, odomEdge);
+	}
+	
+	// Add an edge to the previous reading of this sensor
+/*	EdgeObject icpEdge;
+	TransformWithCovariance twc = sensor->calculateTransform(m, <LAST_FROM_THIS_SENSOR>);
+	icpEdge.transform = twc.transform;
+	icpEdge.covariance = twc.covariance;
+	mPoseGraph.addEdge(, newVertex, icpEdge);
+*/
 }
