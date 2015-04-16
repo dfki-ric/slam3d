@@ -26,6 +26,8 @@ namespace slam
 		unsigned int id;
 	};
 	
+	typedef std::vector<VertexObject> VertexList;
+	
 	/**
 	 * @class EdgeObject
 	 * @author Sebastian Kasperski
@@ -142,6 +144,12 @@ namespace slam
 			return mLastVertex;
 		}
 
+		/**
+		 * @brief 
+		 * @param sensor
+		 */
+		VertexList getVerticesFromSensor(std::string sensor);
+		
 	private:
 		AdjacencyGraph mGraph;
 		IdType mNextVertexId;

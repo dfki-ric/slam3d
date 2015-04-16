@@ -118,3 +118,8 @@ void GraphMapper::addReading(Measurement* m)
 	mLastVertices[m->getSensorName()] = newVertex;
 
 }
+
+VertexList GraphMapper::getVerticesFromSensor(std::string sensor)
+{
+	return mPoseGraph.getVerticesFromSensor(sensor);
+}

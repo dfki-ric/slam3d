@@ -25,6 +25,8 @@ namespace slam
 		bool optimize();
 		void addReading(Measurement* m);
 		Transform getCurrentPose() { return mCurrentPose; }
+		
+		VertexList getVerticesFromSensor(std::string sensor);
 
 	private:
 		PoseGraph mPoseGraph;

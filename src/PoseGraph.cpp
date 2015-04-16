@@ -104,3 +104,17 @@ void PoseGraph::optimize(Solver* solver)
 		mGraph[mVertexMap.at(id)].corrected_pose = tf;
 	}
 }
+
+VertexList PoseGraph::getVerticesFromSensor(std::string sensor)
+{
+	VertexList result;
+	VertexRange range = boost::vertices(mGraph);
+	for(VertexIterator it = range.first; it != range.second; it++)
+	{
+		if(mGraph[*it].measurement->getSensorName() == sensor)
+		{
+			result.push_back(mGraph[*it]);
+		}
+	}
+	return result;
+}
