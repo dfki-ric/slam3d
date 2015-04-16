@@ -118,3 +118,8 @@ VertexList PoseGraph::getVerticesFromSensor(std::string sensor)
 	}
 	return result;
 }
+
+void PoseGraph::setCorrectedPose(IdType id, Transform pose)
+{
+	mGraph[mVertexMap[id]].corrected_pose = pose;
+}

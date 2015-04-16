@@ -66,7 +66,7 @@ namespace slam
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const;
 		
 		// Pointcloud specific methods
-		PointCloud::Ptr getAccumulatedCloud();
+		PointCloud::Ptr getAccumulatedCloud(double resolution);
 		
 	protected:
 		GICPConfiguration mConfiguration;

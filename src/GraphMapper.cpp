@@ -109,6 +109,7 @@ void GraphMapper::addReading(Measurement* m)
 		
 		// Update current pose estimate
 		mCurrentPose = twc.transform * mCurrentPose;
+		mPoseGraph.setCorrectedPose(newVertex, mCurrentPose);
 	}else
 	{
 		mLogger->message(INFO, (boost::format("Added first Reading of sensor '%1%'") % m->getSensorName()).str());

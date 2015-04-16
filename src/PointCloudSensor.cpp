@@ -1,4 +1,5 @@
 #include "PointCloudSensor.hpp"
+#include "GraphMapper.hpp"
 
 #include "pcl/registration/gicp.h"
 #include <pcl/filters/voxel_grid.h>
@@ -93,9 +94,30 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	return twc;
 }
 
-PointCloud::Ptr PointCloudSensor::getAccumulatedCloud()
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 {
 	PointCloud::Ptr accu(new PointCloud);
+	VertexList vertices = mMapper->getVerticesFromSensor(mName);
+	for(VertexList::iterator it = vertices.begin(); it < vertices.end(); it++)
+	{
+		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
+		if(!pcl)
+		{
+			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
+			throw BadMeasurementType();
+		}
+		
+		PointCloud::Ptr tempCloud(new PointCloud);
+		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, it->corrected_pose.matrix());
+		*accu += *tempCloud;
+	}
 	
-	return accu;
+	// Downsample the result
+	pcl::VoxelGrid<PointType> grid;
+	grid.setLeafSize (resolution, resolution, resolution);
+	
+	PointCloud::Ptr filtered_accu(new PointCloud);
+	grid.setInputCloud(accu);
+	grid.filter(*filtered_accu);
+	return filtered_accu;
 }

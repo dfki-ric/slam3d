@@ -150,6 +150,13 @@ namespace slam
 		 */
 		VertexList getVerticesFromSensor(std::string sensor);
 		
+		/**
+		 * @brief 
+		 * @param id
+		 * @param pose
+		 */
+		void setCorrectedPose(IdType id, Transform pose);
+		
 	private:
 		AdjacencyGraph mGraph;
 		IdType mNextVertexId;
