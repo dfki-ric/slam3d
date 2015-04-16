@@ -108,7 +108,7 @@ void GraphMapper::addReading(Measurement* m)
 		mPoseGraph.addEdge(prevSensorVertex, newVertex, icpEdge);
 		
 		// Update current pose estimate
-		mCurrentPose = twc.transform * mCurrentPose;
+		mCurrentPose = mCurrentPose * twc.transform;
 		mPoseGraph.setCorrectedPose(newVertex, mCurrentPose);
 	}else
 	{

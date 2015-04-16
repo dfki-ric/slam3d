@@ -62,10 +62,10 @@ namespace slam
 		
 		// Implementations from Sensor
 		void setConfiguaration(GICPConfiguration c) { mConfiguration = c; }
-		void addPointCloud(PointCloud::ConstPtr &cloud);
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const;
 		
 		// Pointcloud specific methods
+		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
 		PointCloud::Ptr getAccumulatedCloud(double resolution);
 		
 	protected:

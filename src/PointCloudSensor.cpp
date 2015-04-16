@@ -21,9 +21,14 @@ PointCloudSensor::~PointCloudSensor()
 
 }
 
-void PointCloudSensor::addPointCloud(PointCloud::ConstPtr &cloud)
+PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double leaf_size) const
 {
-	
+	PointCloud::Ptr out(new PointCloud);
+	pcl::VoxelGrid<PointType> grid;
+	grid.setLeafSize (leaf_size, leaf_size, leaf_size);
+	grid.setInputCloud(in);
+	grid.filter(*out);
+	return out;
 }
 
 TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target) const
@@ -39,17 +44,9 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 		throw BadMeasurementType();
 	}
 	
-	// Downsample the scan
-	pcl::VoxelGrid<PointType> grid;
-	grid.setLeafSize (FLT_SIZE, FLT_SIZE, FLT_SIZE);
-	
-	PointCloud::Ptr filtered_source(new PointCloud);
-	grid.setInputCloud(sourceCloud->getPointCloud());
-	grid.filter(*filtered_source);
-
-	PointCloud::Ptr filtered_target(new PointCloud);
-	grid.setInputCloud(PointCloud::ConstPtr(targetCloud->getPointCloud()));
-	grid.filter(*filtered_target);
+	// Downsample the scans
+	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), FLT_SIZE);
+	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), FLT_SIZE);
 	
 	// Configure Generalized-ICP
 	ICP icp;
@@ -74,7 +71,9 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 
 	// Get estimated transform
 	TransformWithCovariance twc;
-	if(icp.hasConverged())// && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
+	twc.transform = Transform::Identity();
+	twc.covariance = Covariance::Identity();
+	if(icp.hasConverged() && icp.getFitnessScore() >= mConfiguration.max_fitness_score)
 	{
 		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
 
@@ -98,7 +97,8 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 {
 	PointCloud::Ptr accu(new PointCloud);
 	VertexList vertices = mMapper->getVerticesFromSensor(mName);
-	for(VertexList::iterator it = vertices.begin(); it < vertices.end(); it++)
+	int added = 0;
+	for(VertexList::reverse_iterator it = vertices.rbegin(); it < vertices.rend(); it++)
 	{
 		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
 		if(!pcl)
@@ -110,14 +110,10 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 		PointCloud::Ptr tempCloud(new PointCloud);
 		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, it->corrected_pose.matrix());
 		*accu += *tempCloud;
+		added++;
+		
+		if(added > 20)
+			break;
 	}
-	
-	// Downsample the result
-	pcl::VoxelGrid<PointType> grid;
-	grid.setLeafSize (resolution, resolution, resolution);
-	
-	PointCloud::Ptr filtered_accu(new PointCloud);
-	grid.setInputCloud(accu);
-	grid.filter(*filtered_accu);
-	return filtered_accu;
+	return downsample(accu, resolution);
 }
