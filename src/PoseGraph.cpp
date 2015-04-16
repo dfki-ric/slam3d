@@ -7,7 +7,7 @@ PoseGraph::PoseGraph()
 {
 	mNextVertexId = 0;
 	mNextEdgeId = 0;
-	mLastVertex = getNullVertex();
+	mLastVertex = -1;
 }
 
 PoseGraph::~PoseGraph()
@@ -15,65 +15,58 @@ PoseGraph::~PoseGraph()
 	
 }
 
-Vertex PoseGraph::addVertex(const VertexObject& object)
+PoseGraph::IdType PoseGraph::addVertex(const VertexObject& object)
 {
+	PoseGraph::IdType newVertexId = mNextVertexId;
+	mNextVertexId++;
+	
 	Vertex n = boost::add_vertex(mGraph);
 	mGraph[n] = object;
-	mGraph[n].id = mNextVertexId;
-	boost::put(boost::vertex_index_t(), mGraph, n, mNextVertexId);
-	mVertexMap.insert(VertexMap::value_type(mNextVertexId, n));
-	mNextVertexId++;
-	mLastVertex = n;
-	return n;
+	mGraph[n].id = newVertexId;
+	boost::put(boost::vertex_index_t(), mGraph, n, newVertexId);
+	mVertexMap.insert(VertexMap::value_type(newVertexId, n));
+	mLastVertex = newVertexId;
+	
+	return newVertexId;
 }
 
-Edge PoseGraph::addEdge(Vertex source, Vertex target, const EdgeObject& object)
+PoseGraph::IdType PoseGraph::addEdge(IdType source, IdType target, const EdgeObject& object)
 {
-	std::pair<Edge, bool> result = boost::add_edge(source, target, mGraph);
+	PoseGraph::IdType newEdgeId = mNextEdgeId;
+	
+	std::pair<Edge, bool> result = boost::add_edge(mVertexMap[source], mVertexMap[target], mGraph);
 	Edge n = result.first;
 	mGraph[n] = object;
-	boost::put(boost::edge_index_t(), mGraph, n, mNextEdgeId);
+	boost::put(boost::edge_index_t(), mGraph, n, newEdgeId);
+	mEdgeMap.insert(EdgeMap::value_type(newEdgeId, n));
 	mNextEdgeId++;
-	return n;
+	
+	return newEdgeId;
 }
 
-void PoseGraph::removeVertex(Vertex v)
+void PoseGraph::removeVertex(PoseGraph::IdType id)
 {
-	mVertexMap.erase(mGraph[v].id);
+	Vertex v = mVertexMap[id];
+	mVertexMap.erase(id);
 	boost::clear_vertex(v, mGraph);
 	boost::remove_vertex(v, mGraph);
 }
 
-void PoseGraph::removeEdge(Edge e)
+void PoseGraph::removeEdge(PoseGraph::IdType id)
 {
+	Edge e = mEdgeMap[id];
+	mEdgeMap.erase(id);
 	boost::remove_edge(e, mGraph);
 }
 
-VertexObject PoseGraph::getVertex(unsigned int id)
+VertexObject PoseGraph::getVertex(PoseGraph::IdType id)
 {
 	return mGraph[mVertexMap.at(id)];
-}
-
-AdjacencyRange PoseGraph::getAdjacentVertices(Vertex v)
-{
-	return boost::adjacent_vertices(v, mGraph);
-}
-
-Measurement* PoseGraph::getMeasurement(Vertex v)
-{
-	return mGraph[v].measurement;
 }
 
 void PoseGraph::dumpGraphViz(std::ostream& out)
 {
 	boost::write_graphviz(out, mGraph);
-}
-
-VertexObject PoseGraph::getLastVertexObject()
-{
-	unsigned int s = boost::num_vertices(mGraph);
-	Vertex desc = boost::vertex(s-1, mGraph);
-	return mGraph[desc];
 }
 
 void PoseGraph::optimize(Solver* solver)

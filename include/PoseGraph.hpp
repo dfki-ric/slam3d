@@ -38,29 +38,10 @@ namespace slam
 	{
 		Transform transform;
 		Covariance covariance;
+		unsigned int edge_type;
+		unsigned int id;
 	};
-	
-	// Definitions of boost-graph related types
-	typedef boost::listS VRep;
-	typedef boost::listS ERep;
-	typedef boost::undirectedS GType;
-	typedef boost::property<boost::vertex_index_t, std::size_t, VertexObject> VProp;
-	typedef boost::property<boost::edge_index_t, std::size_t, EdgeObject> EProp;
-	typedef boost::adjacency_list<VRep, ERep, GType, VProp, EProp> AdjacencyGraph;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
-	typedef boost::graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
-	typedef std::pair<VertexIterator, VertexIterator> VertexRange;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
-	typedef boost::graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
-	typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
-	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
-	
-	typedef std::map<unsigned int, Vertex> VertexMap;
-	
+
 	class Solver;
 	
 	/**
@@ -82,15 +63,41 @@ namespace slam
 	class PoseGraph
 	{
 	public:
-	
 		PoseGraph();
 		~PoseGraph();
 		
+		typedef int IdType;
+		
+	protected:
+		
+		// Definitions of boost-graph related types
+		typedef boost::listS VRep;
+		typedef boost::listS ERep;
+		typedef boost::undirectedS GType;
+		typedef boost::property<boost::vertex_index_t, std::size_t, VertexObject> VProp;
+		typedef boost::property<boost::edge_index_t, std::size_t, EdgeObject> EProp;
+		typedef boost::adjacency_list<VRep, ERep, GType, VProp, EProp> AdjacencyGraph;
+		
+		typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
+		typedef boost::graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
+		typedef std::pair<VertexIterator, VertexIterator> VertexRange;
+		
+		typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
+		typedef boost::graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
+		typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
+		
+		typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
+		typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
+		
+		typedef std::map<IdType, Vertex> VertexMap;
+		typedef std::map<IdType, Edge> EdgeMap;
+
+	public:	
 		/**
 		 * @brief Creates a new vertex with given object in the graph.
 		 * @param object
 		 */
-		Vertex addVertex(const VertexObject& object);
+		IdType addVertex(const VertexObject& object);
 
 		/**
 		 * @brief Creates a new edge with given object from source to target.
@@ -98,21 +105,21 @@ namespace slam
 		 * @param target
 		 * @param object
 		 */
-		Edge addEdge(Vertex source, Vertex target, const EdgeObject& object);
+		IdType addEdge(IdType source, IdType target, const EdgeObject& object);
 		
 		/**
 		 * @brief Remove v from the graph and all connecting edges.
 		 * @param v
 		 */
-		void removeVertex(Vertex v);
+		void removeVertex(IdType v);
 		
 		/**
 		 * @brief Remove e from the graph.
 		 * @param e
 		 */
-		void removeEdge(Edge e);
+		void removeEdge(IdType e);
 
-		VertexObject getVertex(unsigned int id);
+		VertexObject getVertex(IdType v);
 
 		/**
 		 * @brief Optimize the graph using the given solver.
@@ -126,29 +133,25 @@ namespace slam
 		 */
 		void dumpGraphViz(std::ostream& out);
 
-		// WIP
-		Measurement* getMeasurement(Vertex v);
-		VertexObject getLastVertexObject();
-		AdjacencyRange getAdjacentVertices(Vertex v);
-		Vertex getLastVertex()
+		/**
+		 * @brief Get the last vertex, that has been added to the graph.
+		 * @return ID of the last added vertex
+		 */
+		IdType getLastVertex()
 		{
 			return mLastVertex;
-		}
-		
-		Vertex getNullVertex()
-		{
-			return boost::graph_traits<AdjacencyGraph>::null_vertex();
 		}
 
 	private:
 		AdjacencyGraph mGraph;
-		unsigned int mNextVertexId;
-		unsigned int mNextEdgeId;
+		IdType mNextVertexId;
+		IdType mNextEdgeId;
 		
-		Vertex mLastVertex;
+		IdType mLastVertex;
 		
-		// Map used to get a vertex by its id
+		// Maps used to get a vertex or edge by its id
 		VertexMap mVertexMap;
+		EdgeMap mEdgeMap;
 	};
 }
 

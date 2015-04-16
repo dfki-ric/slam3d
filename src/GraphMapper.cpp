@@ -53,14 +53,22 @@ void GraphMapper::registerSensor(Sensor* s)
 		return;
 	}
 	
-	mLastVertices.insert(LastVertexList::value_type(s->getName(), mPoseGraph.getNullVertex()));
+	mLastVertices.insert(LastVertexList::value_type(s->getName(), -1));
 }
 
 void GraphMapper::addReading(Measurement* m)
 {
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
-	Sensor* sensor = mSensors.at(m->getSensorName());
+	Sensor* sensor = NULL;
+	try
+	{
+		sensor = mSensors.at(m->getSensorName());
+	}catch(std::out_of_range e)
+	{
+		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
+		return;
+	}
 	
 	// Get the odometric pose for this measurement
 	Transform pose = Transform::Identity();
@@ -74,16 +82,14 @@ void GraphMapper::addReading(Measurement* m)
 	v.odometric_pose = pose;
 	v.corrected_pose = pose;
 	v.measurement = m;
-	Vertex prevVertex = mPoseGraph.getLastVertex();
-	Vertex newVertex = mPoseGraph.addVertex(v);
-	
-	// Get the last added vertex 
-	timeval previous = mPoseGraph.getLastVertexObject().measurement->getTimestamp();
+	PoseGraph::IdType prevVertex = mPoseGraph.getLastVertex();
+	PoseGraph::IdType newVertex = mPoseGraph.addVertex(v);
 	
 	// Add an edge representing the odometry information
-	if(mOdometry)
+	if(mOdometry && prevVertex < 0)
 	{
 		EdgeObject odomEdge;
+		timeval previous = mPoseGraph.getVertex(prevVertex).measurement->getTimestamp();
 		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
 		odomEdge.transform = twc.transform;
 		odomEdge.covariance = twc.covariance;
@@ -91,11 +97,12 @@ void GraphMapper::addReading(Measurement* m)
 	}
 	
 	// Add an edge to the previous reading of this sensor
-	Vertex prevSensorVertex = mLastVertices.at(m->getSensorName());
-	if(prevSensorVertex != mPoseGraph.getNullVertex())
+	LastVertexList::iterator it = mLastVertices.find(m->getSensorName());
+	PoseGraph::IdType prevSensorVertex = mLastVertices.at(m->getSensorName());
+	if(prevSensorVertex >= 0)
 	{
 		EdgeObject icpEdge;
-		TransformWithCovariance twc = sensor->calculateTransform(m, mPoseGraph.getMeasurement(prevSensorVertex));
+		TransformWithCovariance twc = sensor->calculateTransform(m, mPoseGraph.getVertex(prevSensorVertex).measurement);
 		icpEdge.transform = twc.transform;
 		icpEdge.covariance = twc.covariance;
 		mPoseGraph.addEdge(prevSensorVertex, newVertex, icpEdge);
@@ -109,4 +116,5 @@ void GraphMapper::addReading(Measurement* m)
 
 	// Set last vertex for this sensor
 	mLastVertices[m->getSensorName()] = newVertex;
+
 }

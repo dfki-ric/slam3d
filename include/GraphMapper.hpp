@@ -11,7 +11,7 @@
 namespace slam
 {
 	typedef std::map<std::string, Sensor*> SensorList;
-	typedef std::map<std::string, Vertex> LastVertexList;
+	typedef std::map<std::string, PoseGraph::IdType> LastVertexList;
 	
 	class GraphMapper
 	{
