@@ -92,3 +92,10 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	}
 	return twc;
 }
+
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud()
+{
+	PointCloud::Ptr accu(new PointCloud);
+	
+	return accu;
+}

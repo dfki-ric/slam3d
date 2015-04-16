@@ -60,10 +60,13 @@ namespace slam
 		PointCloudSensor(std::string n, GraphMapper* m, Logger* l);
 		~PointCloudSensor();
 		
+		// Implementations from Sensor
 		void setConfiguaration(GICPConfiguration c) { mConfiguration = c; }
 		void addPointCloud(PointCloud::ConstPtr &cloud);
-		
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const;
+		
+		// Pointcloud specific methods
+		PointCloud::Ptr getAccumulatedCloud();
 		
 	protected:
 		GICPConfiguration mConfiguration;
