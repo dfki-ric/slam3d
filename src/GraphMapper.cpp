@@ -125,6 +125,8 @@ void GraphMapper::addReading(Measurement* m)
 	
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
 	{
+		if(it->id == prevVertex || it->id == newVertex)
+			continue;
 		EdgeObject icpEdge;
 		TransformWithCovariance twc = sensor->calculateTransform(m, (*it).measurement);
 		icpEdge.transform = twc.transform;
