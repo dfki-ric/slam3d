@@ -1,5 +1,5 @@
-#ifndef SLAM_MEASUREMENT_HPP
-#define SLAM_MEASUREMENT_HPP
+#ifndef SLAM_TYPES_HPP
+#define SLAM_TYPES_HPP
 
 #include <sys/time.h>
 #include <Eigen/Geometry>

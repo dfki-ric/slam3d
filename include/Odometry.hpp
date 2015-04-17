@@ -1,7 +1,7 @@
 #ifndef SLAM_ODOMETRY_HPP
 #define SLAM_ODOMETRY_HPP
 
-#include "Measurement.hpp"
+#include "Types.hpp"
 
 namespace slam
 {

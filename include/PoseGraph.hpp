@@ -5,7 +5,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <map>
 
-#include "Measurement.hpp"
+#include "Types.hpp"
 
 namespace slam
 {

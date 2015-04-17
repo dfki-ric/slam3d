@@ -1,7 +1,7 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include "Measurement.hpp"
+#include "Types.hpp"
 #include "Sensor.hpp"
 
 #include "pcl/point_types.h"

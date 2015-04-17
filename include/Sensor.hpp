@@ -1,7 +1,7 @@
 #ifndef SLAM_SENSOR_HPP
 #define SLAM_SENSOR_HPP
 
-#include "Measurement.hpp"
+#include "Types.hpp"
 #include "Logger.hpp"
 
 #include <vector>
