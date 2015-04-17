@@ -3,6 +3,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <flann/flann.hpp>
 #include <map>
 
 #include "Types.hpp"
@@ -69,6 +70,7 @@ namespace slam
 		~PoseGraph();
 		
 		typedef int IdType;
+		typedef flann::Index< flann::L2<float> > Index;
 		
 	protected:
 		
@@ -157,6 +159,18 @@ namespace slam
 		 */
 		void setCorrectedPose(IdType id, Transform pose);
 		
+		/**
+		 * @brief Rebuild the index for nearest neighbor search
+		 */
+		void rebuildIndex();
+		
+		/**
+		 * @brief Find vertices that are within radius of the given vertex.
+		 * @param id ID of a vertex in the graph
+		 * @param radius Maximum distance to the vertex
+		 */
+		VertexList getNearbyVertices(IdType id, float radius);
+		
 	private:
 		AdjacencyGraph mGraph;
 		IdType mNextVertexId;
@@ -167,6 +181,11 @@ namespace slam
 		// Maps used to get a vertex or edge by its id
 		VertexMap mVertexMap;
 		EdgeMap mEdgeMap;
+		
+		// Index to use nearest neighbor search
+		flann::SearchParams mSearchParams;
+		Index mIndex;
+		std::map<int, Vertex> mIndexMap;
 	};
 }
 

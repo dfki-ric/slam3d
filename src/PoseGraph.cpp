@@ -3,7 +3,7 @@
 
 using namespace slam;
 
-PoseGraph::PoseGraph()
+PoseGraph::PoseGraph() : mIndex(flann::KDTreeSingleIndexParams())
 {
 	mNextVertexId = 0;
 	mNextEdgeId = 0;
@@ -17,15 +17,29 @@ PoseGraph::~PoseGraph()
 
 PoseGraph::IdType PoseGraph::addVertex(const VertexObject& object)
 {
+	// Create a new ID for this vertex
 	PoseGraph::IdType newVertexId = mNextVertexId;
 	mNextVertexId++;
 	
+	// Add a new vertex to the Graph
 	Vertex n = boost::add_vertex(mGraph);
 	mGraph[n] = object;
 	mGraph[n].id = newVertexId;
+	
+	// Set the internal index property (This probably shouldn't be done.)
 	boost::put(boost::vertex_index_t(), mGraph, n, newVertexId);
+
+	// Insert to ID-Vertex map and memorize last added vertex
 	mVertexMap.insert(VertexMap::value_type(newVertexId, n));
 	mLastVertex = newVertexId;
+	
+	// Add to nearest neighbor index
+	flann::Matrix<float> point(new float[3], 1, 3);
+	Transform::ConstTranslationPart t = object.corrected_pose.translation();
+	point[0][0] = t[0];
+	point[0][1] = t[1];
+	point[0][2] = t[2];
+	mIndex.addPoints(point);
 	
 	return newVertexId;
 }
@@ -122,4 +136,50 @@ VertexList PoseGraph::getVerticesFromSensor(std::string sensor)
 void PoseGraph::setCorrectedPose(IdType id, Transform pose)
 {
 	mGraph[mVertexMap[id]].corrected_pose = pose;
+}
+
+void PoseGraph::rebuildIndex()
+{
+	int numOfVertices = boost::num_vertices(mGraph);
+	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
+	VertexRange range = boost::vertices(mGraph);
+	int row = 0;
+	mIndexMap.clear();
+	for(VertexIterator it = range.first; it != range.second; it++)
+	{
+		VertexObject v = mGraph[*it];
+		Transform::TranslationPart t = v.corrected_pose.translation();
+		points[row][0] = t[0];
+		points[row][1] = t[1];
+		points[row][2] = t[2];
+		mIndexMap.insert(std::pair<int, Vertex>(row, *it));
+		row++;
+	}
+	
+	mIndex.buildIndex(points);
+}
+
+VertexList PoseGraph::getNearbyVertices(IdType id, float radius)
+{
+	// Fill in the query point
+	flann::Matrix<float> query(new float[3], 1, 3);
+	Transform::TranslationPart t = mGraph[mIndexMap[id]].corrected_pose.translation();
+	query[0][0] = t[0];
+	query[0][1] = t[1];
+	query[0][2] = t[2];
+	
+	// Find points nearby
+	std::vector< std::vector<int> > neighbors;
+	std::vector< std::vector<Index::DistanceType> > distances;
+	int found = mIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
+	
+	// Write the result
+	VertexList result;
+	std::vector<int>::iterator it;
+	for(it = neighbors[0].begin(); it < neighbors[0].end(); it++)
+	{
+		result.push_back(mGraph[mIndexMap[*it]]);
+	}
+	
+	return result;
 }
