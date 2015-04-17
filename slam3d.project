@@ -20,7 +20,6 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="include">
-    <File Name="include/Measurement.hpp"/>
     <File Name="include/PoseGraph.hpp"/>
     <File Name="include/Solver.hpp"/>
     <File Name="include/G2oSolver.hpp"/>
@@ -31,6 +30,7 @@
     <File Name="include/GraphMapper.hpp"/>
     <File Name="include/FileLogger.hpp"/>
     <File Name="include/PointCloudSensor.hpp"/>
+    <File Name="include/Types.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/PoseGraph.cpp"/>
