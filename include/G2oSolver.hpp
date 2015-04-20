@@ -2,7 +2,7 @@
 #define SLAM_G2O_SOLVER_HPP
 
 #include "Solver.hpp"
-#include "g2o/core/sparse_optimizer.h"
+#include <g2o/core/sparse_optimizer.h>
 
 namespace slam
 {	
@@ -24,6 +24,7 @@ namespace slam
 		void addConstraint(const EdgeObject &e, int source, int target);
 		void setFixed(int id);
 		void compute();
+		void clear();
 		void saveGraph(std::string filename);
 		
 		IdPoseVector getCorrections();

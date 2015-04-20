@@ -97,7 +97,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 {
 	PointCloud::Ptr accu(new PointCloud);
 	VertexList vertices = mMapper->getVerticesFromSensor(mName);
-	int added = 0;
+//	int added = 0;
 	for(VertexList::reverse_iterator it = vertices.rbegin(); it < vertices.rend(); it++)
 	{
 		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
@@ -110,10 +110,10 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 		PointCloud::Ptr tempCloud(new PointCloud);
 		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, it->corrected_pose.matrix());
 		*accu += *tempCloud;
-		added++;
+//		added++;
 		
-		if(added > 20)
-			break;
+//		if(added > 20)
+//			break;
 	}
 	return downsample(accu, resolution);
 }

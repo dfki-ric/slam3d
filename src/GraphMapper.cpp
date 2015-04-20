@@ -120,7 +120,7 @@ void GraphMapper::addReading(Measurement* m)
 
 	// Add edges to other measurements nearby
 	mPoseGraph.rebuildIndex();
-	VertexList neighbors = mPoseGraph.getNearbyVertices(newVertex, 5.0);
+	VertexList neighbors = mPoseGraph.getNearbyVertices(newVertex, 10.0);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)

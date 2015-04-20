@@ -122,6 +122,12 @@ IdPoseVector G2oSolver::getCorrections()
 	return mCorrections;
 }
 
+void G2oSolver::clear()
+{
+	mOptimizer.clear();
+	mOptimizer.clearParameters();
+}
+
 void G2oSolver::saveGraph(std::string filename)
 {
 	if(mOptimizer.save(filename.c_str()))
