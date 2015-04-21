@@ -18,6 +18,7 @@ rock_library(slam3d
 		src/PoseGraph.cpp
 		src/G2oSolver.cpp
 		src/GraphMapper.cpp
+                src/Solver.cpp
 	HEADERS
 		include/Measurement.hpp
 		include/PoseGraph.hpp

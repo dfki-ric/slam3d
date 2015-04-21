@@ -1,10 +1,13 @@
 #include "GraphMapper.hpp"
 
 #include "boost/format.hpp"
+#include <graph_analysis/lemon/DirectedGraph.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
 using namespace slam;
 
 GraphMapper::GraphMapper(Logger* log)
+    : mPoseGraph( new graph_analysis::lemon::DirectedGraph())
 {
 	mOdometry = NULL;
 	mSolver = NULL;
@@ -14,10 +17,8 @@ GraphMapper::GraphMapper(Logger* log)
 
 GraphMapper::~GraphMapper()
 {
-	std::ofstream file;
-	file.open("pose_graph.dot");
-	mPoseGraph.dumpGraphViz(file);
-	file.close();
+	std::string file = "pose_graph.dot";
+	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GEXF);
 }
 
 void GraphMapper::setSolver(Solver* solver)
@@ -39,7 +40,8 @@ bool GraphMapper::optimize()
 	}
 	
 	// Give the graph structure to the solver
-	mPoseGraph.optimize(mSolver);
+	//mPoseGraph.optimize(mSolver);
+        mSolver->optimize(mPoseGraph);
 	return true;
 }
 
@@ -53,7 +55,7 @@ void GraphMapper::registerSensor(Sensor* s)
 		return;
 	}
 	
-	mLastVertices.insert(LastVertexList::value_type(s->getName(), -1));
+	mLastVertices.insert(LastVertexMap::value_type(s->getName(), VertexObject::Ptr()));
 }
 
 void GraphMapper::addReading(Measurement* m)
@@ -78,43 +80,51 @@ void GraphMapper::addReading(Measurement* m)
 	}
 
 	// Add the vertex to the pose graph
-	VertexObject v;
-	v.odometric_pose = pose;
-	v.corrected_pose = pose;
-	v.measurement = m;
-	PoseGraph::IdType prevVertex = mPoseGraph.getLastVertex();
-	PoseGraph::IdType newVertex = mPoseGraph.addVertex(v);
+        VertexObject::Ptr newVertex(new VertexObject());
+	newVertex->odometric_pose = pose;
+	newVertex->corrected_pose = pose;
+	newVertex->measurement = m;
+	mPoseGraph->addVertex(newVertex);
 	
 	// Add an edge representing the odometry information
-	if(mOdometry && prevVertex < 0)
+	if(mOdometry && mLastVertex)
 	{
-		EdgeObject odomEdge;
-		timeval previous = mPoseGraph.getVertex(prevVertex).measurement->getTimestamp();
+                EdgeObject::Ptr odomEdge(new EdgeObject());
+                odomEdge->setSourceVertex(mLastVertex);
+                odomEdge->setTargetVertex(newVertex);
+
+		timeval previous = mLastVertex->measurement->getTimestamp();
 		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
-		odomEdge.transform = twc.transform;
-		odomEdge.covariance = twc.covariance;
-		mPoseGraph.addEdge(prevVertex, newVertex, odomEdge);
+		odomEdge->transform = twc.transform;
+		odomEdge->covariance = twc.covariance;
+		mPoseGraph->addEdge(odomEdge);
 	}
 	
 	// Add an edge to the previous reading of this sensor
-	LastVertexList::iterator it = mLastVertices.find(m->getSensorName());
-	PoseGraph::IdType prevSensorVertex = mLastVertices.at(m->getSensorName());
-	if(prevSensorVertex >= 0)
+	LastVertexMap::iterator it = mLastVertices.find(m->getSensorName());
+        VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
+	if(prevSensorVertex)
 	{
-		EdgeObject icpEdge;
-		TransformWithCovariance twc = sensor->calculateTransform(m, mPoseGraph.getVertex(prevSensorVertex).measurement);
-		icpEdge.transform = twc.transform;
-		icpEdge.covariance = twc.covariance;
-		mPoseGraph.addEdge(prevSensorVertex, newVertex, icpEdge);
+                EdgeObject::Ptr icpEdge(new EdgeObject());
+                icpEdge->setSourceVertex(prevSensorVertex);
+                icpEdge->setTargetVertex(newVertex);
+
+		TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement);
+		icpEdge->transform = twc.transform;
+		icpEdge->covariance = twc.covariance;
+
+		mPoseGraph->addEdge(icpEdge);
 		
 		// Update current pose estimate
 		mCurrentPose = mCurrentPose * twc.transform;
-		mPoseGraph.setCorrectedPose(newVertex, mCurrentPose);
+                newVertex->corrected_pose = mCurrentPose;
 	}else
 	{
 		mLogger->message(INFO, (boost::format("Added first Reading of sensor '%1%'") % m->getSensorName()).str());
 	}
 
+        // Overall last vertex
+        mLastVertex = newVertex;
 	// Set last vertex for this sensor
 	mLastVertices[m->getSensorName()] = newVertex;
 /*
@@ -125,7 +135,7 @@ void GraphMapper::addReading(Measurement* m)
 	
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
 	{
-		if(it->id == prevVertex || it->id == newVertex)
+		if(it->id == mLastVertex || it->id == newVertex)
 			continue;
 		EdgeObject icpEdge;
 		TransformWithCovariance twc = sensor->calculateTransform(m, (*it).measurement);
@@ -138,5 +148,17 @@ void GraphMapper::addReading(Measurement* m)
 
 VertexList GraphMapper::getVerticesFromSensor(std::string sensor)
 {
-	return mPoseGraph.getVerticesFromSensor(sensor);
+    VertexList vertexList;
+
+    graph_analysis::VertexIterator::Ptr vertexIterator = mPoseGraph->getVertexIterator();
+    while(vertexIterator->next())
+    {
+        VertexObject::Ptr vertex = boost::dynamic_pointer_cast<VertexObject>(vertexIterator->current());
+        if(vertex->measurement->getSensorName() == sensor)
+        {
+            vertexList.push_back(vertex);
+        }
+    }
+
+    return vertexList;
 }

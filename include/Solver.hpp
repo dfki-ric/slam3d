@@ -2,6 +2,7 @@
 #define SLAM_SOLVER_HPP
 
 #include "PoseGraph.hpp"
+#include <graph_analysis/Graph.hpp>
 #include "Logger.hpp"
 
 #include <vector>
@@ -91,13 +92,18 @@ namespace slam
 		 * @param logger Pointer to the logger used by the solver
 		 */
 		Solver(Logger* logger):mLogger(logger){}
+
+                /**
+                 * Optimize graph
+                 */
+                void optimize(graph_analysis::BaseGraph::Ptr baseGraph);
 	
 		/**
 		 * @brief Add a node to the internal graph representation.
 		 * @param v VertexObject from the PoseGraph
 		 * @param id Unique identifier of the vertex
 		 */
-		virtual void addNode(const VertexObject &v) = 0;
+		virtual void addNode(VertexObject::Ptr v) = 0;
 		
 		/**
 		 * @brief Add a constraint between two nodes in the graph.
@@ -106,14 +112,14 @@ namespace slam
 		 * @param source The edge's from-node
 		 * @param target The edge's to-node
 		 */
-		virtual void addConstraint(const EdgeObject &e, int source, int target) = 0;
+		virtual void addConstraint(EdgeObject::Ptr e) = 0;
 		
 		/**
 		 * @brief Fix the node with the given id, so it is not moved during optimization.
 		 * At least one node must be fixed in order to hold the map in place.
 		 * @param id
 		 */
-		virtual void setFixed(int id) = 0;
+		virtual void setFixed(VertexObject::Ptr v) = 0;
 		
 		/**
 		 * @brief Start optimization of the defined graph.
@@ -147,7 +153,12 @@ namespace slam
 		void setLogger(Logger* log) {mLogger = log;}
 		
 	protected:
+                void setBaseGraph(graph_analysis::BaseGraph::Ptr graph) { mBaseGraph = graph; }
+
+                graph_analysis::BaseGraph::Ptr getBaseGraph() const { return mBaseGraph; }
+
 		Logger* mLogger;
+                graph_analysis::BaseGraph::Ptr mBaseGraph;
 	};
 }
 
