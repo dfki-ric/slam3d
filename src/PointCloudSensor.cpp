@@ -31,7 +31,7 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 	return out;
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target) const
+TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform guess) const
 {
 	mLogger->message(INFO, "PointCloudSensor::calculateTransform()");
 	
@@ -63,8 +63,10 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	// calling align on it.
 	// TODO: Change once the issue in PCL is resolved:
 	// > https://github.com/PointCloudLibrary/pcl/pull/989
+	PointCloud::Ptr shifted_source(new PointCloud);
+	pcl::transformPointCloud(*filtered_source, *shifted_source, guess.matrix());
 	
-	icp.setInputSource(filtered_source);
+	icp.setInputSource(shifted_source);
 	icp.setInputTarget(filtered_target);
 	PointCloud result;
 	icp.align(result);

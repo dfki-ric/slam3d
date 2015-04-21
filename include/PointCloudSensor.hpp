@@ -108,7 +108,7 @@ namespace slam
 		 * @param source
 		 * @param target
 		 */
-		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const;
+		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform guess) const;
 		
 		/**
 		 * @brief Set configuration for GICP algorithm

@@ -86,6 +86,7 @@ void GraphMapper::addReading(Measurement* m)
 	PoseGraph::IdType newVertex = mPoseGraph.addVertex(v);
 	
 	// Add an edge representing the odometry information
+	Transform guess = Transform::Identity();
 	if(mOdometry && prevVertex < 0)
 	{
 		EdgeObject odomEdge;
@@ -94,6 +95,7 @@ void GraphMapper::addReading(Measurement* m)
 		odomEdge.transform = twc.transform;
 		odomEdge.covariance = twc.covariance;
 		mPoseGraph.addEdge(prevVertex, newVertex, odomEdge);
+		guess = twc.transform;
 	}
 	
 	// Add an edge to the previous reading of this sensor
@@ -102,7 +104,7 @@ void GraphMapper::addReading(Measurement* m)
 	if(prevSensorVertex >= 0)
 	{
 		EdgeObject icpEdge;
-		TransformWithCovariance twc = sensor->calculateTransform(m, mPoseGraph.getVertex(prevSensorVertex).measurement);
+		TransformWithCovariance twc = sensor->calculateTransform(m, mPoseGraph.getVertex(prevSensorVertex).measurement, guess);
 		icpEdge.transform = twc.transform;
 		icpEdge.covariance = twc.covariance;
 		mPoseGraph.addEdge(prevSensorVertex, newVertex, icpEdge);

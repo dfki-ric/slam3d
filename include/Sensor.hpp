@@ -30,6 +30,23 @@ namespace slam
 		}
 	};
 	
+	/**
+	 * @class NoMatch
+	 * @author Sebastian Kasperski
+	 * @date 04/21/15
+	 * @file Sensor.hpp
+	 * @brief 
+	 */
+	class NoMatch: public std::exception
+	{
+	public:
+		NoMatch(){}
+		virtual const char* what() const throw()
+		{
+			return "Could not match measurements from sensor!";
+		}
+	};
+	
 	// Forward declaration of GraphMapper
 	class GraphMapper;
 	
@@ -63,8 +80,9 @@ namespace slam
 		 * @throw BadMeasurementType
 		 * @param source
 		 * @param target
+		 * @param guess Initial estiamte of transform between source and target
 		 */
-		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target) const = 0;
+		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform guess) const = 0;
 		
 	protected:
 		std::string mName;
