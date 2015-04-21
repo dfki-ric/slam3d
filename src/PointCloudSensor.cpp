@@ -98,9 +98,9 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 	PointCloud::Ptr accu(new PointCloud);
 	VertexList vertices = mMapper->getVerticesFromSensor(mName);
 //	int added = 0;
-	for(VertexList::reverse_iterator it = vertices.rbegin(); it < vertices.rend(); it++)
+	for(VertexList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{
-		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
+		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->second.measurement);
 		if(!pcl)
 		{
 			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
@@ -108,7 +108,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
 		}
 		
 		PointCloud::Ptr tempCloud(new PointCloud);
-		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, it->corrected_pose.matrix());
+		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, it->second.corrected_pose.matrix());
 		*accu += *tempCloud;
 //		added++;
 		

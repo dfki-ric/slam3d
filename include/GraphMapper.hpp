@@ -27,6 +27,8 @@ namespace slam
 		Transform getCurrentPose() { return mCurrentPose; }
 		
 		VertexList getVerticesFromSensor(std::string sensor);
+		EdgeList getEdges(unsigned type = 0) { return mPoseGraph.getEdges(type); }
+		VertexLinkList getVertexLinks(unsigned type = 0){return mPoseGraph.getVertexLinks(type);}
 
 	private:
 		PoseGraph mPoseGraph;

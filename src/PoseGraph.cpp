@@ -39,7 +39,7 @@ PoseGraph::IdType PoseGraph::addVertex(const VertexObject& object)
 	point[0][0] = t[0];
 	point[0][1] = t[1];
 	point[0][2] = t[2];
-	mIndex.addPoints(point);
+//	mIndex.addPoints(point);
 	
 	return newVertexId;
 }
@@ -127,7 +127,37 @@ VertexList PoseGraph::getVerticesFromSensor(std::string sensor)
 	{
 		if(mGraph[*it].measurement->getSensorName() == sensor)
 		{
-			result.push_back(mGraph[*it]);
+			mapInsert(it, result);
+		}
+	}
+	return result;
+}
+
+EdgeList PoseGraph::getEdges(unsigned type)
+{
+	EdgeList result;
+	EdgeRange range = boost::edges(mGraph);
+	for(EdgeIterator it = range.first; it != range.second; it++)
+	{
+		if(type == 0 || mGraph[*it].edge_type == type)
+		{
+			mapInsert(it, result);
+		}
+	}
+	return result;
+}
+
+VertexLinkList PoseGraph::getVertexLinks(unsigned type)
+{
+	VertexLinkList result;
+	EdgeRange range = boost::edges(mGraph);
+	for(EdgeIterator it = range.first; it != range.second; it++)
+	{
+		if(type == 0 || mGraph[*it].edge_type == type)
+		{
+			unsigned source = mGraph[boost::source(*it, mGraph)].id;
+			unsigned target = mGraph[boost::target(*it, mGraph)].id;
+			result.push_back(VertexLinkList::value_type(source, target));
 		}
 	}
 	return result;
@@ -178,7 +208,8 @@ VertexList PoseGraph::getNearbyVertices(IdType id, float radius)
 	std::vector<int>::iterator it;
 	for(it = neighbors[0].begin(); it < neighbors[0].end(); it++)
 	{
-		result.push_back(mGraph[mIndexMap[*it]]);
+		result.insert(VertexList::value_type(*it, mGraph[mIndexMap[*it]]));
+//		mapInsert(mIndexMap[*it], result);
 	}
 	
 	return result;

@@ -117,7 +117,7 @@ void GraphMapper::addReading(Measurement* m)
 
 	// Set last vertex for this sensor
 	mLastVertices[m->getSensorName()] = newVertex;
-
+/*
 	// Add edges to other measurements nearby
 	mPoseGraph.rebuildIndex();
 	VertexList neighbors = mPoseGraph.getNearbyVertices(newVertex, 10.0);
@@ -133,6 +133,7 @@ void GraphMapper::addReading(Measurement* m)
 		icpEdge.covariance = twc.covariance;
 		mPoseGraph.addEdge((*it).id, newVertex, icpEdge);
 	}
+*/ 
 }
 
 VertexList GraphMapper::getVerticesFromSensor(std::string sensor)

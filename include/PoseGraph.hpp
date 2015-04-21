@@ -27,8 +27,6 @@ namespace slam
 		unsigned int id;
 	};
 	
-	typedef std::vector<VertexObject> VertexList;
-	
 	/**
 	 * @class EdgeObject
 	 * @author Sebastian Kasperski
@@ -44,6 +42,10 @@ namespace slam
 		unsigned int edge_type;
 		unsigned int id;
 	};
+
+	typedef std::map<unsigned, VertexObject> VertexList;
+	typedef std::map<unsigned, EdgeObject> EdgeList;
+	typedef std::vector< std::pair<unsigned, unsigned> > VertexLinkList;
 
 	class Solver;
 	
@@ -153,6 +155,20 @@ namespace slam
 		VertexList getVerticesFromSensor(std::string sensor);
 		
 		/**
+		 * @brief Get all edges with given type. Will get all edges regardless
+		 * of the type when set to 0.
+		 * @param type
+		 */
+		EdgeList getEdges(unsigned type = 0);
+		
+		/**
+		 * @brief Get all vertices that are connected by an edge of the given type.
+		 * Will get all edges regardless of the type when set to 0.
+		 * @param type
+		 */
+		VertexLinkList getVertexLinks(unsigned type = 0);
+		
+		/**
 		 * @brief 
 		 * @param id
 		 * @param pose
@@ -170,6 +186,19 @@ namespace slam
 		 * @param radius Maximum distance to the vertex
 		 */
 		VertexList getNearbyVertices(IdType id, float radius);
+		
+	private:
+		inline void mapInsert(VertexIterator it, VertexList &list)
+		{
+			unsigned id = mGraph[*it].id;
+			list.insert(VertexList::value_type(id, mGraph[*it]));
+		}
+		
+		inline void mapInsert(EdgeIterator it, EdgeList &list)
+		{
+			unsigned id = mGraph[*it].id;
+			list.insert(EdgeList::value_type(id, mGraph[*it]));
+		}
 		
 	private:
 		AdjacencyGraph mGraph;
