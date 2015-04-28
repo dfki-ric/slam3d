@@ -83,7 +83,7 @@ void GraphMapper::addReading(Measurement* m)
 	// Add the vertex to the pose graph
 	VertexObject::Ptr newVertex(new VertexObject());
 	newVertex->odometric_pose = pose;
-	newVertex->corrected_pose = pose;
+	newVertex->corrected_pose = mCurrentPose;
 	newVertex->measurement = m;
 	mPoseGraph->addVertex(newVertex);
 	
@@ -108,19 +108,23 @@ void GraphMapper::addReading(Measurement* m)
 	VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
 	if(prevSensorVertex)
 	{
-		EdgeObject::Ptr icpEdge(new EdgeObject());
-		icpEdge->setSourceVertex(prevSensorVertex);
-		icpEdge->setTargetVertex(newVertex);
-
-		TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement, guess);
-		icpEdge->transform = twc.transform;
-		icpEdge->covariance = twc.covariance;
-
-		mPoseGraph->addEdge(icpEdge);
-		
-		// Update current pose estimate
-		mCurrentPose = mCurrentPose * twc.transform;
-		newVertex->corrected_pose = mCurrentPose;
+		try
+		{
+			TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement, guess);
+			EdgeObject::Ptr icpEdge(new EdgeObject());
+			icpEdge->setSourceVertex(prevSensorVertex);
+			icpEdge->setTargetVertex(newVertex);
+			icpEdge->transform = twc.transform;
+			icpEdge->covariance = twc.covariance;
+			mPoseGraph->addEdge(icpEdge);
+			
+			// Update current pose estimate
+			mCurrentPose = mCurrentPose * twc.transform;
+			newVertex->corrected_pose = mCurrentPose;
+		}catch(NoMatch &e)
+		{
+			mLogger->message(WARNING, "Could not create an edge to the previous measurement!");
+		}
 	}else
 	{
 		mLogger->message(INFO, (boost::format("Added first Reading of sensor '%1%'") % m->getSensorName()).str());
@@ -174,6 +178,7 @@ void GraphMapper::addReading(Measurement* m)
 	{
 		mLogger->message(WARNING, "Scan matching not possible!");
 	}
+
 }
 
 VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)

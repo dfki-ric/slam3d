@@ -88,7 +88,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 		}
 	}else
 	{
-		mLogger->message(WARNING, "ICP was not successful!");
+		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1%)") % icp.getFitnessScore()).str());
 		throw NoMatch();
 	}
 	return twc;
