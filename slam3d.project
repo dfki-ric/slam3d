@@ -20,7 +20,6 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="include">
-    <File Name="include/PoseGraph.hpp"/>
     <File Name="include/Solver.hpp"/>
     <File Name="include/G2oSolver.hpp"/>
     <File Name="include/Logger.hpp"/>
@@ -33,7 +32,6 @@
     <File Name="include/Types.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
-    <File Name="src/PoseGraph.cpp"/>
     <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/Sensor.cpp"/>
@@ -43,8 +41,6 @@
     <File Name="manifest.xml"/>
     <File Name="CMakeLists.txt"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <VirtualDirectory Name="test">
     <File Name="test/pose_graph.cpp"/>
     <File Name="test/dummy.cpp"/>
@@ -136,4 +132,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

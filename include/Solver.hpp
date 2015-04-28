@@ -1,10 +1,11 @@
 #ifndef SLAM_SOLVER_HPP
 #define SLAM_SOLVER_HPP
 
-#include "PoseGraph.hpp"
-#include <graph_analysis/Graph.hpp>
+#include "Types.hpp"
 #include "Logger.hpp"
+#include "GraphMapper.hpp"
 
+#include <graph_analysis/Graph.hpp>
 #include <vector>
 
 namespace slam
@@ -93,10 +94,10 @@ namespace slam
 		 */
 		Solver(Logger* logger):mLogger(logger){}
 
-                /**
-                 * Optimize graph
-                 */
-                void optimize(graph_analysis::BaseGraph::Ptr baseGraph);
+		/**
+		 * Optimize graph
+		 */
+//		virtual void optimize(graph_analysis::BaseGraph::Ptr baseGraph) = 0;
 	
 		/**
 		 * @brief Add a node to the internal graph representation.

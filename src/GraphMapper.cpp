@@ -1,13 +1,14 @@
 #include "GraphMapper.hpp"
+#include "Solver.hpp"
 
-#include "boost/format.hpp"
+#include <boost/format.hpp>
 #include <graph_analysis/lemon/DirectedGraph.hpp>
-#include <graph_analysis/GraphIO.hpp>
+//#include <graph_analysis/GraphIO.hpp>
 
 using namespace slam;
 
 GraphMapper::GraphMapper(Logger* log)
-    : mPoseGraph( new graph_analysis::lemon::DirectedGraph())
+ : mPoseGraph( new graph_analysis::lemon::DirectedGraph())
 {
 	mOdometry = NULL;
 	mSolver = NULL;
@@ -18,7 +19,7 @@ GraphMapper::GraphMapper(Logger* log)
 GraphMapper::~GraphMapper()
 {
 	std::string file = "pose_graph.dot";
-	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GEXF);
+//	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GEXF);
 }
 
 void GraphMapper::setSolver(Solver* solver)
@@ -40,8 +41,7 @@ bool GraphMapper::optimize()
 	}
 	
 	// Give the graph structure to the solver
-	//mPoseGraph.optimize(mSolver);
-        mSolver->optimize(mPoseGraph);
+//	mSolver->optimize(mPoseGraph);
 	return true;
 }
 
@@ -80,7 +80,7 @@ void GraphMapper::addReading(Measurement* m)
 	}
 
 	// Add the vertex to the pose graph
-        VertexObject::Ptr newVertex(new VertexObject());
+	VertexObject::Ptr newVertex(new VertexObject());
 	newVertex->odometric_pose = pose;
 	newVertex->corrected_pose = pose;
 	newVertex->measurement = m;
@@ -89,9 +89,9 @@ void GraphMapper::addReading(Measurement* m)
 	// Add an edge representing the odometry information
 	if(mOdometry && mLastVertex)
 	{
-                EdgeObject::Ptr odomEdge(new EdgeObject());
-                odomEdge->setSourceVertex(mLastVertex);
-                odomEdge->setTargetVertex(newVertex);
+		EdgeObject::Ptr odomEdge(new EdgeObject());
+		odomEdge->setSourceVertex(mLastVertex);
+		odomEdge->setTargetVertex(newVertex);
 
 		timeval previous = mLastVertex->measurement->getTimestamp();
 		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
@@ -102,12 +102,12 @@ void GraphMapper::addReading(Measurement* m)
 	
 	// Add an edge to the previous reading of this sensor
 	LastVertexMap::iterator it = mLastVertices.find(m->getSensorName());
-        VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
+	VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
 	if(prevSensorVertex)
 	{
-                EdgeObject::Ptr icpEdge(new EdgeObject());
-                icpEdge->setSourceVertex(prevSensorVertex);
-                icpEdge->setTargetVertex(newVertex);
+		EdgeObject::Ptr icpEdge(new EdgeObject());
+		icpEdge->setSourceVertex(prevSensorVertex);
+		icpEdge->setTargetVertex(newVertex);
 
 		TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement);
 		icpEdge->transform = twc.transform;
@@ -117,14 +117,15 @@ void GraphMapper::addReading(Measurement* m)
 		
 		// Update current pose estimate
 		mCurrentPose = mCurrentPose * twc.transform;
-                newVertex->corrected_pose = mCurrentPose;
+		newVertex->corrected_pose = mCurrentPose;
 	}else
 	{
 		mLogger->message(INFO, (boost::format("Added first Reading of sensor '%1%'") % m->getSensorName()).str());
 	}
 
-        // Overall last vertex
-        mLastVertex = newVertex;
+	// Overall last vertex
+	mLastVertex = newVertex;
+
 	// Set last vertex for this sensor
 	mLastVertices[m->getSensorName()] = newVertex;
 /*
@@ -146,7 +147,7 @@ void GraphMapper::addReading(Measurement* m)
 */ 
 }
 
-VertexList GraphMapper::getVerticesFromSensor(std::string sensor)
+VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
 {
     VertexList vertexList;
 
@@ -161,4 +162,18 @@ VertexList GraphMapper::getVerticesFromSensor(std::string sensor)
     }
 
     return vertexList;
+}
+
+EdgeList GraphMapper::getEdgesFromSensor(const std::string& sensor)
+{
+	EdgeList edgeList;
+	
+	graph_analysis::EdgeIterator::Ptr edgeIterator = mPoseGraph->getEdgeIterator();
+	while(edgeIterator->next())
+	{
+		EdgeObject::Ptr edge = boost::dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
+		edgeList.push_back(edge);
+	}
+	
+	return edgeList;
 }

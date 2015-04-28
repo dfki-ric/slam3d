@@ -25,7 +25,7 @@ namespace slam
 		virtual timeval now()
 		{
 			timeval tv;
-			gettimeofday(&tv, NULL);
+			gettimeofday(&tv, 0);
 			return tv;
 		}
 	};
