@@ -100,7 +100,7 @@ void GraphMapper::addReading(Measurement* m)
 		odomEdge->covariance = twc.covariance;
 		mPoseGraph->addEdge(odomEdge);
 	}
-	
+/*	
 	// Add an edge to the previous reading of this sensor
 	LastVertexMap::iterator it = mLastVertices.find(m->getSensorName());
 	VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
@@ -123,7 +123,7 @@ void GraphMapper::addReading(Measurement* m)
 	{
 		mLogger->message(INFO, (boost::format("Added first Reading of sensor '%1%'") % m->getSensorName()).str());
 	}
-
+*/
 	// Overall last vertex
 	mLastVertex = newVertex;
 
@@ -136,10 +136,15 @@ void GraphMapper::addReading(Measurement* m)
 	VertexList neighbors = getNearbyVertices(newVertex, 10.0);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
+	bool matched = false;
+	int count = 0;
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
 	{
-		if(*it == mLastVertex || *it == newVertex)
+		if(*it == newVertex)// || *it == mLastVertex)
 			continue;
+
+		if(count > 5)
+			break;
 
 		EdgeObject::Ptr icpEdge(new EdgeObject);
 		TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement);
@@ -148,6 +153,19 @@ void GraphMapper::addReading(Measurement* m)
 		icpEdge->setSourceVertex(*it);
 		icpEdge->setTargetVertex(newVertex);
 		mPoseGraph->addEdge(icpEdge);
+		
+		if(!matched)
+		{
+			mCurrentPose = (*it)->corrected_pose * twc.transform;
+			newVertex->corrected_pose = mCurrentPose;
+			matched = true;
+		}
+		count++;
+	}
+	
+	if(!matched)
+	{
+		mLogger->message(WARNING, "Scan matching not possible!");
 	}
 }
 
