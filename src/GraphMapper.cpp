@@ -88,19 +88,21 @@ void GraphMapper::addReading(Measurement* m)
 	mPoseGraph->addVertex(newVertex);
 	
 	// Add an edge representing the odometry information
+	Transform guess = Transform::Identity();
 	if(mOdometry && mLastVertex)
 	{
+		timeval previous = mLastVertex->measurement->getTimestamp();
+		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
+
 		EdgeObject::Ptr odomEdge(new EdgeObject());
 		odomEdge->setSourceVertex(mLastVertex);
 		odomEdge->setTargetVertex(newVertex);
-
-		timeval previous = mLastVertex->measurement->getTimestamp();
-		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
 		odomEdge->transform = twc.transform;
 		odomEdge->covariance = twc.covariance;
 		mPoseGraph->addEdge(odomEdge);
+		guess = twc.transform;
 	}
-/*	
+/*
 	// Add an edge to the previous reading of this sensor
 	LastVertexMap::iterator it = mLastVertices.find(m->getSensorName());
 	VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
@@ -110,7 +112,7 @@ void GraphMapper::addReading(Measurement* m)
 		icpEdge->setSourceVertex(prevSensorVertex);
 		icpEdge->setTargetVertex(newVertex);
 
-		TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement);
+		TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement, guess);
 		icpEdge->transform = twc.transform;
 		icpEdge->covariance = twc.covariance;
 
@@ -132,7 +134,6 @@ void GraphMapper::addReading(Measurement* m)
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
-
 	VertexList neighbors = getNearbyVertices(newVertex, 10.0);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
@@ -145,22 +146,28 @@ void GraphMapper::addReading(Measurement* m)
 
 		if(count > 5)
 			break;
+		count++;
 
 		EdgeObject::Ptr icpEdge(new EdgeObject);
-		TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement);
-		icpEdge->transform = twc.transform;
-		icpEdge->covariance = twc.covariance;
-		icpEdge->setSourceVertex(*it);
-		icpEdge->setTargetVertex(newVertex);
-		mPoseGraph->addEdge(icpEdge);
-		
-		if(!matched)
+		try
 		{
-			mCurrentPose = (*it)->corrected_pose * twc.transform;
-			newVertex->corrected_pose = mCurrentPose;
-			matched = true;
+			TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement, guess);
+			icpEdge->transform = twc.transform;
+			icpEdge->covariance = twc.covariance;
+			icpEdge->setSourceVertex(*it);
+			icpEdge->setTargetVertex(newVertex);
+			mPoseGraph->addEdge(icpEdge);
+			
+			if(!matched)
+			{
+				mCurrentPose = (*it)->corrected_pose * twc.transform;
+				newVertex->corrected_pose = mCurrentPose;
+				matched = true;
+			}
+		}catch(NoMatch &e)
+		{
+			continue;
 		}
-		count++;
 	}
 	
 	if(!matched)
