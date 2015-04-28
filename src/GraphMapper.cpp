@@ -8,7 +8,8 @@
 using namespace slam;
 
 GraphMapper::GraphMapper(Logger* log)
- : mPoseGraph( new graph_analysis::lemon::DirectedGraph())
+ : mPoseGraph( new graph_analysis::lemon::DirectedGraph()),
+   mIndex(flann::KDTreeSingleIndexParams())
 {
 	mOdometry = NULL;
 	mSolver = NULL;
@@ -128,23 +129,26 @@ void GraphMapper::addReading(Measurement* m)
 
 	// Set last vertex for this sensor
 	mLastVertices[m->getSensorName()] = newVertex;
-/*
+
 	// Add edges to other measurements nearby
-	mPoseGraph.rebuildIndex();
-	VertexList neighbors = mPoseGraph.getNearbyVertices(newVertex, 10.0);
+	buildNeighborIndex();
+
+	VertexList neighbors = getNearbyVertices(newVertex, 10.0);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
 	{
-		if(it->id == mLastVertex || it->id == newVertex)
+		if(*it == mLastVertex || *it == newVertex)
 			continue;
-		EdgeObject icpEdge;
-		TransformWithCovariance twc = sensor->calculateTransform(m, (*it).measurement);
-		icpEdge.transform = twc.transform;
-		icpEdge.covariance = twc.covariance;
-		mPoseGraph.addEdge((*it).id, newVertex, icpEdge);
+
+		EdgeObject::Ptr icpEdge(new EdgeObject);
+		TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement);
+		icpEdge->transform = twc.transform;
+		icpEdge->covariance = twc.covariance;
+		icpEdge->setSourceVertex(*it);
+		icpEdge->setTargetVertex(newVertex);
+		mPoseGraph->addEdge(icpEdge);
 	}
-*/ 
 }
 
 VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
@@ -176,4 +180,51 @@ EdgeList GraphMapper::getEdgesFromSensor(const std::string& sensor)
 	}
 	
 	return edgeList;
+}
+
+void GraphMapper::buildNeighborIndex()
+{
+	std::vector<graph_analysis::Vertex::Ptr> vertices = mPoseGraph->getAllVertices();
+	int numOfVertices = vertices.size();
+	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
+
+	int row = 0;
+	mIndexMap.clear();
+	for(std::vector<graph_analysis::Vertex::Ptr>::iterator it = vertices.begin(); it < vertices.end(); it++)
+	{
+		VertexObject::Ptr v = boost::dynamic_pointer_cast<VertexObject>(*it);
+		Transform::TranslationPart t = v->corrected_pose.translation();
+		points[row][0] = t[0];
+		points[row][1] = t[1];
+		points[row][2] = t[2];
+		mIndexMap.insert(std::pair<int, VertexObject::Ptr>(row, v));
+		row++;
+	}
+	
+	mIndex.buildIndex(points);
+}
+
+VertexList GraphMapper::getNearbyVertices(VertexObject::Ptr vertex, float radius)
+{
+	// Fill in the query point
+	flann::Matrix<float> query(new float[3], 1, 3);
+	Transform::TranslationPart t = vertex->corrected_pose.translation();
+	query[0][0] = t[0];
+	query[0][1] = t[1];
+	query[0][2] = t[2];
+	
+	// Find points nearby
+	std::vector< std::vector<int> > neighbors;
+	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
+	int found = mIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
+	
+	// Write the result
+	VertexList result;
+	std::vector<int>::iterator it;
+	for(it = neighbors[0].begin(); it < neighbors[0].end(); it++)
+	{
+		result.push_back(mIndexMap[*it]);
+	}
+	
+	return result;
 }

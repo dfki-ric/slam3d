@@ -5,6 +5,7 @@
 #include "Sensor.hpp"
 
 #include <graph_analysis/BaseGraph.hpp>
+#include <flann/flann.hpp>
 #include <map>
 
 namespace slam
@@ -57,6 +58,8 @@ namespace slam
 	typedef std::map<std::string, Sensor*> SensorList;
 	typedef std::map<std::string, VertexObject::Ptr> LastVertexMap;
 	
+	typedef flann::Index< flann::L2<float> > NeighborIndex;
+	
 	class Solver;
 	
 	/**
@@ -82,8 +85,9 @@ namespace slam
 		
 		VertexList getVerticesFromSensor(const std::string& sensor);
 		EdgeList getEdgesFromSensor(const std::string& sensor);
-		//EdgeList getEdges(unsigned type = 0) { return mPoseGraph->getEdges(type); }
-		//VertexLinkList getVertexLinks(unsigned type = 0){return mPoseGraph.getVertexLinks(type);}
+		
+		void buildNeighborIndex();
+		VertexList getNearbyVertices(VertexObject::Ptr vertex, float radius);
 
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
@@ -96,6 +100,11 @@ namespace slam
 		SensorList mSensors;
 		
 		Transform mCurrentPose;
+		
+		// Index to use nearest neighbor search
+		flann::SearchParams mSearchParams;
+		NeighborIndex mIndex;
+		std::map<int, VertexObject::Ptr> mIndexMap;
 	};
 }
 
