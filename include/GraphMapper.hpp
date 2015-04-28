@@ -56,7 +56,6 @@ namespace slam
 	typedef std::vector<VertexObject::Ptr> VertexList;
 	typedef std::vector<EdgeObject::Ptr> EdgeList;
 	typedef std::map<std::string, Sensor*> SensorList;
-	typedef std::map<std::string, VertexObject::Ptr> LastVertexMap;
 	
 	typedef flann::Index< flann::L2<float> > NeighborIndex;
 	
@@ -92,7 +91,6 @@ namespace slam
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
 		VertexObject::Ptr mLastVertex;
-		LastVertexMap mLastVertices;
 
 		Solver* mSolver;
 		Logger* mLogger;

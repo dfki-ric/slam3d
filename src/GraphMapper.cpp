@@ -55,8 +55,6 @@ void GraphMapper::registerSensor(Sensor* s)
 		mLogger->message(ERROR, (boost::format("Sensor with name %1% already exists!") % s->getName()).str());
 		return;
 	}
-	
-	mLastVertices.insert(LastVertexMap::value_type(s->getName(), VertexObject::Ptr()));
 }
 
 void GraphMapper::addReading(Measurement* m)
@@ -102,39 +100,9 @@ void GraphMapper::addReading(Measurement* m)
 		mPoseGraph->addEdge(odomEdge);
 		guess = twc.transform;
 	}
-/*
-	// Add an edge to the previous reading of this sensor
-	LastVertexMap::iterator it = mLastVertices.find(m->getSensorName());
-	VertexObject::Ptr prevSensorVertex = mLastVertices.at(m->getSensorName());
-	if(prevSensorVertex)
-	{
-		try
-		{
-			TransformWithCovariance twc = sensor->calculateTransform(m, prevSensorVertex->measurement, guess);
-			EdgeObject::Ptr icpEdge(new EdgeObject());
-			icpEdge->setSourceVertex(prevSensorVertex);
-			icpEdge->setTargetVertex(newVertex);
-			icpEdge->transform = twc.transform;
-			icpEdge->covariance = twc.covariance;
-			mPoseGraph->addEdge(icpEdge);
-			
-			// Update current pose estimate
-			mCurrentPose = mCurrentPose * twc.transform;
-			newVertex->corrected_pose = mCurrentPose;
-		}catch(NoMatch &e)
-		{
-			mLogger->message(WARNING, "Could not create an edge to the previous measurement!");
-		}
-	}else
-	{
-		mLogger->message(INFO, (boost::format("Added first Reading of sensor '%1%'") % m->getSensorName()).str());
-	}
-*/
+
 	// Overall last vertex
 	mLastVertex = newVertex;
-
-	// Set last vertex for this sensor
-	mLastVertices[m->getSensorName()] = newVertex;
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
