@@ -51,8 +51,8 @@ rock_executable(dummy
 ############################################################
 # Build test cases
 ############################################################
-#rock_testsuite(TestPoseGraph
-#	SOURCES
-#		test/pose_graph.cpp
-#	DEPS
-#		slam3d)
+rock_testsuite(TestPoseGraph
+	SOURCES
+		test/pose_graph.cpp
+	DEPS
+		slam3d)
