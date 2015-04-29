@@ -7,6 +7,26 @@
 
 using namespace slam;
 
+VertexObject::Ptr GraphMapper::fromBaseGraph(graph_analysis::Vertex::Ptr base)
+{
+	VertexObject::Ptr v = boost::dynamic_pointer_cast<VertexObject>(base);
+	if(!v)
+	{
+		throw BadElementType();
+	}
+	return v;
+}
+
+EdgeObject::Ptr GraphMapper::fromBaseGraph(graph_analysis::Edge::Ptr base)
+{
+	EdgeObject::Ptr e = boost::dynamic_pointer_cast<EdgeObject>(base);
+	if(!e)
+	{
+		throw BadElementType();
+	}
+	return e;
+}
+
 GraphMapper::GraphMapper(Logger* log)
  : mPoseGraph( new graph_analysis::lemon::DirectedGraph()),
    mIndex(flann::KDTreeSingleIndexParams())
@@ -41,8 +61,44 @@ bool GraphMapper::optimize()
 		return false;
 	}
 	
-	// Give the graph structure to the solver
-//	mSolver->optimize(mPoseGraph);
+	// Add vertices to the solver
+	std::vector<graph_analysis::Vertex::Ptr> vertices = mPoseGraph->getAllVertices();
+	if(vertices.size() == 0)
+	{
+		mLogger->message(ERROR, "Graph does not contain any nodes!");
+		return false;
+	}
+	for(std::vector<graph_analysis::Vertex::Ptr>::iterator it = vertices.begin(); it < vertices.end(); it++)
+	{
+		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(*it);
+		mSolver->addNode(id, fromBaseGraph(*it)->corrected_pose);
+	}
+	
+	// Fix first node in the graph
+	mSolver->setFixed(mPoseGraph->getVertexId(vertices.at(0)));
+	
+	// Add edges to the solver
+	std::vector<graph_analysis::Edge::Ptr> edges = mPoseGraph->getAllEdges();
+	for(std::vector<graph_analysis::Edge::Ptr>::iterator it = edges.begin(); it < edges.end(); it++)
+	{
+		unsigned source = mPoseGraph->getVertexId((*it)->getSourceVertex());
+		unsigned target = mPoseGraph->getVertexId((*it)->getTargetVertex());
+		EdgeObject::Ptr edge = fromBaseGraph(*it);
+		mSolver->addConstraint(source, target, edge->transform, edge->covariance);
+	}
+	
+	// Optimize
+	mSolver->compute();
+
+	// Retrieve results
+	IdPoseVector res = mSolver->getCorrections();
+	for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+	{
+		unsigned int id = it->first;
+		Transform tf = it->second;
+		VertexObject::Ptr v = fromBaseGraph(mPoseGraph->getVertex(id));
+		v->corrected_pose = tf;
+	}
 	return true;
 }
 

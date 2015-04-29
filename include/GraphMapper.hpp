@@ -59,6 +59,16 @@ namespace slam
 	
 	typedef flann::Index< flann::L2<float> > NeighborIndex;
 	
+	class BadElementType: public std::exception
+	{
+	public:
+		BadElementType(){}
+		virtual const char* what() const throw()
+		{
+			return "Could not convert from base-type to slam-type!";
+		}
+	};
+	
 	class Solver;
 	
 	/**
@@ -87,6 +97,9 @@ namespace slam
 		
 		void buildNeighborIndex();
 		VertexList getNearbyVertices(VertexObject::Ptr vertex, float radius);
+		
+		static VertexObject::Ptr fromBaseGraph(graph_analysis::Vertex::Ptr base);
+		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
 
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;

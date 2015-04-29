@@ -36,9 +36,8 @@ G2oSolver::~G2oSolver()
 //	g2o::HyperGraphActionLibrary::destroy();
 }
 
-void G2oSolver::addNode(slam::VertexObject::Ptr v)
+void G2oSolver::addNode(unsigned id, Transform pose)
 {
-	graph_analysis::GraphElementId id = getBaseGraph()->getVertexId(v);
 	// Check that given id has not been added before
 	if(mOptimizer.vertex(id) != NULL)
 	{
@@ -47,41 +46,37 @@ void G2oSolver::addNode(slam::VertexObject::Ptr v)
 	
 	// Set current pose and id
 	g2o::VertexSE3* poseVertex = new g2o::VertexSE3;
-	poseVertex->setEstimate(v->corrected_pose);  //Eigen::Isometry3d
+	poseVertex->setEstimate(pose);  //Eigen::Isometry3d
 	poseVertex->setId(id);
 	
 	// Add the vertex to the optimizer
 	mOptimizer.addVertex(poseVertex);
 }
 
-void G2oSolver::addConstraint(slam::EdgeObject::Ptr edge)
+void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov = Covariance::Identity())
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
-
-        graph_analysis::GraphElementId sourceId = getBaseGraph()->getVertexId( edge->getSourceVertex() );
-        graph_analysis::GraphElementId targetId = getBaseGraph()->getVertexId( edge->getTargetVertex() );
 	
 	// Set source and target
-	constraint->vertices()[0] = mOptimizer.vertex(sourceId);
-	constraint->vertices()[1] = mOptimizer.vertex(targetId);
+	constraint->vertices()[0] = mOptimizer.vertex(source);
+	constraint->vertices()[1] = mOptimizer.vertex(target);
 	if(constraint->vertices()[0] == NULL || constraint->vertices()[1] == NULL)
 	{
 		delete constraint;
-		throw BadEdge(sourceId, targetId);
+		throw BadEdge(source, target);
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	constraint->setMeasurement(edge->transform);   // slam::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(edge->covariance);  // slam::Covariance aka Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(tf);   // slam::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(cov);  // slam::Covariance aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);
 }
 
-void G2oSolver::setFixed(VertexObject::Ptr vertexObject)
+void G2oSolver::setFixed(unsigned id)
 {
-	graph_analysis::GraphElementId id = getBaseGraph()->getVertexId(vertexObject);
 	// Fix the node in the graph to hold the map in place
 	g2o::OptimizableGraph::Vertex* v = mOptimizer.vertex(id);
 	if(!v)

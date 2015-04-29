@@ -20,9 +20,9 @@ namespace slam
 		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
-		void addNode(VertexObject::Ptr v);
-		void addConstraint(EdgeObject::Ptr e);
-		void setFixed(VertexObject::Ptr v);
+		void addNode(unsigned id, Transform pose);
+		void addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov);
+		void setFixed(unsigned id);
 		void compute();
 		void clear();
 		void saveGraph(std::string filename);
