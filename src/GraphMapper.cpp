@@ -75,7 +75,7 @@ bool GraphMapper::optimize()
 	}
 	
 	// Fix first node in the graph
-	mSolver->setFixed(mPoseGraph->getVertexId(vertices.at(0)));
+	mSolver->setFixed(mPoseGraph->getVertexId(mFixedVertex));
 	
 	// Add edges to the solver
 	std::vector<graph_analysis::Edge::Ptr> edges = mPoseGraph->getAllEdges();
@@ -140,6 +140,10 @@ void GraphMapper::addReading(Measurement* m)
 	newVertex->corrected_pose = mCurrentPose;
 	newVertex->measurement = m;
 	mPoseGraph->addVertex(newVertex);
+	if(!mFixedVertex)
+	{
+		mFixedVertex = newVertex;
+	}
 	
 	// Add an edge representing the odometry information
 	Transform guess = Transform::Identity();

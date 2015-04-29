@@ -104,6 +104,7 @@ namespace slam
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
 		VertexObject::Ptr mLastVertex;
+		VertexObject::Ptr mFixedVertex;
 
 		Solver* mSolver;
 		Logger* mLogger;
