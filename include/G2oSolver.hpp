@@ -23,7 +23,7 @@ namespace slam
 		void addNode(unsigned id, Transform pose);
 		void addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov);
 		void setFixed(unsigned id);
-		void compute();
+		bool compute();
 		void clear();
 		void saveGraph(std::string filename);
 		

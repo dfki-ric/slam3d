@@ -73,7 +73,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	TransformWithCovariance twc;
 	twc.transform = Transform::Identity();
 	twc.covariance = Covariance::Identity();
-	if(icp.hasConverged() && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
+	if(icp.hasConverged())// && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
 	{
 		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
 
@@ -88,7 +88,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 		}
 	}else
 	{
-		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1%)") % icp.getFitnessScore()).str());
+		mLogger->message(DEBUG, (boost::format("ICP failed! (Fitness-Score: %1%)") % icp.getFitnessScore()).str());
 		throw NoMatch();
 	}
 	return twc;

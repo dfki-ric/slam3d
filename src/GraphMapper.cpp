@@ -88,7 +88,10 @@ bool GraphMapper::optimize()
 	}
 	
 	// Optimize
-	mSolver->compute();
+	if(!mSolver->compute())
+	{
+		return false;
+	}
 
 	// Retrieve results
 	IdPoseVector res = mSolver->getCorrections();
@@ -166,7 +169,7 @@ void GraphMapper::addReading(Measurement* m)
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
-	VertexList neighbors = getNearbyVertices(newVertex, 10.0);
+	VertexList neighbors = getNearbyVertices(newVertex, 5.0);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
 	bool matched = false;

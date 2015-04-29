@@ -120,7 +120,7 @@ namespace slam
 		/**
 		 * @brief Start optimization of the defined graph.
 		 */
-		virtual void compute() = 0;
+		virtual bool compute() = 0;
 	
 		/**
 		 * @brief Clear internal graph structure by removing all nodes and constraints.

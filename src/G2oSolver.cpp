@@ -87,11 +87,14 @@ void G2oSolver::setFixed(unsigned id)
 	v->setFixed(true);
 }
 
-void G2oSolver::compute()
+bool G2oSolver::compute()
 {
 	// Do the graph optimization
 	if(!mOptimizer.verifyInformationMatrices(true))
-		return;
+	{
+		mLogger->message(ERROR, "Failed to verify information matrices!");
+		return false;
+	}
 
 	mOptimizer.initializeOptimization();
 	mOptimizer.computeActiveErrors();
@@ -99,7 +102,7 @@ void G2oSolver::compute()
 	if (iter <= 0)
 	{		
 		mLogger->message(ERROR, "Optimization failed!");
-		return;
+		return false;
 	}
 	mLogger->message(INFO ,(boost::format("Optimization finished after %1% iterations.") % iter).str());
 
@@ -115,6 +118,7 @@ void G2oSolver::compute()
 		Eigen::Isometry3d iso = vertex->estimate();
 		mCorrections.push_back(IdPose((*n)->id(), iso));
 	}
+	return true;
 }
 
 IdPoseVector G2oSolver::getCorrections()
