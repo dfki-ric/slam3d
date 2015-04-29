@@ -10,7 +10,7 @@
 #include <graph_analysis/lemon/DirectedGraph.hpp>
 #include <graph_analysis/io/GraphvizWriter.hpp>
 
-BOOST_AUTO_TEST_CASE(graph_mapper)
+BOOST_AUTO_TEST_CASE(construction)
 {
 	
 	slam::Clock clock;
@@ -51,19 +51,19 @@ BOOST_AUTO_TEST_CASE(graph_mapper)
 	graph->addEdge(e1);
 	
 	slam::EdgeObject::Ptr e2(new slam::EdgeObject());
-	e2->setSourceVertex(vo1);
-	e2->setTargetVertex(vo2);
+	e2->setSourceVertex(vo2);
+	e2->setTargetVertex(vo3);
 	e2->covariance = slam::Covariance::Identity();
 	e2->transform = Eigen::Translation<double, 3>(0,1,0);
 	graph->addEdge(e2);
 	
 	slam::EdgeObject::Ptr e3(new slam::EdgeObject());
-	e3->setSourceVertex(vo1);
-	e3->setTargetVertex(vo2);
+	e3->setSourceVertex(vo3);
+	e3->setTargetVertex(vo1);
 	e3->covariance = slam::Covariance::Identity();
 	e3->transform = Eigen::Translation<double, 3>(-0.8, -0.7, 0.2);
 	graph->addEdge(e3);
 
 	// Test file output
-	graph_analysis::io::GraphIO::write("construction_test.dot", *graph, representation::GRAPHVIZ);
+	graph_analysis::io::GraphIO::write("construction_test.dot", *graph, graph_analysis::representation::GRAPHVIZ);
 }
