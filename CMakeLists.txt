@@ -15,22 +15,29 @@ set(CMAKE_BUILD_TYPE "Debug")
 ############################################################
 rock_library(slam3d
 	SOURCES
-		src/PoseGraph.cpp
-		src/G2oSolver.cpp
 		src/GraphMapper.cpp
-                src/Solver.cpp
+		src/Sensor.cpp
+		src/PointCloudSensor.cpp
+		src/G2oSolver.cpp
 	HEADERS
-		include/Measurement.hpp
-		include/PoseGraph.hpp
+		include/Clock.hpp
+		include/Logger.hpp
+		include/FileLogger.hpp
 		include/Solver.hpp
 		include/G2oSolver.hpp
 		include/GraphMapper.hpp
+		include/Sensor.hpp
+		include/PointCloudSensor.hpp
+		include/Types.hpp
+		include/Odometry.hpp
 	DEPS_PKGCONFIG 
 		pcl_registration-1.7
 		eigen3
 		g2o
+		graph_analysis
 	DEPS_CMAKE
 		Cholmod)
+		
 
 ############################################################
 # Define a simple test executable
@@ -44,8 +51,8 @@ rock_executable(dummy
 ############################################################
 # Build test cases
 ############################################################
-rock_testsuite(TestPoseGraph
-	SOURCES
-		test/pose_graph.cpp
-	DEPS
-		slam3d)
+#rock_testsuite(TestPoseGraph
+#	SOURCES
+#		test/pose_graph.cpp
+#	DEPS
+#		slam3d)
