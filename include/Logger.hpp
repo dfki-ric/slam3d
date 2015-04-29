@@ -37,7 +37,7 @@ namespace slam
 		 * @param lvl The message's log-level
 		 * @param message The message to be displayed
 		 */
-		virtual void message(LOG_LEVEL lvl, std::string message)
+		virtual void message(LOG_LEVEL lvl, const std::string& message)
 		{
 			if(lvl < mLogLevel)
 				return;
