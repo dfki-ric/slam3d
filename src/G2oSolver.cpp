@@ -53,7 +53,7 @@ void G2oSolver::addNode(unsigned id, Transform pose)
 	mOptimizer.addVertex(poseVertex);
 }
 
-void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov = Covariance::Identity())
+void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov)
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
