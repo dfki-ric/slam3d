@@ -2,7 +2,7 @@
 #define SLAM_FILELOGGER_HPP
 
 #include "Logger.hpp"
-#include <iostream>
+#include <fstream>
 
 namespace slam
 {
@@ -36,7 +36,7 @@ namespace slam
 		 * @param lvl The message's log-level
 		 * @param message The message to be written
 		 */
-		virtual void message(LOG_LEVEL lvl, std::string message)
+		virtual void message(LOG_LEVEL lvl, const std::string& message)
 		{
 			if(lvl < mLogLevel)
 				return;
