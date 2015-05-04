@@ -44,6 +44,7 @@
   <VirtualDirectory Name="test">
     <File Name="test/pose_graph.cpp"/>
     <File Name="test/dummy.cpp"/>
+    <File Name="test/solver.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

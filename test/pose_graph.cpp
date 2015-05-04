@@ -1,7 +1,6 @@
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE slam3d
+#define BOOST_TEST_MODULE PoseGraphTest
 
-#include "G2oSolver.hpp"
 #include "FileLogger.hpp"
 #include "GraphMapper.hpp"
 
@@ -12,7 +11,6 @@
 
 BOOST_AUTO_TEST_CASE(construction)
 {
-	
 	slam::Clock clock;
 	slam::FileLogger logger(clock, "pose_graph_1.log");
 	graph_analysis::BaseGraph::Ptr graph(new graph_analysis::lemon::DirectedGraph());

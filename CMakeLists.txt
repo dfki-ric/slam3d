@@ -56,3 +56,9 @@ rock_testsuite(TestPoseGraph
 		test/pose_graph.cpp
 	DEPS
 		slam3d)
+
+rock_testsuite(TestSolver
+	SOURCES
+		test/solver.cpp
+	DEPS
+		slam3d)
