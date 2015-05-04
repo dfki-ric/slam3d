@@ -277,7 +277,7 @@ VertexList GraphMapper::getNearbyVertices(VertexObject::Ptr vertex, float radius
 	// Find points nearby
 	std::vector< std::vector<int> > neighbors;
 	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
-	int found = mIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
+	mIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
 	
 	// Write the result
 	VertexList result;

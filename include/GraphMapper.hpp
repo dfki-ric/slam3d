@@ -29,7 +29,7 @@ namespace slam
 		Measurement* measurement;
 
 		std::string getClassName() const { return "slam::VertexObject"; }
-		std::string toString() const { return "VertexObject-instance"; }
+		std::string toString() const { return measurement->getSensorName(); }
 	};
 	
 	/**
