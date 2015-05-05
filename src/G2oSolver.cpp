@@ -28,7 +28,7 @@ G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
 
 G2oSolver::~G2oSolver()
 {
-	
+	clear();
 }
 
 void G2oSolver::addNode(unsigned id, Transform pose)
@@ -133,7 +133,6 @@ IdPoseVector G2oSolver::getCorrections()
 void G2oSolver::clear()
 {
 	mOptimizer.clear();
-//	mOptimizer.clearParameters();
 }
 
 void G2oSolver::saveGraph(std::string filename)

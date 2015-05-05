@@ -48,5 +48,4 @@ BOOST_AUTO_TEST_CASE(optimization)
 	BOOST_CHECK_EQUAL(corr.size(), 4);
 
 	solver->saveGraph("graph_optimized.g2o");
-	solver->clear();
 }

@@ -1,42 +1,83 @@
-#include <G2oSolver.hpp>
+#include "g2o/core/block_solver.h"
+#include "g2o/core/optimization_algorithm_gauss_newton.h"
+#include "g2o/types/slam3d/types_slam3d.h"
+#include "g2o/solvers/cholmod/linear_solver_cholmod.h"
+#include "g2o/core/sparse_optimizer_terminate_action.h"
 
-#include <iostream>
+typedef g2o::BlockSolver< g2o::BlockSolverTraits<-1, -1> > SlamBlockSolver;
+typedef g2o::LinearSolverCholmod<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
 
 int main()
-{
-	slam::Clock clock;
-	slam::Logger logger(clock);
-	slam::Solver* solver = new slam::G2oSolver(&logger);
+{	
+	// Initialize the SparseOptimizer
+	g2o::SparseOptimizer mOptimizer;
+	SlamLinearSolver* linearSolver = new SlamLinearSolver();
+	linearSolver->setBlockOrdering(false);
+	SlamBlockSolver* blockSolver = new SlamBlockSolver(linearSolver);
+	mOptimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(blockSolver));
 	
-	slam::Transform pose_1(Eigen::Translation<double, 3>(0,0,0));
-	slam::Transform pose_2(Eigen::Translation<double, 3>(0,0,0));
-	slam::Transform pose_3(Eigen::Translation<double, 3>(0,0,0));
-
-	slam::Transform tf_1_2(Eigen::Translation<double, 3>(1,0,0));
-	slam::Transform tf_2_3(Eigen::Translation<double, 3>(0,1,0));
-	slam::Transform tf_3_1(Eigen::Translation<double, 3>(-0.8, -0.7, 0.1));
-	slam::Covariance cov = slam::Covariance::Identity();
-		
-	solver->addNode(1, pose_1);
-	solver->addNode(2, pose_2);
-	solver->addNode(3, pose_3);
+	// Set the default terminate action
+	g2o::SparseOptimizerTerminateAction* terminateAction = new g2o::SparseOptimizerTerminateAction;
+	mOptimizer.addPostIterationAction(terminateAction);
 	
-	solver->addConstraint(1,2,tf_1_2);
-	solver->addConstraint(2,3,tf_2_3);
-	solver->addConstraint(3,1,tf_3_1, cov);
-	
-	solver->saveGraph("dummy1.g2o");
-	solver->setFixed(1);
-	solver->compute();
-	solver->saveGraph("dummy2.g2o");
-	slam::IdPoseVector corr = solver->getCorrections();
-	std::cout << "Results:" << std::endl;
-	for(slam::IdPoseVector::iterator c = corr.begin(); c < corr.end(); c++)
+	for(int i = 0; i < 2; i++)
 	{
-		std::cout << "Vertex " << c->first << ": Correction = ("
-		<< c->second.translation()[0] << ","
-		<< c->second.translation()[1] << ","
-		<< c->second.translation()[2] << ")"<< std::endl;
+		// Add vertices
+		g2o::VertexSE3* v0 = new g2o::VertexSE3;
+		v0->setEstimate(Eigen::Transform<double,3,1>(Eigen::Translation<double, 3>(0,0,0)));
+		v0->setId(0);
+		mOptimizer.addVertex(v0);
+		
+		g2o::VertexSE3* v1 = new g2o::VertexSE3;
+		v1->setEstimate(Eigen::Transform<double,3,1>(Eigen::Translation<double, 3>(0,0,0)));
+		v1->setId(1);
+		mOptimizer.addVertex(v1);
+		
+		g2o::VertexSE3* v2 = new g2o::VertexSE3;
+		v2->setEstimate(Eigen::Transform<double,3,1>(Eigen::Translation<double, 3>(0,0,0)));
+		v2->setId(2);
+		mOptimizer.addVertex(v2);
+		
+		// Add edges
+		g2o::EdgeSE3* e1 = new g2o::EdgeSE3();
+		e1->vertices()[0] = mOptimizer.vertex(0);
+		e1->vertices()[1] = mOptimizer.vertex(1);
+		e1->setMeasurement(Eigen::Isometry3d(Eigen::Translation<double, 3>(1,0,0)));
+		e1->setInformation(Eigen::Matrix<double,6,6>::Identity());
+		mOptimizer.addEdge(e1);
+		
+		g2o::EdgeSE3* e2 = new g2o::EdgeSE3();
+		e2->vertices()[0] = mOptimizer.vertex(1);
+		e2->vertices()[1] = mOptimizer.vertex(2);
+		e2->setMeasurement(Eigen::Isometry3d(Eigen::Translation<double, 3>(0,1,0)));
+		e2->setInformation(Eigen::Matrix<double,6,6>::Identity());
+		mOptimizer.addEdge(e2);
+		
+		g2o::EdgeSE3* e3 = new g2o::EdgeSE3();
+		e3->vertices()[0] = mOptimizer.vertex(2);
+		e3->vertices()[1] = mOptimizer.vertex(0);
+		e3->setMeasurement(Eigen::Isometry3d(Eigen::Translation<double, 3>(-0.8, -0.7, 0.1)));
+		e3->setInformation(Eigen::Matrix<double,6,6>::Identity());
+		mOptimizer.addEdge(e3);
+
+		v0->setFixed(true);
+		
+		mOptimizer.setVerbose(true);
+		mOptimizer.initializeOptimization();
+		mOptimizer.computeInitialGuess();
+		mOptimizer.computeActiveErrors();
+		int iter = mOptimizer.optimize(50);
+		if (iter <= 0)
+		{		
+			std::cout << "Optimization failed! (Returned: " << iter << ")" << std::endl;
+		}else
+		{
+			std::cout << "Optimization finished after " << iter <<"iterations." << std::endl;
+			mOptimizer.save("optimized.g2o");
+		}
+		
+		mOptimizer.clear();
+		*(mOptimizer.forceStopFlag()) = false;
 	}
 	return 0;
 }
