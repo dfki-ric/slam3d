@@ -50,10 +50,10 @@ namespace slam
 				std::cout << "[DEBUG][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
 				break;
 			case INFO:
-				std::cout << "[INFO][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cout << "[INFO ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
 				break;
 			case WARNING:
-				std::cout << "[WARN][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cout << "[WARN ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
 				break;
 			case ERROR:
 				std::cerr << "[ERROR][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;

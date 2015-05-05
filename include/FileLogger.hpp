@@ -49,10 +49,10 @@ namespace slam
 				mLogFile << "[DEBUG][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
 				break;
 			case INFO:
-				mLogFile << "[INFO][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				mLogFile << "[INFO ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
 				break;
 			case WARNING:
-				mLogFile << "[WARN][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				mLogFile << "[WARN ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
 				break;
 			case ERROR:
 				mLogFile << "[ERROR][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
