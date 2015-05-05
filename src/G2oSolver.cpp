@@ -1,8 +1,6 @@
 #include "G2oSolver.hpp"
 
 #include "g2o/core/block_solver.h"
-#include "g2o/core/factory.h"
-#include "g2o/core/optimization_algorithm_factory.h"
 #include "g2o/core/optimization_algorithm_gauss_newton.h"
 #include "g2o/types/slam3d/types_slam3d.h"
 #include "g2o/solvers/cholmod/linear_solver_cholmod.h"
@@ -30,10 +28,7 @@ G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
 
 G2oSolver::~G2oSolver()
 {
-	// Destroy all the singletons
-//	g2o::Factory::destroy();
-//	g2o::OptimizationAlgorithmFactory::destroy();
-//	g2o::HyperGraphActionLibrary::destroy();
+	
 }
 
 void G2oSolver::addNode(unsigned id, Transform pose)
@@ -89,14 +84,23 @@ void G2oSolver::setFixed(unsigned id)
 
 bool G2oSolver::compute()
 {
-	// Do the graph optimization
+	// Check input
 	if(!mOptimizer.verifyInformationMatrices(true))
 	{
 		mLogger->message(ERROR, "Failed to verify information matrices!");
 		return false;
 	}
 
+	// Reset the stop flag that is set by TerminateAction
+	bool* stopFlag = mOptimizer.forceStopFlag();
+	if(stopFlag)
+	{
+		*stopFlag = false;
+	}
+	
+	// Do the graph optimization
 	mOptimizer.initializeOptimization();
+	mOptimizer.computeInitialGuess();
 	mOptimizer.computeActiveErrors();
 	int iter = mOptimizer.optimize(500);
 	if (iter <= 0)
@@ -129,7 +133,7 @@ IdPoseVector G2oSolver::getCorrections()
 void G2oSolver::clear()
 {
 	mOptimizer.clear();
-	mOptimizer.clearParameters();
+//	mOptimizer.clearParameters();
 }
 
 void G2oSolver::saveGraph(std::string filename)
