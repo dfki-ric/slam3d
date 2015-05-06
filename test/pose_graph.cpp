@@ -78,6 +78,11 @@ BOOST_AUTO_TEST_CASE(construction)
 	e4->setTargetVertex(vo4);
 	graph->addEdge(e4);
 	
+	slam::EdgeObject::Ptr e5(new slam::EdgeObject());
+	e5->setSourceVertex(vo3);
+	e5->setTargetVertex(vo4);
+	graph->addEdge(e5);
+	
 	graph_analysis::io::GraphIO::write("test_02.dot", *graph, graph_analysis::representation::GRAPHVIZ);
 
 }
