@@ -16,24 +16,29 @@ BOOST_AUTO_TEST_CASE(construction)
 	graph_analysis::BaseGraph::Ptr graph(new graph_analysis::lemon::DirectedGraph());
 	
 	// Create the measurements
-	slam::Measurement m(clock.now(), "Sensor");
+	slam::Measurement m0(clock.now(), "Node 0");
+	slam::Measurement m1(clock.now(), "Node 1");
+	slam::Measurement m2(clock.now(), "Node 2");
+	slam::Measurement m3(clock.now(), "Node 3");
+	slam::Measurement m4(clock.now(), "Node 4");
+	slam::Measurement m5(clock.now(), "Node 5");
 
 	// Create the vertices
 	slam::VertexObject::Ptr vo0(new slam::VertexObject());
-	vo0->measurement = &m;
+	vo0->measurement = &m0;
 	graph->addVertex(vo0);
 	
 	slam::VertexList vertexList;
 	slam::VertexObject::Ptr vo1(new slam::VertexObject());
-	vo1->measurement = &m;
+	vo1->measurement = &m1;
 	graph->addVertex(vo1);
 
 	slam::VertexObject::Ptr vo2(new slam::VertexObject());
-	vo2->measurement = &m;
+	vo2->measurement = &m2;
 	graph->addVertex(vo2);
 
 	slam::VertexObject::Ptr vo3(new slam::VertexObject());
-	vo3->measurement = &m;
+	vo3->measurement = &m3;
 	graph->addVertex(vo3);
 	
 	// Create the edges
@@ -70,7 +75,7 @@ BOOST_AUTO_TEST_CASE(construction)
 	
 	// Add another one
 	slam::VertexObject::Ptr vo4(new slam::VertexObject());
-	vo4->measurement = &m;
+	vo4->measurement = &m4;
 	graph->addVertex(vo4);
 	
 	slam::EdgeObject::Ptr e4(new slam::EdgeObject());
