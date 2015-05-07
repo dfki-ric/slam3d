@@ -102,6 +102,9 @@ bool GraphMapper::optimize()
 		VertexObject::Ptr v = fromBaseGraph(mPoseGraph->getVertex(id));
 		v->corrected_pose = tf;
 	}
+	
+	// Set current pose
+	mCurrentPose = mLastVertex->corrected_pose;
 	return true;
 }
 
