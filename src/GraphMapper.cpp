@@ -3,7 +3,7 @@
 
 #include <boost/format.hpp>
 #include <graph_analysis/lemon/DirectedGraph.hpp>
-//#include <graph_analysis/GraphIO.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
 using namespace slam;
 
@@ -40,7 +40,7 @@ GraphMapper::GraphMapper(Logger* log)
 GraphMapper::~GraphMapper()
 {
 	std::string file = "pose_graph.dot";
-//	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GEXF);
+	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 }
 
 void GraphMapper::setSolver(Solver* solver)
