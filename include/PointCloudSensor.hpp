@@ -59,11 +59,11 @@ namespace slam
 	struct GICPConfiguration
 	{
 		double max_correspondence_distance;
-		unsigned maximum_iterations;
+		int maximum_iterations;
 		double transformation_epsilon;
 		double euclidean_fitness_epsilon;
-		unsigned correspondence_randomness;
-		unsigned maximum_optimizer_iterations;
+		int correspondence_randomness;
+		int maximum_optimizer_iterations;
 		double rotation_epsilon;
 		double point_cloud_density;
 		double max_fitness_score;

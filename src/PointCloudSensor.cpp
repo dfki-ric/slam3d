@@ -73,7 +73,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	TransformWithCovariance twc;
 	twc.transform = Transform::Identity();
 	twc.covariance = Covariance::Identity();
-	if(icp.hasConverged())// && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
+	if(icp.hasConverged() && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
 	{
 		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
 
@@ -84,11 +84,17 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 			mLogger->message(ERROR, "Messurement from ICP contains not numerical values.");
 		}else
 		{
-			twc.transform = tf_matrix.cast<double>();
+			Transform tf(tf_matrix.cast<double>());
+			double dx = tf.translation()(0);
+			double dy = tf.translation()(1);
+			double dz = tf.translation()(2);
+			double dist = sqrt((dx*dx) + (dy*dy) + (dz*dz));
+			mLogger->message(DEBUG, (boost::format("ICP shift: %1%") % dist).str());
+			twc.transform = guess * tf;
 		}
 	}else
 	{
-		mLogger->message(DEBUG, (boost::format("ICP failed! (Fitness-Score: %1%)") % icp.getFitnessScore()).str());
+		mLogger->message(DEBUG, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % mConfiguration.max_fitness_score).str());
 		throw NoMatch();
 	}
 	return twc;
