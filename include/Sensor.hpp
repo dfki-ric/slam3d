@@ -47,9 +47,6 @@ namespace slam
 		}
 	};
 	
-	// Forward declaration of GraphMapper
-	class GraphMapper;
-	
 	/**
 	 * @class Sensor
 	 * @author Sebastian Kasperski
@@ -63,8 +60,8 @@ namespace slam
 	class Sensor
 	{
 	public:
-		Sensor(std::string n, GraphMapper* m, Logger* l)
-		 :mName(n), mMapper(m), mLogger(l){}
+		Sensor(std::string n, Logger* l)
+		 :mName(n), mLogger(l){}
 		~Sensor(){}
 		
 		/**
@@ -86,7 +83,6 @@ namespace slam
 		
 	protected:
 		std::string mName;
-		GraphMapper* mMapper;
 		Logger* mLogger;
 	};
 }

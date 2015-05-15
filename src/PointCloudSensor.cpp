@@ -10,8 +10,8 @@ using namespace slam;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
 
-PointCloudSensor::PointCloudSensor(std::string n, GraphMapper* m, Logger* l)
- : Sensor(n, m, l)
+PointCloudSensor::PointCloudSensor(std::string n, Logger* l)
+ : Sensor(n, l)
 {
 	
 }
@@ -94,10 +94,9 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	return twc;
 }
 
-PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(double resolution)
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, double resolution)
 {
 	PointCloud::Ptr accu(new PointCloud);
-	VertexList vertices = mMapper->getVerticesFromSensor(mName);
 //	int added = 0;
 	for(VertexList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{

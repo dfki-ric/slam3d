@@ -3,6 +3,7 @@
 
 #include "Types.hpp"
 #include "Sensor.hpp"
+#include "GraphMapper.hpp"
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
@@ -92,10 +93,9 @@ namespace slam
 		/**
 		 * @brief Constructor
 		 * @param n Unique name of this sensor (used to identify measurements)
-		 * @param m Pointer to the GraphMapper for this sensor
 		 * @param l Pointer to a Logger to write messages
 		 */
-		PointCloudSensor(std::string n, GraphMapper* m, Logger* l);
+		PointCloudSensor(std::string n, Logger* l);
 		
 		/**
 		 * @brief Destructor
@@ -124,13 +124,14 @@ namespace slam
 		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
 		
 		/**
-		 * @brief Create a single point cloud that contains all available measurements.
+		 * @brief Create a single point cloud that contains all measurements in vertices.
 		 * The individual point clouds are transformed by their current pose in the graph,
 		 * no additional alignement or optimazation is performed during this. The resulting
 		 * point cloud is then resampled with the given resoltion.
+		 * @param vertices
 		 * @param resolution
 		 */
-		PointCloud::Ptr getAccumulatedCloud(double resolution);
+		PointCloud::Ptr getAccumulatedCloud(VertexList vertices, double resolution);
 		
 	protected:
 		GICPConfiguration mConfiguration;
