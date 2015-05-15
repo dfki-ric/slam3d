@@ -16,7 +16,6 @@ set(CMAKE_BUILD_TYPE "Debug")
 rock_library(slam3d
 	SOURCES
 		src/GraphMapper.cpp
-		src/Sensor.cpp
 		src/PointCloudSensor.cpp
 		src/G2oSolver.cpp
 	HEADERS
