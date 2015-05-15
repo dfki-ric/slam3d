@@ -152,7 +152,6 @@ void GraphMapper::addReading(Measurement* m)
 	}
 	
 	// Add an edge representing the odometry information
-	Transform guess = Transform::Identity();
 	if(mOdometry && mLastVertex)
 	{
 		timeval previous = mLastVertex->measurement->getTimestamp();
@@ -164,7 +163,6 @@ void GraphMapper::addReading(Measurement* m)
 		odomEdge->transform = twc.transform;
 		odomEdge->covariance = twc.covariance;
 		mPoseGraph->addEdge(odomEdge);
-		guess = twc.transform;
 	}
 
 	// Overall last vertex
@@ -189,7 +187,10 @@ void GraphMapper::addReading(Measurement* m)
 		EdgeObject::Ptr icpEdge(new EdgeObject);
 		try
 		{
-			TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement, guess);
+			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
+			TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement, guess);		
+//			Transform guess(Eigen::Translation<double, 3>(0.7,0,0));
+//			twc.transform = guess;
 			icpEdge->transform = twc.transform;
 			icpEdge->covariance = twc.covariance;
 			icpEdge->setSourceVertex(*it);
