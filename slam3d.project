@@ -34,7 +34,6 @@
   <VirtualDirectory Name="src">
     <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
-    <File Name="src/Sensor.cpp"/>
     <File Name="src/PointCloudSensor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
@@ -45,6 +44,7 @@
     <File Name="test/pose_graph.cpp"/>
     <File Name="test/dummy.cpp"/>
     <File Name="test/solver.cpp"/>
+    <File Name="test/pcl_sensor.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

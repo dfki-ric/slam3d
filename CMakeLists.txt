@@ -61,3 +61,9 @@ rock_testsuite(TestSolver
 		test/solver.cpp
 	DEPS
 		slam3d)
+
+rock_testsuite(TestPclSensor
+	SOURCES
+		test/pcl_sensor.cpp
+	DEPS
+		slam3d)
