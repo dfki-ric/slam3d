@@ -61,11 +61,14 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	// calling align on it.
 	// TODO: Change once the issue in PCL is resolved:
 	// > https://github.com/PointCloudLibrary/pcl/pull/989
-	PointCloud::Ptr shifted_source(new PointCloud);
-	pcl::transformPointCloud(*filtered_source, *shifted_source, guess.matrix());
+	PointCloud::Ptr shifted_target(new PointCloud);
+	pcl::transformPointCloud(*filtered_target, *shifted_target, guess.matrix());
 	
-	icp.setInputSource(shifted_source);
-	icp.setInputTarget(filtered_target);
+	// Source and target are switched at this point!
+	// In the pose graph, our edge (with transform) goes from source to target,
+	// but ICP calculates the transformation from target to source.
+	icp.setInputSource(shifted_target);
+	icp.setInputTarget(filtered_source);
 	PointCloud result;
 	icp.align(result);
 
@@ -93,7 +96,8 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 			dy = guess.translation()(1);
 			dz = guess.translation()(2);
 			double dist2 = sqrt((dx*dx) + (dy*dy) + (dz*dz));
-			mLogger->message(DEBUG, (boost::format("ICP shift: %1% | Guess: %2%") % dist % dist2).str());
+			mLogger->message(DEBUG, (boost::format("ICP shift: %1% | Guess: %2% | Error: %3%") % dist % dist2 % icp.getFitnessScore()).str());
+			mLogger->message(DEBUG, (boost::format("Estimated translation:\n %1%") % tf.translation()).str());
 			twc.transform = guess * tf;
 		}
 	}else
