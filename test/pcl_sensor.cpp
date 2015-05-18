@@ -60,18 +60,14 @@ BOOST_AUTO_TEST_CASE(icp)
 	PointCloudMeasurement m1(cloud1, "cloud1");
 	PointCloudMeasurement m2(cloud2, "cloud2");
 	
-	TransformWithCovariance twc = pclSensor.calculateTransform(&m1, &m2, Transform(Eigen::Translation<double, 3>(0,0,0)));
-	std::cout << "Translation:" << std::endl << twc.transform.translation() << std::endl << std::endl;
-//	std::cout << "Rotation:" << std::endl << twc.transform.rotation() << std::endl;
+	Transform guess(Eigen::Translation<double, 3>(0,0,0));
+	Measurement m3;
+	BOOST_CHECK_THROW(pclSensor.calculateTransform(&m1, &m3, guess), BadMeasurementType);
+	
+	TransformWithCovariance twc = pclSensor.calculateTransform(&m1, &m2, guess);
 
 //	logger.message(DEBUG, (boost::format("Estimated translation:\n %1%") % twc.transform.translation()).str());
 //	logger.message(DEBUG, (boost::format("Estimated rotation:\n %1%") % twc.transform.rotation()).str());
 
 	TransformWithCovariance twc2 = pclSensor.calculateTransform(&m1, &m2, twc.transform);
-	std::cout << "Translation:" << std::endl << twc2.transform.translation() << std::endl << std::endl;
-//	std::cout << "Rotation:" << std::endl << twc2.transform.rotation() << std::endl;
-
-	TransformWithCovariance twc3 = pclSensor.calculateTransform(&m1, &m2, twc2.transform);
-	std::cout << "Translation:" << std::endl << twc3.transform.translation() << std::endl << std::endl;
-	
 }
