@@ -34,7 +34,6 @@ GraphMapper::GraphMapper(Logger* log)
 	mOdometry = NULL;
 	mSolver = NULL;
 	mLogger = log;
-	mCurrentPose = Transform::Identity();
 }
 
 GraphMapper::~GraphMapper()
@@ -103,8 +102,6 @@ bool GraphMapper::optimize()
 		v->corrected_pose = tf;
 	}
 	
-	// Set current pose
-	mCurrentPose = mLastVertex->corrected_pose;
 	return true;
 }
 
@@ -143,7 +140,7 @@ void GraphMapper::addReading(Measurement* m)
 	// Add the vertex to the pose graph
 	VertexObject::Ptr newVertex(new VertexObject());
 	newVertex->odometric_pose = pose;
-	newVertex->corrected_pose = mCurrentPose;
+	newVertex->corrected_pose = getCurrentPose();
 	newVertex->measurement = m;
 	mPoseGraph->addVertex(newVertex);
 	if(!mFixedVertex)
@@ -164,33 +161,47 @@ void GraphMapper::addReading(Measurement* m)
 		odomEdge->covariance = twc.covariance;
 		mPoseGraph->addEdge(odomEdge);
 	}
+/*
+	// Add edge to last vertex
+	if(mLastVertex)
+	{
+		EdgeObject::Ptr icpEdge(new EdgeObject);
+		try
+		{
+			Transform guess(Eigen::Translation<double, 3>(0.5,0,0));
+			TransformWithCovariance twc = sensor->calculateTransform(mLastVertex->measurement, m, guess);		
 
-	// Overall last vertex
-	mLastVertex = newVertex;
-
+			icpEdge->transform = twc.transform;
+			icpEdge->covariance = twc.covariance;
+			icpEdge->setSourceVertex(mLastVertex);
+			icpEdge->setTargetVertex(newVertex);
+			mPoseGraph->addEdge(icpEdge);
+			
+			newVertex->corrected_pose = mLastVertex->corrected_pose * twc.transform;
+		}catch(NoMatch &e)
+		{
+			mLogger->message(WARNING, e.what());
+		}
+	}
+*/
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
-	VertexList neighbors = getNearbyVertices(newVertex, 5.0);
+	VertexList neighbors = getNearbyVertices(newVertex, mNeighborRadius);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
 	bool matched = false;
-	int count = 0;
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
 	{
 		if(*it == newVertex)// || *it == mLastVertex)
 			continue;
 
-		if(count > 5)
-			break;
-		count++;
-
 		EdgeObject::Ptr icpEdge(new EdgeObject);
 		try
 		{
-			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
-			TransformWithCovariance twc = sensor->calculateTransform(m, (*it)->measurement, guess);		
-//			Transform guess(Eigen::Translation<double, 3>(0.7,0,0));
-//			twc.transform = guess;
+//			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
+			Transform guess(Eigen::Translation<double, 3>(0,0,0));
+			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);		
+
 			icpEdge->transform = twc.transform;
 			icpEdge->covariance = twc.covariance;
 			icpEdge->setSourceVertex(*it);
@@ -199,9 +210,9 @@ void GraphMapper::addReading(Measurement* m)
 			
 			if(!matched)
 			{
-				mCurrentPose = (*it)->corrected_pose * twc.transform;
-				newVertex->corrected_pose = mCurrentPose;
+				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
+//				break;
 			}
 		}catch(NoMatch &e)
 		{
@@ -214,6 +225,8 @@ void GraphMapper::addReading(Measurement* m)
 		mLogger->message(WARNING, "Scan matching not possible!");
 	}
 
+	// Overall last vertex
+	mLastVertex = newVertex;
 }
 
 VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
@@ -292,4 +305,12 @@ VertexList GraphMapper::getNearbyVertices(VertexObject::Ptr vertex, float radius
 	}
 	
 	return result;
+}
+
+Transform GraphMapper::getCurrentPose()
+{
+	if(mLastVertex)
+		return mLastVertex->corrected_pose;
+	else
+		return Transform::Identity();
 }

@@ -76,7 +76,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	TransformWithCovariance twc;
 	twc.transform = Transform::Identity();
 	twc.covariance = Covariance::Identity();
-	if(icp.hasConverged())// && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
+	if(icp.hasConverged() && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
 	{
 		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
 
@@ -99,6 +99,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 			mLogger->message(DEBUG, (boost::format("ICP shift: %1% | Guess: %2% | Error: %3%") % dist % dist2 % icp.getFitnessScore()).str());
 			mLogger->message(DEBUG, (boost::format("Estimated translation:\n %1%") % tf.translation()).str());
 			twc.transform = guess * tf;
+			twc.covariance = 10.0 * icp.getFitnessScore() * Covariance::Identity();
 		}
 	}else
 	{

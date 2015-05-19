@@ -28,7 +28,7 @@ namespace slam
 		 * @param cloud Shared pointer to the PointCloud
 		 * @param s Name of the sensor managing this measurement
 		 */
-		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, std::string s)
+		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, const std::string& s)
 		{
 			mSensorName = s;
 			mPointCloud = cloud;

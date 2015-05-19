@@ -90,7 +90,7 @@ namespace slam
 		bool optimize();
 
 		void addReading(Measurement* m);
-		Transform getCurrentPose() { return mCurrentPose; }
+		Transform getCurrentPose();
 		
 		VertexList getVerticesFromSensor(const std::string& sensor);
 		EdgeList getEdgesFromSensor(const std::string& sensor);
@@ -100,6 +100,8 @@ namespace slam
 		
 		static VertexObject::Ptr fromBaseGraph(graph_analysis::Vertex::Ptr base);
 		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
+		
+		void setNeighborRadius(float r){ mNeighborRadius = r; }
 
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
@@ -111,12 +113,13 @@ namespace slam
 		Odometry* mOdometry;
 		SensorList mSensors;
 		
-		Transform mCurrentPose;
-		
 		// Index to use nearest neighbor search
 		flann::SearchParams mSearchParams;
 		NeighborIndex mIndex;
 		std::map<int, VertexObject::Ptr> mIndexMap;
+		
+		// Parameters
+		float mNeighborRadius;
 	};
 }
 
