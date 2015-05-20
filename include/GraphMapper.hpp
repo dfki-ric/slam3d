@@ -45,6 +45,8 @@ namespace slam
 	public:
 		typedef boost::shared_ptr<EdgeObject> Ptr;
 
+		EdgeObject(const std::string& label = ""):graph_analysis::Edge(label){}
+
 		Transform transform;
 		Covariance covariance;
 		unsigned int edge_type;
