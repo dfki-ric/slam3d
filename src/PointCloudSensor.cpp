@@ -103,7 +103,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 		}
 	}else
 	{
-		mLogger->message(DEBUG, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % mConfiguration.max_fitness_score).str());
+		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % mConfiguration.max_fitness_score).str());
 		throw NoMatch();
 	}
 	return twc;
