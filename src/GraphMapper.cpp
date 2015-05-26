@@ -87,6 +87,7 @@ bool GraphMapper::optimize()
 	}
 	
 	// Optimize
+	mSolver->saveGraph("input_graph.g2o");
 	if(!mSolver->compute())
 	{
 		return false;
@@ -138,18 +139,19 @@ void GraphMapper::addReading(Measurement* m)
 	}
 
 	// Add the vertex to the pose graph
-	VertexObject::Ptr newVertex(new VertexObject());
+	VertexObject::Ptr newVertex(new VertexObject(m->getSensorName()));
 	newVertex->odometric_pose = pose;
 	newVertex->corrected_pose = getCurrentPose();
 	newVertex->measurement = m;
-	mPoseGraph->addVertex(newVertex);
+	
 	if(!mFixedVertex)
 	{
+		mPoseGraph->addVertex(newVertex);
 		mFixedVertex = newVertex;
 	}
 	
 	// Add an edge representing the odometry information
-	if(mOdometry && mLastVertex)
+/*	if(mOdometry && mLastVertex)
 	{
 		timeval previous = mLastVertex->measurement->getTimestamp();
 		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
@@ -161,6 +163,7 @@ void GraphMapper::addReading(Measurement* m)
 		odomEdge->covariance = twc.covariance;
 		mPoseGraph->addEdge(odomEdge);
 	}
+*/
 /*
 	// Add edge to last vertex
 	if(mLastVertex)
@@ -195,25 +198,41 @@ void GraphMapper::addReading(Measurement* m)
 		if(*it == newVertex)// || *it == mLastVertex)
 			continue;
 
-		EdgeObject::Ptr icpEdge(new EdgeObject);
+		EdgeObject::Ptr icpEdge;
 		try
 		{
 //			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
-			Transform guess(Eigen::Translation<double, 3>(0,0,0));
-			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);		
-
-			icpEdge->transform = twc.transform;
-			icpEdge->covariance = twc.covariance;
+//			Transform guess(Eigen::Translation<double, 3>(0,0,0));
+			if(matched)
+			{
+				if(std::abs((*it)->corrected_pose.matrix().determinant()) == 0)
+				{
+					mLogger->message(ERROR, "Calculated transform has 0 determinant!");
+				}
+				icpEdge = EdgeObject::Ptr(new EdgeObject("dummy"));
+				Transform dummy = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
+				icpEdge->transform = dummy;
+				icpEdge->covariance = Covariance::Identity();
+//				newVertex->corrected_pose = (*it)->corrected_pose * dummy;
+			}else
+			{
+				icpEdge = EdgeObject::Ptr(new EdgeObject("icp"));
+				TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, Transform::Identity());
+				icpEdge->transform = twc.transform;
+				icpEdge->covariance = Covariance::Identity();// twc.covariance;
+				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
+			}
 			icpEdge->setSourceVertex(*it);
 			icpEdge->setTargetVertex(newVertex);
-			mPoseGraph->addEdge(icpEdge);
 			
 			if(!matched)
 			{
-				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
+				mPoseGraph->addVertex(newVertex);
+//				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
 //				break;
 			}
+			mPoseGraph->addEdge(icpEdge);
 		}catch(NoMatch &e)
 		{
 			continue;
