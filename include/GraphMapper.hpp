@@ -24,12 +24,13 @@ namespace slam
 	public:
 		typedef boost::shared_ptr<VertexObject> Ptr;
 
+		VertexObject(const std::string& label = ""):graph_analysis::Vertex(label){}
+
 		Transform odometric_pose;
 		Transform corrected_pose;
 		Measurement* measurement;
 
 		std::string getClassName() const { return "slam::VertexObject"; }
-		std::string toString() const { return measurement->getSensorName(); }
 	};
 	
 	/**
@@ -52,7 +53,6 @@ namespace slam
 		unsigned int edge_type;
 
 		std::string getClassName() const { return "slam::EdgeObject"; }
-		std::string toString() const { return "EdgeObject-instance"; }
 	};
 
 	typedef std::vector<VertexObject::Ptr> VertexList;
