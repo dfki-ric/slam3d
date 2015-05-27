@@ -91,6 +91,11 @@ namespace slam
 		 * @param logger Pointer to the logger used by the solver
 		 */
 		Solver(Logger* logger):mLogger(logger){}
+		
+		/**
+		 * @brief Virtual Destructor
+		 */
+		virtual ~Solver(){}
 	
 		/**
 		 * @brief Add a node to the internal graph representation.

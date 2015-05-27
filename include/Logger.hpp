@@ -24,7 +24,7 @@ namespace slam
 		 * @param c Clock to get timestamps for messages
 		 */
 		Logger(Clock c) : mClock(c), mLogLevel(INFO){}
-		~Logger(){}
+		virtual ~Logger(){}
 		
 		/**
 		 * @brief Set the log level. All messages with lower log-level will be ignored.
