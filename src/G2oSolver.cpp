@@ -10,15 +10,15 @@
 
 using namespace slam;
 
-typedef g2o::BlockSolver< g2o::BlockSolverTraits<-1, -1> > SlamBlockSolver;
-typedef g2o::LinearSolverCholmod<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
+//typedef g2o::BlockSolver< g2o::BlockSolverTraits<-1, -1> > SlamBlockSolver;
+typedef g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType> SlamLinearSolver;
 
 G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
 {
 	// Initialize the SparseOptimizer
 	SlamLinearSolver* linearSolver = new SlamLinearSolver();
-	linearSolver->setBlockOrdering(false);
-	SlamBlockSolver* blockSolver = new SlamBlockSolver(linearSolver);
+	linearSolver->setBlockOrdering(true);
+	g2o::BlockSolver_6_3* blockSolver = new g2o::BlockSolver_6_3(linearSolver);
 	mOptimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(blockSolver));
 	
 	// Set the default terminate action

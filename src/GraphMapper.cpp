@@ -38,8 +38,8 @@ GraphMapper::GraphMapper(Logger* log)
 
 GraphMapper::~GraphMapper()
 {
-	std::string file = "pose_graph.dot";
-	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
+//	std::string file = "pose_graph.dot";
+//	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 }
 
 void GraphMapper::setSolver(Solver* solver)
@@ -88,6 +88,7 @@ bool GraphMapper::optimize()
 	
 	// Optimize
 	mSolver->saveGraph("input_graph.g2o");
+	graph_analysis::io::GraphIO::write("graph.dot", *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 	if(!mSolver->compute())
 	{
 		return false;
@@ -193,7 +194,8 @@ void GraphMapper::addReading(Measurement* m)
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
 	bool matched = false;
-	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
+	int added = 0;
+	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 3; it++)
 	{
 		if(*it == newVertex)// || *it == mLastVertex)
 			continue;
@@ -231,8 +233,11 @@ void GraphMapper::addReading(Measurement* m)
 //				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
 //				break;
+			}else
+			{
+				mPoseGraph->addEdge(icpEdge);
 			}
-			mPoseGraph->addEdge(icpEdge);
+			added++;
 		}catch(NoMatch &e)
 		{
 			continue;
