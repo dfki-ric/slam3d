@@ -6,8 +6,9 @@
 
 namespace slam
 {
-	typedef Eigen::Isometry3d Transform;
-	typedef Eigen::Matrix<double,6,6> Covariance;
+	typedef double ScalarType;
+	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
+	typedef Eigen::Matrix<ScalarType,6,6> Covariance;
 	
 	struct TransformWithCovariance
 	{

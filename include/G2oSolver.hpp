@@ -31,7 +31,11 @@ namespace slam
 		
 	protected:
 		g2o::SparseOptimizer mOptimizer;
+		g2o::HyperGraph::VertexSet mNewVertices;
+		g2o::HyperGraph::EdgeSet mNewEdges;
+		
 		IdPoseVector mCorrections;
+		bool mInitialized;
 	};
 }
 

@@ -32,7 +32,14 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 }
 
 TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform guess) const
-{	
+{
+	// Check the initial guess
+	if(guess.matrix().determinant() == 0)
+	{
+		mLogger->message(ERROR, "Initial guess transform has 0 determinant!");
+		throw NoMatch();
+	}
+	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement* sourceCloud = dynamic_cast<PointCloudMeasurement*>(source);
 	PointCloudMeasurement* targetCloud = dynamic_cast<PointCloudMeasurement*>(target);
@@ -78,16 +85,25 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	twc.covariance = Covariance::Identity();
 	if(icp.hasConverged() && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
 	{
-		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
+//		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
+		Eigen::Isometry3f tf_matrix(icp.getFinalTransformation());
 
 		// check for nan values (why does this happen?)
-		bool valid = (tf_matrix.array() == tf_matrix.array()).all();
+//		bool valid = (tf_matrix.matrix().array() == tf_matrix.matrix().array()).all();
+		bool valid = true;
 		if(!valid)
 		{
 			mLogger->message(ERROR, "Messurement from ICP contains not numerical values.");
+			throw NoMatch();
 		}else
 		{
-			Transform tf(tf_matrix.cast<double>());
+//			Transform tf(tf_matrix.cast<double>());
+			
+/*			if(tf.matrix().determinant() == 0)
+			{
+				mLogger->message(ERROR, "Calculated transform has 0 determinant!");
+				throw NoMatch();
+			}
 			double dx = tf.translation()(0);
 			double dy = tf.translation()(1);
 			double dz = tf.translation()(2);
@@ -98,12 +114,17 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 			double dist2 = sqrt((dx*dx) + (dy*dy) + (dz*dz));
 			mLogger->message(DEBUG, (boost::format("ICP shift: %1% | Guess: %2% | Error: %3%") % dist % dist2 % icp.getFitnessScore()).str());
 			mLogger->message(DEBUG, (boost::format("Estimated translation:\n %1%") % tf.translation()).str());
-			twc.transform = guess * tf;
-			twc.covariance = 10.0 * icp.getFitnessScore() * Covariance::Identity();
+*/			twc.transform = guess * Transform(tf_matrix);
+			twc.covariance = (icp.getFitnessScore() * icp.getFitnessScore()) * Covariance::Identity();
 		}
 	}else
 	{
 		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % mConfiguration.max_fitness_score).str());
+		throw NoMatch();
+	}
+	if(abs(twc.transform.matrix().determinant() - 1.0) > 0.0001)
+	{
+		mLogger->message(ERROR, (boost::format("Calculated transform has  determinant %1%!") % twc.transform.matrix().determinant()).str());
 		throw NoMatch();
 	}
 	return twc;

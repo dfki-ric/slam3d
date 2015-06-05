@@ -59,7 +59,7 @@ bool GraphMapper::optimize()
 		mLogger->message(ERROR, "A solver must be set before optimize() is called!");
 		return false;
 	}
-	
+/*	
 	// Add vertices to the solver
 	std::vector<graph_analysis::Vertex::Ptr> vertices = mPoseGraph->getAllVertices();
 	if(vertices.size() == 0)
@@ -85,14 +85,15 @@ bool GraphMapper::optimize()
 		EdgeObject::Ptr edge = fromBaseGraph(*it);
 		mSolver->addConstraint(source, target, edge->transform, edge->covariance);
 	}
-	
+*/	
 	// Optimize
 	mSolver->saveGraph("input_graph.g2o");
-	graph_analysis::io::GraphIO::write("graph.dot", *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
+//	graph_analysis::io::GraphIO::write("graph.dot", *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 	if(!mSolver->compute())
 	{
 		return false;
 	}
+//	mSolver->saveGraph("optimized_graph.g2o");
 
 	// Retrieve results
 	IdPoseVector res = mSolver->getCorrections();
@@ -149,6 +150,10 @@ void GraphMapper::addReading(Measurement* m)
 	{
 		mPoseGraph->addVertex(newVertex);
 		mFixedVertex = newVertex;
+		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+		mSolver->addNode(id, newVertex->corrected_pose);
+		mSolver->setFixed(id);
+		return;
 	}
 	
 	// Add an edge representing the odometry information
@@ -195,7 +200,7 @@ void GraphMapper::addReading(Measurement* m)
 	
 	bool matched = false;
 	int added = 0;
-	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 3; it++)
+	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 5; it++)
 	{
 		if(*it == newVertex)// || *it == mLastVertex)
 			continue;
@@ -203,40 +208,57 @@ void GraphMapper::addReading(Measurement* m)
 		EdgeObject::Ptr icpEdge;
 		try
 		{
-//			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
-//			Transform guess(Eigen::Translation<double, 3>(0,0,0));
-			if(matched)
+			mLogger->message(INFO, (boost::format("Neighbor pose has determinant %1%!") % (*it)->corrected_pose.matrix().determinant()).str());
+			
+			icpEdge = EdgeObject::Ptr(new EdgeObject("icp"));
+/*			
+			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
+			if(std::abs(guess.matrix().determinant() - 1.0) > 0.001)
 			{
-				if(std::abs((*it)->corrected_pose.matrix().determinant()) == 0)
-				{
-					mLogger->message(ERROR, "Calculated transform has 0 determinant!");
-				}
-				icpEdge = EdgeObject::Ptr(new EdgeObject("dummy"));
-				Transform dummy = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
-				icpEdge->transform = dummy;
-				icpEdge->covariance = Covariance::Identity();
-//				newVertex->corrected_pose = (*it)->corrected_pose * dummy;
+				mLogger->message(ERROR, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
 			}else
 			{
-				icpEdge = EdgeObject::Ptr(new EdgeObject("icp"));
-				TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, Transform::Identity());
-				icpEdge->transform = twc.transform;
-				icpEdge->covariance = Covariance::Identity();// twc.covariance;
-				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
+				mLogger->message(INFO, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
 			}
+*/			
+			Transform guess = Transform::Identity();
+			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
+			if(std::abs(twc.transform.matrix().determinant() - 1.0) > 0.001)
+			{
+				mLogger->message(ERROR, (boost::format("ICP transform has determinant %1%!") % twc.transform.matrix().determinant()).str());
+			}
+			icpEdge->transform = twc.transform;
+			icpEdge->covariance = Covariance::Identity();// twc.covariance;
 			icpEdge->setSourceVertex(*it);
 			icpEdge->setTargetVertex(newVertex);
 			
 			if(!matched)
 			{
+				ScalarType rot = Eigen::AngleAxis<ScalarType>(twc.transform.rotation()).angle();
+				ScalarType dx = twc.transform.translation()(0);
+				ScalarType dy = twc.transform.translation()(1);
+				ScalarType dz = twc.transform.translation()(2);
+				ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
+				mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
+				if(trans < 1.0 && rot < 0.5)
+					return;
+				
 				mPoseGraph->addVertex(newVertex);
-//				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
+				graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+//				mSolver->addNode(id, newVertex->corrected_pose);
+				mSolver->addNode(id, Transform::Identity());
+				
+				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
 //				break;
-			}else
-			{
+			}//else
+//			{
 				mPoseGraph->addEdge(icpEdge);
-			}
+				unsigned source = mPoseGraph->getVertexId(*it);
+				unsigned target = mPoseGraph->getVertexId(newVertex);
+				mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
+//			}
+//			break;
 			added++;
 		}catch(NoMatch &e)
 		{

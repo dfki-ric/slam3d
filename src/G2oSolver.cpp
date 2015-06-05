@@ -24,6 +24,8 @@ G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
 	// Set the default terminate action
 	g2o::SparseOptimizerTerminateAction* terminateAction = new g2o::SparseOptimizerTerminateAction;
 	mOptimizer.addPostIterationAction(terminateAction);
+	
+	mInitialized = false;
 }
 
 G2oSolver::~G2oSolver()
@@ -41,11 +43,12 @@ void G2oSolver::addNode(unsigned id, Transform pose)
 	
 	// Set current pose and id
 	g2o::VertexSE3* poseVertex = new g2o::VertexSE3;
-	poseVertex->setEstimate(pose);  //Eigen::Isometry3d
+	poseVertex->setEstimate(pose.cast<double>());  //Eigen::Isometry3d
 	poseVertex->setId(id);
 	
 	// Add the vertex to the optimizer
 	mOptimizer.addVertex(poseVertex);
+	mNewVertices.insert(poseVertex);
 }
 
 void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov)
@@ -63,11 +66,12 @@ void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Co
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	constraint->setMeasurement(tf);   // slam::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(cov);  // slam::Covariance aka Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(tf.cast<double>());   // slam::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(cov.cast<double>());  // slam::Covariance aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);
+	mNewEdges.insert(constraint);
 }
 
 void G2oSolver::setFixed(unsigned id)
@@ -84,6 +88,10 @@ void G2oSolver::setFixed(unsigned id)
 
 bool G2oSolver::compute()
 {
+	// need to do something?
+	if(mOptimizer.activeVertices().size() == 0 && mNewVertices.size() < 2)
+		return true;
+	
 	// Check input
 	if(!mOptimizer.verifyInformationMatrices(true))
 	{
@@ -99,10 +107,19 @@ bool G2oSolver::compute()
 	}
 	
 	// Do the graph optimization
-	mOptimizer.initializeOptimization();
-	mOptimizer.computeInitialGuess();
-	mOptimizer.computeActiveErrors();
-	int iter = mOptimizer.optimize(500);
+	if(mInitialized)
+	{
+		mLogger->message(INFO, "Update Initialization.");
+		mOptimizer.updateInitialization(mNewVertices, mNewEdges);
+	}else
+	{
+		mLogger->message(INFO, "Do first Initialization.");
+		mInitialized = mOptimizer.initializeOptimization();
+	}
+	mNewVertices.clear();
+	mNewEdges.clear();
+	
+	int iter = mOptimizer.optimize(100, false);
 	if (iter <= 0)
 	{		
 		mLogger->message(ERROR, "Optimization failed!");
@@ -119,7 +136,7 @@ bool G2oSolver::compute()
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*>(*n);
 		assert(vertex);
-		Eigen::Isometry3d iso = vertex->estimate();
+		Transform iso = Transform(vertex->estimate());
 		mCorrections.push_back(IdPose((*n)->id(), iso));
 	}
 	return true;
@@ -133,6 +150,7 @@ IdPoseVector G2oSolver::getCorrections()
 void G2oSolver::clear()
 {
 	mOptimizer.clear();
+	mInitialized = false;
 }
 
 void G2oSolver::saveGraph(std::string filename)
