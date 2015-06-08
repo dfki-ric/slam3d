@@ -17,6 +17,8 @@ namespace slam
 	class Clock
 	{
 	public:
+
+		virtual ~Clock(){}
 	
 		/**
 		 * @brief Returns current time depending on the clock.

@@ -8,8 +8,8 @@ namespace slam
 	class Odometry
 	{
 	public:
-		Odometry(){}
-		~Odometry(){}
+
+		virtual ~Odometry(){}
 		
 		/**
 		 * @brief Get the robot's location at given point in time.

@@ -62,7 +62,7 @@ namespace slam
 	public:
 		Sensor(std::string n, Logger* l)
 		 :mName(n), mLogger(l){}
-		~Sensor(){}
+		virtual ~Sensor(){}
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
