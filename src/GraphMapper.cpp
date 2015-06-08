@@ -127,6 +127,7 @@ void GraphMapper::addReading(Measurement* m)
 	try
 	{
 		sensor = mSensors.at(m->getSensorName());
+		mLogger->message(DEBUG, (boost::format("Mapper: Add reading from Sensor '%1%'.") % m->getSensorName()).str());
 	}catch(std::out_of_range e)
 	{
 		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
@@ -148,11 +149,15 @@ void GraphMapper::addReading(Measurement* m)
 	
 	if(!mFixedVertex)
 	{
+		mLogger->message(DEBUG, "Add first vertex to the graph.");
 		mPoseGraph->addVertex(newVertex);
 		mFixedVertex = newVertex;
-		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
-		mSolver->addNode(id, newVertex->corrected_pose);
-		mSolver->setFixed(id);
+		if(mSolver)
+		{
+			graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+			mSolver->addNode(id, newVertex->corrected_pose);
+			mSolver->setFixed(id);
+		}
 		return;
 	}
 	
@@ -244,19 +249,24 @@ void GraphMapper::addReading(Measurement* m)
 					return;
 				
 				mPoseGraph->addVertex(newVertex);
-				graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
-//				mSolver->addNode(id, newVertex->corrected_pose);
-				mSolver->addNode(id, Transform::Identity());
-				
+				if(mSolver)
+				{
+					graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+//					mSolver->addNode(id, newVertex->corrected_pose);
+					mSolver->addNode(id, Transform::Identity());
+				}
 				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
 //				break;
 			}//else
 //			{
 				mPoseGraph->addEdge(icpEdge);
-				unsigned source = mPoseGraph->getVertexId(*it);
-				unsigned target = mPoseGraph->getVertexId(newVertex);
-				mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
+				if(mSolver)
+				{
+					unsigned source = mPoseGraph->getVertexId(*it);
+					unsigned target = mPoseGraph->getVertexId(newVertex);
+					mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
+				}
 //			}
 //			break;
 			added++;
