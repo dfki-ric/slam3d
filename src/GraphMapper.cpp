@@ -88,7 +88,7 @@ bool GraphMapper::optimize()
 */	
 	// Optimize
 	mSolver->saveGraph("input_graph.g2o");
-//	graph_analysis::io::GraphIO::write("graph.dot", *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
+	graph_analysis::io::GraphIO::write("graph.dot", *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 	if(!mSolver->compute())
 	{
 		return false;
@@ -208,7 +208,7 @@ void GraphMapper::addReading(Measurement* m)
 		EdgeObject::Ptr icpEdge;
 		try
 		{
-			mLogger->message(INFO, (boost::format("Neighbor pose has determinant %1%!") % (*it)->corrected_pose.matrix().determinant()).str());
+			mLogger->message(DEBUG, (boost::format("Neighbor pose has determinant %1%!") % (*it)->corrected_pose.matrix().determinant()).str());
 			
 			icpEdge = EdgeObject::Ptr(new EdgeObject("icp"));
 /*			
@@ -240,7 +240,7 @@ void GraphMapper::addReading(Measurement* m)
 				ScalarType dz = twc.transform.translation()(2);
 				ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
 				mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
-				if(trans < 1.0 && rot < 0.5)
+				if(trans < 1.0 && rot < 0.2)
 					return;
 				
 				mPoseGraph->addVertex(newVertex);
