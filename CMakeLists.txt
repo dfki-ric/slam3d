@@ -8,8 +8,6 @@ rock_standard_layout()
 
 include_directories(include)
 
-set(CMAKE_BUILD_TYPE "Release")
-
 ############################################################
 # Define the slam3d library
 ############################################################

@@ -10,4 +10,6 @@
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
   <depend package="cholmod" />
+  
+  <tags>stable</tags>
 </package>
