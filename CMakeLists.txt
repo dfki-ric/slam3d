@@ -3,8 +3,9 @@
 cmake_minimum_required(VERSION 2.6)
 find_package(Rock)
 set(ROCK_TEST_ENABLED ON)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 rock_init(slam3d 0.1)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../g2o/cmake_modules)
 rock_standard_layout()
 
 include_directories(include)
@@ -34,7 +35,8 @@ rock_library(slam3d
 		g2o
 		graph_analysis
 	DEPS_CMAKE
-		Cholmod)
+		Cholmod
+)
 		
 
 ############################################################
