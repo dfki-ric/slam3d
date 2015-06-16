@@ -7,6 +7,7 @@
 namespace slam
 {
 	typedef double ScalarType;
+	typedef Eigen::Matrix<ScalarType,3,1> Vector3;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	typedef Eigen::Matrix<ScalarType,6,6> Covariance;
 	

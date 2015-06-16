@@ -7,6 +7,38 @@
 
 using namespace slam;
 
+// Re-orthogonalize the rotation-matrix
+// http://stackoverflow.com/questions/23080791/eigen-re-orthogonalization-of-rotation-matrix
+Transform orthogonalize(const Transform& t)
+{
+	Vector3 x(t(0,0), t(0,1), t(0,2));
+	Vector3 y(t(1,0), t(1,1), t(1,2));
+	Vector3 z(t(2,0), t(2,1), t(2,2));
+	ScalarType error = x.dot(y);
+	
+	Vector3 x_ort = x - (error/2.0) * y;
+	Vector3 y_ort = y - (error/2.0) * x;
+	Vector3 z_ort = x_ort.cross(y_ort);
+
+	Transform res = t;
+	ScalarType xdot = 0.5 * (3.0 - x_ort.dot(x_ort));
+	res(0,0) = xdot * x_ort(0);
+	res(0,1) = xdot * x_ort(1);
+	res(0,2) = xdot * x_ort(2);
+	
+	ScalarType ydot = 0.5 * (3.0 - y_ort.dot(y_ort));
+	res(1,0) = ydot * y_ort(0);
+	res(1,1) = ydot * y_ort(1);
+	res(1,2) = ydot * y_ort(2);
+	
+	ScalarType zdot = 0.5 * (3.0 - z_ort.dot(z_ort));
+	res(2,0) = zdot * z_ort(0);
+	res(2,1) = zdot * z_ort(1);
+	res(2,2) = zdot * z_ort(2);
+	
+	return res;
+}
+
 VertexObject::Ptr GraphMapper::fromBaseGraph(graph_analysis::Vertex::Ptr base)
 {
 	VertexObject::Ptr v = boost::dynamic_pointer_cast<VertexObject>(base);
@@ -38,8 +70,6 @@ GraphMapper::GraphMapper(Logger* log)
 
 GraphMapper::~GraphMapper()
 {
-//	std::string file = "pose_graph.dot";
-//	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 }
 
 void GraphMapper::setSolver(Solver* solver)
@@ -59,41 +89,12 @@ bool GraphMapper::optimize()
 		mLogger->message(ERROR, "A solver must be set before optimize() is called!");
 		return false;
 	}
-/*	
-	// Add vertices to the solver
-	std::vector<graph_analysis::Vertex::Ptr> vertices = mPoseGraph->getAllVertices();
-	if(vertices.size() == 0)
-	{
-		mLogger->message(ERROR, "Graph does not contain any nodes!");
-		return false;
-	}
-	for(std::vector<graph_analysis::Vertex::Ptr>::iterator it = vertices.begin(); it < vertices.end(); it++)
-	{
-		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(*it);
-		mSolver->addNode(id, fromBaseGraph(*it)->corrected_pose);
-	}
-	
-	// Fix first node in the graph
-	mSolver->setFixed(mPoseGraph->getVertexId(mFixedVertex));
-	
-	// Add edges to the solver
-	std::vector<graph_analysis::Edge::Ptr> edges = mPoseGraph->getAllEdges();
-	for(std::vector<graph_analysis::Edge::Ptr>::iterator it = edges.begin(); it < edges.end(); it++)
-	{
-		unsigned source = mPoseGraph->getVertexId((*it)->getSourceVertex());
-		unsigned target = mPoseGraph->getVertexId((*it)->getTargetVertex());
-		EdgeObject::Ptr edge = fromBaseGraph(*it);
-		mSolver->addConstraint(source, target, edge->transform, edge->covariance);
-	}
-*/	
+
 	// Optimize
-	mSolver->saveGraph("input_graph.g2o");
-	graph_analysis::io::GraphIO::write("graph.dot", *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
 	if(!mSolver->compute())
 	{
 		return false;
 	}
-//	mSolver->saveGraph("optimized_graph.g2o");
 
 	// Retrieve results
 	IdPoseVector res = mSolver->getCorrections();
@@ -175,29 +176,7 @@ void GraphMapper::addReading(Measurement* m)
 		mPoseGraph->addEdge(odomEdge);
 	}
 */
-/*
-	// Add edge to last vertex
-	if(mLastVertex)
-	{
-		EdgeObject::Ptr icpEdge(new EdgeObject);
-		try
-		{
-			Transform guess(Eigen::Translation<double, 3>(0.5,0,0));
-			TransformWithCovariance twc = sensor->calculateTransform(mLastVertex->measurement, m, guess);		
 
-			icpEdge->transform = twc.transform;
-			icpEdge->covariance = twc.covariance;
-			icpEdge->setSourceVertex(mLastVertex);
-			icpEdge->setTargetVertex(newVertex);
-			mPoseGraph->addEdge(icpEdge);
-			
-			newVertex->corrected_pose = mLastVertex->corrected_pose * twc.transform;
-		}catch(NoMatch &e)
-		{
-			mLogger->message(WARNING, e.what());
-		}
-	}
-*/
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
 	VertexList neighbors = getNearbyVertices(newVertex, mNeighborRadius);
@@ -216,21 +195,20 @@ void GraphMapper::addReading(Measurement* m)
 			mLogger->message(DEBUG, (boost::format("Neighbor pose has determinant %1%!") % (*it)->corrected_pose.matrix().determinant()).str());
 			
 			icpEdge = EdgeObject::Ptr(new EdgeObject("icp"));
-/*			
 			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
 			if(std::abs(guess.matrix().determinant() - 1.0) > 0.001)
 			{
 				mLogger->message(ERROR, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
 			}else
 			{
-				mLogger->message(INFO, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
+				mLogger->message(DEBUG, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
 			}
-*/			
-			Transform guess = Transform::Identity();
+			
 			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
+			twc.transform = orthogonalize(twc.transform);
 			if(std::abs(twc.transform.matrix().determinant() - 1.0) > 0.001)
 			{
-				mLogger->message(ERROR, (boost::format("ICP transform has determinant %1%!") % twc.transform.matrix().determinant()).str());
+				mLogger->message(WARNING, (boost::format("ICP transform has determinant %1%!") % twc.transform.matrix().determinant()).str());
 			}
 			icpEdge->transform = twc.transform;
 			icpEdge->covariance = Covariance::Identity();// twc.covariance;
@@ -245,30 +223,26 @@ void GraphMapper::addReading(Measurement* m)
 				ScalarType dz = twc.transform.translation()(2);
 				ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
 				mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
-				if(trans < 1.0 && rot < 0.2)
+				if(trans < 0.5 && rot < 0.1)
 					return;
 				
 				mPoseGraph->addVertex(newVertex);
 				if(mSolver)
 				{
 					graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
-//					mSolver->addNode(id, newVertex->corrected_pose);
-					mSolver->addNode(id, Transform::Identity());
+					mSolver->addNode(id, newVertex->corrected_pose);
 				}
 				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
-//				break;
-			}//else
-//			{
-				mPoseGraph->addEdge(icpEdge);
-				if(mSolver)
-				{
-					unsigned source = mPoseGraph->getVertexId(*it);
-					unsigned target = mPoseGraph->getVertexId(newVertex);
-					mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
-				}
-//			}
-//			break;
+			}
+			
+			mPoseGraph->addEdge(icpEdge);
+			if(mSolver)
+			{
+				unsigned source = mPoseGraph->getVertexId(*it);
+				unsigned target = mPoseGraph->getVertexId(newVertex);
+				mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
+			}
 			added++;
 		}catch(NoMatch &e)
 		{
