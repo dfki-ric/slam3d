@@ -4,8 +4,6 @@
 #include "pcl/registration/gicp.h"
 #include <pcl/filters/voxel_grid.h>
 
-#define FLT_SIZE 2.0
-
 using namespace slam;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
@@ -50,8 +48,8 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	}
 	
 	// Downsample the scans
-	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), FLT_SIZE);
-	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), FLT_SIZE);
+	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), mConfiguration.point_cloud_density);
+	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), mConfiguration.point_cloud_density);
 	
 	// Configure Generalized-ICP
 	ICP icp;
