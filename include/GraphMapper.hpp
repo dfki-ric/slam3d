@@ -104,6 +104,7 @@ namespace slam
 		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
 		
 		void setNeighborRadius(float r){ mNeighborRadius = r; }
+		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
@@ -122,6 +123,8 @@ namespace slam
 		
 		// Parameters
 		float mNeighborRadius;
+		float mMinTranslation;
+		float mMinRotation;
 	};
 }
 
