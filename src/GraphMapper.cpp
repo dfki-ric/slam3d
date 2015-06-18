@@ -66,6 +66,10 @@ GraphMapper::GraphMapper(Logger* log)
 	mOdometry = NULL;
 	mSolver = NULL;
 	mLogger = log;
+	
+	mNeighborRadius = 1.0;
+	mMinTranslation = 0.5;
+	mMinRotation = 0.1;
 }
 
 GraphMapper::~GraphMapper()
@@ -186,7 +190,7 @@ void GraphMapper::addReading(Measurement* m)
 	int added = 0;
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 5; it++)
 	{
-		if(*it == newVertex)// || *it == mLastVertex)
+		if(*it == newVertex)
 			continue;
 
 		EdgeObject::Ptr icpEdge;
@@ -223,7 +227,7 @@ void GraphMapper::addReading(Measurement* m)
 				ScalarType dz = twc.transform.translation()(2);
 				ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
 				mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
-				if(trans < 0.5 && rot < 0.1)
+				if(trans < mMinTranslation && rot < mMinRotation)
 					return;
 				
 				mPoseGraph->addVertex(newVertex);
