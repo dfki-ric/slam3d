@@ -30,6 +30,7 @@
     <File Name="include/FileLogger.hpp"/>
     <File Name="include/PointCloudSensor.hpp"/>
     <File Name="include/Types.hpp"/>
+    <File Name="include/GICPConfiguration.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/GraphMapper.cpp"/>

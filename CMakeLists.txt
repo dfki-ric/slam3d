@@ -27,6 +27,7 @@ rock_library(slam3d
 		include/GraphMapper.hpp
 		include/Sensor.hpp
 		include/PointCloudSensor.hpp
+		include/GICPConfiguration.hpp
 		include/Types.hpp
 		include/Odometry.hpp
 	DEPS_PKGCONFIG 
