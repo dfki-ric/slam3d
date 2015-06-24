@@ -230,6 +230,7 @@ void GraphMapper::addReading(Measurement* m)
 				{
 					graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
 					mSolver->addNode(id, newVertex->corrected_pose);
+					mLogger->message(INFO, (boost::format("Added Vertex(id='%1%') to the Graph.") % id).str());
 				}
 				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
 				matched = true;
@@ -240,6 +241,7 @@ void GraphMapper::addReading(Measurement* m)
 			{
 				unsigned source = mPoseGraph->getVertexId(*it);
 				unsigned target = mPoseGraph->getVertexId(newVertex);
+				mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source % target).str());
 				mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
 			}
 			added++;
