@@ -167,19 +167,18 @@ void GraphMapper::addReading(Measurement* m)
 	}
 	
 	// Add an edge representing the odometry information
-/*	if(mOdometry && mLastVertex)
+	if(mOdometry && mLastVertex)
 	{
 		timeval previous = mLastVertex->measurement->getTimestamp();
 		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
 
-		EdgeObject::Ptr odomEdge(new EdgeObject());
+		EdgeObject::Ptr odomEdge(new EdgeObject("odom"));
 		odomEdge->setSourceVertex(mLastVertex);
 		odomEdge->setTargetVertex(newVertex);
 		odomEdge->transform = twc.transform;
 		odomEdge->covariance = twc.covariance;
 		mPoseGraph->addEdge(odomEdge);
 	}
-*/
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
