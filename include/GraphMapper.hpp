@@ -32,7 +32,7 @@ namespace slam
 
 		std::string getClassName() const { return "slam::VertexObject"; }
 	};
-	
+
 	/**
 	 * @class EdgeObject
 	 * @author Sebastian Kasperski
@@ -70,9 +70,9 @@ namespace slam
 			return "Could not convert from base-type to slam-type!";
 		}
 	};
-	
+
 	class Solver;
-	
+
 	/**
 	 * @class GraphMapper
 	 * @author Sebastian Kasperski
@@ -93,18 +93,28 @@ namespace slam
 
 		void addReading(Measurement* m);
 		Transform getCurrentPose();
-		
+
 		VertexList getVerticesFromSensor(const std::string& sensor);
 		EdgeList getEdgesFromSensor(const std::string& sensor);
-		
+
 		void buildNeighborIndex();
 		VertexList getNearbyVertices(VertexObject::Ptr vertex, float radius);
-		
+
 		static VertexObject::Ptr fromBaseGraph(graph_analysis::Vertex::Ptr base);
 		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
-		
+
 		void setNeighborRadius(float r){ mNeighborRadius = r; }
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
+
+	private:
+		VertexObject::Ptr addVertex(Measurement* m,
+		                            const Transform &odometric,
+		                            const Transform &corrected);
+		EdgeObject::Ptr addEdge(VertexObject::Ptr source,
+		                        VertexObject::Ptr target,
+		                        const Transform &t,
+		                        const Covariance &c,
+		                        const std::string &name);
 
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
@@ -115,12 +125,12 @@ namespace slam
 		Logger* mLogger;
 		Odometry* mOdometry;
 		SensorList mSensors;
-		
+
 		// Index to use nearest neighbor search
 		flann::SearchParams mSearchParams;
 		NeighborIndex mIndex;
 		std::map<int, VertexObject::Ptr> mIndexMap;
-		
+
 		// Parameters
 		float mNeighborRadius;
 		float mMinTranslation;

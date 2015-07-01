@@ -5,6 +5,31 @@
 
 namespace slam
 {
+	/**
+	 * @class OdometryException
+	 * @author Sebastian Kasperski
+	 * @date 30/06/15
+	 * @file Odometry.hpp
+	 * @brief Exception thrown when the requested odometry information
+	 * is not available.
+	 */
+	class OdometryException: public std::exception
+	{
+	public:
+		OdometryException(){}
+		virtual const char* what() const throw()
+		{
+			return "Odometry at given time is not available!";
+		}
+	};
+	
+	/**
+	 * @class Odometry
+	 * @author Sebastian Kasperski
+	 * @date 30/06/15
+	 * @file Odometry.hpp
+	 * @brief Base class for all odometry modules.
+	 */
 	class Odometry
 	{
 	public:

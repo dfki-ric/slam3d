@@ -124,6 +124,49 @@ void GraphMapper::registerSensor(Sensor* s)
 	}
 }
 
+VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &odometric, const Transform &corrected)
+{
+	VertexObject::Ptr newVertex(new VertexObject(m->getSensorName()));
+	newVertex->odometric_pose = odometric;
+	newVertex->corrected_pose = corrected;
+	newVertex->measurement = m;
+	mPoseGraph->addVertex(newVertex);
+	if(mSolver)
+	{
+		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+		mSolver->addNode(id, newVertex->corrected_pose);
+		if(!mFixedVertex)
+			mSolver->setFixed(id);
+	}
+	
+	if(!mFixedVertex)
+	{
+		mLogger->message(DEBUG, "Add first vertex to the graph.");
+		mFixedVertex = newVertex;
+	}
+	return newVertex;
+}
+
+EdgeObject::Ptr GraphMapper::addEdge(VertexObject::Ptr source, VertexObject::Ptr target,
+	const Transform &t, const Covariance &c, const std::string &name)
+{
+	EdgeObject::Ptr edge(new EdgeObject(name));
+	edge->setSourceVertex(source);
+	edge->setTargetVertex(target);
+	edge->transform = t;
+	edge->covariance = c;
+	mPoseGraph->addEdge(edge);
+	
+	if(mSolver)
+	{
+		unsigned source_id = mPoseGraph->getVertexId(source);
+		unsigned target_id = mPoseGraph->getVertexId(target);
+		mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source_id % target_id).str());
+		mSolver->addConstraint(source_id, target_id, t, c);
+	}
+	return edge;
+}
+
 void GraphMapper::addReading(Measurement* m)
 {
 	// Get the sensor responsible for this measurement
@@ -143,43 +186,34 @@ void GraphMapper::addReading(Measurement* m)
 	Transform pose = Transform::Identity();
 	if(mOdometry)
 	{
-		pose = mOdometry->getOdometricPose(m->getTimestamp());
+		try
+		{
+			pose = mOdometry->getOdometricPose(m->getTimestamp());
+		}catch(OdometryException &e)
+		{
+			mLogger->message(ERROR, "Could not get Odometry data!");
+			pose = Transform::Identity();
+		}
 	}
+	
 
 	// Add the vertex to the pose graph
-	VertexObject::Ptr newVertex(new VertexObject(m->getSensorName()));
-	newVertex->odometric_pose = pose;
-	newVertex->corrected_pose = getCurrentPose();
-	newVertex->measurement = m;
-	
-	if(!mFixedVertex)
-	{
-		mLogger->message(DEBUG, "Add first vertex to the graph.");
-		mPoseGraph->addVertex(newVertex);
-		mFixedVertex = newVertex;
-		if(mSolver)
-		{
-			graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
-			mSolver->addNode(id, newVertex->corrected_pose);
-			mSolver->setFixed(id);
-		}
-		return;
-	}
+	VertexObject::Ptr newVertex = addVertex(m, pose, pose);
 	
 	// Add an edge representing the odometry information
 	if(mOdometry && mLastVertex)
 	{
 		timeval previous = mLastVertex->measurement->getTimestamp();
-		TransformWithCovariance twc = mOdometry->getRelativePose(previous, m->getTimestamp());
-
-		EdgeObject::Ptr odomEdge(new EdgeObject("odom"));
-		odomEdge->setSourceVertex(mLastVertex);
-		odomEdge->setTargetVertex(newVertex);
-		odomEdge->transform = twc.transform;
-		odomEdge->covariance = twc.covariance;
-		mPoseGraph->addEdge(odomEdge);
+		try
+		{
+			Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * newVertex->odometric_pose);			
+			addEdge(mLastVertex, newVertex, diff, Covariance::Identity(), "odom");
+		}catch(OdometryException &e)
+		{
+			mLogger->message(ERROR, "Could not add odometry edge, no data available.");
+		}
 	}
-
+/*
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
 	VertexList neighbors = getNearbyVertices(newVertex, mNeighborRadius);
@@ -235,14 +269,7 @@ void GraphMapper::addReading(Measurement* m)
 				matched = true;
 			}
 			
-			mPoseGraph->addEdge(icpEdge);
-			if(mSolver)
-			{
-				unsigned source = mPoseGraph->getVertexId(*it);
-				unsigned target = mPoseGraph->getVertexId(newVertex);
-				mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source % target).str());
-				mSolver->addConstraint(source, target, icpEdge->transform, icpEdge->covariance);
-			}
+			addEdge(icpEdge);
 			added++;
 		}catch(NoMatch &e)
 		{
@@ -254,7 +281,7 @@ void GraphMapper::addReading(Measurement* m)
 	{
 		mLogger->message(WARNING, "Scan matching not possible!");
 	}
-
+*/
 	// Overall last vertex
 	mLastVertex = newVertex;
 }
