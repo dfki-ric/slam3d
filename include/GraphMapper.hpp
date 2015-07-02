@@ -93,6 +93,7 @@ namespace slam
 
 		void addReading(Measurement* m);
 		Transform getCurrentPose();
+		bool checkMinDistance(const Transform &t);
 
 		VertexList getVerticesFromSensor(const std::string& sensor);
 		EdgeList getEdgesFromSensor(const std::string& sensor);

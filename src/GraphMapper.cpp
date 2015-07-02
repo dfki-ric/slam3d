@@ -189,10 +189,16 @@ void GraphMapper::addReading(Measurement* m)
 		try
 		{
 			pose = mOdometry->getOdometricPose(m->getTimestamp());
+			if(mLastVertex)
+			{
+				Transform odom_dist = mLastVertex->odometric_pose.inverse() * pose;
+				if(!checkMinDistance(odom_dist))
+					return;
+			}
 		}catch(OdometryException &e)
 		{
 			mLogger->message(ERROR, "Could not get Odometry data!");
-			pose = Transform::Identity();
+			return;
 		}
 	}
 	
@@ -377,4 +383,18 @@ void GraphMapper::writeGraphToFile(const std::string &name)
 	std::string file = name + ".dot";
 	mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
 	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
+}
+
+bool GraphMapper::checkMinDistance(const Transform &t)
+{
+	ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
+	ScalarType dx = t.translation()(0);
+	ScalarType dy = t.translation()(1);
+	ScalarType dz = t.translation()(2);
+	ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
+	mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
+	if(trans < mMinTranslation && rot < mMinRotation)
+		return false;
+	else
+		return true;
 }
