@@ -371,3 +371,10 @@ Transform GraphMapper::getCurrentPose()
 	else
 		return Transform::Identity();
 }
+
+void GraphMapper::writeGraphToFile(const std::string &name)
+{
+	std::string file = name + ".dot";
+	mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
+	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
+}

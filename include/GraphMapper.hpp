@@ -106,6 +106,8 @@ namespace slam
 		void setNeighborRadius(float r){ mNeighborRadius = r; }
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
+		void writeGraphToFile(const std::string &name);
+
 	private:
 		VertexObject::Ptr addVertex(Measurement* m,
 		                            const Transform &odometric,
