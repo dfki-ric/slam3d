@@ -183,114 +183,94 @@ void GraphMapper::addReading(Measurement* m)
 		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
 		return;
 	}
-	
+
 	// Get the odometric pose for this measurement
-	Transform pose = Transform::Identity();
+	Transform odometry = Transform::Identity();
 	if(mOdometry)
 	{
 		try
 		{
-			pose = mOdometry->getOdometricPose(m->getTimestamp());
-			if(mLastVertex)
-			{
-				Transform odom_dist = mLastVertex->odometric_pose.inverse() * pose;
-				mCurrentPose = mLastVertex->corrected_pose * odom_dist;
-				if(!checkMinDistance(odom_dist))
-					return;
-			}
+			odometry = mOdometry->getOdometricPose(m->getTimestamp());
 		}catch(OdometryException &e)
 		{
 			mLogger->message(ERROR, "Could not get Odometry data!");
 			return;
 		}
 	}
-	
 
-	// Add the vertex to the pose graph
-	VertexObject::Ptr newVertex = addVertex(m, pose, orthogonalize(mCurrentPose));
-	
-	// Add an edge representing the odometry information
-	if(mOdometry && mLastVertex)
+	// If this is the first vertex, add it and return
+	if(!mLastVertex)
 	{
-		timeval previous = mLastVertex->measurement->getTimestamp();
-		try
-		{
-			Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * newVertex->odometric_pose);			
-			addEdge(mLastVertex, newVertex, diff, Covariance::Identity(), "odom");
-		}catch(OdometryException &e)
-		{
-			mLogger->message(ERROR, "Could not add odometry edge, no data available.");
-		}
+		mLastVertex = addVertex(m, odometry, mCurrentPose);
+		mLogger->message(INFO, "Added first node to the graph.");
+		return;
 	}
-/*
+
+	// Now we have a node, that is not the first and has not been added yet
+	VertexObject::Ptr newVertex;
+	
+	if(mOdometry)
+	{
+		Transform odom_dist = mLastVertex->odometric_pose.inverse() * odometry;
+		mCurrentPose = mLastVertex->corrected_pose * odom_dist;
+		if(!checkMinDistance(odom_dist))
+			return;
+
+		// Add the vertex to the pose graph
+		newVertex = addVertex(m, odometry, orthogonalize(mCurrentPose));
+
+		// Add an edge representing the odometry information
+		Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * odometry);			
+		addEdge(mLastVertex, newVertex, diff, Covariance::Identity(), "odom");
+	}
+
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
-	VertexList neighbors = getNearbyVertices(newVertex, mNeighborRadius);
+	VertexList neighbors = getNearbyVertices(mCurrentPose, mNeighborRadius);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
-	bool matched = false;
 	int added = 0;
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 5; it++)
 	{
 		if(*it == newVertex)
 			continue;
 
-		EdgeObject::Ptr icpEdge;
 		try
 		{			
-			icpEdge = EdgeObject::Ptr(new EdgeObject("icp"));
-			Transform guess = (*it)->corrected_pose.inverse() * newVertex->corrected_pose;
+			Transform guess = (*it)->corrected_pose.inverse() * mCurrentPose;
 			if(std::abs(guess.matrix().determinant() - 1.0) > 0.001)
 			{
 				mLogger->message(ERROR, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
 			}
 			
 			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
-			twc.transform = orthogonalize(twc.transform);
 			if(std::abs(twc.transform.matrix().determinant() - 1.0) > 0.001)
 			{
 				mLogger->message(ERROR, (boost::format("ICP transform has determinant %1%!") % twc.transform.matrix().determinant()).str());
 			}
-			icpEdge->transform = twc.transform;
-			icpEdge->covariance = Covariance::Identity();// twc.covariance;
-			icpEdge->setSourceVertex(*it);
-			icpEdge->setTargetVertex(newVertex);
-			
-			if(!matched)
+
+			if(!newVertex)
 			{
-				ScalarType rot = Eigen::AngleAxis<ScalarType>(twc.transform.rotation()).angle();
-				ScalarType dx = twc.transform.translation()(0);
-				ScalarType dy = twc.transform.translation()(1);
-				ScalarType dz = twc.transform.translation()(2);
-				ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
-				mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
-				if(trans < mMinTranslation && rot < mMinRotation)
+				mCurrentPose = orthogonalize((*it)->corrected_pose * twc.transform);
+				if(!checkMinDistance(twc.transform))
 					return;
-				
-				mPoseGraph->addVertex(newVertex);
-				if(mSolver)
-				{
-					graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
-					mSolver->addNode(id, newVertex->corrected_pose);
-					mLogger->message(INFO, (boost::format("Added Vertex(id='%1%') to the Graph.") % id).str());
-				}
-				newVertex->corrected_pose = (*it)->corrected_pose * twc.transform;
-				matched = true;
+				newVertex = addVertex(m, odometry, mCurrentPose);
 			}
-			
-			addEdge(icpEdge);
+
+			addEdge(*it, newVertex, twc.transform, twc.covariance, "match");
 			added++;
 		}catch(NoMatch &e)
 		{
 			continue;
 		}
 	}
-	
-	if(!matched)
+
+	if(!newVertex)
 	{
-		mLogger->message(WARNING, "Scan matching not possible!");
+		mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
+		return;
 	}
-*/
+
 	// Overall last vertex
 	mLastVertex = newVertex;
 }
@@ -308,7 +288,6 @@ VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
             vertexList.push_back(vertex);
         }
     }
-
     return vertexList;
 }
 
@@ -348,11 +327,11 @@ void GraphMapper::buildNeighborIndex()
 	mIndex.buildIndex(points);
 }
 
-VertexList GraphMapper::getNearbyVertices(VertexObject::Ptr vertex, float radius)
+VertexList GraphMapper::getNearbyVertices(const Transform &tf, float radius)
 {
 	// Fill in the query point
 	flann::Matrix<float> query(new float[3], 1, 3);
-	Transform::TranslationPart t = vertex->corrected_pose.translation();
+	Transform::ConstTranslationPart t = tf.translation();
 	query[0][0] = t[0];
 	query[0][1] = t[1];
 	query[0][2] = t[2];

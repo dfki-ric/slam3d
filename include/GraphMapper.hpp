@@ -99,7 +99,7 @@ namespace slam
 		EdgeList getEdgesFromSensor(const std::string& sensor);
 
 		void buildNeighborIndex();
-		VertexList getNearbyVertices(VertexObject::Ptr vertex, float radius);
+		VertexList getNearbyVertices(const Transform &tf, float radius);
 
 		static VertexObject::Ptr fromBaseGraph(graph_analysis::Vertex::Ptr base);
 		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
