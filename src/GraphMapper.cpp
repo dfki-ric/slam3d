@@ -70,6 +70,8 @@ GraphMapper::GraphMapper(Logger* log)
 	mNeighborRadius = 1.0;
 	mMinTranslation = 0.5;
 	mMinRotation = 0.1;
+
+	mCurrentPose = Transform::Identity();
 }
 
 GraphMapper::~GraphMapper()
@@ -192,6 +194,7 @@ void GraphMapper::addReading(Measurement* m)
 			if(mLastVertex)
 			{
 				Transform odom_dist = mLastVertex->odometric_pose.inverse() * pose;
+				mCurrentPose = mLastVertex->corrected_pose * odom_dist;
 				if(!checkMinDistance(odom_dist))
 					return;
 			}
@@ -204,7 +207,7 @@ void GraphMapper::addReading(Measurement* m)
 	
 
 	// Add the vertex to the pose graph
-	VertexObject::Ptr newVertex = addVertex(m, pose, pose);
+	VertexObject::Ptr newVertex = addVertex(m, pose, orthogonalize(mCurrentPose));
 	
 	// Add an edge representing the odometry information
 	if(mOdometry && mLastVertex)
@@ -372,10 +375,7 @@ VertexList GraphMapper::getNearbyVertices(VertexObject::Ptr vertex, float radius
 
 Transform GraphMapper::getCurrentPose()
 {
-	if(mLastVertex)
-		return mLastVertex->corrected_pose;
-	else
-		return Transform::Identity();
+	return mCurrentPose;
 }
 
 void GraphMapper::writeGraphToFile(const std::string &name)

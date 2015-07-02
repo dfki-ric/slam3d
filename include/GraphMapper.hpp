@@ -129,6 +129,8 @@ namespace slam
 		Odometry* mOdometry;
 		SensorList mSensors;
 
+		Transform mCurrentPose;
+
 		// Index to use nearest neighbor search
 		flann::SearchParams mSearchParams;
 		NeighborIndex mIndex;
