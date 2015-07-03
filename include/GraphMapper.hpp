@@ -128,8 +128,9 @@ namespace slam
 		 * then min-translation or min-rotation, the measurement will not be
 		 * added. Use GraphMapper::setMinPoseDistance to adjust this distance.
 		 * @param m Pointer to a new measurement.
+		 * @return True if the Measurement was added, otherwise False.
 		 */
-		void addReading(Measurement* m);
+		bool addReading(Measurement* m);
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.

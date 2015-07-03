@@ -169,7 +169,7 @@ EdgeObject::Ptr GraphMapper::addEdge(VertexObject::Ptr source, VertexObject::Ptr
 	return edge;
 }
 
-void GraphMapper::addReading(Measurement* m)
+bool GraphMapper::addReading(Measurement* m)
 {
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
@@ -181,7 +181,7 @@ void GraphMapper::addReading(Measurement* m)
 	}catch(std::out_of_range e)
 	{
 		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
-		return;
+		return false;
 	}
 
 	// Get the odometric pose for this measurement
@@ -194,7 +194,7 @@ void GraphMapper::addReading(Measurement* m)
 		}catch(OdometryException &e)
 		{
 			mLogger->message(ERROR, "Could not get Odometry data!");
-			return;
+			return false;
 		}
 	}
 
@@ -203,7 +203,7 @@ void GraphMapper::addReading(Measurement* m)
 	{
 		mLastVertex = addVertex(m, odometry, mCurrentPose);
 		mLogger->message(INFO, "Added first node to the graph.");
-		return;
+		return true;
 	}
 
 	// Now we have a node, that is not the first and has not been added yet
@@ -214,7 +214,7 @@ void GraphMapper::addReading(Measurement* m)
 		Transform odom_dist = mLastVertex->odometric_pose.inverse() * odometry;
 		mCurrentPose = mLastVertex->corrected_pose * odom_dist;
 		if(!checkMinDistance(odom_dist))
-			return;
+			return false;
 
 		// Add the vertex to the pose graph
 		newVertex = addVertex(m, odometry, orthogonalize(mCurrentPose));
@@ -253,7 +253,7 @@ void GraphMapper::addReading(Measurement* m)
 			{
 				mCurrentPose = orthogonalize((*it)->corrected_pose * twc.transform);
 				if(!checkMinDistance(twc.transform))
-					return;
+					return false;
 				newVertex = addVertex(m, odometry, mCurrentPose);
 			}
 
@@ -268,11 +268,12 @@ void GraphMapper::addReading(Measurement* m)
 	if(!newVertex)
 	{
 		mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
-		return;
+		return false;
 	}
 
 	// Overall last vertex
 	mLastVertex = newVertex;
+	return true;
 }
 
 VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
