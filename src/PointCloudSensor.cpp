@@ -8,8 +8,8 @@ using namespace slam;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
 
-PointCloudSensor::PointCloudSensor(std::string n, Logger* l)
- : Sensor(n, l)
+PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transform& p)
+ : Sensor(n, l, p)
 {
 	
 }
@@ -29,7 +29,7 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 	return out;
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform guess) const
+TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform odometry) const
 {
 	// Check the initial guess
 	if(guess.matrix().determinant() == 0)
@@ -37,6 +37,9 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 		mLogger->message(ERROR, "Initial guess transform has 0 determinant!");
 		throw NoMatch();
 	}
+	
+	// Transform guess in sensor frame
+	Transform guess = mSensorPose * odometry * mInverseSensorPose;
 	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement* sourceCloud = dynamic_cast<PointCloudMeasurement*>(source);
@@ -77,61 +80,33 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	PointCloud result;
 	icp.align(result);
 
-	// Get estimated transform
-	TransformWithCovariance twc;
-	twc.transform = Transform::Identity();
-	twc.covariance = Covariance::Identity();
-	if(icp.hasConverged() && icp.getFitnessScore() <= mConfiguration.max_fitness_score)
-	{
-//		ICP::Matrix4 tf_matrix = icp.getFinalTransformation();
-		Eigen::Isometry3f tf_matrix(icp.getFinalTransformation());
-
-		// check for nan values (why does this happen?)
-//		bool valid = (tf_matrix.matrix().array() == tf_matrix.matrix().array()).all();
-		bool valid = true;
-		if(!valid)
-		{
-			mLogger->message(ERROR, "Messurement from ICP contains not numerical values.");
-			throw NoMatch();
-		}else
-		{
-//			Transform tf(tf_matrix.cast<double>());
-			
-/*			if(tf.matrix().determinant() == 0)
-			{
-				mLogger->message(ERROR, "Calculated transform has 0 determinant!");
-				throw NoMatch();
-			}
-			double dx = tf.translation()(0);
-			double dy = tf.translation()(1);
-			double dz = tf.translation()(2);
-			double dist = sqrt((dx*dx) + (dy*dy) + (dz*dz));
-			dx = guess.translation()(0);
-			dy = guess.translation()(1);
-			dz = guess.translation()(2);
-			double dist2 = sqrt((dx*dx) + (dy*dy) + (dz*dz));
-			mLogger->message(DEBUG, (boost::format("ICP shift: %1% | Guess: %2% | Error: %3%") % dist % dist2 % icp.getFitnessScore()).str());
-			mLogger->message(DEBUG, (boost::format("Estimated translation:\n %1%") % tf.translation()).str());
-*/			twc.transform = guess * Transform(tf_matrix);
-			twc.covariance = (icp.getFitnessScore() * icp.getFitnessScore()) * Covariance::Identity();
-		}
-	}else
+	// Check if ICP was successful (kind of...)
+	if(!icp.hasConverged() || icp.getFitnessScore() > mConfiguration.max_fitness_score)
 	{
 		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % mConfiguration.max_fitness_score).str());
 		throw NoMatch();
 	}
+	
+	// Get estimated transform
+	Eigen::Isometry3f tf_matrix(icp.getFinalTransformation());
+	Transform icp_result = guess * Transform(tf_matrix);
+
+	// Transform back to robot frame
+	TransformWithCovariance twc;
+	twc.transform = orthogonalize(mInverseSensorPose * icp_result * mSensorPose);
+	twc.covariance = (icp.getFitnessScore() * icp.getFitnessScore()) * Covariance::Identity();
+/*	
 	if(abs(twc.transform.matrix().determinant() - 1.0) > 0.0001)
 	{
 		mLogger->message(ERROR, (boost::format("Calculated transform has  determinant %1%!") % twc.transform.matrix().determinant()).str());
 		throw NoMatch();
 	}
-	return twc;
+*/	return twc;
 }
 
 PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, double resolution)
 {
 	PointCloud::Ptr accu(new PointCloud);
-//	int added = 0;
 	for(VertexList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{
 		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>((*it)->measurement);
@@ -144,10 +119,6 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, doubl
 		PointCloud::Ptr tempCloud(new PointCloud);
 		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, (*it)->corrected_pose.matrix());
 		*accu += *tempCloud;
-//		added++;
-		
-//		if(added > 20)
-//			break;
 	}
 	return downsample(accu, resolution);
 }

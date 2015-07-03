@@ -60,8 +60,8 @@ namespace slam
 	class Sensor
 	{
 	public:
-		Sensor(std::string n, Logger* l)
-		 :mName(n), mLogger(l){}
+		Sensor(const std::string& n, Logger* l, const Transform& p)
+		 :mName(n), mLogger(l), mSensorPose(p){ mInverseSensorPose = p.inverse();}
 		virtual ~Sensor(){}
 		
 		/**
@@ -77,13 +77,15 @@ namespace slam
 		 * @throw BadMeasurementType
 		 * @param source
 		 * @param target
-		 * @param guess Initial estiamte of transform between source and target
+		 * @param odometry Estiamte of robot movement betwenn measurements
 		 */
-		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform guess) const = 0;
+		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const = 0;
 		
 	protected:
 		std::string mName;
 		Logger* mLogger;
+		Transform mSensorPose;
+		Transform mInverseSensorPose;
 	};
 }
 

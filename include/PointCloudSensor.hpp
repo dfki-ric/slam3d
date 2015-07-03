@@ -64,7 +64,7 @@ namespace slam
 		 * @param n Unique name of this sensor (used to identify measurements)
 		 * @param l Pointer to a Logger to write messages
 		 */
-		PointCloudSensor(std::string n, Logger* l);
+		PointCloudSensor(const std::string& n, Logger* l, const Transform& p);
 		
 		/**
 		 * @brief Destructor
@@ -77,7 +77,7 @@ namespace slam
 		 * @param source
 		 * @param target
 		 */
-		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform guess) const;
+		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
 		
 		/**
 		 * @brief Set configuration for GICP algorithm
