@@ -32,9 +32,9 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform odometry) const
 {
 	// Check the initial guess
-	if(guess.matrix().determinant() == 0)
+	if(odometry.matrix().determinant() == 0)
 	{
-		mLogger->message(ERROR, "Initial guess transform has 0 determinant!");
+		mLogger->message(ERROR, "Odometry transform has 0 determinant!");
 		throw NoMatch();
 	}
 	
@@ -93,15 +93,9 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 
 	// Transform back to robot frame
 	TransformWithCovariance twc;
-	twc.transform = orthogonalize(mInverseSensorPose * icp_result * mSensorPose);
-	twc.covariance = (icp.getFitnessScore() * icp.getFitnessScore()) * Covariance::Identity();
-/*	
-	if(abs(twc.transform.matrix().determinant() - 1.0) > 0.0001)
-	{
-		mLogger->message(ERROR, (boost::format("Calculated transform has  determinant %1%!") % twc.transform.matrix().determinant()).str());
-		throw NoMatch();
-	}
-*/	return twc;
+	twc.transform = mInverseSensorPose * icp_result * mSensorPose;
+	twc.covariance = Covariance::Identity();
+	return twc;
 }
 
 PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, double resolution)
@@ -117,7 +111,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, doubl
 		}
 		
 		PointCloud::Ptr tempCloud(new PointCloud);
-		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, (*it)->corrected_pose.matrix());
+		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, ((*it)->corrected_pose * mSensorPose).matrix());
 		*accu += *tempCloud;
 	}
 	return downsample(accu, resolution);
