@@ -1,7 +1,7 @@
 #include "PointCloudSensor.hpp"
 #include "GraphMapper.hpp"
 
-#include "pcl/registration/gicp.h"
+#include <pcl/registration/gicp.h>
 #include <pcl/filters/voxel_grid.h>
 
 using namespace slam;
