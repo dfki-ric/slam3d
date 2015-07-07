@@ -52,7 +52,8 @@ BOOST_AUTO_TEST_CASE(icp)
 	Clock clock;
 	FileLogger logger(clock, "pcl_sensor.log");
 	logger.setLogLevel(DEBUG);
-	PointCloudSensor pclSensor("TestPclSensor", &logger);
+	
+	PointCloudSensor pclSensor("TestPclSensor", &logger, Transform::Identity());
 	
 	GICPConfiguration conf;
 	conf.max_correspondence_distance = 2.0;
