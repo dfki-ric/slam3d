@@ -17,6 +17,16 @@ namespace slam
 		Covariance covariance;
 	};
 	
+	/**
+	 * @class Measurement
+	 * @author Sebastian Kasperski
+	 * @date 06/07/15
+	 * @file Types.hpp
+	 * @brief Base class for a single measurement or reading from a sensor.
+	 * This can be a single laser scan, a point cloud, an image etc.
+	 * It can either hold the actual data or contain a pointer to the data,
+	 * in case that data management is handled separately from the mapping.
+	 */
 	class Measurement
 	{
 	public:
