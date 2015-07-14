@@ -39,7 +39,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	}
 	
 	// Transform guess in sensor frame
-	Transform guess = mSensorPose * odometry * mInverseSensorPose;
+	Transform guess = mInverseSensorPose * odometry * mSensorPose;
 	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement* sourceCloud = dynamic_cast<PointCloudMeasurement*>(source);
@@ -93,7 +93,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 
 	// Transform back to robot frame
 	TransformWithCovariance twc;
-	twc.transform = mInverseSensorPose * icp_result * mSensorPose;
+	twc.transform = mSensorPose * icp_result * mInverseSensorPose;
 	twc.covariance = Covariance::Identity();
 	return twc;
 }
