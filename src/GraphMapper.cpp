@@ -112,6 +112,7 @@ bool GraphMapper::optimize()
 		v->corrected_pose = tf;
 	}
 	
+	mCurrentPose = mLastVertex->corrected_pose;
 	return true;
 }
 
