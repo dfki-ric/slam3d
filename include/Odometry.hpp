@@ -2,6 +2,7 @@
 #define SLAM_ODOMETRY_HPP
 
 #include "Types.hpp"
+#include "Logger.hpp"
 
 namespace slam
 {
@@ -34,6 +35,7 @@ namespace slam
 	{
 	public:
 
+		Odometry(Logger* logger) : mLogger(logger) {}
 		virtual ~Odometry(){}
 		
 		/**
@@ -48,6 +50,9 @@ namespace slam
 		 * @param next
 		 */
 		virtual TransformWithCovariance getRelativePose(timeval last, timeval next) = 0;
+		
+	protected:
+		Logger* mLogger;
 
 	};
 
