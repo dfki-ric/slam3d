@@ -70,6 +70,7 @@ GraphMapper::GraphMapper(Logger* log)
 	mNeighborRadius = 1.0;
 	mMinTranslation = 0.5;
 	mMinRotation = 0.1;
+	mAddOdometryEdges = false;
 
 	mCurrentPose = Transform::Identity();
 }
@@ -83,9 +84,10 @@ void GraphMapper::setSolver(Solver* solver)
 	mSolver = solver;
 }
 
-void GraphMapper::setOdometry(Odometry* odom)
+void GraphMapper::setOdometry(Odometry* odom, bool add_edges)
 {
 	mOdometry = odom;
+	mAddOdometryEdges = add_edges;
 }
 
 bool GraphMapper::optimize()
@@ -217,12 +219,15 @@ bool GraphMapper::addReading(Measurement* m)
 		if(!checkMinDistance(odom_dist))
 			return false;
 
-		// Add the vertex to the pose graph
-		newVertex = addVertex(m, odometry, orthogonalize(mCurrentPose));
+		if(mAddOdometryEdges)
+		{
+			// Add the vertex to the pose graph
+			newVertex = addVertex(m, odometry, orthogonalize(mCurrentPose));
 
-		// Add an edge representing the odometry information
-		Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * odometry);			
-		addEdge(mLastVertex, newVertex, diff, Covariance::Identity(), "odom");
+			// Add an edge representing the odometry information
+			Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * odometry);			
+			addEdge(mLastVertex, newVertex, diff, 0.000001 * Covariance::Identity(), "odom");
+		}
 	}
 
 	// Add edges to other measurements nearby

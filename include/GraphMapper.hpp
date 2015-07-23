@@ -109,8 +109,9 @@ namespace slam
 		 * used sensors (e.g. a 360° laser-scanner), the mapping might work
 		 * correctly without an odometry module.
 		 * @param odom The robot's odometry module.
+		 * @param add_edges Whether to create edges in the graph from odemetry
 		 */
-		void setOdometry(Odometry* odom);
+		void setOdometry(Odometry* odom, bool add_edges = false);
 
 		/**
 		 * @brief Register a sensor, so its data can be added to the graph.
@@ -233,6 +234,7 @@ namespace slam
 		float mNeighborRadius;
 		float mMinTranslation;
 		float mMinRotation;
+		bool mAddOdometryEdges;
 	};
 }
 
