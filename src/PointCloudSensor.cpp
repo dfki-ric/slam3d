@@ -3,6 +3,7 @@
 
 #include <pcl/registration/gicp.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/radius_outlier_removal.h>
 
 using namespace slam;
 
@@ -26,6 +27,17 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 	grid.setLeafSize (leaf_size, leaf_size, leaf_size);
 	grid.setInputCloud(in);
 	grid.filter(*out);
+	return out;
+}
+
+PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius) const
+{
+	PointCloud::Ptr out(new PointCloud);
+	pcl::RadiusOutlierRemoval<PointType> out_removal;
+	out_removal.setInputCloud(in);
+	out_removal.setRadiusSearch(radius);
+	out_removal.setMinNeighborsInRadius(1);
+	out_removal.filter(*out);
 	return out;
 }
 
@@ -114,5 +126,5 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, doubl
 		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, ((*it)->corrected_pose * mSensorPose).matrix());
 		*accu += *tempCloud;
 	}
-	return downsample(accu, resolution);
+	return removeOutliers(downsample(accu, resolution), resolution * 2);
 }

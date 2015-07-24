@@ -93,6 +93,13 @@ namespace slam
 		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
 		
 		/**
+		 * @brief Remove outliers from given pointcloud.
+		 * @param source
+		 * @param radius
+		 */
+		PointCloud::Ptr removeOutliers(PointCloud::ConstPtr source, double radius) const;
+		
+		/**
 		 * @brief Create a single point cloud that contains all measurements in vertices.
 		 * The individual point clouds are transformed by their current pose in the graph,
 		 * no additional alignement or optimazation is performed during this. The resulting
