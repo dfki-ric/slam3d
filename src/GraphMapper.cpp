@@ -374,6 +374,10 @@ void GraphMapper::writeGraphToFile(const std::string &name)
 bool GraphMapper::checkMinDistance(const Transform &t)
 {
 	ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
+	if(rot > PI)
+		rot = (2*PI) - rot;
+	if(rot < -PI)
+		rot += 2*PI;
 	ScalarType dx = t.translation()(0);
 	ScalarType dy = t.translation()(1);
 	ScalarType dz = t.translation()(2);
