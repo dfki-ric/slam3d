@@ -43,13 +43,6 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double
 
 TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform odometry) const
 {
-	// Check the initial guess
-	if(odometry.matrix().determinant() == 0)
-	{
-		mLogger->message(ERROR, "Odometry transform has 0 determinant!");
-		throw NoMatch();
-	}
-	
 	// Transform guess in sensor frame
 	Transform guess = mInverseSensorPose * odometry * mSensorPose;
 	

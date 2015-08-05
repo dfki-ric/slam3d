@@ -246,16 +246,7 @@ bool GraphMapper::addReading(Measurement* m)
 		try
 		{			
 			Transform guess = (*it)->corrected_pose.inverse() * mCurrentPose;
-			if(std::abs(guess.matrix().determinant() - 1.0) > 0.001)
-			{
-				mLogger->message(ERROR, (boost::format("Guess transform has determinant %1%!") % guess.matrix().determinant()).str());
-			}
-			
 			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
-			if(std::abs(twc.transform.matrix().determinant() - 1.0) > 0.001)
-			{
-				mLogger->message(ERROR, (boost::format("ICP transform has determinant %1%!") % twc.transform.matrix().determinant()).str());
-			}
 
 			if(!newVertex)
 			{
