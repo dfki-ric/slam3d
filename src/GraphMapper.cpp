@@ -5,6 +5,8 @@
 #include <graph_analysis/lemon/DirectedGraph.hpp>
 #include <graph_analysis/GraphIO.hpp>
 
+#define PI 3.141592654
+
 using namespace slam;
 
 // Re-orthogonalize the rotation-matrix
