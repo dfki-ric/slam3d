@@ -101,7 +101,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	
 	// Get estimated transform
 	Eigen::Isometry3f tf_matrix(icp.getFinalTransformation());
-	Transform icp_result = guess * Transform(tf_matrix);
+	Transform icp_result = Transform(tf_matrix) * guess;
 
 	// Transform back to robot frame
 	TransformWithCovariance twc;
