@@ -93,11 +93,13 @@ namespace slam
 		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
 		
 		/**
-		 * @brief Remove outliers from given pointcloud.
+		 * @brief Remove outliers from given pointcloud. A point is considered an outlier
+		 * if it has less then min_neighbors within radius.
 		 * @param source
 		 * @param radius
+		 * @param min_neighbors
 		 */
-		PointCloud::Ptr removeOutliers(PointCloud::ConstPtr source, double radius) const;
+		PointCloud::Ptr removeOutliers(PointCloud::ConstPtr source, double radius, unsigned min_neighbors) const;
 		
 		/**
 		 * @brief Create a single point cloud that contains all measurements in vertices.
@@ -107,7 +109,7 @@ namespace slam
 		 * @param vertices
 		 * @param resolution
 		 */
-		PointCloud::Ptr getAccumulatedCloud(VertexList vertices, double resolution);
+		PointCloud::Ptr getAccumulatedCloud(VertexList vertices);
 		
 	protected:
 		GICPConfiguration mConfiguration;

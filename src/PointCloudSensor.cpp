@@ -30,13 +30,13 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 	return out;
 }
 
-PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius) const
+PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius, unsigned min_neighbors) const
 {
 	PointCloud::Ptr out(new PointCloud);
 	pcl::RadiusOutlierRemoval<PointType> out_removal;
 	out_removal.setInputCloud(in);
 	out_removal.setRadiusSearch(radius);
-	out_removal.setMinNeighborsInRadius(1);
+	out_removal.setMinNeighborsInRadius(min_neighbors);
 	out_removal.filter(*out);
 	return out;
 }
@@ -103,7 +103,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	return twc;
 }
 
-PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, double resolution)
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices)
 {
 	PointCloud::Ptr accu(new PointCloud);
 	for(VertexList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
@@ -119,5 +119,5 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices, doubl
 		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, ((*it)->corrected_pose * mSensorPose).matrix());
 		*accu += *tempCloud;
 	}
-	return removeOutliers(downsample(accu, resolution), resolution * 2);
+	return accu;
 }
