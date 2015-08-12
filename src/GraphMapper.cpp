@@ -228,7 +228,7 @@ bool GraphMapper::addReading(Measurement* m)
 
 			// Add an edge representing the odometry information
 			Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * odometry);			
-			addEdge(mLastVertex, newVertex, diff, 0.000001 * Covariance::Identity(), "odom");
+			addEdge(mLastVertex, newVertex, diff, Covariance::Identity(), "odom");
 		}
 	}
 
