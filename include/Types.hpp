@@ -2,6 +2,8 @@
 #define SLAM_TYPES_HPP
 
 #include <sys/time.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <Eigen/Geometry>
 
 namespace slam
@@ -30,17 +32,20 @@ namespace slam
 	class Measurement
 	{
 	public:
-		Measurement(){}
-		Measurement(timeval t, std::string s)
-			:mStamp(t), mSensorName(s){}
+		Measurement(const timeval& t, const std::string& r, const std::string& s)
+			:mStamp(t), mSensorName(s), mUniqueID(boost::uuids::random_generator()()){}
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
+		std::string getRobotName() const { return mRobotName; }
 		std::string getSensorName() const { return mSensorName; }
+		boost::uuids::uuid getUniqueID() { return mUniqueID; }
 		
 	protected:
 		timeval mStamp;
+		std::string mRobotName;
 		std::string mSensorName;
+		boost::uuids::uuid mUniqueID;
 	};
 }
 

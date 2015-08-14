@@ -27,11 +27,12 @@ namespace slam
 		/**
 		 * @brief Constructor from point cloud and sensor name
 		 * @param cloud Shared pointer to the PointCloud
+		 * @param r Name of the robot that made this measurement
 		 * @param s Name of the sensor managing this measurement
 		 */
-		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, const std::string& s)
+		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, const std::string& r, const std::string& s)
+			:Measurement(timeval(), r, s)
 		{
-			mSensorName = s;
 			mPointCloud = cloud;
 
 			// PCL header should contain microseconds
