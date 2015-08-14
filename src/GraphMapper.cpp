@@ -133,11 +133,17 @@ void GraphMapper::registerSensor(Sensor* s)
 
 VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &odometric, const Transform &corrected)
 {
+	// Create the new VertexObject and add it to the PoseGraph
 	VertexObject::Ptr newVertex(new VertexObject(m->getSensorName()));
 	newVertex->odometric_pose = odometric;
 	newVertex->corrected_pose = corrected;
 	newVertex->measurement = m;
 	mPoseGraph->addVertex(newVertex);
+	
+	// Add it to the Index, so we can find it by its unique id
+	mVertexIndex.insert(VertexIndex::value_type(m->getUniqueID(), newVertex));
+	
+	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
 	{
 		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
@@ -146,6 +152,7 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &odomet
 			mSolver->setFixed(id);
 	}
 	
+	// Save it as fixed vertex if it is the first one
 	if(!mFixedVertex)
 	{
 		mLogger->message(DEBUG, "Add first vertex to the graph.");

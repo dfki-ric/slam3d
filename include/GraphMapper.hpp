@@ -58,6 +58,7 @@ namespace slam
 	typedef std::vector<VertexObject::Ptr> VertexList;
 	typedef std::vector<EdgeObject::Ptr> EdgeList;
 	typedef std::map<std::string, Sensor*> SensorList;
+	typedef std::map<boost::uuids::uuid, VertexObject::Ptr> VertexIndex;
 	
 	typedef flann::Index< flann::L2<float> > NeighborIndex;
 	
@@ -229,6 +230,9 @@ namespace slam
 		flann::SearchParams mSearchParams;
 		NeighborIndex mIndex;
 		std::map<int, VertexObject::Ptr> mIndexMap;
+
+		// Index to find Vertices by their unique id
+		VertexIndex mVertexIndex;
 
 		// Parameters
 		float mNeighborRadius;
