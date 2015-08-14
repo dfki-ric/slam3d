@@ -32,20 +32,28 @@ namespace slam
 	class Measurement
 	{
 	public:
-		Measurement(const timeval& t, const std::string& r, const std::string& s)
-			:mStamp(t), mSensorName(s), mUniqueID(boost::uuids::random_generator()()){}
+		Measurement(const timeval& time, const std::string& r, const std::string& s, const Transform& tr)
+		:	mStamp(time), mRobotName(r), mSensorName(s),
+			mUniqueID(boost::uuids::random_generator()()),
+			mSensorPose(tr), mInverseSensorPose(tr.inverse()) {}
+		
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
 		std::string getRobotName() const { return mRobotName; }
 		std::string getSensorName() const { return mSensorName; }
-		boost::uuids::uuid getUniqueID() { return mUniqueID; }
+		boost::uuids::uuid getUniqueID() const { return mUniqueID; }
+		Transform getSensorPose() const { return mSensorPose; }
+		Transform getInverseSensorPose() const { return mInverseSensorPose; }
 		
 	protected:
 		timeval mStamp;
 		std::string mRobotName;
 		std::string mSensorName;
 		boost::uuids::uuid mUniqueID;
+		
+		Transform mSensorPose;
+		Transform mInverseSensorPose;
 	};
 }
 

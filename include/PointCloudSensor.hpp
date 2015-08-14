@@ -30,8 +30,8 @@ namespace slam
 		 * @param r Name of the robot that made this measurement
 		 * @param s Name of the sensor managing this measurement
 		 */
-		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, const std::string& r, const std::string& s)
-			:Measurement(timeval(), r, s)
+		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, const std::string& r, const std::string& s, const Transform& tr)
+			:Measurement(timeval(), r, s, tr)
 		{
 			mPointCloud = cloud;
 

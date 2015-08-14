@@ -61,7 +61,7 @@ namespace slam
 	{
 	public:
 		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mName(n), mLogger(l), mSensorPose(p){ mInverseSensorPose = p.inverse();}
+		 :mName(n), mLogger(l), mSensorPose(p){}
 		virtual ~Sensor(){}
 		
 		/**
@@ -69,7 +69,13 @@ namespace slam
 		 * measurements that have been recorded by this sensor.
 		 * @return name
 		 */
-		std::string getName(){ return mName; }
+		std::string getName() const { return mName; }
+		
+		/**
+		 * @brief Get the sensor's pose in robot coordinate frame.
+		 * @return pose
+		 */
+		Transform getSensorPose() const { mSensorPose; }
 		
 		/**
 		 * @brief Calculate the estimated transform between two measurements
@@ -85,7 +91,6 @@ namespace slam
 		std::string mName;
 		Logger* mLogger;
 		Transform mSensorPose;
-		Transform mInverseSensorPose;
 	};
 }
 

@@ -44,7 +44,7 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double
 TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform odometry) const
 {
 	// Transform guess in sensor frame
-	Transform guess = mInverseSensorPose * odometry * mSensorPose;
+	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
 	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement* sourceCloud = dynamic_cast<PointCloudMeasurement*>(source);
@@ -98,7 +98,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 
 	// Transform back to robot frame
 	TransformWithCovariance twc;
-	twc.transform = mSensorPose * icp_result * mInverseSensorPose;
+	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
 	twc.covariance = Covariance::Identity();
 	return twc;
 }
@@ -116,7 +116,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices)
 		}
 		
 		PointCloud::Ptr tempCloud(new PointCloud);
-		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, ((*it)->corrected_pose * mSensorPose).matrix());
+		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, ((*it)->corrected_pose * pcl->getSensorPose()).matrix());
 		*accu += *tempCloud;
 	}
 	return accu;
