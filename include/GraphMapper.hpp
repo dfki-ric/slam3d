@@ -26,7 +26,6 @@ namespace slam
 
 		VertexObject(const std::string& label = ""):graph_analysis::Vertex(label){}
 
-		Transform odometric_pose;
 		Transform corrected_pose;
 		Measurement* measurement;
 
@@ -200,7 +199,6 @@ namespace slam
 
 	private:
 		VertexObject::Ptr addVertex(Measurement* m,
-		                            const Transform &odometric,
 		                            const Transform &corrected);
 
 		EdgeObject::Ptr addEdge(VertexObject::Ptr source,
@@ -225,6 +223,7 @@ namespace slam
 		SensorList mSensors;
 
 		Transform mCurrentPose;
+		Transform mLastOdometricPose;
 
 		// Index to use nearest neighbor search
 		flann::SearchParams mSearchParams;

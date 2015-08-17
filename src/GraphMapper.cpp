@@ -131,11 +131,10 @@ void GraphMapper::registerSensor(Sensor* s)
 	}
 }
 
-VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &odometric, const Transform &corrected)
+VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	VertexObject::Ptr newVertex(new VertexObject(m->getSensorName()));
-	newVertex->odometric_pose = odometric;
 	newVertex->corrected_pose = corrected;
 	newVertex->measurement = m;
 	mPoseGraph->addVertex(newVertex);
@@ -175,7 +174,7 @@ EdgeObject::Ptr GraphMapper::addEdge(VertexObject::Ptr source, VertexObject::Ptr
 	{
 		unsigned source_id = mPoseGraph->getVertexId(source);
 		unsigned target_id = mPoseGraph->getVertexId(target);
-		mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source_id % target_id).str());
+		mLogger->message(INFO, (boost::format("Created '%3%' edge from node %1% to node %2%.") % source_id % target_id % name).str());
 		mSolver->addConstraint(source_id, target_id, t, c);
 	}
 	return edge;
@@ -213,7 +212,8 @@ bool GraphMapper::addReading(Measurement* m)
 	// If this is the first vertex, add it and return
 	if(!mLastVertex)
 	{
-		mLastVertex = addVertex(m, odometry, mCurrentPose);
+		mLastVertex = addVertex(m, mCurrentPose);
+		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
 		return true;
 	}
@@ -223,7 +223,7 @@ bool GraphMapper::addReading(Measurement* m)
 	
 	if(mOdometry)
 	{
-		Transform odom_dist = mLastVertex->odometric_pose.inverse() * odometry;
+		Transform odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
 		mCurrentPose = mLastVertex->corrected_pose * odom_dist;
 		if(!checkMinDistance(odom_dist))
 			return false;
@@ -231,11 +231,10 @@ bool GraphMapper::addReading(Measurement* m)
 		if(mAddOdometryEdges)
 		{
 			// Add the vertex to the pose graph
-			newVertex = addVertex(m, odometry, orthogonalize(mCurrentPose));
+			newVertex = addVertex(m, orthogonalize(mCurrentPose));
 
 			// Add an edge representing the odometry information
-			Transform diff = orthogonalize(mLastVertex->odometric_pose.inverse() * odometry);			
-			addEdge(mLastVertex, newVertex, diff, Covariance::Identity(), "odom");
+			addEdge(mLastVertex, newVertex, odom_dist, Covariance::Identity(), "odom");
 		}
 	}
 
@@ -260,7 +259,7 @@ bool GraphMapper::addReading(Measurement* m)
 				mCurrentPose = orthogonalize((*it)->corrected_pose * twc.transform);
 				if(!checkMinDistance(twc.transform))
 					return false;
-				newVertex = addVertex(m, odometry, mCurrentPose);
+				newVertex = addVertex(m, mCurrentPose);
 			}
 
 			addEdge(*it, newVertex, twc.transform, twc.covariance, "match");
@@ -279,6 +278,7 @@ bool GraphMapper::addReading(Measurement* m)
 
 	// Overall last vertex
 	mLastVertex = newVertex;
+	mLastOdometricPose = odometry;
 	return true;
 }
 
