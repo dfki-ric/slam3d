@@ -75,7 +75,7 @@ namespace slam
 		 * @brief Get the sensor's pose in robot coordinate frame.
 		 * @return pose
 		 */
-		Transform getSensorPose() const { mSensorPose; }
+		Transform getSensorPose() const { return mSensorPose; }
 		
 		/**
 		 * @brief Calculate the estimated transform between two measurements
