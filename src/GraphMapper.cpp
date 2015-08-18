@@ -254,9 +254,13 @@ bool GraphMapper::addReading(Measurement* m)
 			Transform guess = (*it)->corrected_pose.inverse() * mCurrentPose;
 			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
 
-			if(!newVertex)
+			if(added == 0)
 			{
 				mCurrentPose = orthogonalize((*it)->corrected_pose * twc.transform);
+			}
+
+			if(!newVertex)
+			{
 				if(!checkMinDistance(twc.transform))
 					return false;
 				newVertex = addVertex(m, mCurrentPose);
