@@ -134,7 +134,9 @@ void GraphMapper::registerSensor(Sensor* s)
 VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
-	VertexObject::Ptr newVertex(new VertexObject(m->getSensorName()));
+	boost::format v_name("%1%:%2%");
+	v_name % m->getRobotName() % m->getSensorName();
+	VertexObject::Ptr newVertex(new VertexObject(v_name.str()));
 	newVertex->corrected_pose = corrected;
 	newVertex->measurement = m;
 	mPoseGraph->addVertex(newVertex);
