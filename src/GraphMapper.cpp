@@ -147,15 +147,6 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &correc
 	{
 		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
 		mSolver->addNode(id, newVertex->corrected_pose);
-		if(!mFixedVertex)
-			mSolver->setFixed(id);
-	}
-	
-	// Save it as fixed vertex if it is the first one
-	if(!mFixedVertex)
-	{
-		mLogger->message(DEBUG, "Add first vertex to the graph.");
-		mFixedVertex = newVertex;
 	}
 	return newVertex;
 }
@@ -215,6 +206,13 @@ bool GraphMapper::addReading(Measurement* m)
 		mLastVertex = addVertex(m, mCurrentPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
+		
+		// Set it as fixed in the solver
+		if(mSolver)
+		{
+			graph_analysis::GraphElementId id = mPoseGraph->getVertexId(mLastVertex);
+			mSolver->setFixed(id);
+		}
 		return true;
 	}
 

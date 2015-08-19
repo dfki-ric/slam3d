@@ -29,11 +29,21 @@ namespace slam
 		 * @param cloud Shared pointer to the PointCloud
 		 * @param r Name of the robot that made this measurement
 		 * @param s Name of the sensor managing this measurement
+		 * @param id Unique ID of this measurement
 		 */
-		PointCloudMeasurement(const PointCloud::ConstPtr &cloud, const std::string& r, const std::string& s, const Transform& tr)
-			:Measurement(timeval(), r, s, tr)
+		PointCloudMeasurement(const PointCloud::ConstPtr &cloud,
+		                      const std::string& r, const std::string& s,
+		                      const Transform& tr, const boost::uuids::uuid id = boost::uuids::nil_uuid())
 		{
 			mPointCloud = cloud;
+			mRobotName = r;
+			mSensorName = s;
+			mSensorPose = tr;
+			mInverseSensorPose = tr.inverse();
+			if(id.is_nil())
+				mUniqueId = boost::uuids::random_generator()();
+			else
+				mUniqueId = id;
 
 			// PCL header should contain microseconds
 			mStamp.tv_sec  = cloud->header.stamp / 1000000;

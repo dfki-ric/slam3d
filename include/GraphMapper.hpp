@@ -197,10 +197,10 @@ namespace slam
 		 */
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
-	private:
 		VertexObject::Ptr addVertex(Measurement* m,
 		                            const Transform &corrected);
 
+	private:
 		EdgeObject::Ptr addEdge(VertexObject::Ptr source,
 		                        VertexObject::Ptr target,
 		                        const Transform &t,
@@ -215,7 +215,6 @@ namespace slam
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
 		VertexObject::Ptr mLastVertex;
-		VertexObject::Ptr mFixedVertex;
 
 		Solver* mSolver;
 		Logger* mLogger;

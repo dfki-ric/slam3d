@@ -32,11 +32,7 @@ namespace slam
 	class Measurement
 	{
 	public:
-		Measurement(const timeval& time, const std::string& r, const std::string& s, const Transform& tr)
-		:	mStamp(time), mRobotName(r), mSensorName(s),
-			mUniqueId(boost::uuids::random_generator()()),
-			mSensorPose(tr), mInverseSensorPose(tr.inverse()) {}
-		
+		Measurement(){}
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
