@@ -238,6 +238,29 @@ bool GraphMapper::addReading(Measurement* m)
 		}
 	}
 
+	// Add edge to previous measurement
+	if(mLastVertex)
+	{
+		try
+		{
+			Transform guess = mLastVertex->corrected_pose.inverse() * mCurrentPose;
+			TransformWithCovariance twc = sensor->calculateTransform(mLastVertex->measurement, m, guess);
+			mCurrentPose = orthogonalize(mLastVertex->corrected_pose * twc.transform);
+			
+			if(!newVertex)
+			{
+				if(!checkMinDistance(twc.transform))
+					return false;
+				newVertex = addVertex(m, mCurrentPose);
+			}
+			addEdge(mLastVertex, newVertex, twc.transform, twc.covariance, "seq");
+		}catch(NoMatch &e)
+		{
+			if(!newVertex)
+				return false;
+		}
+	}
+
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
 	VertexList neighbors = getNearbyVertices(mCurrentPose, mNeighborRadius);
@@ -246,26 +269,13 @@ bool GraphMapper::addReading(Measurement* m)
 	int added = 0;
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 5; it++)
 	{
-		if(*it == newVertex)
+		if(*it == newVertex || *it == mLastVertex)
 			continue;
 
 		try
 		{			
 			Transform guess = (*it)->corrected_pose.inverse() * mCurrentPose;
 			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
-
-			if(added == 0)
-			{
-				mCurrentPose = orthogonalize((*it)->corrected_pose * twc.transform);
-			}
-
-			if(!newVertex)
-			{
-				if(!checkMinDistance(twc.transform))
-					return false;
-				newVertex = addVertex(m, mCurrentPose);
-			}
-
 			addEdge(*it, newVertex, twc.transform, twc.covariance, "match");
 			added++;
 		}catch(NoMatch &e)
