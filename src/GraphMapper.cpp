@@ -140,7 +140,7 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &correc
 	mPoseGraph->addVertex(newVertex);
 	
 	// Add it to the Index, so we can find it by its unique id
-	mVertexIndex.insert(VertexIndex::value_type(m->getUniqueID(), newVertex));
+	mVertexIndex.insert(VertexIndex::value_type(m->getUniqueId(), newVertex));
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
