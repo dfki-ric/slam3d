@@ -165,7 +165,7 @@ namespace slam
 		/**
 		 * @brief Create the index for nearest neighbor search of nodes.
 		 */
-		void buildNeighborIndex();
+		void buildNeighborIndex(const std::string& sensor);
 
 		/**
 		 * @brief Search for nodes in the graph near the given pose.

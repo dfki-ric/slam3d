@@ -265,7 +265,7 @@ bool GraphMapper::addReading(Measurement* m)
 	}
 
 	// Add edges to other measurements nearby
-	buildNeighborIndex();
+	buildNeighborIndex(sensor->getName());
 	linkToNeighbors(newVertex, sensor, 5);
 
 	// Overall last vertex
@@ -333,22 +333,21 @@ EdgeList GraphMapper::getEdgesFromSensor(const std::string& sensor)
 	return edgeList;
 }
 
-void GraphMapper::buildNeighborIndex()
+void GraphMapper::buildNeighborIndex(const std::string& sensor)
 {
-	std::vector<graph_analysis::Vertex::Ptr> vertices = mPoseGraph->getAllVertices();
+	VertexList vertices = getVerticesFromSensor(sensor);
 	int numOfVertices = vertices.size();
 	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
 
 	int row = 0;
 	mIndexMap.clear();
-	for(std::vector<graph_analysis::Vertex::Ptr>::iterator it = vertices.begin(); it < vertices.end(); it++)
+	for(VertexList::iterator it = vertices.begin(); it < vertices.end(); it++)
 	{
-		VertexObject::Ptr v = boost::dynamic_pointer_cast<VertexObject>(*it);
-		Transform::TranslationPart t = v->corrected_pose.translation();
+		Transform::TranslationPart t = (*it)->corrected_pose.translation();
 		points[row][0] = t[0];
 		points[row][1] = t[1];
 		points[row][2] = t[2];
-		mIndexMap.insert(std::pair<int, VertexObject::Ptr>(row, v));
+		mIndexMap.insert(std::pair<int, VertexObject::Ptr>(row, *it));
 		row++;
 	}
 	
