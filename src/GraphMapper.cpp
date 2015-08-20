@@ -148,6 +148,7 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &correc
 	if(mSolver)
 	{
 		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+		mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 		mSolver->addNode(id, newVertex->corrected_pose);
 	}
 	return newVertex;
@@ -181,7 +182,7 @@ bool GraphMapper::addReading(Measurement* m)
 	try
 	{
 		sensor = mSensors.at(m->getSensorName());
-		mLogger->message(DEBUG, (boost::format("Mapper: Add reading from Sensor '%1%'.") % m->getSensorName()).str());
+		mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
 	}catch(std::out_of_range e)
 	{
 		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
@@ -276,13 +277,27 @@ bool GraphMapper::addReading(Measurement* m)
 
 void GraphMapper::addExternalReading(Measurement* m, const Transform& t)
 {
-	addVertex(m, t);
+	VertexObject::Ptr v = addVertex(m, t);
+		
+	// Get the sensor responsible for this measurement
+	// Can throw std::out_of_range if sensor is not registered
+	mLogger->message(DEBUG, (boost::format("Add external reading from %1%:%2%.") % m->getRobotName() % m->getSensorName()).str());
+	Sensor* sensor = NULL;
+	try
+	{
+		sensor = mSensors.at(m->getSensorName());
+		buildNeighborIndex(sensor->getName());
+		linkToNeighbors(v, sensor, 5);
+	}catch(std::out_of_range e)
+	{
+		return;
+	}
 }
 
 void GraphMapper::linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int max_links)
 {
-	VertexList neighbors = getNearbyVertices(mCurrentPose, mNeighborRadius);
-	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
+	VertexList neighbors = getNearbyVertices(vertex->corrected_pose, mNeighborRadius);
+	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % neighbors.size()).str());
 	
 	int added = 0;
 	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < max_links; it++)
@@ -292,7 +307,7 @@ void GraphMapper::linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int 
 
 		try
 		{			
-			Transform guess = (*it)->corrected_pose.inverse() * mCurrentPose;
+			Transform guess = (*it)->corrected_pose.inverse() * vertex->corrected_pose;
 			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, vertex->measurement, guess);
 			addEdge(*it, vertex, twc.transform, twc.covariance, "match");
 			added++;
