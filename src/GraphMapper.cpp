@@ -257,43 +257,50 @@ bool GraphMapper::addReading(Measurement* m)
 		}catch(NoMatch &e)
 		{
 			if(!newVertex)
+			{
+				mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
 				return false;
+			}
 		}
 	}
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex();
+	linkToNeighbors(newVertex, sensor, 5);
+
+	// Overall last vertex
+	mLastVertex = newVertex;
+	mLastOdometricPose = odometry;
+	return true;
+}
+
+void GraphMapper::addExternalReading(Measurement* m, const Transform& t)
+{
+	addVertex(m, t);
+}
+
+void GraphMapper::linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int max_links)
+{
 	VertexList neighbors = getNearbyVertices(mCurrentPose, mNeighborRadius);
 	mLogger->message(DEBUG, (boost::format("radiusSearch() found %1% vertices nearby.") % neighbors.size()).str());
 	
 	int added = 0;
-	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < 5; it++)
+	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < max_links; it++)
 	{
-		if(*it == newVertex || *it == mLastVertex)
+		if(*it == vertex)
 			continue;
 
 		try
 		{			
 			Transform guess = (*it)->corrected_pose.inverse() * mCurrentPose;
-			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, m, guess);
-			addEdge(*it, newVertex, twc.transform, twc.covariance, "match");
+			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, vertex->measurement, guess);
+			addEdge(*it, vertex, twc.transform, twc.covariance, "match");
 			added++;
 		}catch(NoMatch &e)
 		{
 			continue;
 		}
 	}
-
-	if(!newVertex)
-	{
-		mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
-		return false;
-	}
-
-	// Overall last vertex
-	mLastVertex = newVertex;
-	mLastOdometricPose = odometry;
-	return true;
 }
 
 VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)

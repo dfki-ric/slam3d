@@ -132,6 +132,8 @@ namespace slam
 		 * @return True if the Measurement was added, otherwise False.
 		 */
 		bool addReading(Measurement* m);
+		
+		void addExternalReading(Measurement* m, const Transform& t);
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
@@ -197,10 +199,10 @@ namespace slam
 		 */
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
+	private:
 		VertexObject::Ptr addVertex(Measurement* m,
 		                            const Transform &corrected);
 
-	private:
 		EdgeObject::Ptr addEdge(VertexObject::Ptr source,
 		                        VertexObject::Ptr target,
 		                        const Transform &t,
@@ -208,6 +210,8 @@ namespace slam
 		                        const std::string &name);
 
 		bool checkMinDistance(const Transform &t);
+
+		void linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int max_links);
 
 		static VertexObject::Ptr fromBaseGraph(graph_analysis::Vertex::Ptr base);
 		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
