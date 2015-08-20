@@ -45,11 +45,11 @@ namespace slam
 	public:
 		typedef boost::shared_ptr<EdgeObject> Ptr;
 
-		EdgeObject(const std::string& label = ""):graph_analysis::Edge(label){}
+		EdgeObject(const std::string& s, const std::string& l = ""):graph_analysis::Edge(l),sensor(s){}
 
 		Transform transform;
 		Covariance covariance;
-		unsigned int edge_type;
+		std::string sensor;
 
 		std::string getClassName() const { return "slam::EdgeObject"; }
 	};
@@ -207,7 +207,8 @@ namespace slam
 		                        VertexObject::Ptr target,
 		                        const Transform &t,
 		                        const Covariance &c,
-		                        const std::string &name);
+		                        const std::string &sensor,
+		                        const std::string &label);
 
 		bool checkMinDistance(const Transform &t);
 
