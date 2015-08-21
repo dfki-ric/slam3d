@@ -53,7 +53,8 @@ BOOST_AUTO_TEST_CASE(icp)
 	FileLogger logger(clock, "pcl_sensor.log");
 	logger.setLogLevel(DEBUG);
 	
-	PointCloudSensor pclSensor("TestPclSensor", &logger, Transform::Identity());
+	Transform sensor_pose = Transform::Identity();
+	PointCloudSensor pclSensor("TestPclSensor", &logger, sensor_pose);
 	
 	GICPConfiguration conf;
 	conf.max_correspondence_distance = 2.0;
@@ -66,10 +67,10 @@ BOOST_AUTO_TEST_CASE(icp)
 	PointCloud::Ptr cloud3 = loadFromFile("../test/cloud3.bin");
 	PointCloud::Ptr cloud4 = loadFromFile("../test/cloud4.bin");
 	
-	PointCloudMeasurement m1(cloud1, "cloud1");
-	PointCloudMeasurement m2(cloud2, "cloud2");
-	PointCloudMeasurement m3(cloud3, "cloud3");
-	PointCloudMeasurement m4(cloud4, "cloud4");
+	PointCloudMeasurement m1(cloud1, "r1", "pcl_sensor", sensor_pose);
+	PointCloudMeasurement m2(cloud2, "r1", "pcl_sensor", sensor_pose);
+	PointCloudMeasurement m3(cloud3, "r1", "pcl_sensor", sensor_pose);
+	PointCloudMeasurement m4(cloud4, "r1", "pcl_sensor", sensor_pose);
 /*	
 	Transform pose1 = Transform::Identity();
 	
@@ -119,7 +120,7 @@ BOOST_AUTO_TEST_CASE(icp)
 	pcl::transformPointCloud(*cloud1, *translated_cloud1, tx_inv.matrix());
 
 	logger.message(INFO, "Test translation without estimation");
-	PointCloudMeasurement m1_tx(translated_cloud1, "trans_cloud1");
+	PointCloudMeasurement m1_tx(translated_cloud1, "r1", "pcl_sensor", sensor_pose);
 	TransformWithCovariance twc_t_ident = pclSensor.calculateTransform(&m1, &m1_tx, Transform::Identity());
 	
 	logger.message(INFO, "Test translation with estimation");
@@ -132,7 +133,7 @@ BOOST_AUTO_TEST_CASE(icp)
 	pcl::transformPointCloud(*cloud1, *rotated_cloud1, rx_inv.matrix());
 	
 	logger.message(INFO, "Test rotarion without estimation");
-	PointCloudMeasurement m1_rx(rotated_cloud1, "rot_cloud1");
+	PointCloudMeasurement m1_rx(rotated_cloud1, "r1", "pcl_sensor", sensor_pose);
 	TransformWithCovariance twc_ident = pclSensor.calculateTransform(&m1, &m1_rx, Transform::Identity());
 	
 	logger.message(INFO, "Test rotation with estimation");

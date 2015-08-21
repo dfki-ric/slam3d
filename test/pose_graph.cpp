@@ -9,6 +9,18 @@
 #include <graph_analysis/lemon/DirectedGraph.hpp>
 #include <graph_analysis/io/GraphvizWriter.hpp>
 
+class TestMeasurement : public slam::Measurement
+{
+public:
+	TestMeasurement()
+	{
+		mRobotName = "Robot";
+		mSensorName = "Sensor";
+		mSensorPose = slam::Transform::Identity();
+		mInverseSensorPose = slam::Transform::Identity();
+	}
+};
+
 BOOST_AUTO_TEST_CASE(construction)
 {
 	slam::Clock clock;
@@ -16,48 +28,43 @@ BOOST_AUTO_TEST_CASE(construction)
 	graph_analysis::BaseGraph::Ptr graph(new graph_analysis::lemon::DirectedGraph());
 	
 	// Create the measurements
-	slam::Measurement m0(clock.now(), "Node 0");
-	slam::Measurement m1(clock.now(), "Node 1");
-	slam::Measurement m2(clock.now(), "Node 2");
-	slam::Measurement m3(clock.now(), "Node 3");
-	slam::Measurement m4(clock.now(), "Node 4");
-	slam::Measurement m5(clock.now(), "Node 5");
+	TestMeasurement m0, m1, m2, m3, m4, m5;
 
 	// Create the vertices
-	slam::VertexObject::Ptr vo0(new slam::VertexObject());
+	slam::VertexObject::Ptr vo0(new slam::VertexObject("v0"));
 	vo0->measurement = &m0;
 	graph->addVertex(vo0);
 	
 	slam::VertexList vertexList;
-	slam::VertexObject::Ptr vo1(new slam::VertexObject());
+	slam::VertexObject::Ptr vo1(new slam::VertexObject("v1"));
 	vo1->measurement = &m1;
 	graph->addVertex(vo1);
 
-	slam::VertexObject::Ptr vo2(new slam::VertexObject());
+	slam::VertexObject::Ptr vo2(new slam::VertexObject("v2"));
 	vo2->measurement = &m2;
 	graph->addVertex(vo2);
 
-	slam::VertexObject::Ptr vo3(new slam::VertexObject());
+	slam::VertexObject::Ptr vo3(new slam::VertexObject("v3"));
 	vo3->measurement = &m3;
 	graph->addVertex(vo3);
 	
 	// Create the edges
-	slam::EdgeObject::Ptr e0(new slam::EdgeObject());
+	slam::EdgeObject::Ptr e0(new slam::EdgeObject("sensor", "e0"));
 	e0->setSourceVertex(vo0);
 	e0->setTargetVertex(vo1);
 	graph->addEdge(e0);
 	
-	slam::EdgeObject::Ptr e1(new slam::EdgeObject());
+	slam::EdgeObject::Ptr e1(new slam::EdgeObject("sensor", "e1"));
 	e1->setSourceVertex(vo1);
 	e1->setTargetVertex(vo2);	
 	graph->addEdge(e1);
 	
-	slam::EdgeObject::Ptr e2(new slam::EdgeObject());
+	slam::EdgeObject::Ptr e2(new slam::EdgeObject("sensor", "e2"));
 	e2->setSourceVertex(vo2);
 	e2->setTargetVertex(vo3);
 	graph->addEdge(e2);
 	
-	slam::EdgeObject::Ptr e3(new slam::EdgeObject());
+	slam::EdgeObject::Ptr e3(new slam::EdgeObject("sensor", "e3"));
 	e3->setSourceVertex(vo3);
 	e3->setTargetVertex(vo0);
 	graph->addEdge(e3);
@@ -78,12 +85,12 @@ BOOST_AUTO_TEST_CASE(construction)
 	vo4->measurement = &m4;
 	graph->addVertex(vo4);
 	
-	slam::EdgeObject::Ptr e4(new slam::EdgeObject());
+	slam::EdgeObject::Ptr e4(new slam::EdgeObject("sensor", "e4"));
 	e4->setSourceVertex(vo3);
 	e4->setTargetVertex(vo4);
 	graph->addEdge(e4);
 	
-	slam::EdgeObject::Ptr e5(new slam::EdgeObject());
+	slam::EdgeObject::Ptr e5(new slam::EdgeObject("sensor", "e5"));
 	e5->setSourceVertex(vo3);
 	e5->setTargetVertex(vo4);
 	graph->addEdge(e5);
