@@ -181,6 +181,13 @@ namespace slam
 		VertexList getNearbyVertices(const Transform &tf, float radius);
 
 		/**
+		 * @brief Get the last vertex, that was locally added to the graph.
+		 * Will not return external vertices from other robots.
+		 * @return last added vertex
+		 */
+		VertexObject::ConstPtr getLastVertex() { return mLastVertex; }
+
+		/**
 		 * @brief Write the current graph to a file (currently dot).
 		 * For larger graphs, this can take a very long time.
 		 * @param name Filename without type ending.
