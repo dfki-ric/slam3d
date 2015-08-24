@@ -23,6 +23,7 @@ namespace slam
 	{
 	public:
 		typedef boost::shared_ptr<VertexObject> Ptr;
+		typedef boost::shared_ptr<const VertexObject> ConstPtr;
 
 		VertexObject(const std::string& label = ""):graph_analysis::Vertex(label){}
 
@@ -44,6 +45,7 @@ namespace slam
 	{
 	public:
 		typedef boost::shared_ptr<EdgeObject> Ptr;
+		typedef boost::shared_ptr<const EdgeObject> ConstPtr;
 
 		EdgeObject(const std::string& s, const std::string& l = ""):graph_analysis::Edge(l),sensor(s){}
 
