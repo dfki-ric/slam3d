@@ -229,6 +229,7 @@ namespace slam
 	private:
 		graph_analysis::BaseGraph::Ptr mPoseGraph;
 		VertexObject::Ptr mLastVertex;
+		VertexObject::Ptr mFirstVertex;
 
 		Solver* mSolver;
 		Logger* mLogger;

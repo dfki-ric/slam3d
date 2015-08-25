@@ -116,7 +116,10 @@ bool GraphMapper::optimize()
 		v->corrected_pose = tf;
 	}
 	
-	mCurrentPose = mLastVertex->corrected_pose;
+	if(mLastVertex)
+	{
+		mCurrentPose = mLastVertex->corrected_pose;
+	}
 	return true;
 }
 
@@ -151,6 +154,18 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &correc
 		mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 		mSolver->addNode(id, newVertex->corrected_pose);
 	}
+	
+	// Set it as fixed in the solver
+	if(!mFirstVertex)
+	{
+		mFirstVertex = newVertex;
+		if(mSolver)
+		{
+			graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
+			mSolver->setFixed(id);
+		}
+	}
+	
 	return newVertex;
 }
 
@@ -209,13 +224,6 @@ bool GraphMapper::addReading(Measurement* m)
 		mLastVertex = addVertex(m, mCurrentPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
-		
-		// Set it as fixed in the solver
-		if(mSolver)
-		{
-			graph_analysis::GraphElementId id = mPoseGraph->getVertexId(mLastVertex);
-			mSolver->setFixed(id);
-		}
 		return true;
 	}
 
