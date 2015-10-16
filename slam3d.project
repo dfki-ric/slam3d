@@ -31,11 +31,13 @@
     <File Name="include/PointCloudSensor.hpp"/>
     <File Name="include/Types.hpp"/>
     <File Name="include/GICPConfiguration.hpp"/>
+    <File Name="include/LineScanSensor.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/PointCloudSensor.cpp"/>
+    <File Name="src/LineScanSensor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
