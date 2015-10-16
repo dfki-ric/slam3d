@@ -4,13 +4,15 @@
 #include "Types.hpp"
 #include "Sensor.hpp"
 
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/registration/transformation_estimation_2D.h>
 
 namespace slam
 {
-	typedef pcl::PointXY PointType;
+	typedef pcl::PointXYZ PointType;
 	typedef pcl::PointCloud<PointType> LineScan;
+	typedef pcl::registration::TransformationEstimation2D<PointType, PointType, ScalarType> ScanMatcher;
 	
 	class LineScanMeasurement : public Measurement
 	{
@@ -50,6 +52,7 @@ namespace slam
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
 		
 	protected:
+		ScanMatcher mScanMatcher;
 	};
 }
 

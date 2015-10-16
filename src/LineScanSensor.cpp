@@ -19,14 +19,26 @@ TransformWithCovariance LineScanSensor::calculateTransform(Measurement* source, 
 	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
 	
 	// Cast to this sensors measurement type
-	LineScanMeasurement* sourceCloud = dynamic_cast<LineScanMeasurement*>(source);
-	LineScanMeasurement* targetCloud = dynamic_cast<LineScanMeasurement*>(target);
-	if(!sourceCloud || !targetCloud)
+	LineScanMeasurement* sourceScan = dynamic_cast<LineScanMeasurement*>(source);
+	LineScanMeasurement* targetScan = dynamic_cast<LineScanMeasurement*>(target);
+	if(!sourceScan || !targetScan)
 	{
 		mLogger->message(ERROR, "Measurement given to calculateTransform() is not a LineScan!");
 		throw BadMeasurementType();
 	}
 	
+	// Transform by odometry
+	LineScan::Ptr shifted_target(new LineScan);
+	pcl::transformPointCloud(*targetScan->getScan(), *shifted_target, guess.matrix());
+	
+	// Estimate Transformation
+	ScanMatcher::Matrix4 match_result;
+	mScanMatcher.estimateRigidTransformation(*shifted_target, *sourceScan->getScan(), match_result);
+	
+	Transform result = Transform(match_result) * guess;
+	
 	TransformWithCovariance twc;
+	twc.transform = source->getSensorPose() * result * target->getInverseSensorPose();
+	twc.covariance = Covariance::Identity();
 	return twc;
 }
