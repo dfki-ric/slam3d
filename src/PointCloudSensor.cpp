@@ -5,6 +5,8 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
 
+#include <boost/format.hpp>
+
 using namespace slam;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
