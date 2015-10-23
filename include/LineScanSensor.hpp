@@ -3,6 +3,7 @@
 
 #include "Types.hpp"
 #include "Sensor.hpp"
+#include "GraphMapper.hpp"
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -51,6 +52,7 @@ namespace slam
 		
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
 		
+		LineScan::Ptr getAccumulatedCloud(VertexList vertices);
 	protected:
 		ScanMatcher mScanMatcher;
 	};
