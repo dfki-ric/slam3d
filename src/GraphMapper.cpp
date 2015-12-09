@@ -311,7 +311,6 @@ void GraphMapper::linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int 
 	while(edgeIterator->next())
 	{
 		EdgeObject::Ptr edge = boost::dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
-//		graph_analysis::Edge::Ptr edge = edgeIterator->current();
 		if(edge->sensor == sensor->getName())
 		{
 			if(edge->getSourceVertex() == vertex)
