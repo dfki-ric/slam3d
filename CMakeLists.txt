@@ -8,8 +8,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 rock_init(slam3d 0.1)
 rock_standard_layout()
 
-include_directories(include)
-
 ############################################################
 # Define the slam3d library
 ############################################################
@@ -20,18 +18,18 @@ rock_library(slam3d
 		src/LineScanSensor.cpp
 		src/G2oSolver.cpp
 	HEADERS
-		include/Clock.hpp
-		include/Logger.hpp
-		include/FileLogger.hpp
-		include/Solver.hpp
-		include/G2oSolver.hpp
-		include/GraphMapper.hpp
-		include/Sensor.hpp
-		include/PointCloudSensor.hpp
-		include/LineScanSensor.hpp
-		include/GICPConfiguration.hpp
-		include/Types.hpp
-		include/Odometry.hpp
+		src/Clock.hpp
+		src/Logger.hpp
+		src/FileLogger.hpp
+		src/Solver.hpp
+		src/G2oSolver.hpp
+		src/GraphMapper.hpp
+		src/Sensor.hpp
+		src/PointCloudSensor.hpp
+		src/LineScanSensor.hpp
+		src/GICPConfiguration.hpp
+		src/Types.hpp
+		src/Odometry.hpp
 	DEPS_PKGCONFIG 
 		pcl_registration-1.7
 		eigen3

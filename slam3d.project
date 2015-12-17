@@ -20,18 +20,18 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="include">
-    <File Name="include/Solver.hpp"/>
-    <File Name="include/G2oSolver.hpp"/>
-    <File Name="include/Logger.hpp"/>
-    <File Name="include/Sensor.hpp"/>
-    <File Name="include/Odometry.hpp"/>
-    <File Name="include/Clock.hpp"/>
-    <File Name="include/GraphMapper.hpp"/>
-    <File Name="include/FileLogger.hpp"/>
-    <File Name="include/PointCloudSensor.hpp"/>
-    <File Name="include/Types.hpp"/>
-    <File Name="include/GICPConfiguration.hpp"/>
-    <File Name="include/LineScanSensor.hpp"/>
+    <File Name="src/Clock.hpp"/>
+    <File Name="src/FileLogger.hpp"/>
+    <File Name="src/G2oSolver.hpp"/>
+    <File Name="src/GICPConfiguration.hpp"/>
+    <File Name="src/GraphMapper.hpp"/>
+    <File Name="src/LineScanSensor.hpp"/>
+    <File Name="src/Logger.hpp"/>
+    <File Name="src/Odometry.hpp"/>
+    <File Name="src/PointCloudSensor.hpp"/>
+    <File Name="src/Sensor.hpp"/>
+    <File Name="src/Solver.hpp"/>
+    <File Name="src/Types.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/GraphMapper.cpp"/>

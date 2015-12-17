@@ -1,8 +1,8 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE PclSensorTest
 
-#include "PointCloudSensor.hpp"
-#include "FileLogger.hpp"
+#include <slam3d/PointCloudSensor.hpp>
+#include <slam3d/FileLogger.hpp>
 
 #include <iostream>
 #include <fstream>

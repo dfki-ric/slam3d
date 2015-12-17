@@ -1,8 +1,8 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE SolverTest
 
-#include "G2oSolver.hpp"
-#include "FileLogger.hpp"
+#include <slam3d/G2oSolver.hpp>
+#include <slam3d/FileLogger.hpp>
 
 #include <iostream>
 #include <boost/test/unit_test.hpp>

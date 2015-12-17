@@ -1,8 +1,8 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE PoseGraphTest
 
-#include "FileLogger.hpp"
-#include "GraphMapper.hpp"
+#include <slam3d/FileLogger.hpp>
+#include <slam3d/GraphMapper.hpp>
 
 #include <iostream>
 #include <boost/test/unit_test.hpp>
