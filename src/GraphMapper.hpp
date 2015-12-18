@@ -1,6 +1,49 @@
 #ifndef SLAM_GRAPHMAPPER_HPP
 #define SLAM_GRAPHMAPPER_HPP
 
+/**
+ * @mainpage A generic frontend for 3D Simultaneous Localization and Mapping
+ * 
+ * @section sec_motiv Motivation
+ * 
+ * This library provides a frontend for a graph-based SLAM in three dimensional space.
+ * It does not provide a graph-optimization-backend itself (often referred to as SLAM).
+ * Instead different backends can be used by implementing the Solver-Interface.
+ * 
+ * @section sec_start Getting started
+ * 
+ * The central component of this library is the GraphMapper class.
+ * The documentation is best read by starting from there.
+ * This class is extended by registering Sensor modules, an Odometry and a Solver.
+ * 
+ * @section sec_example Programming example
+ * 
+ * Start by creating the mapper itself and registering the required modules.
+ @code
+#include <slam3d/GraphMapper.hpp> 
+#include <slam3d/G2oSolver.hpp>
+
+using namespace slam3d;
+Clock* clock = new Clock();
+Logger* logger = new Logger(*c);
+GraphMapper* mapper = new GraphMapper(logger);
+
+Sensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
+mapper->registerSensor(laser);
+
+G2oSolver* g2o = new G2oSolver(logger);
+mapper->setSolver(g2o);
+ @endcode
+ * Within the callback of your sensor data, add the new measurements to the mapper.
+ @code
+Measurement m* = new PointCloudMeasurement(cloud, "my_robot", laser->getName(), laser->getSensorPose());
+if(!mapper->addReading(m))
+{
+  delete m;
+}
+ @endcode
+ */
+
 #include "Odometry.hpp"
 #include "Sensor.hpp"
 
