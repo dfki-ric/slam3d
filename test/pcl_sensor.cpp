@@ -10,7 +10,7 @@
 #include <boost/format.hpp>
 #include <pcl/common/transforms.h>
 
-using namespace slam;
+using namespace slam3d;
 
 PointCloud::Ptr loadFromFile(const std::string& filename)
 {
@@ -121,10 +121,10 @@ BOOST_AUTO_TEST_CASE(icp)
 
 	logger.message(INFO, "Test translation without estimation");
 	PointCloudMeasurement m1_tx(translated_cloud1, "r1", "pcl_sensor", sensor_pose);
-	TransformWithCovariance twc_t_ident = pclSensor.calculateTransform(&m1, &m1_tx, Transform::Identity());
+	pclSensor.calculateTransform(&m1, &m1_tx, Transform::Identity());
 	
 	logger.message(INFO, "Test translation with estimation");
-	TransformWithCovariance twc_t_guess = pclSensor.calculateTransform(&m1, &m1_tx, tx);
+	pclSensor.calculateTransform(&m1, &m1_tx, tx);
 
 	// test rotation
 	Transform rx(Eigen::AngleAxisd(0.1, Eigen::Vector3d(1, 0, 0)));
@@ -134,8 +134,8 @@ BOOST_AUTO_TEST_CASE(icp)
 	
 	logger.message(INFO, "Test rotarion without estimation");
 	PointCloudMeasurement m1_rx(rotated_cloud1, "r1", "pcl_sensor", sensor_pose);
-	TransformWithCovariance twc_ident = pclSensor.calculateTransform(&m1, &m1_rx, Transform::Identity());
+	pclSensor.calculateTransform(&m1, &m1_rx, Transform::Identity());
 	
 	logger.message(INFO, "Test rotation with estimation");
-	TransformWithCovariance twc_guess = pclSensor.calculateTransform(&m1, &m1_rx, rx);
+	pclSensor.calculateTransform(&m1, &m1_rx, rx);
 }

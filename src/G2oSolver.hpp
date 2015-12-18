@@ -4,15 +4,13 @@
 #include "Solver.hpp"
 #include <g2o/core/sparse_optimizer.h>
 
-namespace slam
+namespace slam3d
 {	
 	/**
 	 * @class G2oSolver
-	 * @author Sebastian Kasperski
-	 * @date 03/13/15
-	 * @file G2oSolver.hpp
 	 * @brief A solver for graph otimization that uses the g2o-backend.
-	 * See: https://github.com/RainerKuemmerle/g2o
+	 * @details See: https://github.com/RainerKuemmerle/g2o for documentation
+	 * on the backend.
 	 */
 	class G2oSolver : public Solver
 	{

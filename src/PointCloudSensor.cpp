@@ -7,7 +7,7 @@
 
 #include <boost/format.hpp>
 
-using namespace slam;
+using namespace slam3d;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
 

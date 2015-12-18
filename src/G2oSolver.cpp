@@ -8,7 +8,7 @@
 
 #include "boost/format.hpp"
 
-using namespace slam;
+using namespace slam3d;
 
 //typedef g2o::BlockSolver< g2o::BlockSolverTraits<-1, -1> > SlamBlockSolver;
 typedef g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType> SlamLinearSolver;
@@ -66,8 +66,8 @@ void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Co
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	constraint->setMeasurement(tf.cast<double>());   // slam::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(cov.cast<double>());  // slam::Covariance aka Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(tf.cast<double>());   // slam3d::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(cov.cast<double>());  // slam3d::Covariance aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);

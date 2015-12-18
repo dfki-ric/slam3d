@@ -42,6 +42,8 @@
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
     <File Name="CMakeLists.txt"/>
+    <File Name="src/CMakeLists.txt"/>
+    <File Name="test/CMakeLists.txt"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="test/pose_graph.cpp"/>

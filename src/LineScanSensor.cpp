@@ -1,6 +1,6 @@
 #include "LineScanSensor.hpp"
 
-using namespace slam;
+using namespace slam3d;
 
 LineScanSensor::LineScanSensor(const std::string& n, Logger* l, const Transform& p)
  : Sensor(n, l, p)

@@ -1,16 +1,11 @@
 #ifndef SLAM_GICPCONFIGURATION_HPP
 #define SLAM_GICPCONFIGURATION_HPP
 
-namespace slam
+namespace slam3d
 {
 		/**
 	 * @class GICPConfiguration
-	 * @author Sebastian Kasperski
-	 * @date 04/17/15
-	 * @file GICPConfiguration.hpp
-	 * @brief Collection of configuration parameters for the "Generalized
-	 * Iterative Closest Point" algorithm used for alignement of collected
-	 * point clouds.
+	 * @brief Parameters for the GICP algorithm.
 	 */
 	struct GICPConfiguration
 	{

@@ -3,16 +3,14 @@
 
 #include <sys/time.h>
 
-namespace slam
+namespace slam3d
 {
 	/**
 	 * @class Clock
-	 * @author Sebastian Kasperski
-	 * @date 03/17/15
-	 * @file Clock.hpp
-	 * @brief Base class for different clock types, to get timestamps
-	 * for messages and samples. It might rely on system time, published clock
-	 * from log files or simulated ticks from a simulation environment.
+	 * @brief Base class for different clock types.
+	 * @details A clock is used to get timestamps for messages and samples.
+	 * It might rely on system time, published clock from log files or simulated
+	 * ticks from a simulation environment.
 	 */
 	class Clock
 	{
@@ -22,7 +20,7 @@ namespace slam
 	
 		/**
 		 * @brief Returns current time depending on the clock.
-		 * @return Current timestamp
+		 * @return current timestamp
 		 */
 		virtual timeval now()
 		{

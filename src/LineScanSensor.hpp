@@ -9,7 +9,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/registration/transformation_estimation_2D.h>
 
-namespace slam
+namespace slam3d
 {
 	typedef pcl::PointXYZ PointType;
 	typedef pcl::PointCloud<PointType> LineScan;

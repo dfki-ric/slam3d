@@ -7,7 +7,7 @@
 
 #define PI 3.141592654
 
-using namespace slam;
+using namespace slam3d;
 
 // Re-orthogonalize the rotation-matrix
 // http://stackoverflow.com/questions/23080791/eigen-re-orthogonalization-of-rotation-matrix

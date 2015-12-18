@@ -9,27 +9,24 @@
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
 
-namespace slam
+namespace slam3d
 {
 	typedef pcl::PointXYZI PointType;
 	typedef pcl::PointCloud<PointType> PointCloud;
 	
 	/**
 	 * @class PointCloudMeasurement
-	 * @author Sebastian Kasperski
-	 * @date 04/17/15
-	 * @file PointCloudSensor.hpp
-	 * @brief Measurement of the PointCloudSensor. 
+	 * @brief Specific Measurement of the PointCloudSensor. 
 	 */
 	class PointCloudMeasurement : public Measurement
 	{
 	public:
 		/**
-		 * @brief Constructor from point cloud and sensor name
-		 * @param cloud Shared pointer to the PointCloud
-		 * @param r Name of the robot that made this measurement
-		 * @param s Name of the sensor managing this measurement
-		 * @param id Unique ID of this measurement
+		 * @brief Constructor from point cloud and sensor name.
+		 * @param cloud shared pointer to the PointCloud
+		 * @param r name of the robot that accquired this measurement
+		 * @param s name of the sensor managing this measurement
+		 * @param id unique identifier of this measurement
 		 */
 		PointCloudMeasurement(const PointCloud::ConstPtr &cloud,
 		                      const std::string& r, const std::string& s,
@@ -51,7 +48,7 @@ namespace slam
 		}
 		
 		/**
-		 * @brief Get the point cloud contained within this measurement.
+		 * @brief Gets the point cloud contained within this measurement.
 		 * @return Constant shared pointer to the point cloud
 		 */
 		const PointCloud::ConstPtr getPointCloud() const {return mPointCloud;}
@@ -62,9 +59,6 @@ namespace slam
 
 	/**
 	 * @class PointCloudSensor
-	 * @author Sebastian Kasperski
-	 * @date 04/17/15
-	 * @file PointCloudSensor.hpp
 	 * @brief Plugin for the mapper that manages point cloud measurements.
 	 */
 	class PointCloudSensor : public Sensor
@@ -72,8 +66,8 @@ namespace slam
 	public:
 		/**
 		 * @brief Constructor
-		 * @param n Unique name of this sensor (used to identify measurements)
-		 * @param l Pointer to a Logger to write messages
+		 * @param n unique name of this sensor (used to identify measurements)
+		 * @param l pointer to a Logger to write messages
 		 */
 		PointCloudSensor(const std::string& n, Logger* l, const Transform& p);
 		
@@ -83,15 +77,15 @@ namespace slam
 		~PointCloudSensor();
 		
 		/**
-		 * @brief Estimates the 6DoF transformation and  between source and target point cloud
-		 * by applying the Generalized Iterative Closest Point algorithm. (GICP)
+		 * @brief Estimates the 6DoF transformation between source and target point cloud
+		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
 		 * @param source
 		 * @param target
 		 */
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
 		
 		/**
-		 * @brief Set configuration for GICP algorithm
+		 * @brief Sets configuration for GICP algorithm.
 		 * @param c New configuration paramerters
 		 */
 		void setConfiguaration(GICPConfiguration c) { mConfiguration = c; }
@@ -104,8 +98,8 @@ namespace slam
 		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
 		
 		/**
-		 * @brief Remove outliers from given pointcloud. A point is considered an outlier
-		 * if it has less then min_neighbors within radius.
+		 * @brief Removes outliers from given pointcloud.
+		 * @details A point is considered an outlier if it has less then min_neighbors within radius.
 		 * @param source
 		 * @param radius
 		 * @param min_neighbors
@@ -113,12 +107,12 @@ namespace slam
 		PointCloud::Ptr removeOutliers(PointCloud::ConstPtr source, double radius, unsigned min_neighbors) const;
 		
 		/**
-		 * @brief Create a single point cloud that contains all measurements in vertices.
-		 * The individual point clouds are transformed by their current pose in the graph,
-		 * no additional alignement or optimazation is performed during this. The resulting
-		 * point cloud is then resampled with the given resoltion.
+		 * @brief Creates a single point cloud that contains all measurements in vertices.
+		 * @details The individual point clouds are transformed by their current pose in the graph,
+		 * no additional alignement or optimization is performed during this.
 		 * @param vertices
-		 * @param resolution
+		 * @return accumulated pointcloud
+		 * @throw BadMeasurementType
 		 */
 		PointCloud::Ptr getAccumulatedCloud(VertexList vertices);
 		

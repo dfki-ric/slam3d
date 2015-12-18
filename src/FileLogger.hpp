@@ -4,13 +4,10 @@
 #include "Logger.hpp"
 #include <fstream>
 
-namespace slam
+namespace slam3d
 {
 	/**
 	 * @class FileLogger
-	 * @author Sebastian Kasperski
-	 * @date 03/24/15
-	 * @file FileLogger.hpp
 	 * @brief A basic logger that prints messages to a log file.
 	 */
 	class FileLogger : public Logger
@@ -18,8 +15,8 @@ namespace slam
 	public:
 		/**
 		 * @brief Constructor for a FileLogger.
-		 * @param c Clock to get timestamps for messages
-		 * @param f Filename for the loggers log-file
+		 * @param c clock to get timestamps for messages
+		 * @param f filename for the loggers log-file
 		 */
 		FileLogger(Clock c, std::string f) : Logger(c)
 		{
@@ -33,8 +30,8 @@ namespace slam
 		
 		/**
 		 * @brief Writes a message, showing the log-level and a timestamp.
-		 * @param lvl The message's log-level
-		 * @param message The message to be written
+		 * @param lvl the message's log-level
+		 * @param message the message to be written
 		 */
 		virtual void message(LOG_LEVEL lvl, const std::string& message)
 		{

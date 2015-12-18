@@ -4,15 +4,11 @@
 #include "Types.hpp"
 #include "Logger.hpp"
 
-namespace slam
+namespace slam3d
 {
 	/**
 	 * @class OdometryException
-	 * @author Sebastian Kasperski
-	 * @date 30/06/15
-	 * @file Odometry.hpp
-	 * @brief Exception thrown when the requested odometry information
-	 * is not available.
+	 * @brief Exception thrown when the requested odometry information is not available.
 	 */
 	class OdometryException: public std::exception
 	{
@@ -26,9 +22,6 @@ namespace slam
 	
 	/**
 	 * @class Odometry
-	 * @author Sebastian Kasperski
-	 * @date 30/06/15
-	 * @file Odometry.hpp
 	 * @brief Base class for all odometry modules.
 	 */
 	class Odometry
@@ -39,15 +32,17 @@ namespace slam
 		virtual ~Odometry(){}
 		
 		/**
-		 * @brief Get the robot's location at given point in time.
+		 * @brief Gets the robot's location at given poin in time.
 		 * @param stamp
 		 */
 		virtual Transform getOdometricPose(timeval stamp) = 0;
 		
 		/**
-		 * @brief Get relative pose and uncertainty between two points in time.
+		 * @brief Gets relative pose and uncertainty between two points in time.
 		 * @param last
 		 * @param next
+		 * @return relative pose with covariance
+		 * @throw OdometryException
 		 */
 		virtual TransformWithCovariance getRelativePose(timeval last, timeval next) = 0;
 		

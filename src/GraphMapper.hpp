@@ -8,15 +8,12 @@
 #include <flann/flann.hpp>
 #include <map>
 
-namespace slam
+namespace slam3d
 {
 	/**
 	 * @class VertexObject
-	 * @author Sebastian Kasperski
-	 * @date 03/16/15
-	 * @file GraphMapper.hpp
 	 * @brief Object attached to a vertex in the pose graph.
-	 * Contains a pointer to an abstract measurement, which could
+	 * @details It contains a pointer to an abstract measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
 	 */
 	class VertexObject : public graph_analysis::Vertex
@@ -30,16 +27,15 @@ namespace slam
 		Transform corrected_pose;
 		Measurement* measurement;
 
-		std::string getClassName() const { return "slam::VertexObject"; }
+		std::string getClassName() const { return "slam3d::VertexObject"; }
 	};
 
 	/**
 	 * @class EdgeObject
-	 * @author Sebastian Kasperski
-	 * @date 03/16/15
-	 * @file GraphMapper.hpp
 	 * @brief Object attached to an edge in the pose graph.
-	 * Contains the relative transform from source to target.
+	 * @details It contains the relative transform from source to target,
+	 * the associated covariance matrix and the name of the sensor that
+	 * created this spatial relationship.
 	 */
 	class EdgeObject : public graph_analysis::Edge
 	{
@@ -53,7 +49,7 @@ namespace slam
 		Covariance covariance;
 		std::string sensor;
 
-		std::string getClassName() const { return "slam::EdgeObject"; }
+		std::string getClassName() const { return "slam3d::EdgeObject"; }
 	};
 
 	typedef std::vector<VertexObject::Ptr> VertexList;
@@ -65,10 +61,8 @@ namespace slam
 	
 	/**
 	 * @class BadElementType
-	 * @author Sebastian Kasperski
-	 * @date 02/07/15
-	 * @file GraphMapper.hpp
-	 * @brief Exception thrown when an element returned from 
+	 * @brief Exception thrown when element types do not match.
+	 * @details This happens when an element returned from 
 	 * graph_analysis::BaseGraph is not of the expected slam type,
 	 * e.g. VertexObject or EdgeObject.
 	 */
@@ -86,10 +80,25 @@ namespace slam
 
 	/**
 	 * @class GraphMapper
-	 * @author Sebastian Kasperski
-	 * @date 04/27/15
-	 * @file GraphMapper.hpp
-	 * @brief 
+	 * @brief Holds measurements from different sensors in a graph.
+	 * @details The GraphMapper is the central structure that provides the
+	 * frontend for a graph-based SLAM approach. A registered Sensor
+	 * will provide a specific Measurement type to the internal graph.
+	 * For each added measurement a new vertex is created in the graph
+	 * that holds a pointer to the measurement together with the measurement's
+	 * pose in the map coordinate frame. This data is stored in a VertexObject.
+	 * 
+	 * Spatial relations between measurements are represented as edges in the
+	 * graph. A registered Odometry will provide spatial constraints between any
+	 * kind of consecutive measurements. Each sensor can create constraints
+	 * between its own measurements by applying some kind of matching algoithm.
+	 * This kind of 6 DoF spatial relation is stored as transform and covariance
+	 * within an EdgeObject.
+	 * 
+	 * The global optimization is provided by a Solver that takes the internal
+	 * nodes and edges (without the measurements) and solves the SLAM problem by
+	 * applying a graph optimization algorithm. This will usually change the
+	 * poses of all nodes in the map coordinate frame.
 	 */
 	class GraphMapper
 	{
@@ -98,106 +107,118 @@ namespace slam
 		~GraphMapper();
 
 		/**
-		 * @brief Set a specific solver (one that is derived from slam::Solver)
-		 * to the mapper, so it can be used as SLAM backend. The mapper can be
-		 * used without a backend, but mapping results might be inconsistant.
-		 * @param solver The SLAM backend to be used for optimization.
+		 * @brief Sets a specific Solver to be used as SLAM backend.
+		 * @details The mapper can be used without a backend,
+		 * but mapping results might be inconsistant.
+		 * @param solver backend to be used for optimization
 		 */
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief Set an odometry module to provide initial poses when adding new
-		 * measurements to the graph. Depending on the matching abilities of the
+		 * @brief Sets an odometry module to provide relative poses 
+		 * @details Depending on the matching abilities of the
 		 * used sensors (e.g. a 360° laser-scanner), the mapping might work
 		 * correctly without an odometry module.
-		 * @param odom The robot's odometry module.
-		 * @param add_edges Whether to create edges in the graph from odemetry
+		 * @param odom odometry module
+		 * @param add_edges whether to create odometry edges in the graph
 		 */
 		void setOdometry(Odometry* odom, bool add_edges = false);
 
 		/**
 		 * @brief Register a sensor, so its data can be added to the graph.
-		 * Multiple sensors can be used, but in this case an odometry module
+		 * @details Multiple sensors can be used, but in this case an odometry module
 		 * is required for the mapping to work correctly. Matching is currently
 		 * done only between measurements of the same sensor.
-		 * @param s The sensor to be registered for mapping.
+		 * @param s sensor to be registered for mapping
 		 */
 		void registerSensor(Sensor* s);
 
 		/**
-		 * @brief Add a new measurement to the graph. The sensor specified in
-		 * the measurement has to be registered with the mapper before.
-		 * If the change in robot pose since the last added scan is smaller
-		 * then min-translation or min-rotation, the measurement will not be
-		 * added. Use GraphMapper::setMinPoseDistance to adjust this distance.
-		 * @param m Pointer to a new measurement.
-		 * @return True if the Measurement was added, otherwise False.
+		 * @brief Add a new measurement to the graph.
+		 * @details The sensor specified in the measurement has to be registered
+		 * with the mapper before. If the change in robot pose since the last
+		 * added scan is smaller then min-translation or min-rotation, the
+		 * measurement will not be added. Use GraphMapper::setMinPoseDistance to
+		 * adjust this distance.
+		 * @param m pointer to a new measurement
+		 * @return true if the measurement was added
 		 */
 		bool addReading(Measurement* m);
 		
+		/**
+		 * @brief Add a new measurement from another robot.
+		 * @param m pointer to a new measurement
+		 * @param t pose in map coordinates
+		 */
 		void addExternalReading(Measurement* m, const Transform& t);
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
-		 * The pose is updated at least whenever a new node is added.
+		 * @details The pose is updated at least whenever a new node is added.
 		 * Depending on the available information, it might be updated
 		 * more often. (e.g. when odometry is available)
+		 * @return current robot pose in map coordinates
 		 */
 		Transform getCurrentPose();
 		
 		/**
-		 * @brief Start the backend optimization process. Requires that a solver
-		 * has been set with GraphMapper::setSolver.
+		 * @brief Start the backend optimization process.
+		 * @details Requires that a Solver has been set with setSolver.
+		 * @return true if optimization was successful
 		 */
 		bool optimize();
 		
 		/**
-		 * @brief Get a list with all vertices from a given sensor.
-		 * @param sensor Name of the sensor which vertices are requested.
+		 * @brief Gets a list with all vertices from a given sensor.
+		 * @param sensor name of the sensor which vertices are requested
+		 * @return list of all vertices from given sensor
 		 */
 		VertexList getVerticesFromSensor(const std::string& sensor);
 
 		/**
-		 * @brief Get a list with all edges, that have been created by the
-		 * given sensor module.
-		 * @param sensor Name of the sensor which edges are requested.
+		 * @brief Get a list with all edges from a given sensor.
+		 * @param sensor name of the sensor which edges are requested
+		 * @return list of all edges from given sensor
 		 */
 		EdgeList getEdgesFromSensor(const std::string& sensor);
 
 		/**
 		 * @brief Create the index for nearest neighbor search of nodes.
+		 * @param sensor index nodes of this sensor
 		 */
 		void buildNeighborIndex(const std::string& sensor);
 
 		/**
 		 * @brief Search for nodes in the graph near the given pose.
-		 * This does not refer to a NN-Search in the graph, but to search for
+		 * @details This does not refer to a NN-Search in the graph, but to search for
 		 * spatially near poses according to their current corrected pose.
 		 * If new nodes have been added, the index has to be created with
-		 * a call to GraphMapper::buildNeighborIndex.
-		 * @param tf The pose where to search for nodes.
-		 * @param radius The radius within nodes should be returned.
+		 * a call to buildNeighborIndex.
+		 * @param tf The pose where to search for nodes
+		 * @param radius The radius within nodes should be returned
+		 * @return list of spatially near vertices
 		 */
 		VertexList getNearbyVertices(const Transform &tf, float radius);
 
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
-		 * Will not return external vertices from other robots.
+		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
 		VertexObject::ConstPtr getLastVertex() { return mLastVertex; }
 
 		/**
 		 * @brief Write the current graph to a file (currently dot).
-		 * For larger graphs, this can take a very long time.
-		 * @param name Filename without type ending.
+		 * @details For larger graphs, this can take a very long time.
+		 * @param name filename without type ending
 		 */
 		void writeGraphToFile(const std::string &name);
 
 		/**
-		 * @brief New nodes are matched against all nodes of the same sensor
+		 * @brief Sets neighbor radius for matching
+		 * @details New nodes are matched against all nodes of the same sensor
 		 * within the given radius.
-		 * @param r Radius to create additional edges.
+		 * @param r radius within additional edges are created
 		 */
 		void setNeighborRadius(float r){ mNeighborRadius = r; }
 

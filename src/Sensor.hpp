@@ -7,15 +7,13 @@
 #include <vector>
 #include <string>
 
-namespace slam
+namespace slam3d
 {	
 	/**
 	 * @class BadMeasurementType
-	 * @author Sebastian Kasperski
-	 * @date 04/16/15
-	 * @file Sensor.hpp
-	 * @brief Exception thrown when the sensor is provided with a measurement
-	 * that originates from a different sensor. In general the sensor is supposed
+	 * @brief Exception thrown when measurement types do not match.
+	 * @details This can happen when a sensor is given a measurement that
+	 * originates from a different sensor. In general the sensor is supposed
 	 * to operate on its own measurements only. However special implementations
 	 * could allow to register their readings with those from selected other
 	 * sensors. This case should be documented in the specialization class.
@@ -32,10 +30,7 @@ namespace slam
 	
 	/**
 	 * @class NoMatch
-	 * @author Sebastian Kasperski
-	 * @date 04/21/15
-	 * @file Sensor.hpp
-	 * @brief 
+	 * @brief Exception thrown when two measurements could not be matched.
 	 */
 	class NoMatch: public std::exception
 	{
@@ -49,12 +44,9 @@ namespace slam
 	
 	/**
 	 * @class Sensor
-	 * @author Sebastian Kasperski
-	 * @date 04/16/15
-	 * @file Sensor.hpp
-	 * @brief Abstact base class for a Sensor used in the mapping process.
-	 * The sensor is responsible for calculating relative poses between its
-	 * measurements and for creating representations (maps) from all
+	 * @brief Base class for a sensor used in the mapping process.
+	 * @details The sensor is responsible for calculating relative poses between
+	 * its measurements and for creating representations (maps) from all
 	 * readings using the corrected poses from SLAM.
 	 */
 	class Sensor
@@ -67,23 +59,22 @@ namespace slam
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
 		 * measurements that have been recorded by this sensor.
-		 * @return name
+		 * @return name of the sensor
 		 */
 		std::string getName() const { return mName; }
 		
 		/**
 		 * @brief Get the sensor's pose in robot coordinate frame.
-		 * @return pose
+		 * @return pose sensor pose in robot coordinates
 		 */
 		Transform getSensorPose() const { return mSensorPose; }
 		
 		/**
-		 * @brief Calculate the estimated transform between two measurements
-		 * of this sensor.
-		 * @throw BadMeasurementType
+		 * @brief Calculate the estimated transform between two measurements of this sensor.
 		 * @param source
 		 * @param target
-		 * @param odometry Estiamte of robot movement betwenn measurements
+		 * @param odometry estimation of robot movement
+		 * @throw BadMeasurementType
 		 */
 		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const = 0;
 		

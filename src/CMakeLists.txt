@@ -1,0 +1,30 @@
+############################################################
+# Define the slam3d library
+############################################################
+rock_library(slam3d
+	SOURCES
+		GraphMapper.cpp
+		PointCloudSensor.cpp
+		LineScanSensor.cpp
+		G2oSolver.cpp
+	HEADERS
+		Clock.hpp
+		Logger.hpp
+		FileLogger.hpp
+		Solver.hpp
+		G2oSolver.hpp
+		GraphMapper.hpp
+		Sensor.hpp
+		PointCloudSensor.hpp
+		LineScanSensor.hpp
+		GICPConfiguration.hpp
+		Types.hpp
+		Odometry.hpp
+	DEPS_PKGCONFIG 
+		pcl_registration-1.7
+		eigen3
+		g2o
+		graph_analysis
+	DEPS_CMAKE
+		Cholmod
+)
