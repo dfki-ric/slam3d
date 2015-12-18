@@ -5,7 +5,6 @@ rock_library(slam3d
 	SOURCES
 		GraphMapper.cpp
 		PointCloudSensor.cpp
-		LineScanSensor.cpp
 		G2oSolver.cpp
 	HEADERS
 		Clock.hpp
@@ -16,7 +15,6 @@ rock_library(slam3d
 		GraphMapper.hpp
 		Sensor.hpp
 		PointCloudSensor.hpp
-		LineScanSensor.hpp
 		GICPConfiguration.hpp
 		Types.hpp
 		Odometry.hpp
