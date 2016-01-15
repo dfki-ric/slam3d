@@ -278,7 +278,7 @@ bool GraphMapper::addReading(Measurement* m)
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex(sensor->getName());
-	linkToNeighbors(newVertex, sensor, 5);
+	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
 
 	// Overall last vertex
 	mLastVertex = newVertex;
@@ -298,7 +298,7 @@ void GraphMapper::addExternalReading(Measurement* m, const Transform& t)
 	{
 		sensor = mSensors.at(m->getSensorName());
 		buildNeighborIndex(sensor->getName());
-		linkToNeighbors(v, sensor, 5);
+		linkToNeighbors(v, sensor, mMaxNeighorLinks);
 	}catch(std::out_of_range e)
 	{
 		return;

@@ -259,11 +259,12 @@ namespace slam3d
 
 		/**
 		 * @brief Sets neighbor radius for matching
-		 * @details New nodes are matched against all nodes of the same sensor
-		 * within the given radius.
+		 * @details New nodes are matched against nodes of the same sensor
+		 * within the given radius, but not more then given maximum.
 		 * @param r radius within additional edges are created
+		 * @param l maximum number of neighbor links
 		 */
-		void setNeighborRadius(float r){ mNeighborRadius = r; }
+		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
 
 		/**
 		 * @brief Set minimal change in pose between adjacent nodes.
@@ -312,6 +313,7 @@ namespace slam3d
 		VertexIndex mVertexIndex;
 
 		// Parameters
+		int mMaxNeighorLinks;
 		float mNeighborRadius;
 		float mMinTranslation;
 		float mMinRotation;
