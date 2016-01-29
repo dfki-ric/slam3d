@@ -368,6 +368,20 @@ VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
 	return vertexList;
 }
 
+VertexObjectList GraphMapper::getVertexObjectsFromSensor(const std::string& sensor)
+{
+	VertexObjectList objectList;
+	VertexRange vertices = boost::vertices(mPoseGraph);
+	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
+	{
+		if(mPoseGraph[*it].measurement->getSensorName() == sensor)
+		{
+			objectList.push_back(mPoseGraph[*it]);
+		}
+	}
+	return objectList;
+}
+
 EdgeList GraphMapper::getEdgesFromSensor(const std::string& sensor)
 {
 	EdgeList edgeList;

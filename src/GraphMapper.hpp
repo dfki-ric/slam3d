@@ -113,6 +113,7 @@ namespace slam3d
 	// Other type definitions
 	typedef std::vector<Vertex> VertexList;
 	typedef std::vector<Edge> EdgeList;
+	typedef std::vector<VertexObject> VertexObjectList;
 	typedef std::map<std::string, Sensor*> SensorList;
 	typedef std::map<boost::uuids::uuid, Vertex> VertexIndex;
 	
@@ -216,6 +217,8 @@ namespace slam3d
 		 * @return list of all vertices from given sensor
 		 */
 		VertexList getVerticesFromSensor(const std::string& sensor);
+		
+		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor);
 
 		/**
 		 * @brief Get a list with all edges from a given sensor.

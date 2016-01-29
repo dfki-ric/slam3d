@@ -114,7 +114,7 @@ namespace slam3d
 		 * @return accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */
-		PointCloud::Ptr getAccumulatedCloud(VertexList vertices);
+		PointCloud::Ptr getAccumulatedCloud(VertexObjectList vertices);
 		
 	protected:
 		GICPConfiguration mConfiguration;

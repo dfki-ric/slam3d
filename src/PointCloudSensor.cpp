@@ -105,12 +105,12 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	return twc;
 }
 
-PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices)
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexObjectList vertices)
 {
 	PointCloud::Ptr accu(new PointCloud);
-	for(VertexList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
+	for(VertexObjectList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{
-		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>((*it)->measurement);
+		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
 		if(!pcl)
 		{
 			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
@@ -118,7 +118,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexList vertices)
 		}
 		
 		PointCloud::Ptr tempCloud(new PointCloud);
-		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, ((*it)->corrected_pose * pcl->getSensorPose()).matrix());
+		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, (it->corrected_pose * pcl->getSensorPose()).matrix());
 		*accu += *tempCloud;
 	}
 	return accu;
