@@ -2,8 +2,6 @@
 #include "Solver.hpp"
 
 #include <boost/format.hpp>
-#include <graph_analysis/lemon/DirectedGraph.hpp>
-#include <graph_analysis/GraphIO.hpp>
 
 #define PI 3.141592654
 
@@ -41,29 +39,8 @@ Transform orthogonalize(const Transform& t)
 	return res;
 }
 
-VertexObject::Ptr GraphMapper::fromBaseGraph(graph_analysis::Vertex::Ptr base)
-{
-	VertexObject::Ptr v = boost::dynamic_pointer_cast<VertexObject>(base);
-	if(!v)
-	{
-		throw BadElementType();
-	}
-	return v;
-}
-
-EdgeObject::Ptr GraphMapper::fromBaseGraph(graph_analysis::Edge::Ptr base)
-{
-	EdgeObject::Ptr e = boost::dynamic_pointer_cast<EdgeObject>(base);
-	if(!e)
-	{
-		throw BadElementType();
-	}
-	return e;
-}
-
 GraphMapper::GraphMapper(Logger* log)
- : mPoseGraph( new graph_analysis::lemon::DirectedGraph()),
-   mIndex(flann::KDTreeSingleIndexParams())
+ : mIndex(flann::KDTreeSingleIndexParams())
 {
 	mOdometry = NULL;
 	mSolver = NULL;
@@ -75,6 +52,8 @@ GraphMapper::GraphMapper(Logger* log)
 	mAddOdometryEdges = false;
 
 	mCurrentPose = Transform::Identity();
+	mLastVertex = 0;
+	mFirstVertex = 0;
 }
 
 GraphMapper::~GraphMapper()
@@ -112,13 +91,13 @@ bool GraphMapper::optimize()
 	{
 		unsigned int id = it->first;
 		Transform tf = it->second;
-		VertexObject::Ptr v = fromBaseGraph(mPoseGraph->getVertex(id));
-		v->corrected_pose = tf;
+		Vertex v = mIndexMap[id];
+		mPoseGraph[v].corrected_pose = tf;
 	}
 	
 	if(mLastVertex)
 	{
-		mCurrentPose = mLastVertex->corrected_pose;
+		mCurrentPose = mPoseGraph[mLastVertex].corrected_pose;
 	}
 	return true;
 }
@@ -134,25 +113,26 @@ void GraphMapper::registerSensor(Sensor* s)
 	}
 }
 
-VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &corrected)
+Vertex GraphMapper::addVertex(Measurement* m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	boost::format v_name("%1%:%2%");
 	v_name % m->getRobotName() % m->getSensorName();
-	VertexObject::Ptr newVertex(new VertexObject(v_name.str()));
-	newVertex->corrected_pose = corrected;
-	newVertex->measurement = m;
-	mPoseGraph->addVertex(newVertex);
-	
+	int id = mIndexer.getNext();
+	Vertex newVertex = boost::add_vertex(mPoseGraph);
+	mPoseGraph[newVertex].index = id;
+	mPoseGraph[newVertex].label = v_name.str();
+	mPoseGraph[newVertex].corrected_pose = corrected;
+	mPoseGraph[newVertex].measurement = m;
+
 	// Add it to the Index, so we can find it by its unique id
 	mVertexIndex.insert(VertexIndex::value_type(m->getUniqueId(), newVertex));
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
 	{
-		graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
 		mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
-		mSolver->addNode(id, newVertex->corrected_pose);
+		mSolver->addNode(id, corrected);
 	}
 	
 	// Set it as fixed in the solver
@@ -161,7 +141,6 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &correc
 		mFirstVertex = newVertex;
 		if(mSolver)
 		{
-			graph_analysis::GraphElementId id = mPoseGraph->getVertexId(newVertex);
 			mSolver->setFixed(id);
 		}
 	}
@@ -169,20 +148,22 @@ VertexObject::Ptr GraphMapper::addVertex(Measurement* m, const Transform &correc
 	return newVertex;
 }
 
-EdgeObject::Ptr GraphMapper::addEdge(VertexObject::Ptr source, VertexObject::Ptr target,
+Edge GraphMapper::addEdge(Vertex source, Vertex target,
 	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
 {
-	EdgeObject::Ptr edge(new EdgeObject(sensor, label));
-	edge->setSourceVertex(source);
-	edge->setTargetVertex(target);
-	edge->transform = t;
-	edge->covariance = c;
-	mPoseGraph->addEdge(edge);
+	Edge edge;
+	bool inserted;
+	boost::tie(edge, inserted) = boost::add_edge(source, target, mPoseGraph);
+
+	mPoseGraph[edge].transform = t;
+	mPoseGraph[edge].covariance = c;
+	mPoseGraph[edge].sensor = sensor;
+	mPoseGraph[edge].label = label;
 	
 	if(mSolver)
 	{
-		unsigned source_id = mPoseGraph->getVertexId(source);
-		unsigned target_id = mPoseGraph->getVertexId(target);
+		unsigned source_id = mPoseGraph[source].index;
+		unsigned target_id = mPoseGraph[target].index;
 		mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 		mSolver->addConstraint(source_id, target_id, t, c);
 	}
@@ -228,12 +209,12 @@ bool GraphMapper::addReading(Measurement* m)
 	}
 
 	// Now we have a node, that is not the first and has not been added yet
-	VertexObject::Ptr newVertex;
+	Vertex newVertex = 0;
 	
 	if(mOdometry)
 	{
 		Transform odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
-		mCurrentPose = mLastVertex->corrected_pose * odom_dist;
+		mCurrentPose = mPoseGraph[mLastVertex].corrected_pose * odom_dist;
 		if(!checkMinDistance(odom_dist))
 			return false;
 
@@ -252,13 +233,14 @@ bool GraphMapper::addReading(Measurement* m)
 	{
 		try
 		{
-			Transform guess = mLastVertex->corrected_pose.inverse() * mCurrentPose;
-			TransformWithCovariance twc = sensor->calculateTransform(mLastVertex->measurement, m, guess);
-			mCurrentPose = orthogonalize(mLastVertex->corrected_pose * twc.transform);
+			Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
+			Transform guess = lastPose.inverse() * mCurrentPose;
+			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
+			mCurrentPose = orthogonalize(lastPose * twc.transform);
 			
 			if(newVertex)
 			{
-				newVertex->corrected_pose = mCurrentPose;
+				mPoseGraph[newVertex].corrected_pose = mCurrentPose;
 			}else
 			{
 				if(!checkMinDistance(twc.transform))
@@ -288,7 +270,7 @@ bool GraphMapper::addReading(Measurement* m)
 
 void GraphMapper::addExternalReading(Measurement* m, const Transform& t)
 {
-	VertexObject::Ptr v = addVertex(m, t);
+	Vertex v = addVertex(m, t);
 		
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
@@ -304,41 +286,65 @@ void GraphMapper::addExternalReading(Measurement* m, const Transform& t)
 		return;
 	}
 }
+/*
+std::vector<Edge> all_edges(Vertex v, AdjacencyGraph& g)
+{
+	std::vector<Edge> result;
+	EdgeRange edges = boost::out_edges(v, g);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		result.push_back(*it);
+	}
+	
+	edges = boost::in_edges(v, g);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		result.push_back(*it);
+	}
+	
+	return result;
+}
+*/
 
-void GraphMapper::linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int max_links)
+void GraphMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 {
 	// Get all edges to/from this node
-	graph_analysis::EdgeIterator::Ptr edgeIterator = mPoseGraph->getEdgeIterator(vertex);
-	std::set<graph_analysis::Vertex::Ptr> previously_matched_vertices;
+	std::set<Vertex> previously_matched_vertices;
 	previously_matched_vertices.insert(vertex);
-	while(edgeIterator->next())
+	
+	OutEdgeIterator out_it, out_end;
+	boost::tie(out_it, out_end) = boost::out_edges(vertex, mPoseGraph);
+	for(; out_it != out_end; ++out_it)
 	{
-		EdgeObject::Ptr edge = boost::dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
-		if(edge->sensor == sensor->getName())
+		if(mPoseGraph[*out_it].sensor == sensor->getName())
 		{
-			if(edge->getSourceVertex() == vertex)
-				previously_matched_vertices.insert(edge->getTargetVertex());
-			else
-				previously_matched_vertices.insert(edge->getSourceVertex());
-		}else
-		{
-			mLogger->message(WARNING, (boost::format("Ignoring edge from '%1%' while linking neighbors.") % edge->sensor).str());
+			previously_matched_vertices.insert(boost::target(*out_it, mPoseGraph));
 		}
 	}
 	
-	VertexList neighbors = getNearbyVertices(vertex->corrected_pose, mNeighborRadius);
+	InEdgeIterator in_it, in_end;
+	boost::tie(in_it, in_end) = boost::in_edges(vertex, mPoseGraph);
+	for(; in_it != in_end; ++in_it)
+	{
+		if(mPoseGraph[*in_it].sensor == sensor->getName())
+		{
+			previously_matched_vertices.insert(boost::source(*in_it, mPoseGraph));
+		}
+	}
+	
+	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % neighbors.size()).str());
 	
 	int added = 0;
-	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end() && added < max_links; it++)
+	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && added < max_links; ++it)
 	{
 		if(previously_matched_vertices.find(*it) != previously_matched_vertices.end())
 			continue;
 
 		try
 		{			
-			Transform guess = (*it)->corrected_pose.inverse() * vertex->corrected_pose;
-			TransformWithCovariance twc = sensor->calculateTransform((*it)->measurement, vertex->measurement, guess);
+			Transform guess = mPoseGraph[*it].corrected_pose.inverse() * mPoseGraph[vertex].corrected_pose;
+			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[*it].measurement, mPoseGraph[vertex].measurement, guess);
 			addEdge(*it, vertex, twc.transform, twc.covariance, sensor->getName(), "match");
 			added++;
 		}catch(NoMatch &e)
@@ -351,14 +357,12 @@ void GraphMapper::linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int 
 VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
 {
 	VertexList vertexList;
-
-	graph_analysis::VertexIterator::Ptr vertexIterator = mPoseGraph->getVertexIterator();
-	while(vertexIterator->next())
+	VertexRange vertices = boost::vertices(mPoseGraph);
+	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		VertexObject::Ptr vertex = boost::dynamic_pointer_cast<VertexObject>(vertexIterator->current());
-		if(vertex->measurement->getSensorName() == sensor)
+		if(mPoseGraph[*it].measurement->getSensorName() == sensor)
 		{
-			vertexList.push_back(vertex);
+			vertexList.push_back(*it);
 		}
 	}
 	return vertexList;
@@ -367,12 +371,10 @@ VertexList GraphMapper::getVerticesFromSensor(const std::string& sensor)
 EdgeList GraphMapper::getEdgesFromSensor(const std::string& sensor)
 {
 	EdgeList edgeList;
-	
-	graph_analysis::EdgeIterator::Ptr edgeIterator = mPoseGraph->getEdgeIterator();
-	while(edgeIterator->next())
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		EdgeObject::Ptr edge = boost::dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
-		edgeList.push_back(edge);
+		edgeList.push_back(*it);
 	}
 	
 	return edgeList;
@@ -386,13 +388,13 @@ void GraphMapper::buildNeighborIndex(const std::string& sensor)
 
 	int row = 0;
 	mIndexMap.clear();
-	for(VertexList::iterator it = vertices.begin(); it < vertices.end(); it++)
+	for(VertexList::iterator it = vertices.begin(); it < vertices.end(); ++it)
 	{
-		Transform::TranslationPart t = (*it)->corrected_pose.translation();
+		Transform::TranslationPart t = mPoseGraph[*it].corrected_pose.translation();
 		points[row][0] = t[0];
 		points[row][1] = t[1];
 		points[row][2] = t[2];
-		mIndexMap.insert(std::pair<int, VertexObject::Ptr>(row, *it));
+		mIndexMap.insert(std::pair<int, Vertex>(row, *it));
 		row++;
 	}
 	
@@ -431,9 +433,7 @@ Transform GraphMapper::getCurrentPose()
 
 void GraphMapper::writeGraphToFile(const std::string &name)
 {
-	std::string file = name + ".dot";
-	mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
-	graph_analysis::io::GraphIO::write(file, *mPoseGraph, graph_analysis::representation::GRAPHVIZ);
+	mLogger->message(ERROR, "Graph writing not implemented!");
 }
 
 bool GraphMapper::checkMinDistance(const Transform &t)

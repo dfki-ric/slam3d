@@ -19,6 +19,15 @@ namespace slam3d
 		Covariance covariance;
 	};
 	
+	class Indexer
+	{
+	public:
+		Indexer():mNextID(0) {}
+		int getNext() { return mNextID++; }
+	private:
+		int mNextID;
+	};
+	
 	/**
 	 * @class Measurement
 	 * @brief Base class for a single reading from a sensor.

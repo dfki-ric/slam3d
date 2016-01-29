@@ -47,7 +47,8 @@ if(!mapper->addReading(m))
 #include "Odometry.hpp"
 #include "Sensor.hpp"
 
-#include <graph_analysis/BaseGraph.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <flann/flann.hpp>
 #include <map>
 
@@ -59,18 +60,16 @@ namespace slam3d
 	 * @details It contains a pointer to an abstract measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
 	 */
-	class VertexObject : public graph_analysis::Vertex
+	class VertexObject
 	{
 	public:
-		typedef boost::shared_ptr<VertexObject> Ptr;
-		typedef boost::shared_ptr<const VertexObject> ConstPtr;
+//		typedef boost::shared_ptr<VertexObject> Ptr;
+//		typedef boost::shared_ptr<const VertexObject> ConstPtr;
 
-		VertexObject(const std::string& label = ""):graph_analysis::Vertex(label){}
-
+		unsigned index;
+		std::string label;
 		Transform corrected_pose;
 		Measurement* measurement;
-
-		std::string getClassName() const { return "slam3d::VertexObject"; }
 	};
 
 	/**
@@ -80,44 +79,44 @@ namespace slam3d
 	 * the associated covariance matrix and the name of the sensor that
 	 * created this spatial relationship.
 	 */
-	class EdgeObject : public graph_analysis::Edge
+	class EdgeObject
 	{
 	public:
-		typedef boost::shared_ptr<EdgeObject> Ptr;
-		typedef boost::shared_ptr<const EdgeObject> ConstPtr;
-
-		EdgeObject(const std::string& s, const std::string& l = ""):graph_analysis::Edge(l),sensor(s){}
+//		typedef boost::shared_ptr<EdgeObject> Ptr;
+//		typedef boost::shared_ptr<const EdgeObject> ConstPtr;
 
 		Transform transform;
 		Covariance covariance;
 		std::string sensor;
-
-		std::string getClassName() const { return "slam3d::EdgeObject"; }
+		std::string label;
 	};
 
-	typedef std::vector<VertexObject::Ptr> VertexList;
-	typedef std::vector<EdgeObject::Ptr> EdgeList;
+	// Definitions of boost-graph related types
+	typedef boost::listS VRep;
+	typedef boost::listS ERep;
+	typedef boost::bidirectionalS GType;
+	typedef boost::adjacency_list<VRep, ERep, GType, VertexObject, EdgeObject> AdjacencyGraph;
+	
+	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
+	typedef boost::graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
+	typedef std::pair<VertexIterator, VertexIterator> VertexRange;
+	
+	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
+	typedef boost::graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
+	typedef boost::graph_traits<AdjacencyGraph>::out_edge_iterator OutEdgeIterator;
+	typedef boost::graph_traits<AdjacencyGraph>::in_edge_iterator InEdgeIterator;
+	typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
+	
+	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
+	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
+	
+	// Other type definitions
+	typedef std::vector<Vertex> VertexList;
+	typedef std::vector<Edge> EdgeList;
 	typedef std::map<std::string, Sensor*> SensorList;
-	typedef std::map<boost::uuids::uuid, VertexObject::Ptr> VertexIndex;
+	typedef std::map<boost::uuids::uuid, Vertex> VertexIndex;
 	
 	typedef flann::Index< flann::L2<float> > NeighborIndex;
-	
-	/**
-	 * @class BadElementType
-	 * @brief Exception thrown when element types do not match.
-	 * @details This happens when an element returned from 
-	 * graph_analysis::BaseGraph is not of the expected slam type,
-	 * e.g. VertexObject or EdgeObject.
-	 */
-	class BadElementType: public std::exception
-	{
-	public:
-		BadElementType(){}
-		virtual const char* what() const throw()
-		{
-			return "Could not convert from base-type to slam-type!";
-		}
-	};
 
 	class Solver;
 
@@ -241,14 +240,14 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		VertexList getNearbyVertices(const Transform &tf, float radius);
+		std::vector<Vertex> getNearbyVertices(const Transform &tf, float radius);
 
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		VertexObject::ConstPtr getLastVertex() { return mLastVertex; }
+		VertexObject getLastVertex() { return mPoseGraph[mLastVertex]; }
 
 		/**
 		 * @brief Write the current graph to a file (currently dot).
@@ -274,27 +273,24 @@ namespace slam3d
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
 	private:
-		VertexObject::Ptr addVertex(Measurement* m,
-		                            const Transform &corrected);
+		Vertex addVertex(Measurement* m,
+		                 const Transform &corrected);
 
-		EdgeObject::Ptr addEdge(VertexObject::Ptr source,
-		                        VertexObject::Ptr target,
-		                        const Transform &t,
-		                        const Covariance &c,
-		                        const std::string &sensor,
-		                        const std::string &label);
+		Edge addEdge(Vertex source,
+		             Vertex target,
+		             const Transform &t,
+		             const Covariance &c,
+		             const std::string &sensor,
+		             const std::string &label);
 
 		bool checkMinDistance(const Transform &t);
 
-		void linkToNeighbors(VertexObject::Ptr vertex, Sensor* sensor, int max_links);
-
-		static VertexObject::Ptr fromBaseGraph(graph_analysis::Vertex::Ptr base);
-		static EdgeObject::Ptr fromBaseGraph(graph_analysis::Edge::Ptr base);
+		void linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links);
 
 	private:
-		graph_analysis::BaseGraph::Ptr mPoseGraph;
-		VertexObject::Ptr mLastVertex;
-		VertexObject::Ptr mFirstVertex;
+		AdjacencyGraph mPoseGraph;
+		Vertex mLastVertex;
+		Vertex mFirstVertex;
 
 		Solver* mSolver;
 		Logger* mLogger;
@@ -307,7 +303,8 @@ namespace slam3d
 		// Index to use nearest neighbor search
 		flann::SearchParams mSearchParams;
 		NeighborIndex mIndex;
-		std::map<int, VertexObject::Ptr> mIndexMap;
+		std::map<int, Vertex> mIndexMap;
+		Indexer mIndexer;
 
 		// Index to find Vertices by their unique id
 		VertexIndex mVertexIndex;
