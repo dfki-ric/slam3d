@@ -8,6 +8,7 @@
 
 namespace slam3d
 {
+	typedef unsigned IdType;
 	typedef double ScalarType;
 	typedef Eigen::Matrix<ScalarType,3,1> Vector3;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
@@ -23,9 +24,9 @@ namespace slam3d
 	{
 	public:
 		Indexer():mNextID(0) {}
-		int getNext() { return mNextID++; }
+		IdType getNext() { return mNextID++; }
 	private:
-		int mNextID;
+		IdType mNextID;
 	};
 	
 	/**

@@ -47,77 +47,44 @@ if(!mapper->addReading(m))
 #include "Odometry.hpp"
 #include "Sensor.hpp"
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <flann/flann.hpp>
 #include <map>
 
 namespace slam3d
 {
 	/**
-	 * @class VertexObject
+	 * @struct VertexObject
 	 * @brief Object attached to a vertex in the pose graph.
 	 * @details It contains a pointer to an abstract measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
 	 */
-	class VertexObject
+	struct VertexObject
 	{
-	public:
-//		typedef boost::shared_ptr<VertexObject> Ptr;
-//		typedef boost::shared_ptr<const VertexObject> ConstPtr;
-
-		unsigned index;
+		IdType index;
 		std::string label;
 		Transform corrected_pose;
 		Measurement* measurement;
 	};
 
 	/**
-	 * @class EdgeObject
+	 * @struct EdgeObject
 	 * @brief Object attached to an edge in the pose graph.
 	 * @details It contains the relative transform from source to target,
 	 * the associated covariance matrix and the name of the sensor that
 	 * created this spatial relationship.
 	 */
-	class EdgeObject
+	struct EdgeObject
 	{
-	public:
-//		typedef boost::shared_ptr<EdgeObject> Ptr;
-//		typedef boost::shared_ptr<const EdgeObject> ConstPtr;
-
 		Transform transform;
 		Covariance covariance;
 		std::string sensor;
 		std::string label;
+		IdType source;
+		IdType target;
 	};
 
-	// Definitions of boost-graph related types
-	typedef boost::listS VRep;
-	typedef boost::listS ERep;
-	typedef boost::bidirectionalS GType;
-	typedef boost::adjacency_list<VRep, ERep, GType, VertexObject, EdgeObject> AdjacencyGraph;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
-	typedef boost::graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
-	typedef std::pair<VertexIterator, VertexIterator> VertexRange;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
-	typedef boost::graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
-	typedef boost::graph_traits<AdjacencyGraph>::out_edge_iterator OutEdgeIterator;
-	typedef boost::graph_traits<AdjacencyGraph>::in_edge_iterator InEdgeIterator;
-	typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
-	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
-	
-	// Other type definitions
-	typedef std::vector<Vertex> VertexList;
-	typedef std::vector<Edge> EdgeList;
 	typedef std::vector<VertexObject> VertexObjectList;
+	typedef std::vector<EdgeObject> EdgeObjectList;
 	typedef std::map<std::string, Sensor*> SensorList;
-	typedef std::map<boost::uuids::uuid, Vertex> VertexIndex;
-	
-	typedef flann::Index< flann::L2<float> > NeighborIndex;
 
 	class Solver;
 
@@ -186,14 +153,14 @@ namespace slam3d
 		 * @param m pointer to a new measurement
 		 * @return true if the measurement was added
 		 */
-		bool addReading(Measurement* m);
+		virtual bool addReading(Measurement* m) = 0;
 		
 		/**
 		 * @brief Add a new measurement from another robot.
 		 * @param m pointer to a new measurement
 		 * @param t pose in map coordinates
 		 */
-		void addExternalReading(Measurement* m, const Transform& t);
+		virtual void addExternalReading(Measurement* m, const Transform& t) = 0;
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
@@ -209,55 +176,21 @@ namespace slam3d
 		 * @details Requires that a Solver has been set with setSolver.
 		 * @return true if optimization was successful
 		 */
-		bool optimize();
-		
-		/**
-		 * @brief Gets a list with all vertices from a given sensor.
-		 * @param sensor name of the sensor which vertices are requested
-		 * @return list of all vertices from given sensor
-		 */
-		VertexList getVerticesFromSensor(const std::string& sensor);
-		
-		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor);
-
-		/**
-		 * @brief Get a list with all edges from a given sensor.
-		 * @param sensor name of the sensor which edges are requested
-		 * @return list of all edges from given sensor
-		 */
-		EdgeList getEdgesFromSensor(const std::string& sensor);
-
-		/**
-		 * @brief Create the index for nearest neighbor search of nodes.
-		 * @param sensor index nodes of this sensor
-		 */
-		void buildNeighborIndex(const std::string& sensor);
-
-		/**
-		 * @brief Search for nodes in the graph near the given pose.
-		 * @details This does not refer to a NN-Search in the graph, but to search for
-		 * spatially near poses according to their current corrected pose.
-		 * If new nodes have been added, the index has to be created with
-		 * a call to buildNeighborIndex.
-		 * @param tf The pose where to search for nodes
-		 * @param radius The radius within nodes should be returned
-		 * @return list of spatially near vertices
-		 */
-		std::vector<Vertex> getNearbyVertices(const Transform &tf, float radius);
+		virtual bool optimize() = 0;
 
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		VertexObject getLastVertex() { return mPoseGraph[mLastVertex]; }
+		virtual const VertexObject& getLastVertex() = 0;
 
 		/**
 		 * @brief Write the current graph to a file (currently dot).
 		 * @details For larger graphs, this can take a very long time.
 		 * @param name filename without type ending
 		 */
-		void writeGraphToFile(const std::string &name);
+		virtual void writeGraphToFile(const std::string &name);
 
 		/**
 		 * @brief Sets neighbor radius for matching
@@ -275,26 +208,17 @@ namespace slam3d
 		 */
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
-	private:
-		Vertex addVertex(Measurement* m,
-		                 const Transform &corrected);
+		// new and undocumented
+		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) = 0;
+		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) = 0;
+		virtual const VertexObject& getVertex(IdType id) = 0;
 
-		Edge addEdge(Vertex source,
-		             Vertex target,
-		             const Transform &t,
-		             const Covariance &c,
-		             const std::string &sensor,
-		             const std::string &label);
 
+	protected:
+		static Transform orthogonalize(const Transform& t);
 		bool checkMinDistance(const Transform &t);
-
-		void linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links);
-
-	private:
-		AdjacencyGraph mPoseGraph;
-		Vertex mLastVertex;
-		Vertex mFirstVertex;
-
+		
+	protected:
 		Solver* mSolver;
 		Logger* mLogger;
 		Odometry* mOdometry;
@@ -302,15 +226,6 @@ namespace slam3d
 
 		Transform mCurrentPose;
 		Transform mLastOdometricPose;
-
-		// Index to use nearest neighbor search
-		flann::SearchParams mSearchParams;
-		NeighborIndex mIndex;
-		std::map<int, Vertex> mIndexMap;
-		Indexer mIndexer;
-
-		// Index to find Vertices by their unique id
-		VertexIndex mVertexIndex;
 
 		// Parameters
 		int mMaxNeighorLinks;

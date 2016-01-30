@@ -6,7 +6,6 @@
   <license></license>
   <url>http://</url>
   <logo>http://</logo>
-  <depend package="tools/graph_analysis" />
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
   <depend package="cholmod" />

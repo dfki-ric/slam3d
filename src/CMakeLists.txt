@@ -4,6 +4,7 @@
 rock_library(slam3d
 	SOURCES
 		GraphMapper.cpp
+		BoostMapper.cpp
 		PointCloudSensor.cpp
 		G2oSolver.cpp
 	HEADERS
@@ -13,6 +14,7 @@ rock_library(slam3d
 		Solver.hpp
 		G2oSolver.hpp
 		GraphMapper.hpp
+		BoostMapper.hpp
 		Sensor.hpp
 		PointCloudSensor.hpp
 		GICPConfiguration.hpp
@@ -22,7 +24,6 @@ rock_library(slam3d
 		pcl_registration-1.7
 		eigen3
 		g2o
-		graph_analysis
 	DEPS_CMAKE
 		Cholmod
 )
