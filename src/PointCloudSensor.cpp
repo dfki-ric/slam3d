@@ -105,10 +105,10 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source
 	return twc;
 }
 
-PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(VertexObjectList vertices)
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices)
 {
 	PointCloud::Ptr accu(new PointCloud);
-	for(VertexObjectList::reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
+	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{
 		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
 		if(!pcl)
