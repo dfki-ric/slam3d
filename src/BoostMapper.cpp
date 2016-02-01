@@ -240,13 +240,13 @@ Vertex BoostMapper::addVertex(Measurement* m, const Transform &corrected)
 	mPoseGraph[newVertex].corrected_pose = corrected;
 	mPoseGraph[newVertex].measurement = m;
 
-	// Add it to the Index, so we can find it by its unique id
+	// Add it to the indexes, so we can find it by its id and uuid
+	mIndexMap.insert(IndexMap::value_type(id, newVertex));
 	mVertexIndex.insert(UuidMap::value_type(m->getUniqueId(), newVertex));
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
 	{
-		mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 		mSolver->addNode(id, corrected);
 	}
 	
@@ -260,6 +260,7 @@ Vertex BoostMapper::addVertex(Measurement* m, const Transform &corrected)
 		}
 	}
 	
+	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 	return newVertex;
 }
 
@@ -269,21 +270,21 @@ Edge BoostMapper::addEdge(Vertex source, Vertex target,
 	Edge edge;
 	bool inserted;
 	boost::tie(edge, inserted) = boost::add_edge(source, target, mPoseGraph);
+	unsigned source_id = mPoseGraph[source].index;
+	unsigned target_id = mPoseGraph[target].index;
 
 	mPoseGraph[edge].transform = t;
 	mPoseGraph[edge].covariance = c;
 	mPoseGraph[edge].sensor = sensor;
 	mPoseGraph[edge].label = label;
-	mPoseGraph[edge].source = mPoseGraph[source].index;
-	mPoseGraph[edge].target = mPoseGraph[target].index;
+	mPoseGraph[edge].source = source_id;
+	mPoseGraph[edge].target = target_id;
 	
 	if(mSolver)
 	{
-		unsigned source_id = mPoseGraph[source].index;
-		unsigned target_id = mPoseGraph[target].index;
-		mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 		mSolver->addConstraint(source_id, target_id, t, c);
 	}
+	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 	return edge;
 }
 
