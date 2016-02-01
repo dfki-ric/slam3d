@@ -114,7 +114,7 @@ namespace slam3d
 	{
 	public:
 		GraphMapper(Logger* log);
-		~GraphMapper();
+		virtual ~GraphMapper();
 
 		/**
 		 * @brief Sets a specific Solver to be used as SLAM backend.
