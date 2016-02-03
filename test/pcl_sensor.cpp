@@ -39,7 +39,7 @@ PointCloud::Ptr loadFromFile(const std::string& filename)
 		point.x = *px;
 		point.y = *py;
 		point.z = *pz;
-		point.intensity = *pr;
+//		point.intensity = *pr;
 		cloud->push_back(point);
 		px+=4; py+=4; pz+=4; pr+=4;
 	}

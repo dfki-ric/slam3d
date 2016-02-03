@@ -11,7 +11,7 @@
 
 namespace slam3d
 {
-	typedef pcl::PointXYZI PointType;
+	typedef pcl::PointWithViewpoint PointType;
 	typedef pcl::PointCloud<PointType> PointCloud;
 	
 	/**
