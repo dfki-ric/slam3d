@@ -161,6 +161,8 @@ namespace slam3d
 		 */
 		bool optimize();
 		
+		std::vector<Vertex> getVerticesInRange(double range);
+		
 	private:
 		// The boost graph object
 		AdjacencyGraph mPoseGraph;

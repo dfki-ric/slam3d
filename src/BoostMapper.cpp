@@ -2,8 +2,28 @@
 #include "Solver.hpp"
 
 #include <boost/format.hpp>
+#include <boost/graph/visitors.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 
 using namespace slam3d;
+
+class bfs_max_depth : public default_bfs_visitor
+{
+public:
+	bfs_max_depth(double d) : max_depth(d) {}
+
+	void tree_edge(Edge e, const AdjacencyGraph& g) const
+	{
+		Vertex u = source(e, g);
+		Vertex v = target(e, g);
+		if(d[v] >= max_depth)
+			throw 0;
+		d[v] = d[u] + 1;
+	}
+private:
+	unsigned max_depth;
+};
+
 
 BoostMapper::BoostMapper(Logger* log)
  : GraphMapper(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
@@ -373,4 +393,12 @@ VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sens
 const VertexObject& BoostMapper::getVertex(IdType id)
 {
 	return mPoseGraph[mIndexMap.at(id)];
+}
+
+std::vector<Vertex> BoostMapper::getVerticesInRange(double range)
+{
+	std::vector<Vertex> vertices;
+	
+	
+	return vertices;
 }
