@@ -53,9 +53,26 @@ namespace slam3d
 		const VertexObject& getVertex(IdType id);
 		
 	private:
+	
+		/**
+		 * @brief Adds a new vertex to the graph.
+		 * @param m measurement to be attached to the vertex
+		 * @param corrected initial pose of the vertex in map coordinates
+		 * @return descriptor of the new vertex
+		 */
 		Vertex addVertex(Measurement* m,
 		                 const Transform &corrected);
 
+		/**
+		 * @brief Adds a new edge to the graph.
+		 * @param source descriptor of source vertex
+		 * @param target descriptor of target vertex
+		 * @param t transformation from source to target
+		 * @param c covariance of transformation
+		 * @param sensor name of the sensor that created this edge
+		 * @param label description to be added to this edge
+		 * @return 
+		 */
 		Edge addEdge(Vertex source,
 		             Vertex target,
 		             const Transform &t,

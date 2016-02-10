@@ -208,11 +208,25 @@ namespace slam3d
 		 */
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
-		// new and undocumented
-		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) = 0;
-		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) = 0;
+		/**
+		 * @brief Gets a vertex object by its given id. The id is given to each
+		 * vertex upon creation and then never changed. These id's are local and
+		 * cannot be compared between different agents in a distributed setup.
+		 * @param id identifier for a vertex
+		 */
 		virtual const VertexObject& getVertex(IdType id) = 0;
 
+		/**
+		 * @brief Gets a list of all vertices from given sensor.
+		 * @param sensor
+		 */
+		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) = 0;
+
+		/**
+		 * @brief Gets a list of all edges from given sensor.
+		 * @param sensor
+		 */
+		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) = 0;
 
 	protected:
 		static Transform orthogonalize(const Transform& t);

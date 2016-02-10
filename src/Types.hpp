@@ -20,6 +20,10 @@ namespace slam3d
 		Covariance covariance;
 	};
 	
+	/**
+	 * @class Indexer
+	 * @brief Constructor for continuous identifiers.
+	 */
 	class Indexer
 	{
 	public:
