@@ -37,21 +37,61 @@ namespace slam3d
 	typedef std::map<IdType, Vertex> IndexMap;
 	typedef std::map<boost::uuids::uuid, Vertex> UuidMap;
 	
+	/**
+	 * @class BoostMapper
+	 * @brief Implementation of GraphMapper using BoostGraphLibrary.
+	 */
 	class BoostMapper : public GraphMapper
 	{
 	public:
 		BoostMapper(Logger* log);
 		~BoostMapper();
-		
+
+		/**
+		 * @brief Add a new measurement to the graph.
+		 * @details The sensor specified in the measurement has to be registered
+		 * with the mapper before. If the change in robot pose since the last
+		 * added scan is smaller then min-translation or min-rotation, the
+		 * measurement will not be added. Use GraphMapper::setMinPoseDistance to
+		 * adjust this distance.
+		 * @param m pointer to a new measurement
+		 * @return true if the measurement was added
+		 */
 		bool addReading(Measurement* m);
+
+		/**
+		 * @brief Add a new measurement from another robot.
+		 * @param m pointer to a new measurement
+		 * @param t pose in map coordinates
+		 */
 		void addExternalReading(Measurement* m, const Transform& t);
 		
-		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor);
-		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor);
-		
+		/**
+		 * @brief Get the last vertex, that was locally added to the graph.
+		 * @details This will not return external vertices from other robots.
+		 * @return last added vertex
+		 */
 		const VertexObject& getLastVertex() { return mPoseGraph[mLastVertex]; }
-		const VertexObject& getVertex(IdType id);
 		
+		/**
+		 * @brief Gets a vertex object by its given id.
+		 * @param id
+		 * @throw std::out_of_range
+		 */
+		const VertexObject& getVertex(IdType id);
+
+		/**
+		 * @brief Gets a list of all vertices from given sensor.
+		 * @param sensor
+		 */
+		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor);
+
+		/**
+		 * @brief Gets a list of all edges from given sensor.
+		 * @param sensor
+		 */
+		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor);
+
 	private:
 	
 		/**
