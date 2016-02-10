@@ -372,5 +372,5 @@ VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sens
 
 const VertexObject& BoostMapper::getVertex(IdType id)
 {
-	return mPoseGraph[mIndexMap[id]];
+	return mPoseGraph[mIndexMap.at(id)];
 }
