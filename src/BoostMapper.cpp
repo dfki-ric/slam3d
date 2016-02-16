@@ -4,26 +4,9 @@
 #include <boost/format.hpp>
 #include <boost/graph/visitors.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/property_map/property_map.hpp>
 
 using namespace slam3d;
-
-class bfs_max_depth : public default_bfs_visitor
-{
-public:
-	bfs_max_depth(double d) : max_depth(d) {}
-
-	void tree_edge(Edge e, const AdjacencyGraph& g) const
-	{
-		Vertex u = source(e, g);
-		Vertex v = target(e, g);
-		if(d[v] >= max_depth)
-			throw 0;
-		d[v] = d[u] + 1;
-	}
-private:
-	unsigned max_depth;
-};
-
 
 BoostMapper::BoostMapper(Logger* log)
  : GraphMapper(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
@@ -395,10 +378,41 @@ const VertexObject& BoostMapper::getVertex(IdType id)
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-std::vector<Vertex> BoostMapper::getVerticesInRange(double range)
+// BFS search for vertices with a maximum distance to a source node
+
+class MaxDepthVisitor : public boost::default_bfs_visitor
+{
+public:
+	MaxDepthVisitor(unsigned d) : max_depth(d) {}
+
+	void tree_edge(Edge e, const AdjacencyGraph& g)
+	{
+		Vertex u = source(e, g);
+		Vertex v = target(e, g);
+		if(depth_map[v] >= max_depth)
+			throw 0;
+		depth_map[v] = depth_map[u] + 1;
+	}
+private:
+	std::map<Vertex, unsigned> depth_map;
+	unsigned max_depth;
+};
+
+std::vector<Vertex> BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
 	std::vector<Vertex> vertices;
-	
+	MaxDepthVisitor vis(range);
+
+	typedef std::map<Vertex, boost::default_color_type> ColorMap;
+	ColorMap c_map;
+	try
+	{
+		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
+		mLogger->message(WARNING, "BFS did not exit!");
+	}catch(int e)
+	{
+		mLogger->message(INFO, "BFS exited!");
+	}
 	
 	return vertices;
 }

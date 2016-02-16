@@ -161,7 +161,7 @@ namespace slam3d
 		 */
 		bool optimize();
 		
-		std::vector<Vertex> getVerticesInRange(double range);
+		std::vector<Vertex> getVerticesInRange(Vertex source, unsigned range);
 		
 	private:
 		// The boost graph object
