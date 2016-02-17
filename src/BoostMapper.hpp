@@ -152,7 +152,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		std::vector<Vertex> getNearbyVertices(const Transform &tf, float radius);
+		VertexList getNearbyVertices(const Transform &tf, float radius);
 
 		/**
 		 * @brief Start the backend optimization process.
@@ -161,7 +161,7 @@ namespace slam3d
 		 */
 		bool optimize();
 		
-		std::vector<Vertex> getVerticesInRange(Vertex source, unsigned range);
+		VertexList getVerticesInRange(Vertex source, unsigned range);
 		
 	private:
 		// The boost graph object

@@ -225,6 +225,10 @@ bool BoostMapper::addReading(Measurement* m)
 	buildNeighborIndex(sensor->getName());
 	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
 
+	// TEST
+	VertexList in_range = getVerticesInRange(mFirstVertex, 3);
+	mLogger->message(INFO, (boost::format("Vertices in range: %1%")%in_range.size()).str());
+
 	// Overall last vertex
 	mLastVertex = newVertex;
 	mLastOdometricPose = odometry;
@@ -383,7 +387,7 @@ const VertexObject& BoostMapper::getVertex(IdType id)
 class MaxDepthVisitor : public boost::default_bfs_visitor
 {
 public:
-	MaxDepthVisitor(unsigned d) : max_depth(d) {}
+	MaxDepthVisitor(std::map<Vertex, unsigned>& map, unsigned d) : depth_map(map), max_depth(d) {}
 
 	void tree_edge(Edge e, const AdjacencyGraph& g)
 	{
@@ -392,27 +396,36 @@ public:
 		if(depth_map[v] >= max_depth)
 			throw 0;
 		depth_map[v] = depth_map[u] + 1;
+		std::cout << "Set vertex " << g[v].index << " to depth " << depth_map[v] << std::endl;
 	}
 private:
-	std::map<Vertex, unsigned> depth_map;
+	std::map<Vertex, unsigned>& depth_map;
 	unsigned max_depth;
 };
 
-std::vector<Vertex> BoostMapper::getVerticesInRange(Vertex source, unsigned range)
+VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
-	std::vector<Vertex> vertices;
-	MaxDepthVisitor vis(range);
+	std::map<Vertex, unsigned> depth_map;
+	MaxDepthVisitor vis(depth_map, range);
 
 	typedef std::map<Vertex, boost::default_color_type> ColorMap;
 	ColorMap c_map;
+	boost::associative_property_map<ColorMap> assoc_map(c_map);
 	try
 	{
-		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
+		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(assoc_map));
 		mLogger->message(WARNING, "BFS did not exit!");
 	}catch(int e)
 	{
 		mLogger->message(INFO, "BFS exited!");
 	}
-	
+
+	// Write the result
+	VertexList vertices;
+	for(std::map<Vertex, unsigned>::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
+	{
+		if(it->second > 0)
+			vertices.push_back(it->first);
+	}
 	return vertices;
 }
