@@ -381,37 +381,37 @@ const VertexObject& BoostMapper::getVertex(IdType id)
 }
 
 // BFS search for vertices with a maximum distance to a source node
+typedef std::map<Vertex, boost::default_color_type> ColorMap;
+typedef std::map<Vertex, unsigned> DepthMap;
 
 class MaxDepthVisitor : public boost::default_bfs_visitor
 {
 public:
-	MaxDepthVisitor(std::map<Vertex, unsigned>& map, unsigned d) : depth_map(map), max_depth(d) {}
+	MaxDepthVisitor(DepthMap& map, unsigned d) : depth_map(map), max_depth(d) {}
 
 	void tree_edge(Edge e, const AdjacencyGraph& g)
 	{
 		Vertex u = source(e, g);
 		Vertex v = target(e, g);
-		depth_map[v] = depth_map[u] + 1;
-		if(depth_map[v] > max_depth)
+		if(depth_map[u] >= max_depth)
 			throw 0;
+		depth_map[v] = depth_map[u] + 1;
 //		std::cout << "Set vertex " << g[v].index << " to depth " << depth_map[v] << " (max: " << max_depth << ")" << std::endl;
 	}
 private:
-	std::map<Vertex, unsigned>& depth_map;
+	DepthMap& depth_map;
 	unsigned max_depth;
 };
 
 VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
-	std::map<Vertex, unsigned> depth_map;
-	MaxDepthVisitor vis(depth_map, range);
-
-	typedef std::map<Vertex, boost::default_color_type> ColorMap;
+	mLogger->message(DEBUG, (boost::format("Starting BFS at vertex %1% with max depth %2%.") % mPoseGraph[source].index % range).str());
+	DepthMap depth_map;
 	ColorMap c_map;
-	boost::associative_property_map<ColorMap> assoc_map(c_map);
+	MaxDepthVisitor vis(depth_map, range);
 	try
 	{
-		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(assoc_map));
+		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
 		mLogger->message(DEBUG, "BFS did not reach max depth.");
 	}catch(int e)
 	{
@@ -420,10 +420,9 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 
 	// Write the result
 	VertexList vertices;
-	for(std::map<Vertex, unsigned>::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
+	for(DepthMap::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
 	{
-		if(it->second > 0 && it->second <= range)
-			vertices.push_back(it->first);
+		vertices.push_back(it->first);
 	}
 	return vertices;
 }
