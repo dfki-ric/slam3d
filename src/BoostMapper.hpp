@@ -12,7 +12,7 @@ namespace slam3d
 	// Definitions of boost-graph related types
 	typedef boost::listS VRep;
 	typedef boost::listS ERep;
-	typedef boost::bidirectionalS GType;
+	typedef boost::directedS GType;
 	typedef boost::adjacency_list<VRep, ERep, GType, VertexObject, EdgeObject> AdjacencyGraph;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
@@ -113,7 +113,7 @@ namespace slam3d
 		 * @param label description to be added to this edge
 		 * @return 
 		 */
-		Edge addEdge(Vertex source,
+		void addEdge(Vertex source,
 		             Vertex target,
 		             const Transform &t,
 		             const Covariance &c,
@@ -161,6 +161,11 @@ namespace slam3d
 		 */
 		bool optimize();
 		
+		/**
+		 * @brief Serch for nodes by using breadth-first-search
+		 * @param source start search from this node
+		 * @param range maximum number of steps to search from source
+		 */
 		VertexList getVerticesInRange(Vertex source, unsigned range);
 		
 	private:

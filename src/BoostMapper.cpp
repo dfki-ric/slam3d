@@ -226,7 +226,7 @@ bool BoostMapper::addReading(Measurement* m)
 	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
 
 	// TEST
-	VertexList in_range = getVerticesInRange(mFirstVertex, 3);
+	VertexList in_range = getVerticesInRange(newVertex, 3);
 	mLogger->message(INFO, (boost::format("Vertices in range: %1%")%in_range.size()).str());
 
 	// Overall last vertex
@@ -271,28 +271,36 @@ Vertex BoostMapper::addVertex(Measurement* m, const Transform &corrected)
 	return newVertex;
 }
 
-Edge BoostMapper::addEdge(Vertex source, Vertex target,
+void BoostMapper::addEdge(Vertex source, Vertex target,
 	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
 {
-	Edge edge;
-	bool inserted;
-	boost::tie(edge, inserted) = boost::add_edge(source, target, mPoseGraph);
+	Edge forward_edge, inverse_edge;
+	bool inserted_forward, inserted_inverse;
+	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
+	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
+	
 	unsigned source_id = mPoseGraph[source].index;
 	unsigned target_id = mPoseGraph[target].index;
 
-	mPoseGraph[edge].transform = t;
-	mPoseGraph[edge].covariance = c;
-	mPoseGraph[edge].sensor = sensor;
-	mPoseGraph[edge].label = label;
-	mPoseGraph[edge].source = source_id;
-	mPoseGraph[edge].target = target_id;
+	mPoseGraph[forward_edge].transform = t;
+	mPoseGraph[forward_edge].covariance = c;
+	mPoseGraph[forward_edge].sensor = sensor;
+	mPoseGraph[forward_edge].label = label;
+	mPoseGraph[forward_edge].source = source_id;
+	mPoseGraph[forward_edge].target = target_id;
+	
+	mPoseGraph[inverse_edge].transform = t.inverse();
+	mPoseGraph[inverse_edge].covariance = c;
+	mPoseGraph[inverse_edge].sensor = sensor;
+	mPoseGraph[inverse_edge].label = label;
+	mPoseGraph[inverse_edge].source = target_id;
+	mPoseGraph[inverse_edge].target = source_id;
 	
 	if(mSolver)
 	{
 		mSolver->addConstraint(source_id, target_id, t, c);
 	}
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
-	return edge;
 }
 
 
@@ -328,16 +336,6 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 		if(mPoseGraph[*out_it].sensor == sensor->getName())
 		{
 			previously_matched_vertices.insert(boost::target(*out_it, mPoseGraph));
-		}
-	}
-	
-	InEdgeIterator in_it, in_end;
-	boost::tie(in_it, in_end) = boost::in_edges(vertex, mPoseGraph);
-	for(; in_it != in_end; ++in_it)
-	{
-		if(mPoseGraph[*in_it].sensor == sensor->getName())
-		{
-			previously_matched_vertices.insert(boost::source(*in_it, mPoseGraph));
 		}
 	}
 	
@@ -393,10 +391,10 @@ public:
 	{
 		Vertex u = source(e, g);
 		Vertex v = target(e, g);
-		if(depth_map[v] >= max_depth)
-			throw 0;
 		depth_map[v] = depth_map[u] + 1;
-		std::cout << "Set vertex " << g[v].index << " to depth " << depth_map[v] << std::endl;
+		if(depth_map[v] > max_depth)
+			throw 0;
+//		std::cout << "Set vertex " << g[v].index << " to depth " << depth_map[v] << " (max: " << max_depth << ")" << std::endl;
 	}
 private:
 	std::map<Vertex, unsigned>& depth_map;
@@ -414,17 +412,17 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 	try
 	{
 		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(assoc_map));
-		mLogger->message(WARNING, "BFS did not exit!");
+		mLogger->message(DEBUG, "BFS did not reach max depth.");
 	}catch(int e)
 	{
-		mLogger->message(INFO, "BFS exited!");
+		mLogger->message(DEBUG, "BFS reached max depth!");
 	}
 
 	// Write the result
 	VertexList vertices;
 	for(std::map<Vertex, unsigned>::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
 	{
-		if(it->second > 0)
+		if(it->second > 0 && it->second <= range)
 			vertices.push_back(it->first);
 	}
 	return vertices;
