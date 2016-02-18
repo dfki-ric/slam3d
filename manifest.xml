@@ -9,6 +9,7 @@
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
   <depend package="cholmod" />
+  <depend package="tools/graph_analysis" />
   
   <tags>stable</tags>
 </package>
