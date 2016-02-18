@@ -314,9 +314,6 @@ void Mapper::linkToNeighbors(VertexObject::Ptr vertex, slam3d::Sensor* sensor, i
 				previously_matched_vertices.insert(edge->getTargetVertex());
 			else
 				previously_matched_vertices.insert(edge->getSourceVertex());
-		}else
-		{
-			mLogger->message(slam3d::WARNING, (boost::format("Ignoring edge from '%1%' while linking neighbors.") % edge->sensor).str());
 		}
 	}
 	
