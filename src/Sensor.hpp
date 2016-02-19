@@ -78,6 +78,13 @@ namespace slam3d
 		 */
 		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const = 0;
 		
+		/**
+		 * @brief 
+		 * @param measurements
+		 * @param pose
+		 */
+		virtual Measurement* alignMeasurements(std::vector<Measurement*> measurements, Transform pose) const = 0;
+		
 	protected:
 		std::string mName;
 		Logger* mLogger;

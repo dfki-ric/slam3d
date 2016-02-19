@@ -84,6 +84,8 @@ namespace slam3d
 		 */
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
 		
+		Measurement* alignMeasurements(MeasurementList measurements, Transform pose) const;
+		
 		/**
 		 * @brief Sets configuration for GICP algorithm.
 		 * @param c New configuration paramerters
