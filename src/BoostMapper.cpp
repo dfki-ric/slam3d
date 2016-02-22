@@ -122,8 +122,14 @@ bool BoostMapper::optimize()
 	{
 		unsigned int id = it->first;
 		Transform tf = it->second;
-		Vertex v = mNeighborMap[id];
-		mPoseGraph[v].corrected_pose = tf;
+		try
+		{
+			Vertex v = mIndexMap.at(id);
+			mPoseGraph[v].corrected_pose = tf;
+		}catch(std::out_of_range &e)
+		{
+			mLogger->message(ERROR, (boost::format("Vertex with id %1% does not exist!") % id).str());
+		}
 	}
 	
 	if(mLastVertex)
@@ -198,7 +204,19 @@ bool BoostMapper::addReading(Measurement* m)
 		{
 			Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
 			Transform guess = lastPose.inverse() * mCurrentPose;
-			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
+			// ---------------------------------------------------
+			VertexList lastVertices = getVerticesInRange(mLastVertex, 3);
+			VertexObjectList lastObjects;
+			for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+			{
+				lastObjects.push_back(mPoseGraph[*it]);
+			}
+			Measurement* aligned = sensor->alignMeasurements(lastObjects, lastPose);
+			TransformWithCovariance twc = sensor->calculateTransform(aligned, m, guess);
+			delete aligned;
+			// ---------------------------------------------------
+//			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
+			// ---------------------------------------------------
 			mCurrentPose = orthogonalize(lastPose * twc.transform);
 			
 			if(newVertex)
@@ -223,11 +241,11 @@ bool BoostMapper::addReading(Measurement* m)
 
 	// Add edges to other measurements nearby
 	buildNeighborIndex(sensor->getName());
-	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
+//	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
 
 	// TEST
-	VertexList in_range = getVerticesInRange(newVertex, 3);
-	mLogger->message(INFO, (boost::format("Vertices in range: %1%")%in_range.size()).str());
+//	VertexList in_range = getVerticesInRange(newVertex, 3);
+//	mLogger->message(INFO, (boost::format("Vertices in range: %1%")%in_range.size()).str());
 
 	// Overall last vertex
 	mLastVertex = newVertex;
@@ -407,6 +425,7 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
 	mLogger->message(DEBUG, (boost::format("Starting BFS at vertex %1% with max depth %2%.") % mPoseGraph[source].index % range).str());
 	DepthMap depth_map;
+	depth_map[source] = 0;
 	ColorMap c_map;
 	MaxDepthVisitor vis(depth_map, range);
 	try
@@ -417,6 +436,7 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 	{
 		mLogger->message(DEBUG, "BFS reached max depth!");
 	}
+	mLogger->message(DEBUG, (boost::format("BFS found %1% vertices.") % depth_map.size()).str());
 
 	// Write the result
 	VertexList vertices;

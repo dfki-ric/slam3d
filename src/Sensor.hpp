@@ -4,9 +4,6 @@
 #include "Types.hpp"
 #include "Logger.hpp"
 
-#include <vector>
-#include <string>
-
 namespace slam3d
 {	
 	/**
@@ -83,13 +80,15 @@ namespace slam3d
 		 * @param measurements
 		 * @param pose
 		 */
-		virtual Measurement* alignMeasurements(std::vector<Measurement*> measurements, Transform pose) const = 0;
+		virtual Measurement* alignMeasurements(const VertexObjectList& vertices, Transform pose) const = 0;
 		
 	protected:
 		std::string mName;
 		Logger* mLogger;
 		Transform mSensorPose;
 	};
+	
+	typedef std::map<std::string, Sensor*> SensorList;
 }
 
 #endif
