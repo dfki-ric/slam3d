@@ -226,7 +226,7 @@ void Mapper::writeGraphToFile(const std::string &name)
 
 VertexObject::Ptr Mapper::fromBaseGraph(Vertex::Ptr base)
 {
-	VertexObject::Ptr v = boost::dynamic_pointer_cast<VertexObject>(base);
+	VertexObject::Ptr v = dynamic_pointer_cast<VertexObject>(base);
 	if(!v)
 	{
 		throw BadElementType();
@@ -236,7 +236,7 @@ VertexObject::Ptr Mapper::fromBaseGraph(Vertex::Ptr base)
 
 EdgeObject::Ptr Mapper::fromBaseGraph(Edge::Ptr base)
 {
-	EdgeObject::Ptr e = boost::dynamic_pointer_cast<EdgeObject>(base);
+	EdgeObject::Ptr e = dynamic_pointer_cast<EdgeObject>(base);
 	if(!e)
 	{
 		throw BadElementType();
@@ -307,7 +307,7 @@ void Mapper::linkToNeighbors(VertexObject::Ptr vertex, slam3d::Sensor* sensor, i
 	previously_matched_vertices.insert(vertex);
 	while(edgeIterator->next())
 	{
-		EdgeObject::Ptr edge = boost::dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
+		EdgeObject::Ptr edge = dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
 		if(edge->sensor == sensor->getName())
 		{
 			if(edge->getSourceVertex() == vertex)
@@ -346,7 +346,7 @@ VertexList Mapper::getVerticesFromSensor(const std::string& sensor)
 	VertexIterator::Ptr vertexIterator = mPoseGraph->getVertexIterator();
 	while(vertexIterator->next())
 	{
-		VertexObject::Ptr vertex = boost::dynamic_pointer_cast<VertexObject>(vertexIterator->current());
+		VertexObject::Ptr vertex = dynamic_pointer_cast<VertexObject>(vertexIterator->current());
 		if(vertex->measurement->getSensorName() == sensor)
 		{
 			vertexList.push_back(vertex);
@@ -362,7 +362,7 @@ EdgeList Mapper::getEdgesFromSensor(const std::string& sensor)
 	EdgeIterator::Ptr edgeIterator = mPoseGraph->getEdgeIterator();
 	while(edgeIterator->next())
 	{
-		EdgeObject::Ptr edge = boost::dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
+		EdgeObject::Ptr edge = dynamic_pointer_cast<EdgeObject>(edgeIterator->current());
 		edgeList.push_back(edge);
 	}
 	

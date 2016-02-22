@@ -12,8 +12,8 @@ namespace graph_analysis
 	class VertexObject : public slam3d::VertexObject, public Vertex
 	{
 	public:
-		typedef boost::shared_ptr<VertexObject> Ptr;
-		typedef boost::shared_ptr<const VertexObject> ConstPtr;
+		typedef shared_ptr<VertexObject> Ptr;
+		typedef shared_ptr<const VertexObject> ConstPtr;
 
 		VertexObject(const std::string& l = ""):graph_analysis::Vertex(l)
 		{
@@ -26,8 +26,8 @@ namespace graph_analysis
 	class EdgeObject : public slam3d::EdgeObject, public Edge
 	{
 	public:
-		typedef boost::shared_ptr<EdgeObject> Ptr;
-		typedef boost::shared_ptr<const EdgeObject> ConstPtr;
+		typedef shared_ptr<EdgeObject> Ptr;
+		typedef shared_ptr<const EdgeObject> ConstPtr;
 
 		EdgeObject(const std::string& s, const std::string& l = ""):graph_analysis::Edge(l)
 		{
