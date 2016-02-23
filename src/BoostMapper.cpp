@@ -2,6 +2,9 @@
 #include "Solver.hpp"
 
 #include <boost/format.hpp>
+#include <boost/graph/visitors.hpp>
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/property_map/property_map.hpp>
 
 using namespace slam3d;
 
@@ -119,8 +122,14 @@ bool BoostMapper::optimize()
 	{
 		unsigned int id = it->first;
 		Transform tf = it->second;
-		Vertex v = mNeighborMap[id];
-		mPoseGraph[v].corrected_pose = tf;
+		try
+		{
+			Vertex v = mIndexMap.at(id);
+			mPoseGraph[v].corrected_pose = tf;
+		}catch(std::out_of_range &e)
+		{
+			mLogger->message(ERROR, (boost::format("Vertex with id %1% does not exist!") % id).str());
+		}
 	}
 	
 	if(mLastVertex)
@@ -191,11 +200,19 @@ bool BoostMapper::addReading(Measurement* m)
 	// Add edge to previous measurement
 	if(mLastVertex)
 	{
+		Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
+		Transform guess = lastPose.inverse() * mCurrentPose;
+
+		VertexList lastVertices = getVerticesInRange(mLastVertex, 3);
+		VertexObjectList lastObjects;
+		for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+		{
+			lastObjects.push_back(mPoseGraph[*it]);
+		}
+		Measurement* combined = sensor->createCombinedMeasurement(lastObjects, lastPose);
 		try
 		{
-			Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
-			Transform guess = lastPose.inverse() * mCurrentPose;
-			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
+			TransformWithCovariance twc = sensor->calculateTransform(combined, m, guess);
 			mCurrentPose = orthogonalize(lastPose * twc.transform);
 			
 			if(newVertex)
@@ -213,9 +230,11 @@ bool BoostMapper::addReading(Measurement* m)
 			if(!newVertex)
 			{
 				mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
+				delete combined;
 				return false;
 			}
 		}
+		delete combined;
 	}
 
 	// Add edges to other measurements nearby
@@ -264,30 +283,79 @@ Vertex BoostMapper::addVertex(Measurement* m, const Transform &corrected)
 	return newVertex;
 }
 
-Edge BoostMapper::addEdge(Vertex source, Vertex target,
+void BoostMapper::addEdge(Vertex source, Vertex target,
 	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
 {
-	Edge edge;
-	bool inserted;
-	boost::tie(edge, inserted) = boost::add_edge(source, target, mPoseGraph);
+	Edge forward_edge, inverse_edge;
+	bool inserted_forward, inserted_inverse;
+	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
+	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
+	
 	unsigned source_id = mPoseGraph[source].index;
 	unsigned target_id = mPoseGraph[target].index;
 
-	mPoseGraph[edge].transform = t;
-	mPoseGraph[edge].covariance = c;
-	mPoseGraph[edge].sensor = sensor;
-	mPoseGraph[edge].label = label;
-	mPoseGraph[edge].source = source_id;
-	mPoseGraph[edge].target = target_id;
+	mPoseGraph[forward_edge].transform = t;
+	mPoseGraph[forward_edge].covariance = c;
+	mPoseGraph[forward_edge].sensor = sensor;
+	mPoseGraph[forward_edge].label = label;
+	mPoseGraph[forward_edge].source = source_id;
+	mPoseGraph[forward_edge].target = target_id;
+	
+	mPoseGraph[inverse_edge].transform = t.inverse();
+	mPoseGraph[inverse_edge].covariance = c;
+	mPoseGraph[inverse_edge].sensor = sensor;
+	mPoseGraph[inverse_edge].label = label;
+	mPoseGraph[inverse_edge].source = target_id;
+	mPoseGraph[inverse_edge].target = source_id;
 	
 	if(mSolver)
 	{
 		mSolver->addConstraint(source_id, target_id, t, c);
 	}
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
-	return edge;
 }
 
+TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* sensor)
+{
+	// Create virtual measurement for source node
+	Transform sourcePose = mPoseGraph[source].corrected_pose;
+	VertexList sourceVertices = getVerticesInRange(source, 3);
+	VertexObjectList sourceObjects;
+	for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
+	{
+		sourceObjects.push_back(mPoseGraph[*it]);
+	}
+	Measurement* source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
+	
+	// Create virtual measurement for target node
+	Transform targetPose = mPoseGraph[target].corrected_pose;
+	VertexList targetVertices = getVerticesInRange(target, 3);
+	VertexObjectList targetObjects;
+	for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
+	{
+		targetObjects.push_back(mPoseGraph[*it]);
+	}
+	Measurement* target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
+	
+	// Estimate the transform from source to target
+	Transform guess = sourcePose.inverse() * targetPose;
+	TransformWithCovariance twc;
+	try
+	{
+		twc = sensor->calculateTransform(source_m, target_m, guess);
+	}catch(NoMatch &e)
+	{
+		delete source_m;
+		delete target_m;
+		throw e;
+	}
+	delete source_m;
+	delete target_m;
+
+	// Create new edge and return the transform
+	addEdge(source, target, twc.transform, twc.covariance, sensor->getName(), "loop");
+	return twc;
+}
 
 void BoostMapper::addExternalReading(Measurement* m, const Transform& t)
 {
@@ -324,16 +392,6 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 		}
 	}
 	
-	InEdgeIterator in_it, in_end;
-	boost::tie(in_it, in_end) = boost::in_edges(vertex, mPoseGraph);
-	for(; in_it != in_end; ++in_it)
-	{
-		if(mPoseGraph[*in_it].sensor == sensor->getName())
-		{
-			previously_matched_vertices.insert(boost::source(*in_it, mPoseGraph));
-		}
-	}
-	
 	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % neighbors.size()).str());
 	
@@ -344,10 +402,8 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 			continue;
 
 		try
-		{			
-			Transform guess = mPoseGraph[*it].corrected_pose.inverse() * mPoseGraph[vertex].corrected_pose;
-			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[*it].measurement, mPoseGraph[vertex].measurement, guess);
-			addEdge(*it, vertex, twc.transform, twc.covariance, sensor->getName(), "match");
+		{
+			TransformWithCovariance twc = link(*it, vertex, sensor);
 			added++;
 		}catch(NoMatch &e)
 		{
@@ -373,4 +429,53 @@ VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sens
 const VertexObject& BoostMapper::getVertex(IdType id)
 {
 	return mPoseGraph[mIndexMap.at(id)];
+}
+
+// BFS search for vertices with a maximum distance to a source node
+typedef std::map<Vertex, boost::default_color_type> ColorMap;
+typedef std::map<Vertex, unsigned> DepthMap;
+
+class MaxDepthVisitor : public boost::default_bfs_visitor
+{
+public:
+	MaxDepthVisitor(DepthMap& map, unsigned d) : depth_map(map), max_depth(d) {}
+
+	void tree_edge(Edge e, const AdjacencyGraph& g)
+	{
+		Vertex u = source(e, g);
+		Vertex v = target(e, g);
+		if(depth_map[u] >= max_depth)
+			throw 0;
+		depth_map[v] = depth_map[u] + 1;
+//		std::cout << "Set vertex " << g[v].index << " to depth " << depth_map[v] << " (max: " << max_depth << ")" << std::endl;
+	}
+private:
+	DepthMap& depth_map;
+	unsigned max_depth;
+};
+
+VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
+{
+	mLogger->message(DEBUG, (boost::format("Starting BFS at vertex %1% with max depth %2%.") % mPoseGraph[source].index % range).str());
+	DepthMap depth_map;
+	depth_map[source] = 0;
+	ColorMap c_map;
+	MaxDepthVisitor vis(depth_map, range);
+	try
+	{
+		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
+		mLogger->message(DEBUG, "BFS did not reach max depth.");
+	}catch(int e)
+	{
+		mLogger->message(DEBUG, "BFS reached max depth!");
+	}
+	mLogger->message(DEBUG, (boost::format("BFS found %1% vertices.") % depth_map.size()).str());
+
+	// Write the result
+	VertexList vertices;
+	for(DepthMap::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
+	{
+		vertices.push_back(it->first);
+	}
+	return vertices;
 }

@@ -85,6 +85,14 @@ namespace slam3d
 		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
 		
 		/**
+		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
+		 * @param vertices list of vertices that should contain a PointCloudMeasurement
+		 * @param pose origin of the accumulated pointcloud
+		 * @throw BadMeasurementType
+		 */		
+		Measurement* createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+		
+		/**
 		 * @brief Sets configuration for GICP algorithm.
 		 * @param c New configuration paramerters
 		 */
@@ -114,7 +122,7 @@ namespace slam3d
 		 * @return accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */
-		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices);
+		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
 	protected:
 		GICPConfiguration mConfiguration;

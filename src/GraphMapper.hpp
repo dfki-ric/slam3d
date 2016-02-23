@@ -51,41 +51,6 @@ if(!mapper->addReading(m))
 
 namespace slam3d
 {
-	/**
-	 * @struct VertexObject
-	 * @brief Object attached to a vertex in the pose graph.
-	 * @details It contains a pointer to an abstract measurement, which could
-	 * be anything, e.g. a range scan, point cloud or image.
-	 */
-	struct VertexObject
-	{
-		IdType index;
-		std::string label;
-		Transform corrected_pose;
-		Measurement* measurement;
-	};
-
-	/**
-	 * @struct EdgeObject
-	 * @brief Object attached to an edge in the pose graph.
-	 * @details It contains the relative transform from source to target,
-	 * the associated covariance matrix and the name of the sensor that
-	 * created this spatial relationship.
-	 */
-	struct EdgeObject
-	{
-		Transform transform;
-		Covariance covariance;
-		std::string sensor;
-		std::string label;
-		IdType source;
-		IdType target;
-	};
-
-	typedef std::vector<VertexObject> VertexObjectList;
-	typedef std::vector<EdgeObject> EdgeObjectList;
-	typedef std::map<std::string, Sensor*> SensorList;
-
 	class Solver;
 
 	/**

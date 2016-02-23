@@ -12,7 +12,7 @@ namespace slam3d
 	// Definitions of boost-graph related types
 	typedef boost::listS VRep;
 	typedef boost::listS ERep;
-	typedef boost::bidirectionalS GType;
+	typedef boost::directedS GType;
 	typedef boost::adjacency_list<VRep, ERep, GType, VertexObject, EdgeObject> AdjacencyGraph;
 	
 	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
@@ -113,12 +113,20 @@ namespace slam3d
 		 * @param label description to be added to this edge
 		 * @return 
 		 */
-		Edge addEdge(Vertex source,
+		void addEdge(Vertex source,
 		             Vertex target,
 		             const Transform &t,
 		             const Covariance &c,
 		             const std::string &sensor,
 		             const std::string &label);
+
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		TransformWithCovariance link(Vertex source, Vertex target, Sensor* sensor);
 
 		void linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links);
 		
@@ -152,7 +160,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		std::vector<Vertex> getNearbyVertices(const Transform &tf, float radius);
+		VertexList getNearbyVertices(const Transform &tf, float radius);
 
 		/**
 		 * @brief Start the backend optimization process.
@@ -160,6 +168,13 @@ namespace slam3d
 		 * @return true if optimization was successful
 		 */
 		bool optimize();
+		
+		/**
+		 * @brief Serch for nodes by using breadth-first-search
+		 * @param source start search from this node
+		 * @param range maximum number of steps to search from source
+		 */
+		VertexList getVerticesInRange(Vertex source, unsigned range);
 		
 	private:
 		// The boost graph object

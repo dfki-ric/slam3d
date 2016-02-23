@@ -4,9 +4,6 @@
 #include "Types.hpp"
 #include "Logger.hpp"
 
-#include <vector>
-#include <string>
-
 namespace slam3d
 {	
 	/**
@@ -78,11 +75,21 @@ namespace slam3d
 		 */
 		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const = 0;
 		
+		/**
+		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
+		 * @param vertices list of vertices that should contain measurements from this sensor
+		 * @param pose origin of the virtual measurement
+		 * @throw BadMeasurementType
+		 */
+		virtual Measurement* createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
+		
 	protected:
 		std::string mName;
 		Logger* mLogger;
 		Transform mSensorPose;
 	};
+	
+	typedef std::map<std::string, Sensor*> SensorList;
 }
 
 #endif
