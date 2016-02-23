@@ -238,8 +238,8 @@ bool BoostMapper::addReading(Measurement* m)
 	}
 
 	// Add edges to other measurements nearby
-//	buildNeighborIndex(sensor->getName());
-//	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
+	buildNeighborIndex(sensor->getName());
+	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
 
 	// Overall last vertex
 	mLastVertex = newVertex;
@@ -389,10 +389,8 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 			continue;
 
 		try
-		{			
-			Transform guess = mPoseGraph[*it].corrected_pose.inverse() * mPoseGraph[vertex].corrected_pose;
-			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[*it].measurement, mPoseGraph[vertex].measurement, guess);
-			addEdge(*it, vertex, twc.transform, twc.covariance, sensor->getName(), "match");
+		{
+			TransformWithCovariance twc = link(*it, vertex, sensor);
 			added++;
 		}catch(NoMatch &e)
 		{
