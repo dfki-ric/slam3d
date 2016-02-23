@@ -317,29 +317,42 @@ void BoostMapper::addEdge(Vertex source, Vertex target,
 
 TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* sensor)
 {
+	// Create virtual measurement for source node
 	Transform sourcePose = mPoseGraph[source].corrected_pose;
-	Transform guess = sourcePose.inverse() * mCurrentPose;
-
-	VertexList lastVertices = getVerticesInRange(source, 3);
-	VertexObjectList lastObjects;
-	for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+	VertexList sourceVertices = getVerticesInRange(source, 3);
+	VertexObjectList sourceObjects;
+	for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
 	{
-		lastObjects.push_back(mPoseGraph[*it]);
+		sourceObjects.push_back(mPoseGraph[*it]);
 	}
-
-	Measurement* combined = sensor->createCombinedMeasurement(lastObjects, sourcePose);
-	Measurement* m = mPoseGraph[target].measurement;
+	Measurement* source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
+	
+	// Create virtual measurement for target node
+	Transform targetPose = mPoseGraph[target].corrected_pose;
+	VertexList targetVertices = getVerticesInRange(target, 3);
+	VertexObjectList targetObjects;
+	for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
+	{
+		targetObjects.push_back(mPoseGraph[*it]);
+	}
+	Measurement* target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
+	
+	// Estimate the transform from source to target
+	Transform guess = sourcePose.inverse() * targetPose;
 	TransformWithCovariance twc;
 	try
 	{
-		twc = sensor->calculateTransform(combined, m, guess);
-	}catch(BadMeasurementType &e)
+		twc = sensor->calculateTransform(source_m, target_m, guess);
+	}catch(NoMatch &e)
 	{
-		delete combined;
+		delete source_m;
+		delete target_m;
 		throw e;
 	}
-	delete combined;
+	delete source_m;
+	delete target_m;
 
+	// Create new edge and return the transform
 	addEdge(source, target, twc.transform, twc.covariance, sensor->getName(), "loop");
 	return twc;
 }
