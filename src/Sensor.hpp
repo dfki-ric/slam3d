@@ -76,11 +76,12 @@ namespace slam3d
 		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const = 0;
 		
 		/**
-		 * @brief 
-		 * @param measurements
-		 * @param pose
+		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
+		 * @param vertices list of vertices that should contain measurements from this sensor
+		 * @param pose origin of the virtual measurement
+		 * @throw BadMeasurementType
 		 */
-		virtual Measurement* alignMeasurements(const VertexObjectList& vertices, Transform pose) const = 0;
+		virtual Measurement* createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
 		
 	protected:
 		std::string mName;

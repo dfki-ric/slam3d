@@ -200,23 +200,19 @@ bool BoostMapper::addReading(Measurement* m)
 	// Add edge to previous measurement
 	if(mLastVertex)
 	{
+		Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
+		Transform guess = lastPose.inverse() * mCurrentPose;
+
+		VertexList lastVertices = getVerticesInRange(mLastVertex, 3);
+		VertexObjectList lastObjects;
+		for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+		{
+			lastObjects.push_back(mPoseGraph[*it]);
+		}
+		Measurement* combined = sensor->createCombinedMeasurement(lastObjects, lastPose);
 		try
 		{
-			Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
-			Transform guess = lastPose.inverse() * mCurrentPose;
-			// ---------------------------------------------------
-			VertexList lastVertices = getVerticesInRange(mLastVertex, 3);
-			VertexObjectList lastObjects;
-			for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
-			{
-				lastObjects.push_back(mPoseGraph[*it]);
-			}
-			Measurement* aligned = sensor->alignMeasurements(lastObjects, lastPose);
-			TransformWithCovariance twc = sensor->calculateTransform(aligned, m, guess);
-			delete aligned;
-			// ---------------------------------------------------
-//			TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
-			// ---------------------------------------------------
+			TransformWithCovariance twc = sensor->calculateTransform(combined, m, guess);
 			mCurrentPose = orthogonalize(lastPose * twc.transform);
 			
 			if(newVertex)
@@ -234,18 +230,16 @@ bool BoostMapper::addReading(Measurement* m)
 			if(!newVertex)
 			{
 				mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
+				delete combined;
 				return false;
 			}
 		}
+		delete combined;
 	}
 
 	// Add edges to other measurements nearby
-	buildNeighborIndex(sensor->getName());
+//	buildNeighborIndex(sensor->getName());
 //	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
-
-	// TEST
-//	VertexList in_range = getVerticesInRange(newVertex, 3);
-//	mLogger->message(INFO, (boost::format("Vertices in range: %1%")%in_range.size()).str());
 
 	// Overall last vertex
 	mLastVertex = newVertex;

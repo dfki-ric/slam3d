@@ -124,11 +124,11 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	return accu;
 }
 
-Measurement* PointCloudSensor::alignMeasurements(const VertexObjectList& vertices, Transform pose) const
+Measurement* PointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const
 {
 	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
-	Measurement* m = new PointCloudMeasurement(shifted, "GeneratedPointcloud", this->getName(), Transform::Identity());
+	Measurement* m = new PointCloudMeasurement(shifted, "AccumulatedPointcloud", this->getName(), Transform::Identity());
 	return m;
 }
