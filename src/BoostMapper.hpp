@@ -120,6 +120,14 @@ namespace slam3d
 		             const std::string &sensor,
 		             const std::string &label);
 
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		TransformWithCovariance link(Vertex source, Vertex target, Sensor* sensor);
+
 		void linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links);
 		
 		/**

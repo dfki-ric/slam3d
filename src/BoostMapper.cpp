@@ -315,6 +315,34 @@ void BoostMapper::addEdge(Vertex source, Vertex target,
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 }
 
+TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* sensor)
+{
+	Transform sourcePose = mPoseGraph[source].corrected_pose;
+	Transform guess = sourcePose.inverse() * mCurrentPose;
+
+	VertexList lastVertices = getVerticesInRange(source, 3);
+	VertexObjectList lastObjects;
+	for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+	{
+		lastObjects.push_back(mPoseGraph[*it]);
+	}
+
+	Measurement* combined = sensor->createCombinedMeasurement(lastObjects, sourcePose);
+	Measurement* m = mPoseGraph[target].measurement;
+	TransformWithCovariance twc;
+	try
+	{
+		twc = sensor->calculateTransform(combined, m, guess);
+	}catch(BadMeasurementType &e)
+	{
+		delete combined;
+		throw e;
+	}
+	delete combined;
+
+	addEdge(source, target, twc.transform, twc.covariance, sensor->getName(), "loop");
+	return twc;
+}
 
 void BoostMapper::addExternalReading(Measurement* m, const Transform& t)
 {
