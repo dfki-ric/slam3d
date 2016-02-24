@@ -213,6 +213,8 @@ bool BoostMapper::addReading(Measurement* m)
 		try
 		{
 			TransformWithCovariance twc = sensor->calculateTransform(combined, m, guess);
+			delete combined;
+			combined = NULL;
 			mCurrentPose = orthogonalize(lastPose * twc.transform);
 			
 			if(newVertex)
@@ -234,7 +236,6 @@ bool BoostMapper::addReading(Measurement* m)
 				return false;
 			}
 		}
-		delete combined;
 	}
 
 	// Add edges to other measurements nearby
