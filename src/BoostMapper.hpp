@@ -91,6 +91,15 @@ namespace slam3d
 		 * @param sensor
 		 */
 		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor);
+		
+		/**
+		 * @brief Set how far to continue with a breadth-first-search through
+		 * the pose graph when building local map patches to match new
+		 * measurements against. It will use all vertices that are reachable
+		 * by a maximum of r edges.
+		 * @param r 
+		 */
+		void setPatchBuildingRange(unsigned r) {mPatchBuildingRange = r;}
 
 	private:
 	
@@ -197,6 +206,9 @@ namespace slam3d
 		// Some special vertices
 		Vertex mLastVertex;
 		Vertex mFirstVertex;
+		
+		// Parameters
+		unsigned mPatchBuildingRange;
 	};
 }
 

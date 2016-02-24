@@ -203,16 +203,22 @@ bool BoostMapper::addReading(Measurement* m)
 		Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
 		Transform guess = lastPose.inverse() * mCurrentPose;
 
-		VertexList lastVertices = getVerticesInRange(mLastVertex, 3);
-		VertexObjectList lastObjects;
-		for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+		Measurement* last = mPoseGraph[mLastVertex].measurement;
+		Measurement* combined = NULL;
+		if(mPatchBuildingRange > 0)
 		{
-			lastObjects.push_back(mPoseGraph[*it]);
+			VertexList lastVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
+			VertexObjectList lastObjects;
+			for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
+			{
+				lastObjects.push_back(mPoseGraph[*it]);
+			}
+			combined = sensor->createCombinedMeasurement(lastObjects, lastPose);
+			last = combined;
 		}
-		Measurement* combined = sensor->createCombinedMeasurement(lastObjects, lastPose);
 		try
 		{
-			TransformWithCovariance twc = sensor->calculateTransform(combined, m, guess);
+			TransformWithCovariance twc = sensor->calculateTransform(last, m, guess);
 			delete combined;
 			combined = NULL;
 			mCurrentPose = orthogonalize(lastPose * twc.transform);
