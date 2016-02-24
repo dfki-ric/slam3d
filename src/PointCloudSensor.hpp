@@ -21,6 +21,9 @@ namespace slam3d
 	class PointCloudMeasurement : public Measurement
 	{
 	public:
+		typedef boost::shared_ptr<PointCloudMeasurement> Ptr;
+	
+	public:
 		/**
 		 * @brief Constructor from point cloud and sensor name.
 		 * @param cloud shared pointer to the PointCloud
@@ -82,7 +85,7 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const;
+		TransformWithCovariance calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry) const;
 		
 		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
@@ -90,7 +93,7 @@ namespace slam3d
 		 * @param pose origin of the accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */		
-		Measurement* createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
 		
 		/**
 		 * @brief Sets configuration for GICP algorithm.

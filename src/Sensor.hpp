@@ -73,7 +73,7 @@ namespace slam3d
 		 * @param odometry estimation of robot movement
 		 * @throw BadMeasurementType
 		 */
-		virtual TransformWithCovariance calculateTransform(Measurement* source, Measurement* target, Transform odometry) const = 0;
+		virtual TransformWithCovariance calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry) const = 0;
 		
 		/**
 		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
@@ -81,7 +81,7 @@ namespace slam3d
 		 * @param pose origin of the virtual measurement
 		 * @throw BadMeasurementType
 		 */
-		virtual Measurement* createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
+		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
 		
 	protected:
 		std::string mName;

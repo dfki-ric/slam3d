@@ -139,7 +139,7 @@ bool BoostMapper::optimize()
 	return true;
 }
 
-bool BoostMapper::addReading(Measurement* m)
+bool BoostMapper::addReading(Measurement::Ptr m)
 {
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
@@ -203,8 +203,7 @@ bool BoostMapper::addReading(Measurement* m)
 		Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
 		Transform guess = lastPose.inverse() * mCurrentPose;
 
-		Measurement* last = mPoseGraph[mLastVertex].measurement;
-		Measurement* combined = NULL;
+		Measurement::Ptr last = mPoseGraph[mLastVertex].measurement;
 		if(mPatchBuildingRange > 0)
 		{
 			VertexList lastVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
@@ -213,14 +212,11 @@ bool BoostMapper::addReading(Measurement* m)
 			{
 				lastObjects.push_back(mPoseGraph[*it]);
 			}
-			combined = sensor->createCombinedMeasurement(lastObjects, lastPose);
-			last = combined;
+			last = sensor->createCombinedMeasurement(lastObjects, lastPose);
 		}
 		try
 		{
 			TransformWithCovariance twc = sensor->calculateTransform(last, m, guess);
-			delete combined;
-			combined = NULL;
 			mCurrentPose = orthogonalize(lastPose * twc.transform);
 			
 			if(newVertex)
@@ -238,7 +234,6 @@ bool BoostMapper::addReading(Measurement* m)
 			if(!newVertex)
 			{
 				mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
-				delete combined;
 				return false;
 			}
 		}
@@ -254,7 +249,7 @@ bool BoostMapper::addReading(Measurement* m)
 	return true;
 }
 
-Vertex BoostMapper::addVertex(Measurement* m, const Transform &corrected)
+Vertex BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	boost::format v_name("%1%:%2%");
@@ -332,7 +327,7 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	{
 		sourceObjects.push_back(mPoseGraph[*it]);
 	}
-	Measurement* source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
+	Measurement::Ptr source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
 	
 	// Create virtual measurement for target node
 	Transform targetPose = mPoseGraph[target].corrected_pose;
@@ -342,29 +337,18 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	{
 		targetObjects.push_back(mPoseGraph[*it]);
 	}
-	Measurement* target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
+	Measurement::Ptr target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
 	
 	// Estimate the transform from source to target
 	Transform guess = sourcePose.inverse() * targetPose;
-	TransformWithCovariance twc;
-	try
-	{
-		twc = sensor->calculateTransform(source_m, target_m, guess);
-	}catch(NoMatch &e)
-	{
-		delete source_m;
-		delete target_m;
-		throw e;
-	}
-	delete source_m;
-	delete target_m;
+	TransformWithCovariance twc = sensor->calculateTransform(source_m, target_m, guess);
 
 	// Create new edge and return the transform
 	addEdge(source, target, twc.transform, twc.covariance, sensor->getName(), "loop");
 	return twc;
 }
 
-void BoostMapper::addExternalReading(Measurement* m, const Transform& t)
+void BoostMapper::addExternalReading(Measurement::Ptr m, const Transform& t)
 {
 	Vertex v = addVertex(m, t);
 		

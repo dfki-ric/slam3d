@@ -67,10 +67,10 @@ BOOST_AUTO_TEST_CASE(icp)
 	PointCloud::Ptr cloud3 = loadFromFile("../test/cloud3.bin");
 	PointCloud::Ptr cloud4 = loadFromFile("../test/cloud4.bin");
 	
-	PointCloudMeasurement m1(cloud1, "r1", "pcl_sensor", sensor_pose);
-	PointCloudMeasurement m2(cloud2, "r1", "pcl_sensor", sensor_pose);
-	PointCloudMeasurement m3(cloud3, "r1", "pcl_sensor", sensor_pose);
-	PointCloudMeasurement m4(cloud4, "r1", "pcl_sensor", sensor_pose);
+	PointCloudMeasurement::Ptr m1(new PointCloudMeasurement(cloud1, "r1", "pcl_sensor", sensor_pose));
+	PointCloudMeasurement::Ptr m2(new PointCloudMeasurement(cloud2, "r1", "pcl_sensor", sensor_pose));
+	PointCloudMeasurement::Ptr m3(new PointCloudMeasurement(cloud3, "r1", "pcl_sensor", sensor_pose));
+	PointCloudMeasurement::Ptr m4(new PointCloudMeasurement(cloud4, "r1", "pcl_sensor", sensor_pose));
 /*	
 	Transform pose1 = Transform::Identity();
 	
@@ -120,11 +120,11 @@ BOOST_AUTO_TEST_CASE(icp)
 	pcl::transformPointCloud(*cloud1, *translated_cloud1, tx_inv.matrix());
 
 	logger.message(INFO, "Test translation without estimation");
-	PointCloudMeasurement m1_tx(translated_cloud1, "r1", "pcl_sensor", sensor_pose);
-	pclSensor.calculateTransform(&m1, &m1_tx, Transform::Identity());
+	PointCloudMeasurement::Ptr m1_tx(new PointCloudMeasurement(translated_cloud1, "r1", "pcl_sensor", sensor_pose));
+	pclSensor.calculateTransform(m1, m1_tx, Transform::Identity());
 	
 	logger.message(INFO, "Test translation with estimation");
-	pclSensor.calculateTransform(&m1, &m1_tx, tx);
+	pclSensor.calculateTransform(m1, m1_tx, tx);
 
 	// test rotation
 	Transform rx(Eigen::AngleAxisd(0.1, Eigen::Vector3d(1, 0, 0)));
@@ -133,9 +133,9 @@ BOOST_AUTO_TEST_CASE(icp)
 	pcl::transformPointCloud(*cloud1, *rotated_cloud1, rx_inv.matrix());
 	
 	logger.message(INFO, "Test rotarion without estimation");
-	PointCloudMeasurement m1_rx(rotated_cloud1, "r1", "pcl_sensor", sensor_pose);
-	pclSensor.calculateTransform(&m1, &m1_rx, Transform::Identity());
+	PointCloudMeasurement::Ptr m1_rx(new PointCloudMeasurement(rotated_cloud1, "r1", "pcl_sensor", sensor_pose));
+	pclSensor.calculateTransform(m1, m1_rx, Transform::Identity());
 	
 	logger.message(INFO, "Test rotation with estimation");
-	pclSensor.calculateTransform(&m1, &m1_rx, rx);
+	pclSensor.calculateTransform(m1, m1_rx, rx);
 }

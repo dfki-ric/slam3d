@@ -33,7 +33,7 @@ Mapper::~Mapper()
 {
 }
 
-bool Mapper::addReading(slam3d::Measurement* m)
+bool Mapper::addReading(slam3d::Measurement::Ptr m)
 {
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
@@ -131,7 +131,7 @@ bool Mapper::addReading(slam3d::Measurement* m)
 }
 
 
-void Mapper::addExternalReading(slam3d::Measurement* m, const slam3d::Transform& t)
+void Mapper::addExternalReading(slam3d::Measurement::Ptr m, const slam3d::Transform& t)
 {
 	VertexObject::Ptr v = addVertex(m, t);
 		
@@ -244,7 +244,7 @@ EdgeObject::Ptr Mapper::fromBaseGraph(Edge::Ptr base)
 	return e;
 }
 
-VertexObject::Ptr Mapper::addVertex(slam3d::Measurement* m, const slam3d::Transform &corrected)
+VertexObject::Ptr Mapper::addVertex(slam3d::Measurement::Ptr m, const slam3d::Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	boost::format v_name("%1%:%2%");

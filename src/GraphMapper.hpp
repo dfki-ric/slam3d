@@ -118,14 +118,14 @@ namespace slam3d
 		 * @param m pointer to a new measurement
 		 * @return true if the measurement was added
 		 */
-		virtual bool addReading(Measurement* m) = 0;
+		virtual bool addReading(Measurement::Ptr m) = 0;
 		
 		/**
 		 * @brief Add a new measurement from another robot.
 		 * @param m pointer to a new measurement
 		 * @param t pose in map coordinates
 		 */
-		virtual void addExternalReading(Measurement* m, const Transform& t) = 0;
+		virtual void addExternalReading(Measurement::Ptr m, const Transform& t) = 0;
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.

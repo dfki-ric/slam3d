@@ -81,14 +81,14 @@ namespace graph_analysis
 		 * @param m pointer to a new measurement
 		 * @return true if the measurement was added
 		 */
-		virtual bool addReading(slam3d::Measurement* m);
+		virtual bool addReading(slam3d::Measurement::Ptr m);
 		
 		/**
 		 * @brief Add a new measurement from another robot.
 		 * @param m pointer to a new measurement
 		 * @param t pose in map coordinates
 		 */
-		virtual void addExternalReading(slam3d::Measurement* m, const slam3d::Transform& t);
+		virtual void addExternalReading(slam3d::Measurement::Ptr m, const slam3d::Transform& t);
 		
 		/**
 		 * @brief Start the backend optimization process.
@@ -132,7 +132,7 @@ namespace graph_analysis
 		virtual slam3d::EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor);
 		
 	private:
-		VertexObject::Ptr addVertex(slam3d::Measurement* m,
+		VertexObject::Ptr addVertex(slam3d::Measurement::Ptr m,
 		                            const slam3d::Transform &corrected);
 
 		EdgeObject::Ptr addEdge(VertexObject::Ptr source,

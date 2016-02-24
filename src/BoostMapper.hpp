@@ -57,14 +57,14 @@ namespace slam3d
 		 * @param m pointer to a new measurement
 		 * @return true if the measurement was added
 		 */
-		bool addReading(Measurement* m);
+		bool addReading(Measurement::Ptr m);
 
 		/**
 		 * @brief Add a new measurement from another robot.
 		 * @param m pointer to a new measurement
 		 * @param t pose in map coordinates
 		 */
-		void addExternalReading(Measurement* m, const Transform& t);
+		void addExternalReading(Measurement::Ptr m, const Transform& t);
 		
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
@@ -107,7 +107,7 @@ namespace slam3d
 		 * @param corrected initial pose of the vertex in map coordinates
 		 * @return descriptor of the new vertex
 		 */
-		Vertex addVertex(Measurement* m,
+		Vertex addVertex(Measurement::Ptr m,
 		                 const Transform &corrected);
 
 		/**

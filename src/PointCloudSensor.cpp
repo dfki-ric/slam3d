@@ -43,14 +43,14 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double
 	return out;
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(Measurement* source, Measurement* target, Transform odometry) const
+TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry) const
 {
 	// Transform guess in sensor frame
 	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
 	
 	// Cast to this sensors measurement type
-	PointCloudMeasurement* sourceCloud = dynamic_cast<PointCloudMeasurement*>(source);
-	PointCloudMeasurement* targetCloud = dynamic_cast<PointCloudMeasurement*>(target);
+	PointCloudMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(source);
+	PointCloudMeasurement::Ptr targetCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(target);
 	if(!sourceCloud || !targetCloud)
 	{
 		mLogger->message(ERROR, "Measurement given to calculateTransform() is not a PointCloud!");
@@ -110,7 +110,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	PointCloud::Ptr accu(new PointCloud);
 	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{
-		PointCloudMeasurement* pcl = dynamic_cast<PointCloudMeasurement*>(it->measurement);
+		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(it->measurement);
 		if(!pcl)
 		{
 			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
@@ -124,11 +124,11 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	return accu;
 }
 
-Measurement* PointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const
+Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const
 {
 	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
-	Measurement* m = new PointCloudMeasurement(shifted, "AccumulatedPointcloud", this->getName(), Transform::Identity());
+	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", this->getName(), Transform::Identity()));
 	return m;
 }

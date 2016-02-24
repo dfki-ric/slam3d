@@ -47,6 +47,9 @@ namespace slam3d
 	class Measurement
 	{
 	public:
+		typedef boost::shared_ptr<Measurement> Ptr;
+		
+	public:
 		Measurement(){}
 		virtual ~Measurement(){}
 		
@@ -78,7 +81,7 @@ namespace slam3d
 		IdType index;
 		std::string label;
 		Transform corrected_pose;
-		Measurement* measurement;
+		Measurement::Ptr measurement;
 	};
 
 	/**
