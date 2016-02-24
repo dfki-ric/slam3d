@@ -321,23 +321,30 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 {
 	// Create virtual measurement for source node
 	Transform sourcePose = mPoseGraph[source].corrected_pose;
-	VertexList sourceVertices = getVerticesInRange(source, 3);
-	VertexObjectList sourceObjects;
-	for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
-	{
-		sourceObjects.push_back(mPoseGraph[*it]);
-	}
-	Measurement::Ptr source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
-	
-	// Create virtual measurement for target node
 	Transform targetPose = mPoseGraph[target].corrected_pose;
-	VertexList targetVertices = getVerticesInRange(target, 3);
-	VertexObjectList targetObjects;
-	for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
+	
+	Measurement::Ptr source_m = mPoseGraph[source].measurement;
+	Measurement::Ptr target_m = mPoseGraph[target].measurement;
+	
+	if(mPatchBuildingRange > 0)
 	{
-		targetObjects.push_back(mPoseGraph[*it]);
+		VertexList sourceVertices = getVerticesInRange(source, 3);
+		VertexObjectList sourceObjects;
+		for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
+		{
+			sourceObjects.push_back(mPoseGraph[*it]);
+		}
+		source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
+
+		// Create virtual measurement for target node
+		VertexList targetVertices = getVerticesInRange(target, 3);
+		VertexObjectList targetObjects;
+		for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
+		{
+			targetObjects.push_back(mPoseGraph[*it]);
+		}
+		target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
 	}
-	Measurement::Ptr target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
 	
 	// Estimate the transform from source to target
 	Transform guess = sourcePose.inverse() * targetPose;
