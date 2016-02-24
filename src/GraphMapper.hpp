@@ -174,6 +174,15 @@ namespace slam3d
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 
 		/**
+		 * @brief Set how far to continue with a breadth-first-search through
+		 * the pose graph when building local map patches to match new
+		 * measurements against. It will use all vertices that are reachable
+		 * by a maximum of r edges.
+		 * @param r 
+		 */
+		void setPatchBuildingRange(unsigned r) {mPatchBuildingRange = r;}
+
+		/**
 		 * @brief Gets a vertex object by its given id. The id is given to each
 		 * vertex upon creation and then never changed. These id's are local and
 		 * cannot be compared between different agents in a distributed setup.
@@ -212,6 +221,7 @@ namespace slam3d
 		float mMinTranslation;
 		float mMinRotation;
 		bool mAddOdometryEdges;
+		unsigned mPatchBuildingRange;
 	};
 }
 
