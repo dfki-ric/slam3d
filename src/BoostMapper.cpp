@@ -403,7 +403,7 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 
 		try
 		{
-			TransformWithCovariance twc = link(*it, vertex, sensor);
+			link(*it, vertex, sensor);
 			added++;
 		}catch(NoMatch &e)
 		{
