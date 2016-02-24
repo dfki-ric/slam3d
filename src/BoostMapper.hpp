@@ -74,6 +74,13 @@ namespace slam3d
 		const VertexObject& getLastVertex() { return mPoseGraph[mLastVertex]; }
 		
 		/**
+		 * @brief Start the backend optimization process.
+		 * @details Requires that a Solver has been set with setSolver.
+		 * @return true if optimization was successful
+		 */
+		bool optimize();
+		
+		/**
 		 * @brief Gets a vertex object by its given id.
 		 * @param id
 		 * @throw std::out_of_range
@@ -170,13 +177,6 @@ namespace slam3d
 		 * @return list of spatially near vertices
 		 */
 		VertexList getNearbyVertices(const Transform &tf, float radius);
-
-		/**
-		 * @brief Start the backend optimization process.
-		 * @details Requires that a Solver has been set with setSolver.
-		 * @return true if optimization was successful
-		 */
-		bool optimize();
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
