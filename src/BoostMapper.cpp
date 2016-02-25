@@ -85,20 +85,25 @@ VertexList BoostMapper::getNearbyVertices(const Transform &tf, float radius)
 	query[0][0] = t[0];
 	query[0][1] = t[1];
 	query[0][2] = t[2];
+	mLogger->message(DEBUG, (boost::format("Doing NN search from (%1%, %2%, %3%) with radius %4%.")%t[0]%t[1]%t[2]%radius).str());
 	
 	// Find points nearby
 	std::vector< std::vector<int> > neighbors;
 	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
-	mNeighborIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
+	int found = mNeighborIndex.radiusSearch(query, neighbors, distances, radius*radius, mSearchParams);
 	
 	// Write the result
 	VertexList result;
-	std::vector<int>::iterator it;
-	for(it = neighbors[0].begin(); it < neighbors[0].end(); it++)
+	std::vector<int>::iterator it = neighbors[0].begin();
+	std::vector<NeighborIndex::DistanceType>::iterator d = distances[0].begin();
+	for(; it < neighbors[0].end(); ++it, ++d)
 	{
-		result.push_back(mNeighborMap[*it]);
+		Vertex n = mNeighborMap[*it];
+		result.push_back(n);
+		mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mPoseGraph[n].index % *d).str());
 	}
 	
+	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
 	return result;
 }
 
@@ -391,7 +396,6 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 	}
 	
 	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
-	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % neighbors.size()).str());
 	
 	int added = 0;
 	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && added < max_links; ++it)
