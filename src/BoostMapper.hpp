@@ -88,6 +88,15 @@ namespace slam3d
 		const VertexObject& getVertex(IdType id);
 
 		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 * @throw std::out_of_range, InvalidEdge
+		 */
+		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
+
+		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */

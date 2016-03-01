@@ -53,6 +53,23 @@ namespace slam3d
 {
 	class Solver;
 
+	class InvalidEdge : public std::exception
+	{
+	public:
+		InvalidEdge(IdType s, IdType t)
+		: source(s), target(t) {}
+		
+		virtual const char* what() const throw()
+		{
+			std::ostringstream msg;
+			msg << "No edge between " << source << " and " << target << "!";
+			return msg.str().c_str();
+		}
+		
+		IdType source;
+		IdType target;
+	};
+
 	/**
 	 * @class GraphMapper
 	 * @brief Holds measurements from different sensors in a graph.
@@ -189,6 +206,14 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 */
 		virtual const VertexObject& getVertex(IdType id) = 0;
+		
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) = 0;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.

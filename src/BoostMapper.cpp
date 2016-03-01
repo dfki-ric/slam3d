@@ -433,6 +433,22 @@ const VertexObject& BoostMapper::getVertex(IdType id)
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
+const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::string& sensor)
+{
+	OutEdgeIterator it, it_end;
+	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
+	while(it != it_end)
+	{
+		const VertexObject& tObject = mPoseGraph[boost::target(*it, mPoseGraph)];
+		if(tObject.index == target && tObject.measurement->getSensorName() == sensor)
+		{
+			return mPoseGraph[*it];
+		}
+		++it;
+	}
+	throw InvalidEdge(source, target);
+}
+
 // BFS search for vertices with a maximum distance to a source node
 typedef std::map<Vertex, boost::default_color_type> ColorMap;
 typedef std::map<Vertex, unsigned> DepthMap;
