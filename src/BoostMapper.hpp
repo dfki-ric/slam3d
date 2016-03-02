@@ -97,6 +97,13 @@ namespace slam3d
 		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
 
 		/**
+		 * @brief Get all outgoing edges from given source.
+		 * @param source
+		 * @throw std::out_of_range
+		 */
+		virtual EdgeObjectList getOutEdges(IdType source) const;
+		
+		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */

@@ -449,6 +449,19 @@ const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::
 	throw InvalidEdge(source, target);
 }
 
+EdgeObjectList BoostMapper::getOutEdges(IdType source) const
+{
+	OutEdgeIterator it, it_end;
+	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
+	EdgeObjectList edges;
+	while(it != it_end)
+	{
+		edges.push_back(mPoseGraph[*it]);
+		++it;
+	}
+	return edges;
+}
+
 // BFS search for vertices with a maximum distance to a source node
 typedef std::map<Vertex, boost::default_color_type> ColorMap;
 typedef std::map<Vertex, unsigned> DepthMap;
