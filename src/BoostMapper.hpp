@@ -66,6 +66,12 @@ namespace slam3d
 		 */
 		void addExternalReading(Measurement::Ptr m, const Transform& t);
 		
+		void addExternalConstraint(boost::uuids::uuid source,
+		                           boost::uuids::uuid target,
+		                           const Transform& relative_pose,
+		                           const Covariance& covariance,
+		                           const std::string& sensor);
+										   
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
 		 * @details This will not return external vertices from other robots.

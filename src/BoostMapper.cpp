@@ -362,23 +362,16 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 
 void BoostMapper::addExternalReading(Measurement::Ptr m, const Transform& t)
 {
-	Vertex v = addVertex(m, t);
-		
-	// Get the sensor responsible for this measurement
-	// Can throw std::out_of_range if sensor is not registered
-	mLogger->message(DEBUG, (boost::format("Add external reading from %1%:%2%.") % m->getRobotName() % m->getSensorName()).str());
-	Sensor* sensor = NULL;
-	try
-	{
-		sensor = mSensors.at(m->getSensorName());
-		buildNeighborIndex(sensor->getName());
-		linkToNeighbors(v, sensor, mMaxNeighorLinks);
-	}catch(std::out_of_range e)
-	{
-		return;
-	}
+	addVertex(m, t);
 }
 
+void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
+{
+	Vertex source = mVertexIndex.at(s);
+	Vertex target = mVertexIndex.at(t);
+	addEdge(source, target, tf, cov, sensor, "ext");
+}
+										   
 void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 {
 	// Get all edges to/from this node

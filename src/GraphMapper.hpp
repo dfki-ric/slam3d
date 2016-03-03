@@ -144,6 +144,12 @@ namespace slam3d
 		 */
 		virtual void addExternalReading(Measurement::Ptr m, const Transform& t) = 0;
 
+		virtual void addExternalConstraint(boost::uuids::uuid source,
+		                                   boost::uuids::uuid target,
+		                                   const Transform& relative_pose,
+		                                   const Covariance& covariance,
+		                                   const std::string& sensor) = 0;
+
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
 		 * @details The pose is updated at least whenever a new node is added.
