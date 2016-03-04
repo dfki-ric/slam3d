@@ -70,6 +70,25 @@ namespace slam3d
 		IdType target;
 	};
 
+	class DuplicateEdge : public std::exception
+	{
+	public:
+		DuplicateEdge(IdType s, IdType t, const std::string& name)
+		 : source(s), target(t), sensor(name) {}
+		~DuplicateEdge() throw() {}
+		
+		virtual const char* what() const throw()
+		{
+			std::ostringstream msg;
+			msg << "Edge between " << source << " and " << target << " from sensor " << sensor << "already exists!";
+			return msg.str().c_str();
+		}
+		
+		IdType source;
+		IdType target;
+		std::string sensor;
+	};
+
 	/**
 	 * @class GraphMapper
 	 * @brief Holds measurements from different sensors in a graph.
@@ -212,6 +231,12 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 */
 		virtual const VertexObject& getVertex(IdType id) = 0;
+
+		/**
+		 * @brief 
+		 * @return 
+		 */
+		virtual const VertexObject& getVertex(boost::uuids::uuid id) = 0;
 		
 		/**
 		 * @brief 

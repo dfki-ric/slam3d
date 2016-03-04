@@ -93,6 +93,8 @@ namespace slam3d
 		 */
 		const VertexObject& getVertex(IdType id);
 
+		const VertexObject& getVertex(boost::uuids::uuid id);
+
 		/**
 		 * @brief 
 		 * @param source
