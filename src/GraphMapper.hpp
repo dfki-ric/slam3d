@@ -161,7 +161,11 @@ namespace slam3d
 		 * @param m pointer to a new measurement
 		 * @param t pose in map coordinates
 		 */
-		virtual void addExternalReading(Measurement::Ptr m, const Transform& t) = 0;
+		virtual void addExternalReading(Measurement::Ptr m,
+		                                boost::uuids::uuid s,
+		                                const Transform& tf,
+		                                const Covariance& cov,
+										const std::string& sensor) = 0;
 
 		virtual void addExternalConstraint(boost::uuids::uuid source,
 		                                   boost::uuids::uuid target,

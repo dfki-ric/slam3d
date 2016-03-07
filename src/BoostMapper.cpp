@@ -360,9 +360,12 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	return twc;
 }
 
-void BoostMapper::addExternalReading(Measurement::Ptr m, const Transform& t)
+void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
 {
-	addVertex(m, t);
+	Vertex source = mVertexIndex.at(s);
+	Transform pose = mPoseGraph[source].corrected_pose * tf;
+	Vertex target = addVertex(m, pose);
+	addEdge(source, target, tf, cov, sensor, "ext");	
 }
 
 void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
