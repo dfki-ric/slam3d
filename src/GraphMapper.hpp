@@ -194,7 +194,7 @@ namespace slam3d
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		virtual const VertexObject& getLastVertex() = 0;
+		virtual const VertexObject& getLastVertex() const = 0;
 
 		/**
 		 * @brief Write the current graph to a file (currently dot).
@@ -234,25 +234,13 @@ namespace slam3d
 		 * cannot be compared between different agents in a distributed setup.
 		 * @param id identifier for a vertex
 		 */
-		virtual const VertexObject& getVertex(IdType id) = 0;
+		virtual const VertexObject& getVertex(IdType id) const = 0;
 
 		/**
 		 * @brief 
 		 * @return 
 		 */
-		virtual const VertexObject& getVertex(boost::uuids::uuid id) = 0;
-
-		/**
-		 * @brief Check if a vertex with given id exists.
-		 * @param id
-		 */
-		bool hasVertex(IdType id);
-
-		/**
-		 * @brief Check if a vertex with given id exists. 
-		 * @param id
-		 */
-		bool hasVertex(boost::uuids::uuid id);
+		virtual const VertexObject& getVertex(boost::uuids::uuid id) const = 0;
 
 		/**
 		 * @brief 
@@ -260,7 +248,7 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) = 0;
+		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all outgoing edges from given source.
@@ -272,13 +260,13 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) = 0;
+		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) = 0;
+		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const = 0;
 
 	protected:
 		static Transform orthogonalize(const Transform& t);

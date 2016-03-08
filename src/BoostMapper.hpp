@@ -81,7 +81,7 @@ namespace slam3d
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		const VertexObject& getLastVertex() { return mPoseGraph[mLastVertex]; }
+		const VertexObject& getLastVertex() const { return mPoseGraph[mLastVertex]; }
 		
 		/**
 		 * @brief Start the backend optimization process.
@@ -95,22 +95,10 @@ namespace slam3d
 		 * @param id
 		 * @throw std::out_of_range
 		 */
-		const VertexObject& getVertex(IdType id);
+		const VertexObject& getVertex(IdType id) const;
 
-		const VertexObject& getVertex(boost::uuids::uuid id);
+		const VertexObject& getVertex(boost::uuids::uuid id) const;
 
-		/**
-		 * @brief Check if a vertex with given id exists.
-		 * @param id
-		 */
-		bool hasVertex(IdType id);
-		
-		/**
-		 * @brief Check if a vertex with given id exists. 
-		 * @param id
-		 */
-		bool hasVertex(boost::uuids::uuid id);
-		
 		/**
 		 * @brief 
 		 * @param source
@@ -118,7 +106,7 @@ namespace slam3d
 		 * @param sensor
 		 * @throw std::out_of_range, InvalidEdge
 		 */
-		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
+		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const;
 
 		/**
 		 * @brief Get all outgoing edges from given source.
@@ -131,13 +119,13 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor);
+		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor);
+		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const;
 
 	private:
 	

@@ -45,7 +45,7 @@ EdgeList BoostMapper::getEdgesFromSensor(const std::string& sensor)
 	return edgeList;
 }
 
-EdgeObjectList BoostMapper::getEdgeObjectsFromSensor(const std::string& sensor)
+EdgeObjectList BoostMapper::getEdgeObjectsFromSensor(const std::string& sensor) const
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -410,7 +410,7 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 	}
 }
 
-VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sensor)
+VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sensor) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -424,27 +424,17 @@ VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sens
 	return objectList;
 }
 
-const VertexObject& BoostMapper::getVertex(IdType id)
+const VertexObject& BoostMapper::getVertex(IdType id) const
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-const VertexObject& BoostMapper::getVertex(boost::uuids::uuid id)
+const VertexObject& BoostMapper::getVertex(boost::uuids::uuid id) const
 {
 	return mPoseGraph[mVertexIndex.at(id)];
 }
 
-bool BoostMapper::hasVertex(IdType id)
-{
-	return mIndexMap.find(id) != mIndexMap.end();
-}
-
-bool BoostMapper::hasVertex(boost::uuids::uuid id)
-{
-	return mVertexIndex.find(id) != mVertexIndex.end();
-}
-
-const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::string& sensor)
+const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
