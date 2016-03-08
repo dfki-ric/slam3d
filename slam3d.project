@@ -90,7 +90,7 @@
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
         <ThirdPartyToolName>None</ThirdPartyToolName>
-        <WorkingDirectory>$(WorkspacePath)/slam/slam3d/build</WorkingDirectory>
+        <WorkingDirectory>$(WorkspacePath)slam/slam3d/build</WorkingDirectory>
       </CustomBuild>
       <AdditionalRules>
         <CustomPostBuild/>
