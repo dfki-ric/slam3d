@@ -434,6 +434,16 @@ const VertexObject& BoostMapper::getVertex(boost::uuids::uuid id)
 	return mPoseGraph[mVertexIndex.at(id)];
 }
 
+bool BoostMapper::hasVertex(IdType id)
+{
+	return mIndexMap.find(id) != mIndexMap.end();
+}
+
+bool BoostMapper::hasVertex(boost::uuids::uuid id)
+{
+	return mVertexIndex.find(id) != mVertexIndex.end();
+}
+
 const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::string& sensor)
 {
 	OutEdgeIterator it, it_end;

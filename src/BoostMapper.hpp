@@ -100,6 +100,18 @@ namespace slam3d
 		const VertexObject& getVertex(boost::uuids::uuid id);
 
 		/**
+		 * @brief Check if a vertex with given id exists.
+		 * @param id
+		 */
+		bool hasVertex(IdType id);
+		
+		/**
+		 * @brief Check if a vertex with given id exists. 
+		 * @param id
+		 */
+		bool hasVertex(boost::uuids::uuid id);
+		
+		/**
 		 * @brief 
 		 * @param source
 		 * @param target
