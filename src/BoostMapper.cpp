@@ -362,10 +362,21 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 
 void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
 {
-	Vertex source = mVertexIndex.at(s);
-	Transform pose = mPoseGraph[source].corrected_pose * tf;
-	Vertex target = addVertex(m, pose);
-	addEdge(source, target, tf, cov, sensor, "ext");	
+	if(s.is_nil())
+	{
+		Vertex v = addVertex(m, tf);
+		SensorList::iterator s = mSensors.find(sensor);
+		if(s != mSensors.end())
+		{
+			linkToNeighbors(v, *s, mMaxNeighorLinks);
+		}
+	}else
+	{
+		Vertex source = mVertexIndex.at(s);
+		Transform pose = mPoseGraph[source].corrected_pose * tf;
+		Vertex target = addVertex(m, pose);
+		addEdge(source, target, tf, cov, sensor, "ext");
+	}
 }
 
 void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
