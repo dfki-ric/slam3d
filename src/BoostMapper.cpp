@@ -368,7 +368,7 @@ void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, c
 		SensorList::iterator s = mSensors.find(sensor);
 		if(s != mSensors.end())
 		{
-			linkToNeighbors(v, *s, mMaxNeighorLinks);
+			linkToNeighbors(v, s->second, mMaxNeighorLinks);
 		}
 	}else
 	{
