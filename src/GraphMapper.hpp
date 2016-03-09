@@ -89,6 +89,16 @@ namespace slam3d
 		std::string sensor;
 	};
 
+	class DuplicateMeasurement: public std::exception
+	{
+	public:
+		virtual const char* what() const throw()
+		{
+			std::ostringstream msg;
+			msg << "Measurement already in graph!";
+			return msg.str().c_str();
+		}
+	};
 	/**
 	 * @class GraphMapper
 	 * @brief Holds measurements from different sensors in a graph.
