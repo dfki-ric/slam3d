@@ -370,15 +370,6 @@ void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, c
 	if(s.is_nil())
 	{
 		Vertex v = addVertex(m, tf);
-//		SensorList::iterator s = mSensors.find(m->getSensorName());
-//		if(s != mSensors.end())
-//		{
-//			buildNeighborIndex(s->second->getName());
-//			linkToNeighbors(v, s->second, mMaxNeighorLinks);
-//		}else
-//		{
-//			mLogger->message(ERROR, (boost::format("Cannot link measurement from sensor '%1%'!") % m->getSensorName()).str());
-//		}
 	}else
 	{
 		Vertex source = mVertexIndex.at(s);

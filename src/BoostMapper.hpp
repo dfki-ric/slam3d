@@ -61,15 +61,32 @@ namespace slam3d
 
 		/**
 		 * @brief Add a new measurement from another robot.
-		 * @param m pointer to a new measurement
-		 * @param t pose in map coordinates
+		 * @details The new measurement is added to the graph and directly
+		 * linked to the measurement with the given uuid. This enforces that
+		 * the graph stays connected even when external measurement cannot be
+		 * linked to local ones.
+		 * @param measurement pointer to a new measurement
+		 * @param source_uuid uuid of another measurement
+		 * @param tf transform between measurement and source
+		 * @param cov covariance of that transform
+		 * @param sensor name of sensor that created the constraint (not the measurement!)
+		 * @throw DuplicateMeasurement
 		 */
-		void addExternalReading(Measurement::Ptr m,
-		                        boost::uuids::uuid s,
+		void addExternalReading(Measurement::Ptr measurement,
+		                        boost::uuids::uuid source_uuid,
 		                        const Transform& tf,
 		                        const Covariance& cov,
 		                        const std::string& sensor);
-		
+
+		/**
+		 * @brief Add a constraint from another robot between two measurements.
+		 * @param source uuid of a measurement
+		 * @param target uuid of a measurement
+		 * @param relative_pose transform from source to target
+		 * @param covariance covarinave of that transform
+		 * @param sensor name of sensor that created the constraint
+		 * @throw DuplicateEdge
+		 */		
 		void addExternalConstraint(boost::uuids::uuid source,
 		                           boost::uuids::uuid target,
 		                           const Transform& relative_pose,
@@ -97,14 +114,20 @@ namespace slam3d
 		 */
 		const VertexObject& getVertex(IdType id) const;
 
+		/**
+		 * @brief Gets a vertex object by its given uuid.
+		 * @param id
+		 * @throw std::out_of_range
+		 */
 		const VertexObject& getVertex(boost::uuids::uuid id) const;
 
 		/**
-		 * @brief 
+		 * @brief Gets the edge from given sensor between source and target.
 		 * @param source
 		 * @param target
 		 * @param sensor
-		 * @throw std::out_of_range, InvalidEdge
+		 * @throw std::out_of_range if source or target don't exist
+		 * @throw InvalidEdge
 		 */
 		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const;
 
@@ -156,13 +179,21 @@ namespace slam3d
 		             const std::string &label);
 
 		/**
-		 * @brief 
+		 * @brief Establish a link between source and target using sensor.
 		 * @param source
 		 * @param target
 		 * @param sensor
+		 * @return estimated transform between the vertices
+		 * @throw everything Sensor::calculateTransform can throw
 		 */
 		TransformWithCovariance link(Vertex source, Vertex target, Sensor* sensor);
 
+		/**
+		 * @brief Link the given vertex to a nearby vertices using the given sensor.
+		 * @param vertex the vertex to link against
+		 * @param sensor the sensor to use for linking
+		 * @param max_links maximum amount of created links
+		 */
 		void linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links);
 		
 		/**

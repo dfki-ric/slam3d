@@ -168,15 +168,30 @@ namespace slam3d
 		
 		/**
 		 * @brief Add a new measurement from another robot.
-		 * @param m pointer to a new measurement
-		 * @param t pose in map coordinates
+		 * @details The new measurement is added to the graph and directly
+		 * linked to the measurement with the given uuid. This enforces that
+		 * the graph stays connected even when external measurement cannot be
+		 * linked to local ones.
+		 * @param measurement pointer to a new measurement
+		 * @param source_uuid uuid of another measurement
+		 * @param tf transform between measurement and source
+		 * @param cov covariance of that transform
+		 * @param sensor name of sensor that created the constraint (not the measurement!)
 		 */
-		virtual void addExternalReading(Measurement::Ptr m,
-		                                boost::uuids::uuid s,
+		virtual void addExternalReading(Measurement::Ptr measurement,
+		                                boost::uuids::uuid source_uuid,
 		                                const Transform& tf,
 		                                const Covariance& cov,
 										const std::string& sensor) = 0;
 
+		/**
+		 * @brief Add a constraint from another robot between two measurements.
+		 * @param source uuid of a measurement
+		 * @param target uuid of a measurement
+		 * @param relative_pose transform from source to target
+		 * @param covariance covarinave of that transform
+		 * @param sensor name of sensor that created the constraint
+		 */
 		virtual void addExternalConstraint(boost::uuids::uuid source,
 		                                   boost::uuids::uuid target,
 		                                   const Transform& relative_pose,
@@ -243,12 +258,14 @@ namespace slam3d
 		 * vertex upon creation and then never changed. These id's are local and
 		 * cannot be compared between different agents in a distributed setup.
 		 * @param id identifier for a vertex
+		 * @return constant reference to a vertex
 		 */
 		virtual const VertexObject& getVertex(IdType id) const = 0;
 
 		/**
-		 * @brief 
-		 * @return 
+		 * @brief Gets a vertex by the uuid of the attached Measurement.
+		 * @param id uuid of a measurement
+		 * @return constant reference to a vertex
 		 */
 		virtual const VertexObject& getVertex(boost::uuids::uuid id) const = 0;
 
