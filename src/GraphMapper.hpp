@@ -46,13 +46,16 @@ if(!mapper->addReading(m))
 
 #include "Odometry.hpp"
 #include "Sensor.hpp"
+#include "Solver.hpp"
 
 #include <map>
 
 namespace slam3d
 {
-	class Solver;
-
+	/**
+	 * @class InvalidEdge
+	 * @brief Exception thrown when a specified edge does not exist.
+	 */
 	class InvalidEdge : public std::exception
 	{
 	public:
@@ -70,6 +73,10 @@ namespace slam3d
 		IdType target;
 	};
 
+	/**
+	 * @class DuplicateEdge
+	 * @brief Exception thrown when an added edge already exists.
+	 */
 	class DuplicateEdge : public std::exception
 	{
 	public:
@@ -89,6 +96,10 @@ namespace slam3d
 		std::string sensor;
 	};
 
+	/**
+	 * @class DuplicateMeasurement
+	 * @brief Exception thrown when an added measurement already exists.
+	 */
 	class DuplicateMeasurement: public std::exception
 	{
 	public:
