@@ -18,6 +18,10 @@ namespace slam3d
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	typedef Eigen::Matrix<ScalarType,6,6> Covariance;
 	
+	/**
+	 * @class TransformWithCovariance
+	 * @brief Transformation with corresponding covariance matrix.
+	 */
 	struct TransformWithCovariance
 	{
 		Transform transform;

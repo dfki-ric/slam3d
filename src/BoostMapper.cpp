@@ -487,6 +487,10 @@ EdgeObjectList BoostMapper::getOutEdges(IdType source) const
 typedef std::map<Vertex, boost::default_color_type> ColorMap;
 typedef std::map<Vertex, unsigned> DepthMap;
 
+/**
+ * @class MaxDepthVisitor
+ * @brief BFS-Visitor to find nearby nodes in the graph.
+ */
 class MaxDepthVisitor : public boost::default_bfs_visitor
 {
 public:
@@ -499,7 +503,6 @@ public:
 		if(depth_map[u] >= max_depth)
 			throw 0;
 		depth_map[v] = depth_map[u] + 1;
-//		std::cout << "Set vertex " << g[v].index << " to depth " << depth_map[v] << " (max: " << max_depth << ")" << std::endl;
 	}
 private:
 	DepthMap& depth_map;
