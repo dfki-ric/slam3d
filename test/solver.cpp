@@ -24,13 +24,13 @@ BOOST_AUTO_TEST_CASE(optimization)
 	solver->addNode(1, pose);
 	solver->addNode(2, pose);
 	solver->addNode(3, pose);
-	BOOST_CHECK_THROW(solver->addNode(3, pose), slam3d::DuplicateVertex);
+	BOOST_CHECK_THROW(solver->addNode(3, pose), slam3d::Solver::DuplicateVertex);
 
 	solver->addConstraint(1,2,tf_1_2);
 	solver->addConstraint(2,3,tf_2_3);
 	solver->addConstraint(3,1,tf_3_1, cov);
-	BOOST_CHECK_THROW(solver->addConstraint(1,4,tf_1_2), slam3d::BadEdge);
-	BOOST_CHECK_THROW(solver->setFixed(4), slam3d::UnknownVertex);
+	BOOST_CHECK_THROW(solver->addConstraint(1,4,tf_1_2), slam3d::Solver::BadEdge);
+	BOOST_CHECK_THROW(solver->setFixed(4), slam3d::Solver::UnknownVertex);
 
 	solver->saveGraph("graph_original.g2o");
 	solver->setFixed(1);

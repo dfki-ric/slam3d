@@ -10,61 +10,6 @@ namespace slam3d
 {
 	typedef std::pair<int, Transform> IdPose;
 	typedef std::vector<IdPose> IdPoseVector;
-
-	/**
-	 * @class DuplicateVertex
-	 * @brief Exception thrown when a given Vertex-ID is already present.
-	 */
-	class DuplicateVertex: public std::exception
-	{
-	public:
-		DuplicateVertex(int id):vertex_id(id){}
-		virtual const char* what() const throw()
-		{
-			std::ostringstream msg;
-			msg << "Node with ID: " << vertex_id << " has already been defined!";
-			return msg.str().c_str();
-		}
-		
-		int vertex_id;
-	};
-
-	/**
-	 * @class UnknownVertex
-	 * @brief Exception thrown when a requested Vertex-ID does not exist.
-	 */
-	class UnknownVertex: public std::exception
-	{
-	public:
-		UnknownVertex(int id):vertex_id(id){}
-		virtual const char* what() const throw()
-		{
-			std::ostringstream msg;
-			msg << "Node with ID: " << vertex_id << " does not exist!";
-			return msg.str().c_str();
-		}
-		
-		int vertex_id;
-	};
-
-	/**
-	 * @class BadEdge
-	 * @brief Exception thrown when source or target do not exist in the graph.
-	 */
-	class BadEdge: public std::exception
-	{
-	public:
-		BadEdge(int s, int t):source(s),target(t){}
-		virtual const char* what() const throw()
-		{
-			std::ostringstream msg;
-			msg << "Failed to create edge from node " <<  source << " to " << target << "!";
-			return msg.str().c_str();
-		}
-		
-		int source;
-		int target;
-	};
 	
 	/**
 	 * @class Solver
@@ -72,6 +17,62 @@ namespace slam3d
 	 */
 	class Solver
 	{
+	public:
+		/**
+		 * @class DuplicateVertex
+		 * @brief Exception thrown when a given Vertex-ID is already present.
+		 */
+		class DuplicateVertex: public std::exception
+		{
+		public:
+			DuplicateVertex(int id):vertex_id(id){}
+			virtual const char* what() const throw()
+			{
+				std::ostringstream msg;
+				msg << "Node with ID: " << vertex_id << " has already been defined!";
+				return msg.str().c_str();
+			}
+			
+			int vertex_id;
+		};
+
+		/**
+		 * @class UnknownVertex
+		 * @brief Exception thrown when a requested Vertex-ID does not exist.
+		 */
+		class UnknownVertex: public std::exception
+		{
+		public:
+			UnknownVertex(int id):vertex_id(id){}
+			virtual const char* what() const throw()
+			{
+				std::ostringstream msg;
+				msg << "Node with ID: " << vertex_id << " does not exist!";
+				return msg.str().c_str();
+			}
+			
+			int vertex_id;
+		};
+
+		/**
+		 * @class BadEdge
+		 * @brief Exception thrown when source or target do not exist in the graph.
+		 */
+		class BadEdge: public std::exception
+		{
+		public:
+			BadEdge(int s, int t):source(s),target(t){}
+			virtual const char* what() const throw()
+			{
+				std::ostringstream msg;
+				msg << "Failed to create edge from node " <<  source << " to " << target << "!";
+				return msg.str().c_str();
+			}
+			
+			int source;
+			int target;
+		};
+
 	public:
 		/**
 		 * @brief Constructor setting the used logging device.
