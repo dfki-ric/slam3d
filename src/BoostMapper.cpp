@@ -369,7 +369,7 @@ void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, c
 	
 	if(s.is_nil())
 	{
-		Vertex v = addVertex(m, tf);
+		addVertex(m, tf);
 	}else
 	{
 		Vertex source = mVertexIndex.at(s);
