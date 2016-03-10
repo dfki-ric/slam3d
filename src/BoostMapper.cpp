@@ -511,7 +511,6 @@ private:
 
 VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
-	mLogger->message(DEBUG, (boost::format("Starting BFS at vertex %1% with max depth %2%.") % mPoseGraph[source].index % range).str());
 	DepthMap depth_map;
 	depth_map[source] = 0;
 	ColorMap c_map;
@@ -519,12 +518,9 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 	try
 	{
 		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
-		mLogger->message(DEBUG, "BFS did not reach max depth.");
 	}catch(int e)
 	{
-		mLogger->message(DEBUG, "BFS reached max depth!");
 	}
-	mLogger->message(DEBUG, (boost::format("BFS found %1% vertices.") % depth_map.size()).str());
 
 	// Write the result
 	VertexList vertices;
