@@ -176,6 +176,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	// If this is the first vertex, add it and return
 	if(!mLastVertex)
 	{
+		mCurrentPose.linear() = odometry.linear();
 		mLastVertex = addVertex(m, mCurrentPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
