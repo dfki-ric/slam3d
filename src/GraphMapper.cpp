@@ -59,6 +59,8 @@ GraphMapper::~GraphMapper()
 void GraphMapper::setSolver(Solver* solver)
 {
 	mSolver = solver;
+	mSolver->addNode(0, Transform::Identity());
+	mSolver->setFixed(0);
 }
 
 void GraphMapper::setOdometry(Odometry* odom, bool add_edges)

@@ -11,6 +11,19 @@ using namespace slam3d;
 BoostMapper::BoostMapper(Logger* log)
  : GraphMapper(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
+	// Add root node to the graph
+	Measurement::Ptr origin(new MapOrigin());
+	IdType id = mIndexer.getNext();
+	Vertex root = boost::add_vertex(mPoseGraph);
+	mPoseGraph[root].index = id;
+	mPoseGraph[root].label = "root";
+	mPoseGraph[root].corrected_pose = Transform::Identity();
+	mPoseGraph[root].measurement = origin;
+
+	// Add it to the indexes, so we can find it by its id and uuid
+	mIndexMap.insert(IndexMap::value_type(id, root));
+	mVertexIndex.insert(UuidMap::value_type(origin->getUniqueId(), root));
+
 	mLastVertex = 0;
 }
 
@@ -175,27 +188,8 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	// If this is the first vertex, add it and return
 	if(!mLastVertex)
 	{
-		// Add root node to the graph
-		Measurement::Ptr origin(new MapOrigin());
-		IdType id = mIndexer.getNext();
-		Vertex root = boost::add_vertex(mPoseGraph);
-		mPoseGraph[root].index = id;
-		mPoseGraph[root].label = "root";
-		mPoseGraph[root].corrected_pose = Transform::Identity();
-		mPoseGraph[root].measurement = origin;
-
-		// Add it to the indexes, so we can find it by its id and uuid
-		mIndexMap.insert(IndexMap::value_type(id, root));
-		mVertexIndex.insert(UuidMap::value_type(origin->getUniqueId(), root));
-		
-		// Add it to the SLAM-Backend for incremental optimization
-		if(mSolver)
-		{
-			mSolver->addNode(id, Transform::Identity());
-			mSolver->setFixed(id);
-		}
-		
 		// Add real vertex and link it to root
+		Vertex root = mIndexMap.at(0);
 		mCurrentPose.linear() = odometry.linear();
 		mLastVertex = addVertex(m, mCurrentPose);
 		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity(), "none", "root-link");
