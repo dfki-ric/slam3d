@@ -387,25 +387,10 @@ void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, c
 		throw DuplicateMeasurement();
 	}
 	
-	if(s.is_nil())
-	{
-		Vertex v = addVertex(m, tf);
-		SensorList::iterator s = mSensors.find(m->getSensorName());
-		if(s != mSensors.end())
-		{
-			buildNeighborIndex(s->second->getName());
-			linkToNeighbors(v, s->second, mMaxNeighorLinks);
-		}else
-		{
-			mLogger->message(ERROR, (boost::format("Cannot link measurement from sensor '%1%'!") % m->getSensorName()).str());
-		}
-	}else
-	{
-		Vertex source = mVertexIndex.at(s);
-		Transform pose = mPoseGraph[source].corrected_pose * tf;
-		Vertex target = addVertex(m, pose);
-		addEdge(source, target, tf, cov, sensor, "ext");
-	}
+	Vertex source = mVertexIndex.at(s);
+	Transform pose = mPoseGraph[source].corrected_pose * tf;
+	Vertex target = addVertex(m, pose);
+	addEdge(source, target, tf, cov, sensor, "ext");
 }
 
 void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
