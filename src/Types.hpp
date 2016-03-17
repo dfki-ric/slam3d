@@ -75,6 +75,23 @@ namespace slam3d
 	};
 	
 	/**
+	 * @class MapOrigin
+	 * @brief Placeholder for root node in the graph.
+	 */
+	class MapOrigin : public Measurement
+	{
+	public:
+		MapOrigin()
+		{
+			mRobotName = "";
+			mSensorName = "";
+			mSensorPose = Transform::Identity();
+			mInverseSensorPose = Transform::Identity();
+			mUniqueId = boost::uuids::nil_uuid();
+		}
+	};
+	
+	/**
 	 * @struct VertexObject
 	 * @brief Object attached to a vertex in the pose graph.
 	 * @details It contains a pointer to an abstract measurement, which could

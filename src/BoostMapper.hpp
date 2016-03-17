@@ -255,7 +255,6 @@ namespace slam3d
 		
 		// Some special vertices
 		Vertex mLastVertex;
-		Vertex mFirstVertex;
 	};
 }
 

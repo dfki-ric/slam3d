@@ -12,7 +12,6 @@ BoostMapper::BoostMapper(Logger* log)
  : GraphMapper(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	mLastVertex = 0;
-	mFirstVertex = 0;
 }
 
 BoostMapper::~BoostMapper()
@@ -176,8 +175,30 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	// If this is the first vertex, add it and return
 	if(!mLastVertex)
 	{
+		// Add root node to the graph
+		Measurement::Ptr origin(new MapOrigin());
+		IdType id = mIndexer.getNext();
+		Vertex root = boost::add_vertex(mPoseGraph);
+		mPoseGraph[root].index = id;
+		mPoseGraph[root].label = "root";
+		mPoseGraph[root].corrected_pose = Transform::Identity();
+		mPoseGraph[root].measurement = origin;
+
+		// Add it to the indexes, so we can find it by its id and uuid
+		mIndexMap.insert(IndexMap::value_type(id, root));
+		mVertexIndex.insert(UuidMap::value_type(origin->getUniqueId(), root));
+		
+		// Add it to the SLAM-Backend for incremental optimization
+		if(mSolver)
+		{
+			mSolver->addNode(id, Transform::Identity());
+			mSolver->setFixed(id);
+		}
+		
+		// Add real vertex and link it to root
 		mCurrentPose.linear() = odometry.linear();
 		mLastVertex = addVertex(m, mCurrentPose);
+		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity(), "none", "root-link");
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
 		return true;
@@ -216,7 +237,8 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 			VertexObjectList lastObjects;
 			for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
 			{
-				lastObjects.push_back(mPoseGraph[*it]);
+				if(mPoseGraph[*it].measurement->getSensorName() == m->getSensorName())
+					lastObjects.push_back(mPoseGraph[*it]);
 			}
 			last = sensor->createCombinedMeasurement(lastObjects, lastPose);
 		}
@@ -277,16 +299,6 @@ Vertex BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 		mSolver->addNode(id, corrected);
 	}
 	
-	// Set it as fixed in the solver
-	if(!mFirstVertex)
-	{
-		mFirstVertex = newVertex;
-		if(mSolver)
-		{
-			mSolver->setFixed(id);
-		}
-	}
-	
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 	return newVertex;
 }
@@ -325,6 +337,11 @@ void BoostMapper::addEdge(Vertex source, Vertex target,
 
 TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* sensor)
 {
+	if(mPoseGraph[target].measurement->getSensorName() != sensor->getName())
+	{
+		throw InvalidEdge(mPoseGraph[source].index, mPoseGraph[target].index);
+	}
+	
 	// Create virtual measurement for source node
 	Transform sourcePose = mPoseGraph[source].corrected_pose;
 	Transform targetPose = mPoseGraph[target].corrected_pose;
@@ -338,7 +355,8 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 		VertexObjectList sourceObjects;
 		for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
 		{
-			sourceObjects.push_back(mPoseGraph[*it]);
+			if(mPoseGraph[*it].measurement->getSensorName() == sensor->getName())
+				sourceObjects.push_back(mPoseGraph[*it]);
 		}
 		source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
 
@@ -347,7 +365,8 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 		VertexObjectList targetObjects;
 		for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
 		{
-			targetObjects.push_back(mPoseGraph[*it]);
+			if(mPoseGraph[*it].measurement->getSensorName() == sensor->getName())
+				targetObjects.push_back(mPoseGraph[*it]);
 		}
 		target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
 	}
