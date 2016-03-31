@@ -235,6 +235,13 @@ namespace slam3d
 		 */
 		VertexList getVerticesInRange(Vertex source, unsigned range);
 		
+		/**
+		 * @brief Write the current graph to a file (currently dot).
+		 * @details For larger graphs, this can take a very long time.
+		 * @param name filename without type ending
+		 */
+		void writeGraphToFile(const std::string &name);
+		
 	private:
 		// The boost graph object
 		AdjacencyGraph mPoseGraph;

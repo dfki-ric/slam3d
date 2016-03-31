@@ -5,6 +5,9 @@
 #include <boost/graph/visitors.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <boost/graph/graphviz.hpp>
+
+#include <fstream>
 
 using namespace slam3d;
 
@@ -503,6 +506,22 @@ EdgeObjectList BoostMapper::getOutEdges(IdType source) const
 		++it;
 	}
 	return edges;
+}
+
+void BoostMapper::writeGraphToFile(const std::string& name)
+{
+	std::string file = name + ".dot";
+	mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
+	std::ofstream ofs;
+	ofs.open(file.c_str());
+	boost::write_graphviz(
+			ofs,
+			mPoseGraph,
+			boost::make_label_writer(boost::get(&VertexObject::label, mPoseGraph)),
+			boost::make_label_writer(boost::get(&EdgeObject::label, mPoseGraph)),
+			boost::default_writer(),
+			boost::get(&VertexObject::index, mPoseGraph));
+	ofs.close();
 }
 
 // BFS search for vertices with a maximum distance to a source node
