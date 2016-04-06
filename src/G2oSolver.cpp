@@ -66,8 +66,8 @@ void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Co
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	constraint->setMeasurement(tf.cast<double>());   // slam3d::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(cov.cast<double>());  // slam3d::Covariance aka Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(tf.cast<double>());            // slam3d::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(cov.inverse().cast<double>()); // slam3d::Covariance aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);
