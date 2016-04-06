@@ -236,45 +236,42 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	}
 
 	// Add edge to previous measurement
-	if(mLastVertex)
-	{
-		Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
-		Transform guess = lastPose.inverse() * mCurrentPose;
+	Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
+	Transform guess = lastPose.inverse() * mCurrentPose;
 
-		Measurement::Ptr last = mPoseGraph[mLastVertex].measurement;
-		if(mPatchBuildingRange > 0)
+	Measurement::Ptr last = mPoseGraph[mLastVertex].measurement;
+	if(mPatchBuildingRange > 0)
+	{
+		VertexList lastVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
+		VertexObjectList lastObjects;
+		for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
 		{
-			VertexList lastVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
-			VertexObjectList lastObjects;
-			for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
-			{
-				if(mPoseGraph[*it].measurement->getSensorName() == m->getSensorName())
-					lastObjects.push_back(mPoseGraph[*it]);
-			}
-			last = sensor->createCombinedMeasurement(lastObjects, lastPose);
+			if(mPoseGraph[*it].measurement->getSensorName() == m->getSensorName())
+				lastObjects.push_back(mPoseGraph[*it]);
 		}
-		try
+		last = sensor->createCombinedMeasurement(lastObjects, lastPose);
+	}
+	try
+	{
+		TransformWithCovariance twc = sensor->calculateTransform(last, m, guess);
+		mCurrentPose = orthogonalize(lastPose * twc.transform);
+		
+		if(newVertex)
 		{
-			TransformWithCovariance twc = sensor->calculateTransform(last, m, guess);
-			mCurrentPose = orthogonalize(lastPose * twc.transform);
-			
-			if(newVertex)
-			{
-				mPoseGraph[newVertex].corrected_pose = mCurrentPose;
-			}else
-			{
-				if(!checkMinDistance(twc.transform))
-					return false;
-				newVertex = addVertex(m, mCurrentPose);
-			}
-			addEdge(mLastVertex, newVertex, twc.transform, twc.covariance, sensor->getName(), "seq");
-		}catch(NoMatch &e)
+			mPoseGraph[newVertex].corrected_pose = mCurrentPose;
+		}else
 		{
-			if(!newVertex)
-			{
-				mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
+			if(!checkMinDistance(twc.transform))
 				return false;
-			}
+			newVertex = addVertex(m, mCurrentPose);
+		}
+		addEdge(mLastVertex, newVertex, twc.transform, twc.covariance, sensor->getName(), "seq");
+	}catch(NoMatch &e)
+	{
+		if(!newVertex)
+		{
+			mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
+			return false;
 		}
 	}
 
