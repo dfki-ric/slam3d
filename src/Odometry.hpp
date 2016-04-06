@@ -46,6 +46,13 @@ namespace slam3d
 		 */
 		virtual TransformWithCovariance getRelativePose(timeval last, timeval next) = 0;
 		
+		/**
+		 * @brief Calculates covariance from simple motion model
+		 * @param tf relative transform between two poses
+		 * @return covariance of the relative transform tf
+		 */
+		virtual Covariance calculateCovariance(const Transform &tf) = 0;
+		
 	protected:
 		Logger* mLogger;
 

@@ -202,7 +202,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 			mLogger->message(INFO, "Added first node to the graph.");
 			if(mAddRootEdge)
 			{
-				addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity(), "none", "root-link");
+				addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
 			}else
 			{
 				buildNeighborIndex(sensor->getName());
@@ -250,7 +250,8 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 		newVertex = addVertex(m, orthogonalize(mCurrentPose));
 
 		// Add an edge representing the odometry information
-		addEdge(mLastVertex, newVertex, odom_dist, Covariance::Identity(), "Odometry", "odom");
+		Covariance odom_cov = mOdometry->calculateCovariance(odom_dist);
+		addEdge(mLastVertex, newVertex, odom_dist, odom_cov, "Odometry", "odom");
 	}
 	
 	try
