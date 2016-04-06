@@ -217,22 +217,14 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 
 	// Now we have a node, that is not the first and has not been added yet
 	Vertex newVertex = 0;
+	Transform odom_dist;
 	
 	if(mOdometry)
 	{
-		Transform odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
+		odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
 		mCurrentPose = mPoseGraph[mLastVertex].corrected_pose * odom_dist;
 		if(!checkMinDistance(odom_dist))
 			return false;
-
-		if(mAddOdometryEdges)
-		{
-			// Add the vertex to the pose graph
-			newVertex = addVertex(m, orthogonalize(mCurrentPose));
-
-			// Add an edge representing the odometry information
-			addEdge(mLastVertex, newVertex, odom_dist, Covariance::Identity(), "Odometry", "odom");
-		}
 	}
 
 	// Add edge to previous measurement
@@ -251,6 +243,16 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 		}
 		last = sensor->createCombinedMeasurement(lastObjects, lastPose);
 	}
+	
+	if(mAddOdometryEdges)
+	{
+		// Add the vertex to the pose graph
+		newVertex = addVertex(m, orthogonalize(mCurrentPose));
+
+		// Add an edge representing the odometry information
+		addEdge(mLastVertex, newVertex, odom_dist, Covariance::Identity(), "Odometry", "odom");
+	}
+	
 	try
 	{
 		TransformWithCovariance twc = sensor->calculateTransform(last, m, guess);
