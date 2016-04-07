@@ -524,9 +524,26 @@ void BoostMapper::writeGraphToFile(const std::string& name)
 	ofs.close();
 }
 
+// ================================================================
 // BFS search for vertices with a maximum distance to a source node
-typedef std::map<Vertex, boost::default_color_type> ColorMap;
-typedef std::map<Vertex, unsigned> DepthMap;
+// ================================================================
+
+struct EdgeFilter
+{
+	EdgeFilter() {}
+	EdgeFilter(AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
+	bool operator()(const Edge& e) const
+	{
+		return (*graph)[e].sensor == name;
+	}
+	
+	AdjacencyGraph* graph;
+	std::string name;
+};
+
+typedef boost::filtered_graph<AdjacencyGraph, EdgeFilter> FilteredGraph;
+typedef std::map<FilteredGraph::vertex_descriptor, boost::default_color_type> ColorMap;
+typedef std::map<FilteredGraph::vertex_descriptor, unsigned> DepthMap;
 
 /**
  * @class MaxDepthVisitor
@@ -537,10 +554,10 @@ class MaxDepthVisitor : public boost::default_bfs_visitor
 public:
 	MaxDepthVisitor(DepthMap& map, unsigned d) : depth_map(map), max_depth(d) {}
 
-	void tree_edge(Edge e, const AdjacencyGraph& g)
+	void tree_edge(FilteredGraph::edge_descriptor e, const FilteredGraph& g)
 	{
-		Vertex u = source(e, g);
-		Vertex v = target(e, g);
+		FilteredGraph::vertex_descriptor u = source(e, g);
+		FilteredGraph::vertex_descriptor v = target(e, g);
 		if(depth_map[u] >= max_depth)
 			throw 0;
 		depth_map[v] = depth_map[u] + 1;
@@ -552,13 +569,17 @@ private:
 
 VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
+	// Create required data structures
 	DepthMap depth_map;
 	depth_map[source] = 0;
 	ColorMap c_map;
 	MaxDepthVisitor vis(depth_map, range);
+	
+	// Do BFS on filtered graph
+	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, mPoseGraph[source].measurement->getSensorName()));
 	try
 	{
-		boost::breadth_first_search(mPoseGraph, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
+		boost::breadth_first_search(fg, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
 	}catch(int e)
 	{
 	}
