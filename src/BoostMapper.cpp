@@ -151,11 +151,6 @@ bool BoostMapper::optimize()
 			mLogger->message(ERROR, (boost::format("Vertex with id %1% does not exist!") % id).str());
 		}
 	}
-	
-	if(mLastVertex)
-	{
-		mCurrentPose = mPoseGraph[mLastVertex].corrected_pose;
-	}
 	return true;
 }
 
@@ -191,28 +186,16 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	// If this is the first vertex, add it and return
 	if(!mLastVertex)
 	{
-		int num_vertices = boost::num_vertices(mPoseGraph);
-		if(mAddRootEdge || num_vertices > 1)
-		{
-			// Add real vertex and link it to root
-			Vertex root = mIndexMap.at(0);
-			mCurrentPose.linear() = odometry.linear();
-			mLastVertex = addVertex(m, mCurrentPose);
-			mLastOdometricPose = odometry;
-			mLogger->message(INFO, "Added first node to the graph.");
-			if(mAddRootEdge)
-			{
-				addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
-			}else
-			{
-				buildNeighborIndex(sensor->getName());
-				linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
-			}
-			return true;
-		}else
-		{
-			return false;
-		}
+		// Add real vertex and link it to root
+		Vertex root = mIndexMap.at(0);
+		mCurrentPose.linear() = odometry.linear();
+		mLastVertex = addVertex(m, mCurrentPose);
+		mLastOdometricPose = odometry;
+		mLogger->message(INFO, "Added first node to the graph.");
+		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
+		buildNeighborIndex(sensor->getName());
+		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
+		return true;
 	}
 
 	// Now we have a node, that is not the first and has not been added yet

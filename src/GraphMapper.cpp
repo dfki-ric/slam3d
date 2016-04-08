@@ -48,8 +48,6 @@ GraphMapper::GraphMapper(Logger* log)
 	mMinTranslation = 0.5;
 	mMinRotation = 0.1;
 	mAddOdometryEdges = false;
-	mAddRootEdge = false;
-
 	mCurrentPose = Transform::Identity();
 }
 

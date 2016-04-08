@@ -263,13 +263,6 @@ namespace slam3d
 		 * @param r 
 		 */
 		void setPatchBuildingRange(unsigned r) {mPatchBuildingRange = r;}
-		
-		/**
-		 * @brief Tell the mapper to link its first node to the global frame.
-		 * This will fix the map at this robot's starting pose and should be done
-		 * by only one robot in a distributed setup.
-		 */
-		void addRootEdge() {mAddRootEdge = true;}
 
 		/**
 		 * @brief Gets a vertex object by its given id. The id is given to each
@@ -331,7 +324,6 @@ namespace slam3d
 		float mNeighborRadius;
 		float mMinTranslation;
 		float mMinRotation;
-		bool mAddRootEdge;
 		bool mAddOdometryEdges;
 		unsigned mPatchBuildingRange;
 	};
