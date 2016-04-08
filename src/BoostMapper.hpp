@@ -136,7 +136,7 @@ namespace slam3d
 		 * @param source
 		 * @throw std::out_of_range
 		 */
-		virtual EdgeObjectList getOutEdges(IdType source) const;
+		EdgeObjectList getOutEdges(IdType source) const;
 		
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
@@ -149,6 +149,15 @@ namespace slam3d
 		 * @param sensor
 		 */
 		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const;
+		
+		/**
+		 * @brief Get the current pose of the robot within the generated map.
+		 * @details The pose is updated at least whenever a new node is added.
+		 * Depending on the available information, it might be updated
+		 * more often. (e.g. when odometry is available)
+		 * @return current robot pose in map coordinates
+		 */
+		Transform getCurrentPose();
 
 	private:
 	

@@ -216,7 +216,7 @@ namespace slam3d
 		 * more often. (e.g. when odometry is available)
 		 * @return current robot pose in map coordinates
 		 */
-		Transform getCurrentPose();
+		virtual Transform getCurrentPose();
 		
 		/**
 		 * @brief Start the backend optimization process.

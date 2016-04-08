@@ -35,6 +35,15 @@ BoostMapper::~BoostMapper()
 	
 }
 
+Transform BoostMapper::getCurrentPose()
+{
+	if(mLastVertex)
+	{
+		return mPoseGraph[mLastVertex].corrected_pose * mCurrentPose;
+	}
+	return mCurrentPose;
+}
+
 VertexList BoostMapper::getVerticesFromSensor(const std::string& sensor)
 {
 	VertexList vertexList;
@@ -188,11 +197,12 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	{
 		// Add real vertex and link it to root
 		Vertex root = mIndexMap.at(0);
-		mCurrentPose.linear() = odometry.linear();
-		mLastVertex = addVertex(m, mCurrentPose);
+		Transform newPose = Transform::Identity();
+		newPose.linear() = odometry.linear();
+		mLastVertex = addVertex(m, newPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
-		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
+		addEdge(root, mLastVertex, newPose, Covariance::Identity() * 1000, "none", "root-link");
 		buildNeighborIndex(sensor->getName());
 		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
 		return true;
@@ -205,7 +215,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	if(mOdometry)
 	{
 		odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
-		mCurrentPose = mPoseGraph[mLastVertex].corrected_pose * odom_dist;
+		mCurrentPose = odom_dist;
 		if(!checkMinDistance(odom_dist))
 			return false;
 	}
@@ -213,7 +223,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	if(mAddOdometryEdges)
 	{
 		// Add the vertex to the pose graph
-		newVertex = addVertex(m, orthogonalize(mCurrentPose));
+		newVertex = addVertex(m, orthogonalize(mPoseGraph[mLastVertex].corrected_pose * mCurrentPose));
 
 		// Add an edge representing the odometry information
 		Covariance odom_cov = mOdometry->calculateCovariance(odom_dist);
@@ -221,21 +231,19 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	}
 	
 	// Add edge to previous measurement
-	Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
-	Transform guess = lastPose.inverse() * mCurrentPose;
 	try
 	{
-		TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
-		mCurrentPose = orthogonalize(lastPose * twc.transform);
+		TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, mCurrentPose);
+		mCurrentPose = twc.transform;
 		
 		if(newVertex)
 		{
-			mPoseGraph[newVertex].corrected_pose = mCurrentPose;
+			mPoseGraph[newVertex].corrected_pose = orthogonalize(mPoseGraph[mLastVertex].corrected_pose * twc.transform);
 		}else
 		{
 			if(!checkMinDistance(twc.transform))
 				return false;
-			newVertex = addVertex(m, mCurrentPose);
+			newVertex = addVertex(m, orthogonalize(mPoseGraph[mLastVertex].corrected_pose * twc.transform));
 		}
 		addEdge(mLastVertex, newVertex, twc.transform, twc.covariance, sensor->getName(), "seq");
 	}catch(NoMatch &e)
@@ -254,6 +262,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	// Overall last vertex
 	mLastVertex = newVertex;
 	mLastOdometricPose = odometry;
+	mCurrentPose = Transform::Identity();
 	return true;
 }
 
