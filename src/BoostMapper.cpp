@@ -226,23 +226,6 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 		if(!checkMinDistance(odom_dist))
 			return false;
 	}
-
-	// Add edge to previous measurement
-	Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
-	Transform guess = lastPose.inverse() * mCurrentPose;
-
-	Measurement::Ptr last = mPoseGraph[mLastVertex].measurement;
-	if(mPatchBuildingRange > 0)
-	{
-		VertexList lastVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
-		VertexObjectList lastObjects;
-		for(VertexList::iterator it = lastVertices.begin(); it != lastVertices.end(); ++it)
-		{
-			if(mPoseGraph[*it].measurement->getSensorName() == m->getSensorName())
-				lastObjects.push_back(mPoseGraph[*it]);
-		}
-		last = sensor->createCombinedMeasurement(lastObjects, lastPose);
-	}
 	
 	if(mAddOdometryEdges)
 	{
@@ -254,9 +237,12 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 		addEdge(mLastVertex, newVertex, odom_dist, odom_cov, "Odometry", "odom");
 	}
 	
+	// Add edge to previous measurement
+	Transform lastPose = mPoseGraph[mLastVertex].corrected_pose;
+	Transform guess = lastPose.inverse() * mCurrentPose;
 	try
 	{
-		TransformWithCovariance twc = sensor->calculateTransform(last, m, guess);
+		TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, guess);
 		mCurrentPose = orthogonalize(lastPose * twc.transform);
 		
 		if(newVertex)
