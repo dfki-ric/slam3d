@@ -466,7 +466,7 @@ const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::
 	while(it != it_end)
 	{
 		const VertexObject& tObject = mPoseGraph[boost::target(*it, mPoseGraph)];
-		if(tObject.index == target && tObject.measurement->getSensorName() == sensor)
+		if(tObject.index == target && mPoseGraph[*it].sensor == sensor)
 		{
 			return mPoseGraph[*it];
 		}
