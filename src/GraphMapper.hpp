@@ -87,7 +87,7 @@ namespace slam3d
 		virtual const char* what() const throw()
 		{
 			std::ostringstream msg;
-			msg << "Edge between " << source << " and " << target << " from sensor " << sensor << "already exists!";
+			msg << "Edge between " << source << " and " << target << " from sensor '" << sensor << "' already exists!";
 			return msg.str().c_str();
 		}
 		
