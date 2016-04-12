@@ -414,7 +414,6 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 		}
 	}
 	
-	optimize();
 	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
 	
 	int added = 0;
@@ -426,7 +425,6 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 		try
 		{
 			link(*it, vertex, sensor);
-			optimize();
 			added++;
 		}catch(NoMatch &e)
 		{
