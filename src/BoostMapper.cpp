@@ -514,7 +514,7 @@ struct EdgeFilter
 	EdgeFilter(AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
 	bool operator()(const Edge& e) const
 	{
-		return (*graph)[e].sensor == name;
+		return (*graph)[e].label == name;
 	}
 	
 	AdjacencyGraph* graph;
@@ -556,7 +556,7 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 	MaxDepthVisitor vis(depth_map, range);
 	
 	// Do BFS on filtered graph
-	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, mPoseGraph[source].measurement->getSensorName()));
+	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, "seq"));
 	try
 	{
 		boost::breadth_first_search(fg, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
