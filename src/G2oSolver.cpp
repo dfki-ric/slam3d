@@ -10,7 +10,6 @@
 
 using namespace slam3d;
 
-//typedef g2o::BlockSolver< g2o::BlockSolverTraits<-1, -1> > SlamBlockSolver;
 typedef g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType> SlamLinearSolver;
 
 G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
@@ -109,11 +108,11 @@ bool G2oSolver::compute()
 	// Do the graph optimization
 	if(mInitialized)
 	{
-		mLogger->message(INFO, "Update Initialization.");
+		mLogger->message(DEBUG, "Update Initialization.");
 		mOptimizer.updateInitialization(mNewVertices, mNewEdges);
 	}else
 	{
-		mLogger->message(INFO, "Do first Initialization.");
+		mLogger->message(DEBUG, "Do first Initialization.");
 		mInitialized = mOptimizer.initializeOptimization();
 	}
 	mNewVertices.clear();
