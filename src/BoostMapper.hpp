@@ -11,7 +11,7 @@ namespace slam3d
 {
 	// Definitions of boost-graph related types
 	typedef boost::listS VRep;
-	typedef boost::listS ERep;
+	typedef boost::vecS ERep;
 	typedef boost::directedS GType;
 	typedef boost::adjacency_list<VRep, ERep, GType, VertexObject, EdgeObject> AdjacencyGraph;
 	
@@ -250,6 +250,13 @@ namespace slam3d
 		 * @param name filename without type ending
 		 */
 		void writeGraphToFile(const std::string &name);
+		
+		/**
+		 * @brief Calculates the distance between two vertices in the graph.
+		 * @param source
+		 * @param target
+		 */
+		float calculateGraphDistance(Vertex source, Vertex target);
 		
 	private:
 		// The boost graph object

@@ -4,6 +4,7 @@
 #include <boost/format.hpp>
 #include <boost/graph/visitors.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/graphviz.hpp>
 
@@ -269,9 +270,9 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 Vertex BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
-	boost::format v_name("%1%:%2%");
-	v_name % m->getRobotName() % m->getSensorName();
 	IdType id = mIndexer.getNext();
+	boost::format v_name("%1%:%2%(%3%)");
+	v_name % m->getRobotName() % m->getSensorName() % id;
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
 	mPoseGraph[newVertex].index = id;
 	mPoseGraph[newVertex].label = v_name.str();
@@ -424,6 +425,10 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 
 		try
 		{
+			float dist = calculateGraphDistance(*it, vertex);
+			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % mPoseGraph[*it].index % mPoseGraph[vertex].index).str());
+			if(dist < mPatchBuildingRange * 2)
+				continue;
 			link(*it, vertex, sensor);
 			added++;
 		}catch(NoMatch &e)
@@ -569,4 +574,25 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 		vertices.push_back(it->first);
 	}
 	return vertices;
+}
+
+float BoostMapper::calculateGraphDistance(Vertex source, Vertex target)
+{
+	int num = boost::num_vertices(mPoseGraph);
+	std::vector<Vertex> parent(num);
+	std::vector<float> distance(num);
+	std::map<Edge, float> weight;
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		weight[*it] = 1.0;
+	}
+	
+	boost::dijkstra_shortest_paths(mPoseGraph, source,
+		boost::distance_map(boost::make_iterator_property_map(distance.begin(), boost::get(boost::vertex_index, mPoseGraph)))
+		.predecessor_map(boost::make_iterator_property_map(parent.begin(), boost::get(boost::vertex_index, mPoseGraph)))
+		.weight_map(boost::make_assoc_property_map(weight)) );
+
+	int target_id = boost::get(boost::vertex_index, mPoseGraph)[target];
+	return distance[target_id];
 }
