@@ -109,6 +109,13 @@ namespace slam3d
 		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
 		
 		/**
+		 * @brief Transform source cloud by given transformation.
+		 * @param source
+		 * @param tf
+		 */
+		PointCloud::Ptr transform(PointCloud::ConstPtr source, const Transform tf) const;
+		
+		/**
 		 * @brief Removes outliers from given pointcloud.
 		 * @details A point is considered an outlier if it has less then min_neighbors within radius.
 		 * @param source

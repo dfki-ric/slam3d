@@ -105,6 +105,13 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	return twc;
 }
 
+PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const
+{
+	PointCloud::Ptr transformedCloud(new PointCloud);
+	pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
+	return transformedCloud;
+}
+
 PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices) const
 {
 	PointCloud::Ptr accu(new PointCloud);
@@ -117,8 +124,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 			throw BadMeasurementType();
 		}
 		
-		PointCloud::Ptr tempCloud(new PointCloud);
-		pcl::transformPointCloud(*(pcl->getPointCloud()), *tempCloud, (it->corrected_pose * pcl->getSensorPose()).matrix());
+		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (it->corrected_pose * pcl->getSensorPose()));
 		*accu += *tempCloud;
 	}
 	return accu;
