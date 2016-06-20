@@ -71,10 +71,13 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 * @param odometry estimation of robot movement
+		 * @param coarse whether to do a coarse estimate
 		 * @throw BadMeasurementType
 		 */
-		virtual TransformWithCovariance calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry) const = 0;
-		
+		virtual TransformWithCovariance calculateTransform(Measurement::Ptr source,
+		                                                   Measurement::Ptr target,
+		                                                   Transform odometry,
+		                                                   bool coarse = false) const = 0;		
 		/**
 		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
 		 * @param vertices list of vertices that should contain measurements from this sensor

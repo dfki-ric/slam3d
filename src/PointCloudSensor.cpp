@@ -9,7 +9,7 @@
 
 using namespace slam3d;
 
-typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> ICP;
+typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transform& p)
  : Sensor(n, l, p)
@@ -43,7 +43,7 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double
 	return out;
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry) const
+TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry, bool coarse) const
 {
 	// Transform guess in sensor frame
 	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
@@ -57,19 +57,29 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 		throw BadMeasurementType();
 	}
 	
+	// Set GICP configuration
+	GICPConfiguration config;
+	if(coarse)
+	{
+		config = mCoarseConfiguration;
+	}else
+	{
+		config = mFineConfiguration;
+	}
+	
 	// Downsample the scans
-	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), mConfiguration.point_cloud_density);
-	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), mConfiguration.point_cloud_density);
+	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), config.point_cloud_density);
+	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), config.point_cloud_density);
 	
 	// Configure Generalized-ICP
-	ICP icp;
-	icp.setMaxCorrespondenceDistance(mConfiguration.max_correspondence_distance);
-	icp.setMaximumIterations(mConfiguration.maximum_iterations);
-	icp.setTransformationEpsilon(mConfiguration.transformation_epsilon);
-	icp.setEuclideanFitnessEpsilon(mConfiguration.euclidean_fitness_epsilon);
-	icp.setCorrespondenceRandomness(mConfiguration.correspondence_randomness);
-	icp.setMaximumOptimizerIterations(mConfiguration.maximum_optimizer_iterations);
-	icp.setRotationEpsilon(mConfiguration.rotation_epsilon);
+	GICP icp;
+	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
+	icp.setMaximumIterations(config.maximum_iterations);
+	icp.setTransformationEpsilon(config.transformation_epsilon);
+	icp.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
+	icp.setCorrespondenceRandomness(config.correspondence_randomness);
+	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
+	icp.setRotationEpsilon(config.rotation_epsilon);
 	
 	// We cannot use the "guess" parameter from align() due to a bug in PCL.
 	// Instead we have to shift the source cloud to the target frame before
@@ -88,9 +98,12 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	icp.align(result);
 
 	// Check if ICP was successful (kind of...)
-	if(!icp.hasConverged() || icp.getFitnessScore() > mConfiguration.max_fitness_score)
+	if(!icp.hasConverged() || icp.getFitnessScore() > config.max_fitness_score)
 	{
-		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % mConfiguration.max_fitness_score).str());
+		if(!coarse)
+		{
+			mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % config.max_fitness_score).str());
+		}
 		throw NoMatch();
 	}
 	

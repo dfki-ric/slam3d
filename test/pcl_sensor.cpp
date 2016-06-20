@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(icp)
 	GICPConfiguration conf;
 	conf.max_correspondence_distance = 2.0;
 	conf.maximum_iterations = 200;
-	pclSensor.setConfiguaration(conf);
+	pclSensor.setFineConfiguaration(conf);
 	
 	// How to access these files properly?
 	PointCloud::Ptr cloud1 = loadFromFile("../test/cloud1.bin");
