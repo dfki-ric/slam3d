@@ -158,6 +158,13 @@ namespace slam3d
 		 * @return current robot pose in map coordinates
 		 */
 		Transform getCurrentPose();
+		
+		/**
+		 * @brief Write the current graph to a file (currently dot).
+		 * @details For larger graphs, this can take a very long time.
+		 * @param name filename without type ending
+		 */
+		void writeGraphToFile(const std::string &name);
 
 	private:
 	
@@ -243,13 +250,6 @@ namespace slam3d
 		 * @param range maximum number of steps to search from source
 		 */
 		VertexList getVerticesInRange(Vertex source, unsigned range);
-		
-		/**
-		 * @brief Write the current graph to a file (currently dot).
-		 * @details For larger graphs, this can take a very long time.
-		 * @param name filename without type ending
-		 */
-		void writeGraphToFile(const std::string &name);
 		
 		/**
 		 * @brief Calculates the distance between two vertices in the graph.
