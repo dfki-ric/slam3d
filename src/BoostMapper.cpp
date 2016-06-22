@@ -362,7 +362,8 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	}
 	
 	// Estimate the transform from source to target
-	TransformWithCovariance twc_coarse = sensor->calculateTransform(source_m, target_m, Transform::Identity(), true);
+	Transform guess = sourcePose.inverse() * targetPose;
+	TransformWithCovariance twc_coarse = sensor->calculateTransform(source_m, target_m, guess, true);
 	TransformWithCovariance twc = sensor->calculateTransform(source_m, target_m, twc_coarse.transform);
 
 	// Create new edge and return the transform
