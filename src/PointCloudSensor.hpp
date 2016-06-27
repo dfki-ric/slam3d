@@ -31,7 +31,7 @@ namespace slam3d
 		 * @param s name of the sensor managing this measurement
 		 * @param id unique identifier of this measurement
 		 */
-		PointCloudMeasurement(const PointCloud::ConstPtr &cloud,
+		PointCloudMeasurement(const PointCloud::Ptr &cloud,
 		                      const std::string& r, const std::string& s,
 		                      const Transform& tr, const boost::uuids::uuid id = boost::uuids::nil_uuid())
 		{
@@ -54,10 +54,10 @@ namespace slam3d
 		 * @brief Gets the point cloud contained within this measurement.
 		 * @return Constant shared pointer to the point cloud
 		 */
-		const PointCloud::ConstPtr getPointCloud() const {return mPointCloud;}
+		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
 		
 	protected:
-		PointCloud::ConstPtr mPointCloud;
+		PointCloud::Ptr mPointCloud;
 	};
 
 	/**
