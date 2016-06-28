@@ -1,6 +1,9 @@
 ############################################################
 # Define the slam3d library
 ############################################################
+
+add_definitions(-DPCL_WITH_VIEWPOINT)
+
 rock_library(slam3d
 	SOURCES
 		GraphMapper.cpp
