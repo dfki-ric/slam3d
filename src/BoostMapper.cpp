@@ -1,3 +1,8 @@
+// workaround for:
+//https://svn.boost.org/trac/boost/ticket/10382
+#define BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
+
+
 #include "BoostMapper.hpp"
 #include "Solver.hpp"
 
