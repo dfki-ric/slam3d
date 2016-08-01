@@ -25,11 +25,11 @@ rock_library(slam3d
 		GICPConfiguration.hpp
 		Types.hpp
 		Odometry.hpp
-	DEPS_PKGCONFIG 
-		pcl_registration-1.7
+	DEPS_PKGCONFIG
 		eigen3
 		g2o
 		graph_analysis
 	DEPS_CMAKE
 		Cholmod
+		PCL
 )
