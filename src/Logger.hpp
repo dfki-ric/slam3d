@@ -5,6 +5,15 @@
 
 #include <iostream>
 
+#define RST  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+
 namespace slam3d
 {
 	enum LOG_LEVEL{DEBUG, INFO, WARNING, ERROR, FATAL};
@@ -45,19 +54,19 @@ namespace slam3d
 			switch(lvl)
 			{
 			case DEBUG:
-				std::cout << "[DEBUG][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cout << KBLU << "[DEBUG][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case INFO:
-				std::cout << "[INFO ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cout << KGRN << "[INFO ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case WARNING:
-				std::cout << "[WARN ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cout << KYEL << "[WARN ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case ERROR:
-				std::cerr << "[ERROR][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cerr << KRED << "[ERROR][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case FATAL:
-				std::cerr << "[FATAL][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << std::endl;
+				std::cerr << KRED << "[FATAL][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
 				break;		
 			}
 		}
