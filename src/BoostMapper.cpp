@@ -203,12 +203,14 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	{
 		// Add real vertex and link it to root
 		Vertex root = mIndexMap.at(0);
-		Transform newPose = Transform::Identity();
-		newPose.linear() = odometry.linear();
-		mLastVertex = addVertex(m, newPose);
+		if(mUseOdometryHeading)
+		{
+			mCurrentPose.linear() = odometry.linear();
+		}
+		mLastVertex = addVertex(m, mCurrentPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
-		addEdge(root, mLastVertex, newPose, Covariance::Identity() * 1000, "none", "root-link");
+		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
 		buildNeighborIndex(sensor->getName());
 		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
 		return true;

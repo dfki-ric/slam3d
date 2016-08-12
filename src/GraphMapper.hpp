@@ -219,6 +219,15 @@ namespace slam3d
 		virtual Transform getCurrentPose();
 		
 		/**
+		 * @brief Set the robot's pose in map coordinates.
+		 * @details This can be used to set the robot's start pose before the
+		 * mapping is started. Setting it later should be avoided, as
+		 * it can corrupt the mapping process.
+		 * @param pose new pose in map coordinates
+		 */
+		virtual void setCurrentPose(const Transform& pose);
+		
+		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
 		 * @return true if optimization was successful
@@ -263,6 +272,14 @@ namespace slam3d
 		 * @param r 
 		 */
 		void setPatchBuildingRange(unsigned r) {mPatchBuildingRange = r;}
+
+		/**
+		 * @brief Set to initialize the robot's heading from odometry.
+		 * @details This is mainly useful when the robot is equipped with an
+		 * compass and IMU to provide global orientation.
+		 * @param use whether to use odometry for initial heading
+		 */
+		void useOdometryHeading(bool use = true) {mUseOdometryHeading = use;}
 
 		/**
 		 * @brief Gets a vertex object by its given id. The id is given to each
@@ -326,6 +343,7 @@ namespace slam3d
 		float mMinRotation;
 		bool mAddOdometryEdges;
 		unsigned mPatchBuildingRange;
+		bool mUseOdometryHeading;
 	};
 }
 

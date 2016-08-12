@@ -48,6 +48,7 @@ GraphMapper::GraphMapper(Logger* log)
 	mMinTranslation = 0.5;
 	mMinRotation = 0.1;
 	mAddOdometryEdges = false;
+	mUseOdometryHeading = false;
 	mCurrentPose = Transform::Identity();
 }
 
@@ -82,6 +83,11 @@ void GraphMapper::registerSensor(Sensor* s)
 Transform GraphMapper::getCurrentPose()
 {
 	return mCurrentPose;
+}
+
+void GraphMapper::setCurrentPose(const Transform& pose)
+{
+	mCurrentPose = pose;
 }
 
 void GraphMapper::writeGraphToFile(const std::string &name)
