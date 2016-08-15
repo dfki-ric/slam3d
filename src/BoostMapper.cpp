@@ -213,6 +213,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
 		buildNeighborIndex(sensor->getName());
 		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
+		mCurrentPose = Transform::Identity();
 		return true;
 	}
 
