@@ -2,6 +2,7 @@
 # Define the slam3d library
 ############################################################
 
+find_package(PCL 1.7 REQUIRED COMPONENTS registration)
 add_definitions(-DPCL_WITH_VIEWPOINT)
 
 rock_library(slam3d
@@ -29,7 +30,7 @@ rock_library(slam3d
 		eigen3
 		g2o
 		graph_analysis
+		pcl_registration-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
 	DEPS_CMAKE
 		Cholmod
-		PCL
 )
