@@ -105,3 +105,19 @@ bool GraphMapper::checkMinDistance(const Transform &t)
 	else
 		return true;
 }
+
+bool GraphMapper::hasSensorForMeasurement(Measurement::Ptr measurement)
+{
+	return mSensors.find(measurement->getSensorName()) != mSensors.end();
+}
+
+bool GraphMapper::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor)
+{
+	SensorList::iterator it = mSensors.find(measurement->getSensorName());
+	if(it != mSensors.end())
+	{
+		sensor = it->second;
+		return true;
+	}
+	return false;
+}
