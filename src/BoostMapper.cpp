@@ -169,7 +169,7 @@ bool BoostMapper::optimize()
 	return true;
 }
 
-bool BoostMapper::addReading(Measurement::Ptr m)
+bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 {
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
@@ -225,7 +225,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 	{
 		odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
 		mCurrentPose = odom_dist;
-		if(!checkMinDistance(odom_dist))
+		if(!force && !checkMinDistance(odom_dist))
 			return false;
 	}
 	
@@ -250,7 +250,7 @@ bool BoostMapper::addReading(Measurement::Ptr m)
 			mPoseGraph[newVertex].corrected_pose = orthogonalize(mPoseGraph[mLastVertex].corrected_pose * twc.transform);
 		}else
 		{
-			if(!checkMinDistance(twc.transform))
+			if(!force && !checkMinDistance(twc.transform))
 				return false;
 			newVertex = addVertex(m, orthogonalize(mPoseGraph[mLastVertex].corrected_pose * twc.transform));
 		}

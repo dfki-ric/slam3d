@@ -79,9 +79,10 @@ namespace graph_analysis
 		 * measurement will not be added. Use GraphMapper::setMinPoseDistance to
 		 * adjust this distance.
 		 * @param m pointer to a new measurement
+		 * @param force add measurement regardless of change in robot pose
 		 * @return true if the measurement was added
 		 */
-		virtual bool addReading(slam3d::Measurement::Ptr m);
+		virtual bool addReading(slam3d::Measurement::Ptr m, bool force = false);
 		
 		/**
 		 * @brief Add a new measurement from another robot.

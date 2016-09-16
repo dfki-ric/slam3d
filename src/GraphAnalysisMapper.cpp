@@ -33,7 +33,7 @@ Mapper::~Mapper()
 {
 }
 
-bool Mapper::addReading(slam3d::Measurement::Ptr m)
+bool Mapper::addReading(slam3d::Measurement::Ptr m, bool force)
 {
 	// Get the sensor responsible for this measurement
 	// Can throw std::out_of_range if sensor is not registered
@@ -78,7 +78,7 @@ bool Mapper::addReading(slam3d::Measurement::Ptr m)
 	{
 		slam3d::Transform odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
 		mCurrentPose = mLastVertex->corrected_pose * odom_dist;
-		if(!checkMinDistance(odom_dist))
+		if(!force && !checkMinDistance(odom_dist))
 			return false;
 
 		if(mAddOdometryEdges)
@@ -105,7 +105,7 @@ bool Mapper::addReading(slam3d::Measurement::Ptr m)
 				newVertex->corrected_pose = mCurrentPose;
 			}else
 			{
-				if(!checkMinDistance(twc.transform))
+				if(!force && !checkMinDistance(twc.transform))
 					return false;
 				newVertex = addVertex(m, mCurrentPose);
 			}
