@@ -172,17 +172,13 @@ bool BoostMapper::optimize()
 bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 {
 	// Get the sensor responsible for this measurement
-	// Can throw std::out_of_range if sensor is not registered
 	Sensor* sensor = NULL;
-	try
-	{
-		sensor = mSensors.at(m->getSensorName());
-		mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-	}catch(std::out_of_range e)
+	if(!getSensorForMeasurement(m, sensor))
 	{
 		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
 		return false;
 	}
+	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
 
 	// Get the odometric pose for this measurement
 	Transform odometry = Transform::Identity();
