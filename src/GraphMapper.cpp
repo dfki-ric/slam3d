@@ -98,17 +98,26 @@ void GraphMapper::writeGraphToFile(const std::string &name)
 bool GraphMapper::checkMinDistance(const Transform &t)
 {
 	ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
-	if(rot > PI)
-		rot = (2*PI) - rot;
-	if(rot < -PI)
-		rot += 2*PI;
-	ScalarType dx = t.translation()(0);
-	ScalarType dy = t.translation()(1);
-	ScalarType dz = t.translation()(2);
-	ScalarType trans = sqrt(dx*dx + dy*dy + dz*dz);
+	ScalarType trans = t.translation().norm();
 	mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
-	if(trans < mMinTranslation && rot < mMinRotation)
+	if(trans < mMinTranslation && std::abs(rot) < mMinRotation)
 		return false;
 	else
 		return true;
+}
+
+bool GraphMapper::hasSensorForMeasurement(Measurement::Ptr measurement)
+{
+	return mSensors.find(measurement->getSensorName()) != mSensors.end();
+}
+
+bool GraphMapper::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor)
+{
+	SensorList::iterator it = mSensors.find(measurement->getSensorName());
+	if(it != mSensors.end())
+	{
+		sensor = it->second;
+		return true;
+	}
+	return false;
 }

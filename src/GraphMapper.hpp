@@ -327,6 +327,19 @@ namespace slam3d
 	protected:
 		static Transform orthogonalize(const Transform& t);
 		bool checkMinDistance(const Transform &t);
+
+		/**
+		 * @returns true if a sensor for the given measurement is registered
+		 */
+		bool hasSensorForMeasurement(Measurement::Ptr measurement);
+
+		/**
+		 * @brief Provides the sensor class for a given measurement
+		 * @param[in] measurement
+		 * @param[out] sensor
+		 * @returns true if a sensor for the given measurement is registered
+		 */
+		bool getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor);
 		
 	protected:
 		Solver* mSolver;
