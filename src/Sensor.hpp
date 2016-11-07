@@ -32,11 +32,13 @@ namespace slam3d
 	class NoMatch: public std::exception
 	{
 	public:
-		NoMatch(){}
+		NoMatch(const std::string& msg):message(msg){}
 		virtual const char* what() const throw()
 		{
-			return "Could not match measurements from sensor!";
+			return message.c_str();
 		}
+		
+		std::string message;
 	};
 	
 	/**

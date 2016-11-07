@@ -238,7 +238,20 @@ bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 	// Add edge to previous measurement
 	try
 	{
-		TransformWithCovariance twc = sensor->calculateTransform(mPoseGraph[mLastVertex].measurement, m, mCurrentPose);
+		Measurement::Ptr target_m = mPoseGraph[mLastVertex].measurement;
+		if(mPatchBuildingRange > 0)
+		{
+			// Create virtual measurement for target node
+			VertexList targetVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
+			VertexObjectList targetObjects;
+			for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
+			{
+				if(mPoseGraph[*it].measurement->getSensorName() == sensor->getName())
+					targetObjects.push_back(mPoseGraph[*it]);
+			}
+			target_m = sensor->createCombinedMeasurement(targetObjects, mPoseGraph[mLastVertex].corrected_pose);
+		}
+		TransformWithCovariance twc = sensor->calculateTransform(target_m, m, mCurrentPose);
 		mCurrentPose = twc.transform;
 		
 		if(newVertex)
@@ -253,9 +266,14 @@ bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 		addEdge(mLastVertex, newVertex, twc.transform, twc.covariance, sensor->getName(), "seq");
 	}catch(NoMatch &e)
 	{
-		if(!newVertex)
+		if(newVertex)
 		{
-			mLogger->message(WARNING, "Measurement could not be matched and no odometry was availabe!");
+			mLogger->message(WARNING, (boost::format("Failed to match new vertex %1% to previous, because %2%.")
+				% mPoseGraph[newVertex].index % e.what()).str());
+		}else
+		{
+			mLogger->message(WARNING, (boost::format("Measurement could not be matched because %1%, and no odometry was availabe!")
+				% e.what()).str());
 			return false;
 		}
 	}
@@ -345,7 +363,7 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	
 	if(mPatchBuildingRange > 0)
 	{
-		VertexList sourceVertices = getVerticesInRange(source, 3);
+		VertexList sourceVertices = getVerticesInRange(source, mPatchBuildingRange);
 		VertexObjectList sourceObjects;
 		for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
 		{
@@ -355,7 +373,7 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 		source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
 
 		// Create virtual measurement for target node
-		VertexList targetVertices = getVerticesInRange(target, 3);
+		VertexList targetVertices = getVerticesInRange(target, mPatchBuildingRange);
 		VertexObjectList targetObjects;
 		for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
 		{
@@ -439,6 +457,7 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 			added++;
 		}catch(NoMatch &e)
 		{
+			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());
 			continue;
 		}
 	}

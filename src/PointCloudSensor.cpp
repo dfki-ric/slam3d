@@ -100,8 +100,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	// Check if ICP was successful (kind of...)
 	if(!icp.hasConverged() || icp.getFitnessScore() > config.max_fitness_score)
 	{
-		mLogger->message(WARNING, (boost::format("ICP failed! (Fitness-Score: %1% > %2%)") % icp.getFitnessScore() % config.max_fitness_score).str());
-		throw NoMatch();
+		throw NoMatch((boost::format("ICP failed with Fitness-Score %1% > %2%") % icp.getFitnessScore() % config.max_fitness_score).str());
 	}
 	
 	// Get estimated transform
