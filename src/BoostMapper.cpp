@@ -440,21 +440,21 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 	
 	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
 	
-	int added = 0;
-	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && added < max_links; ++it)
+	int count = 0;
+	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && count < max_links; ++it)
 	{
 		if(previously_matched_vertices.find(*it) != previously_matched_vertices.end())
 			continue;
 
 		try
 		{
+			count++;
 			float dist = calculateGraphDistance(*it, vertex);
 			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % mPoseGraph[*it].index % mPoseGraph[vertex].index).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;
 			link(*it, vertex, sensor);
 			optimize();
-			added++;
 		}catch(NoMatch &e)
 		{
 			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());
