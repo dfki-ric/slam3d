@@ -29,6 +29,7 @@ rock_library(slam3d
 	DEPS_PKGCONFIG
 		eigen3
 		g2o
+		flann
 		graph_analysis
 		pcl_registration-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}
 	DEPS_CMAKE
