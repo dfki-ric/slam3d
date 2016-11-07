@@ -150,6 +150,7 @@ bool BoostMapper::optimize()
 	{
 		return false;
 	}
+	mOptimized = true;
 
 	// Retrieve results
 	IdPoseVector res = mSolver->getCorrections();
@@ -448,11 +449,11 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 
 		try
 		{
-			count++;
 			float dist = calculateGraphDistance(*it, vertex);
 			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % mPoseGraph[*it].index % mPoseGraph[vertex].index).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;
+			count++;
 			link(*it, vertex, sensor);
 			optimize();
 		}catch(NoMatch &e)

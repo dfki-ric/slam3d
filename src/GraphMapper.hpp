@@ -234,6 +234,11 @@ namespace slam3d
 		 * @return true if optimization was successful
 		 */
 		virtual bool optimize() = 0;
+		
+		/**
+		 * @brief Returns whether optimize() has been called since the last call to this.
+		 */
+		bool optimized();
 
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
@@ -358,6 +363,7 @@ namespace slam3d
 		bool mAddOdometryEdges;
 		unsigned mPatchBuildingRange;
 		bool mUseOdometryHeading;
+		bool mOptimized;
 	};
 }
 

@@ -50,6 +50,7 @@ GraphMapper::GraphMapper(Logger* log)
 	mAddOdometryEdges = false;
 	mUseOdometryHeading = false;
 	mCurrentPose = Transform::Identity();
+	mOptimized = false;
 }
 
 GraphMapper::~GraphMapper()
@@ -120,4 +121,16 @@ bool GraphMapper::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*&
 		return true;
 	}
 	return false;
+}
+
+bool GraphMapper::optimized()
+{
+	if(mOptimized)
+	{
+		mOptimized = false;
+		return true;
+	}else
+	{
+		return false;
+	}
 }
