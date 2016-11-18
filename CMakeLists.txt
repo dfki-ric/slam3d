@@ -23,5 +23,8 @@ elseif(catkin_FOUND)
 	add_subdirectory(src)
 else()
 	message("Build using standard CMake")
+	project(slam3d)
+	set(BUILD_SHARED_LIBS ON)
+	add_subdirectory(src)
 endif()
 
