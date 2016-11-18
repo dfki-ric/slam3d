@@ -33,6 +33,7 @@ namespace slam3d
 	{
 	public:
 		NoMatch(const std::string& msg):message(msg){}
+		virtual ~NoMatch() throw() {}
 		virtual const char* what() const throw()
 		{
 			return message.c_str();

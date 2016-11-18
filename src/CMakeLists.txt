@@ -40,7 +40,38 @@ if(Rock_FOUND)
 			Cholmod
 	)
 elseif(catkin_FOUND)
+	list(APPEND CMAKE_MODULE_PATH ${slam3d_SOURCE_DIR}/cmake)
+	find_package(Boost REQUIRED)
+	find_package(Eigen3 REQUIRED)
+	find_package(Cholmod REQUIRED)
+	find_package(G2O REQUIRED)
+
+	include_directories(
+		${EIGEN3_INCLUDE_DIR}
+		${PCL_INCLUDE_DIRS}
+		${G2O_INCLUDE_DIR}
+		${CHOLMOD_INCLUDE_DIR}
+	)
+
+	add_library(slam3d ${SLAM3D_SOURCES})
+	target_link_libraries(slam3d
+		${CHOLMOD_LIBRARIES}
+		${G2O_CORE_LIBRARY}
+		${G2O_TYPES_SLAM3D}
+		${G2O_SOLVER_CHOLMOD}
+		${PCL_REGISTRATION_LIBRARIES}
+	)
 	
+	install(TARGETS slam3d
+		ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+		LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+		RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+	)
+	
+	install(DIRECTORY .
+		DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+		FILES_MATCHING PATTERN "*.hpp"
+	)
 else()
 	
 endif()

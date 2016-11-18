@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.6)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 set(SLAM3D_MAJOR_VERSION 0)
 set(SLAM3D_MINOR_VERSION 1)
@@ -16,6 +15,12 @@ if(Rock_FOUND)
 	rock_standard_layout()
 elseif(catkin_FOUND)
 	message("Build using Catkin")
+	project(slam3d)	
+	catkin_package(
+		LIBRARIES slam3d
+		DEPENDS Boost Eigen3 Cholmod G2O
+	)
+	add_subdirectory(src)
 else()
 	message("Build using standard CMake")
 endif()

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+
+  <name>slam3d</name>
+  <version>0.1.0</version>
+  <description>Generic framework for graph based SLAM in 3-dimensional space.</description>
+  <maintainer email="sebastian.kasperski@dfki.de">Sebastian Kasperski</maintainer>
+
+  <license>GPLv3</license>
+  <url type="website">http://wiki.ros.org/slam3d</url>
+  <author email="sebastian.kasperski@dfki.de">Sebastian Kasperski</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>
