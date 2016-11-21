@@ -19,6 +19,7 @@ if(Rock_FOUND)
 elseif(catkin_FOUND)
 	message("=== Build using Catkin ===")
 	catkin_package(
+		INCLUDE_DIRS src
 		LIBRARIES slam3d
 		DEPENDS Boost Eigen3 Cholmod G2O
 	)
