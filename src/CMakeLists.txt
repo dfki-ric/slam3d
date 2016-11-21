@@ -40,7 +40,6 @@ if(Rock_FOUND)
 			Cholmod
 	)
 else()
-	list(APPEND CMAKE_MODULE_PATH ${slam3d_SOURCE_DIR}/cmake)
 	find_package(Boost REQUIRED)
 	find_package(Eigen3 REQUIRED)
 	find_package(Cholmod REQUIRED)
