@@ -3,18 +3,18 @@
 ############################################################
 
 set(SLAM3D_INCLUDES
-	slam3d/BoostMapper.hpp
-	slam3d/Clock.hpp
-	slam3d/FileLogger.hpp
-	slam3d/G2oSolver.hpp
-	slam3d/GICPConfiguration.hpp
-	slam3d/GraphMapper.hpp
-	slam3d/Logger.hpp
-	slam3d/Odometry.hpp
-	slam3d/PointCloudSensor.hpp
-	slam3d/Sensor.hpp
-	slam3d/Solver.hpp
-	slam3d/Types.hpp)
+	BoostMapper.hpp
+	Clock.hpp
+	FileLogger.hpp
+	G2oSolver.hpp
+	GICPConfiguration.hpp
+	GraphMapper.hpp
+	Logger.hpp
+	Odometry.hpp
+	PointCloudSensor.hpp
+	Sensor.hpp
+	Solver.hpp
+	Types.hpp)
 
 set(SLAM3D_SOURCES
 	GraphMapper.cpp
@@ -46,7 +46,6 @@ else()
 	find_package(G2O REQUIRED)
 
 	include_directories(
-		slam3d
 		${EIGEN3_INCLUDE_DIR}
 		${PCL_INCLUDE_DIRS}
 		${G2O_INCLUDE_DIR}
@@ -82,7 +81,7 @@ else()
 		RUNTIME DESTINATION ${INSTALL_BIN_DIR}
 	)
 	
-	install(DIRECTORY slam3d
+	install(DIRECTORY .
 		DESTINATION ${INSTALL_INC_DIR}
 		FILES_MATCHING PATTERN "*.hpp"
 	)
