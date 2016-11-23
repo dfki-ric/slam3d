@@ -23,7 +23,6 @@ set(SLAM3D_SOURCES
 	G2oSolver.cpp)
 
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
-add_definitions(-DPCL_WITH_VIEWPOINT)
 
 if(Rock_FOUND)
 	rock_library(slam3d
