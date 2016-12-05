@@ -611,7 +611,10 @@ float BoostMapper::calculateGraphDistance(Vertex source, Vertex target)
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		weight[*it] = 1.0;
+		if(mPoseGraph[*it].label == "root-link")
+			weight[*it] = 100.0;
+		else
+			weight[*it] = 1.0;
 	}
 	
 	boost::dijkstra_shortest_paths(mPoseGraph, source,
