@@ -248,9 +248,10 @@ namespace slam3d
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
+		 * @param sensor follow edges from this sensor type
 		 * @param range maximum number of steps to search from source
 		 */
-		VertexList getVerticesInRange(Vertex source, unsigned range);
+		VertexList getVerticesInRange(Vertex source, const std::string& sensor, unsigned range);
 		
 		/**
 		 * @brief Calculates the distance between two vertices in the graph.

@@ -243,7 +243,7 @@ bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 		if(mPatchBuildingRange > 0)
 		{
 			// Create virtual measurement for target node
-			VertexList targetVertices = getVerticesInRange(mLastVertex, mPatchBuildingRange);
+			VertexList targetVertices = getVerticesInRange(mLastVertex, sensor->getName(), mPatchBuildingRange);
 			VertexObjectList targetObjects;
 			for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
 			{
@@ -364,7 +364,7 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	
 	if(mPatchBuildingRange > 0)
 	{
-		VertexList sourceVertices = getVerticesInRange(source, mPatchBuildingRange);
+		VertexList sourceVertices = getVerticesInRange(source, sensor->getName(), mPatchBuildingRange);
 		VertexObjectList sourceObjects;
 		for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
 		{
@@ -374,7 +374,7 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 		source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
 
 		// Create virtual measurement for target node
-		VertexList targetVertices = getVerticesInRange(target, mPatchBuildingRange);
+		VertexList targetVertices = getVerticesInRange(target, sensor->getName(), mPatchBuildingRange);
 		VertexObjectList targetObjects;
 		for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
 		{
@@ -543,7 +543,7 @@ struct EdgeFilter
 	EdgeFilter(AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
 	bool operator()(const Edge& e) const
 	{
-		return (*graph)[e].label == name;
+		return (*graph)[e].sensor == name;
 	}
 	
 	AdjacencyGraph* graph;
@@ -576,7 +576,7 @@ private:
 	unsigned max_depth;
 };
 
-VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
+VertexList BoostMapper::getVerticesInRange(Vertex source, const std::string& sensor, unsigned range)
 {
 	// Create required data structures
 	DepthMap depth_map;
@@ -585,7 +585,7 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 	MaxDepthVisitor vis(depth_map, range);
 	
 	// Do BFS on filtered graph
-	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, "seq"));
+	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, sensor));
 	try
 	{
 		boost::breadth_first_search(fg, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
@@ -611,7 +611,7 @@ float BoostMapper::calculateGraphDistance(Vertex source, Vertex target)
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		if(mPoseGraph[*it].label == "root-link")
+		if(mPoseGraph[*it].sensor == "none")
 			weight[*it] = 100.0;
 		else
 			weight[*it] = 1.0;
