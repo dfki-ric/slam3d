@@ -4,6 +4,7 @@
 #include "Clock.hpp"
 
 #include <iostream>
+#include <iomanip>
 
 #define RST  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -13,6 +14,8 @@
 #define KMAG  "\x1B[35m"
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
+
+#define USEC std::setw(6)<<std::left<<std::setfill('0')
 
 namespace slam3d
 {
@@ -54,19 +57,19 @@ namespace slam3d
 			switch(lvl)
 			{
 			case DEBUG:
-				std::cout << KBLU << "[DEBUG][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
+				std::cout << KBLU << "[DEBUG][" << tp.tv_sec << "." << USEC << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case INFO:
-				std::cout << KGRN << "[INFO ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
+				std::cout << KGRN << "[INFO ][" << tp.tv_sec << "." << USEC << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case WARNING:
-				std::cout << KYEL << "[WARN ][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
+				std::cout << KYEL << "[WARN ][" << tp.tv_sec << "." << USEC << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case ERROR:
-				std::cerr << KRED << "[ERROR][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
+				std::cerr << KRED << "[ERROR][" << tp.tv_sec << "." << USEC << tp.tv_usec << "] " << message << RST << std::endl;
 				break;
 			case FATAL:
-				std::cerr << KRED << "[FATAL][" << tp.tv_sec << "." << tp.tv_usec << "] " << message << RST << std::endl;
+				std::cerr << KRED << "[FATAL][" << tp.tv_sec << "." << USEC << tp.tv_usec << "] " << message << RST << std::endl;
 				break;		
 			}
 		}
