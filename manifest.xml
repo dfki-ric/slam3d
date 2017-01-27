@@ -9,7 +9,6 @@
   <depend package="base/cmake" />
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
-  <depend package="tools/graph_analysis" />
   <depend package="cholmod" />
   <depend package="flann" />
   
