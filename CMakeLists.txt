@@ -12,13 +12,17 @@ find_package(catkin)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 if(Rock_FOUND)
+
 	message("=== Build using ROCK ===")
 	set(ROCK_TEST_ENABLED ON)
 	add_definitions(-DPCL_WITH_VIEWPOINT)
 	rock_init(slam3d ${SLAM3D_VERSION})
 	rock_standard_layout()
+
 elseif(catkin_FOUND)
+
 	message("=== Build using Catkin ===")
+	add_definitions(-std=c++11)
 	if(NOT EXISTS ${PROJECT_SOURCE_DIR}/include)
 		execute_process(
 			COMMAND mkdir ${PROJECT_SOURCE_DIR}/include
@@ -27,12 +31,16 @@ elseif(catkin_FOUND)
 	catkin_package(
 		INCLUDE_DIRS include
 		LIBRARIES slam3d
-		DEPENDS Boost Eigen3 Cholmod G2O
+		DEPENDS Boost Eigen3 Cholmod
 	)
 	add_subdirectory(src)
+
 else()
+
 	message("=== Build using standard CMake ===")
+	add_definitions(-std=c++11)
 	set(BUILD_SHARED_LIBS ON)
 	add_subdirectory(src)
+
 endif()
 

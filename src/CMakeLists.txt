@@ -42,7 +42,21 @@ else()
 	find_package(Boost REQUIRED)
 	find_package(Eigen3 REQUIRED)
 	find_package(Cholmod REQUIRED)
-	find_package(G2O REQUIRED)
+
+	if(catkin_FOUND)
+		# Hack, because the catkin package libg2o does not provide a
+		# CMake-Config, Cmake-Module or Pkg-Config file
+		find_package(cpp_common)
+		list(GET cpp_common_LIBRARIES 0 LIB)
+		get_filename_component(LIB_PATH ${LIB} DIRECTORY)
+		set(G2O_CORE_LIBRARY ${LIB_PATH}/libg2o_core.so)
+		set(G2O_TYPES_SLAM3D ${LIB_PATH}/libg2o_types_slam3d.so)
+		set(G2O_SOLVER_CHOLMOD ${LIB_PATH}/libg2o_solver_cholmod.so)
+		list(GET cpp_common_INCLUDE_DIRS 0 G2O_INCLUDE_DIR)
+	else()
+		# This requires that g2o is build from source and installed
+		find_package(G2O REQUIRED)
+	endif()
 
 	include_directories(
 		${EIGEN3_INCLUDE_DIR}
