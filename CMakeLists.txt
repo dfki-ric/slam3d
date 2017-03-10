@@ -6,41 +6,52 @@ set(SLAM3D_MINOR_VERSION 1)
 set(SLAM3D_PATCH_VERSION 0)
 set(SLAM3D_VERSION ${SLAM3D_MAJOR_VERSION}.${SLAM3D_MINOR_VERSION}.${SLAM3D_PATCH_VERSION})
 
-find_package(Rock)
-find_package(catkin)
-
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-if(Rock_FOUND)
+add_definitions(-std=c++11)
+set(BUILD_SHARED_LIBS ON)
 
-	message("=== Build using ROCK ===")
-	set(ROCK_TEST_ENABLED ON)
-	add_definitions(-DPCL_WITH_VIEWPOINT)
-	rock_init(slam3d ${SLAM3D_VERSION})
-	rock_standard_layout()
+find_package(PCL 1.7 REQUIRED COMPONENTS registration)
+find_package(Boost REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Cholmod REQUIRED)
+find_package(G2O REQUIRED)
 
-elseif(catkin_FOUND)
+include_directories(
+	src
+	${EIGEN3_INCLUDE_DIR}
+	${PCL_INCLUDE_DIRS}
+	${G2O_INCLUDE_DIR}
+	${CHOLMOD_INCLUDE_DIR}
+)
 
-	message("=== Build using Catkin ===")
-	add_definitions(-std=c++11)
-	if(NOT EXISTS ${PROJECT_SOURCE_DIR}/include)
-		execute_process(
-			COMMAND mkdir ${PROJECT_SOURCE_DIR}/include
-			COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/include/slam3d)
-	endif()
-	catkin_package(
-		INCLUDE_DIRS include
-		LIBRARIES slam3d
-		DEPENDS Boost Eigen3 Cholmod
-	)
-	add_subdirectory(src)
+add_library(slam3d 
+	src/GraphMapper.cpp
+	src/BoostMapper.cpp
+	src/PointCloudSensor.cpp
+	src/G2oSolver.cpp
+)
 
-else()
+target_link_libraries(slam3d
+	${CHOLMOD_LIBRARIES}
+	${G2O_CORE_LIBRARY}
+	${G2O_TYPES_SLAM3D}
+	${G2O_SOLVER_CHOLMOD}
+	${PCL_REGISTRATION_LIBRARIES}
+)
 
-	message("=== Build using standard CMake ===")
-	add_definitions(-std=c++11)
-	set(BUILD_SHARED_LIBS ON)
-	add_subdirectory(src)
+install(TARGETS slam3d
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+	RUNTIME DESTINATION bin
+)
 
-endif()
+install(DIRECTORY src/
+	DESTINATION include/slam3d
+	FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(FILES package.xml
+	DESTINATION share/slam3d
+)
 
