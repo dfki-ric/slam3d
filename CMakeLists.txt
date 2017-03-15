@@ -25,7 +25,7 @@ include_directories(
 	${CHOLMOD_INCLUDE_DIR}
 )
 
-add_library(slam3d 
+add_library(slam3d
 	src/GraphMapper.cpp
 	src/BoostMapper.cpp
 	src/PointCloudSensor.cpp
@@ -40,18 +40,32 @@ target_link_libraries(slam3d
 	${PCL_REGISTRATION_LIBRARIES}
 )
 
+# Install the binaries
 install(TARGETS slam3d
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION bin
 )
 
+# Install header files
 install(DIRECTORY src/
 	DESTINATION include/slam3d
 	FILES_MATCHING PATTERN "*.hpp"
 )
 
+# Install catkin package-manifest
 install(FILES package.xml
 	DESTINATION share/slam3d
+)
+
+# Install cmake macro
+install(FILES cmake/FindSLAM3D.cmake
+	DESTINATION lib/cmake/slam3d
+)
+
+# Install pkg-config file
+configure_file(slam3d.pc.in slam3d.pc @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/slam3d.pc
+	DESTINATION lib/pkgconfig
 )
 
