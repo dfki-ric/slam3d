@@ -1,9 +1,8 @@
-image: ubuntu:latest
+image: alpine
 pages:
    environment: api
    before_script:
-   - apt update
-   - apt install -y doxygen graphviz
+   - apk add --no-cache doxygen
    script:
    - doxygen Doxyfile
    - rm -rf /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
