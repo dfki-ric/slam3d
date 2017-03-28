@@ -1,16 +1,16 @@
-image: alpine
+image: skasperski/slam3d-ci
+
+binaries:
+   script:
+   - mkdir build
+   - cd build
+   - cmake ..
+   - make
+
 pages:
-   environment: api
-   before_script:
-   - apk add --no-cache doxygen
    script:
    - doxygen Doxyfile
    - rm -rf /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
    - mkdir -p /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
    - mv doc/* /home/www/htdocs/apis/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
-   artifacts:
-     paths:
-     - public
-   only:
-   - master
-
+ 
