@@ -207,7 +207,10 @@ bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 		mLastVertex = addVertex(m, mCurrentPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
-		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 1000, "none", "root-link");
+		if(getVertexObjectsFromSensor(sensor->getName()).size() == 1)
+		{
+			addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity(), "none", "root-link");
+		}
 		buildNeighborIndex(sensor->getName());
 		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
 		mCurrentPose = Transform::Identity();
