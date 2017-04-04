@@ -74,3 +74,22 @@ install(FILES ${PROJECT_BINARY_DIR}/slam3d.pc
 	DESTINATION lib/pkgconfig
 )
 
+# Generate test cases
+enable_testing()
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+include_directories (${Boost_INCLUDE_DIRS})
+add_definitions(-DBOOST_TEST_DYN_LINK)
+
+add_executable(test_solver test/solver.cpp)
+target_link_libraries(test_solver
+	slam3d
+	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+add_test(TestSolver test_solver)
+
+add_executable(test_pcl_sensor test/pcl_sensor.cpp)
+target_link_libraries(test_pcl_sensor
+	slam3d
+	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+add_test(TestPclSensor test_pcl_sensor)

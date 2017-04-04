@@ -1,8 +1,8 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE PclSensorTest
 
-#include <slam3d/PointCloudSensor.hpp>
-#include <slam3d/FileLogger.hpp>
+#include <PointCloudSensor.hpp>
+#include <FileLogger.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -71,23 +71,23 @@ BOOST_AUTO_TEST_CASE(icp)
 	PointCloudMeasurement::Ptr m2(new PointCloudMeasurement(cloud2, "r1", "pcl_sensor", sensor_pose));
 	PointCloudMeasurement::Ptr m3(new PointCloudMeasurement(cloud3, "r1", "pcl_sensor", sensor_pose));
 	PointCloudMeasurement::Ptr m4(new PointCloudMeasurement(cloud4, "r1", "pcl_sensor", sensor_pose));
-/*	
+
 	Transform pose1 = Transform::Identity();
 	
 	Transform guess(Eigen::Translation<double, 3>(0.5,0,0));
-	Measurement m;
-	BOOST_CHECK_THROW(pclSensor.calculateTransform(&m1, &m, guess), BadMeasurementType);
+	Measurement::Ptr m(new Measurement());
+	BOOST_CHECK_THROW(pclSensor.calculateTransform(m1, m, guess), BadMeasurementType);
 	
-	TransformWithCovariance twc1 = pclSensor.calculateTransform(&m1, &m2, guess);
+	TransformWithCovariance twc1 = pclSensor.calculateTransform(m1, m2, guess);
 	Transform pose2 = twc1.transform * pose1;
 
 //	logger.message(DEBUG, (boost::format("Estimated translation:\n %1%") % twc.transform.translation()).str());
 //	logger.message(DEBUG, (boost::format("Estimated rotation:\n %1%") % twc.transform.rotation()).str());
 
-	TransformWithCovariance twc2 = pclSensor.calculateTransform(&m2, &m3, guess);
+	TransformWithCovariance twc2 = pclSensor.calculateTransform(m2, m3, guess);
 	Transform pose3 = twc2.transform * pose2;
 	
-	TransformWithCovariance twc3 = pclSensor.calculateTransform(&m3, &m4, guess);
+	TransformWithCovariance twc3 = pclSensor.calculateTransform(m3, m4, guess);
 	Transform pose4 = twc3.transform * pose3;
 	
 	logger.message(INFO, (boost::format("Pose1:\n %1%") % pose1.translation()).str());
@@ -98,20 +98,20 @@ BOOST_AUTO_TEST_CASE(icp)
 	// Now calculate difference between pose 2 and 4
 	logger.message(INFO, "Estimating 1 -> 3");
 	guess = pose3 * pose1.inverse();
-	pclSensor.calculateTransform(&m1, &m3, guess);
+	pclSensor.calculateTransform(m1, m3, guess);
 	
 	logger.message(INFO, "Estimating 2 -> 3");
 	guess = pose3 * pose2.inverse();
-	pclSensor.calculateTransform(&m2, &m3, guess);
+	pclSensor.calculateTransform(m2, m3, guess);
 	
 	logger.message(INFO, "Estimating 1 -> 4");
 	guess = pose4 * pose1.inverse();
-	pclSensor.calculateTransform(&m1, &m4, guess);
+	pclSensor.calculateTransform(m1, m4, guess);
 	
 	logger.message(INFO, "Estimating 2 -> 4");
 	guess = pose4 * pose2.inverse();
-	pclSensor.calculateTransform(&m2, &m4, guess);
-*/
+	pclSensor.calculateTransform(m2, m4, guess);
+
 
 	// Test translation
 	Transform tx(Eigen::Translation<double, 3>(1,0,0));

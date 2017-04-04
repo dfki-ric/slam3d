@@ -44,12 +44,8 @@
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
     <File Name="CMakeLists.txt"/>
-    <File Name="src/CMakeLists.txt"/>
-    <File Name="test/CMakeLists.txt"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
-    <File Name="test/pose_graph.cpp"/>
-    <File Name="test/dummy.cpp"/>
     <File Name="test/solver.cpp"/>
     <File Name="test/pcl_sensor.cpp"/>
   </VirtualDirectory>
