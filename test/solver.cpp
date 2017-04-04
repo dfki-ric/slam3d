@@ -1,5 +1,4 @@
-#define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE SolverTest
+#define BOOST_TEST_MODULE "SolverTest"
 
 #include <G2oSolver.hpp>
 #include <FileLogger.hpp>
