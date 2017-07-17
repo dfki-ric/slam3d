@@ -71,6 +71,10 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), config.point_cloud_density);
 	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), config.point_cloud_density);
 	
+	// Make sure that there are enough points left (ICP will crash if not)
+	if(filtered_target->size() < config.correspondence_randomness || filtered_source->size() < config.correspondence_randomness)
+		throw NoMatch("ICP has too few points");
+	
 	// Configure Generalized-ICP
 	GICP icp;
 	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
