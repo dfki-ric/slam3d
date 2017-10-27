@@ -12,7 +12,7 @@
   <depend package="cholmod" />
   <depend package="flann" />
   
-   <keywords>
+  <keywords>
     <keyword>slam</keyword>
     <keyword>mapping</keyword>
     <keyword>graph</keyword>
@@ -22,8 +22,8 @@
   <use>multi project</use>
   <activity>active</activity>
 
-  <tags>
-    <tag>c++</tag>
-	<tag>library</tag>
-  </tags>
+  <tag>c++</tag>
+  <tag>library</tag>
+  <tag>stable</tag>
+
 </package>
