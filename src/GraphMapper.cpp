@@ -27,39 +27,15 @@
 
 #include <boost/format.hpp>
 
-#define PI 3.141592654
-
 using namespace slam3d;
 
 // Re-orthogonalize the rotation-matrix
-// http://stackoverflow.com/questions/23080791/eigen-re-orthogonalization-of-rotation-matrix
 Transform GraphMapper::orthogonalize(const Transform& t)
 {
-	Vector3 x(t(0,0), t(0,1), t(0,2));
-	Vector3 y(t(1,0), t(1,1), t(1,2));
-	Vector3 z(t(2,0), t(2,1), t(2,2));
-	ScalarType error = x.dot(y);
-	
-	Vector3 x_ort = x - (error/2.0) * y;
-	Vector3 y_ort = y - (error/2.0) * x;
-	Vector3 z_ort = x_ort.cross(y_ort);
-
-	Transform res = t;
-	ScalarType xdot = 0.5 * (3.0 - x_ort.dot(x_ort));
-	res(0,0) = xdot * x_ort(0);
-	res(0,1) = xdot * x_ort(1);
-	res(0,2) = xdot * x_ort(2);
-	
-	ScalarType ydot = 0.5 * (3.0 - y_ort.dot(y_ort));
-	res(1,0) = ydot * y_ort(0);
-	res(1,1) = ydot * y_ort(1);
-	res(1,2) = ydot * y_ort(2);
-	
-	ScalarType zdot = 0.5 * (3.0 - z_ort.dot(z_ort));
-	res(2,0) = zdot * z_ort(0);
-	res(2,1) = zdot * z_ort(1);
-	res(2,2) = zdot * z_ort(2);
-	
+	Eigen::Quaternion<ScalarType> q(t.linear());
+	q.normalize();
+	Transform res(t);
+	res.linear() = q.toRotationMatrix();
 	return res;
 }
 
