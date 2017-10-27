@@ -2,13 +2,13 @@
 <package>
 
 	<name>slam3d</name>
-	<version>0.1.0</version>
+	<version>1.0.0</version>
 	<description>Generic framework for graph based SLAM in 3-dimensional space.</description>
+	<author email="sebastian.kasperski@dfki.de">Sebastian Kasperski</author>
 	<maintainer email="sebastian.kasperski@dfki.de">Sebastian Kasperski</maintainer>
 
-	<license>GPLv3</license>
+	<license>New BSD</license>
 	<url type="website">http://wiki.ros.org/slam3d</url>
-	<author email="sebastian.kasperski@dfki.de">Sebastian Kasperski</author>
 
 	<buildtool_depend>cmake</buildtool_depend>
 

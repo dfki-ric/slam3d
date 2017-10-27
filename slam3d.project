@@ -24,7 +24,6 @@
     <File Name="src/FileLogger.hpp"/>
     <File Name="src/G2oSolver.hpp"/>
     <File Name="src/GICPConfiguration.hpp"/>
-    <File Name="src/GraphMapper.hpp"/>
     <File Name="src/Logger.hpp"/>
     <File Name="src/Odometry.hpp"/>
     <File Name="src/PointCloudSensor.hpp"/>
@@ -32,7 +31,6 @@
     <File Name="src/Solver.hpp"/>
     <File Name="src/Types.hpp"/>
     <File Name="src/BoostMapper.hpp"/>
-    <File Name="src/GraphAnalysisMapper.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/GraphMapper.cpp"/>
