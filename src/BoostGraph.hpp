@@ -103,9 +103,10 @@ namespace slam3d
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
+		 * @param iterations maximum number of iteration steps
 		 * @return true if optimization was successful
 		 */
-		bool optimize();
+		bool optimize(unsigned iterations = 100);
 		
 		/**
 		 * @brief Gets a vertex object by its given id.

@@ -110,7 +110,7 @@ void G2oSolver::setFixed(unsigned id)
 	v->setFixed(true);
 }
 
-bool G2oSolver::compute()
+bool G2oSolver::compute(unsigned iterations)
 {
 	// need to do something?
 	if(mOptimizer.activeVertices().size() == 0 && mNewVertices.size() < 2)
@@ -143,7 +143,7 @@ bool G2oSolver::compute()
 	mNewVertices.clear();
 	mNewEdges.clear();
 	
-	int iter = mOptimizer.optimize(100, false);
+	int iter = mOptimizer.optimize(iterations, false);
 	if (iter <= 0)
 	{		
 		mLogger->message(ERROR, "Optimization failed!");

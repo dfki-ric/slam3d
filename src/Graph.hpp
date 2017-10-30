@@ -273,9 +273,10 @@ namespace slam3d
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
+		 * @param iterations maximum number of iteration steps
 		 * @return true if optimization was successful
 		 */
-		virtual bool optimize() = 0;
+		virtual bool optimize(unsigned iterations = 100) = 0;
 		
 		/**
 		 * @brief Returns whether optimize() has been called since the last call to this.

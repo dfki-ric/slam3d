@@ -137,7 +137,7 @@ namespace slam3d
 		/**
 		 * @brief Start optimization of the defined graph.
 		 */
-		virtual bool compute() = 0;
+		virtual bool compute(unsigned iterations = 100) = 0;
 	
 		/**
 		 * @brief Clear internal graph structure by removing all nodes and constraints.

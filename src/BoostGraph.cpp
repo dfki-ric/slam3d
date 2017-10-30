@@ -38,7 +38,7 @@ EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 	return objectList;
 }
 
-bool BoostGraph::optimize()
+bool BoostGraph::optimize(unsigned iterations)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	if(!mSolver)
