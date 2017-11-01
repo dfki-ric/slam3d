@@ -22,8 +22,11 @@
   <use>multi project</use>
   <activity>active</activity>
 
-  <tag>c++</tag>
-  <tag>library</tag>
+  <classifiers>
+    <classifier>c++</classifier>
+    <classifier>library</classifier>
+  </classifiers>
+
   <tag>stable</tag>
 
 </package>
