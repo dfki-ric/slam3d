@@ -12,6 +12,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/graph/subgraph.hpp>
 
 #include <fstream>
 
@@ -207,10 +208,8 @@ bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 		mLastVertex = addVertex(m, mCurrentPose);
 		mLastOdometricPose = odometry;
 		mLogger->message(INFO, "Added first node to the graph.");
-		if(getVertexObjectsFromSensor(sensor->getName()).size() == 1)
-		{
-			addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity(), "none", "root-link");
-		}
+		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 100, "none", "root-link");
+
 		buildNeighborIndex(sensor->getName());
 		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
 		mCurrentPose = Transform::Identity();
@@ -245,15 +244,7 @@ bool BoostMapper::addReading(Measurement::Ptr m, bool force)
 		Measurement::Ptr target_m = mPoseGraph[mLastVertex].measurement;
 		if(mPatchBuildingRange > 0)
 		{
-			// Create virtual measurement for target node
-			VertexList targetVertices = getVerticesInRange(mLastVertex, sensor->getName(), mPatchBuildingRange);
-			VertexObjectList targetObjects;
-			for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
-			{
-				if(mPoseGraph[*it].measurement->getSensorName() == sensor->getName())
-					targetObjects.push_back(mPoseGraph[*it]);
-			}
-			target_m = sensor->createCombinedMeasurement(targetObjects, mPoseGraph[mLastVertex].corrected_pose);
+			target_m = buildPatch(mLastVertex, sensor);
 		}
 		TransformWithCovariance twc = sensor->calculateTransform(target_m, m, mCurrentPose);
 		mCurrentPose = twc.transform;
@@ -367,24 +358,8 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	
 	if(mPatchBuildingRange > 0)
 	{
-		VertexList sourceVertices = getVerticesInRange(source, sensor->getName(), mPatchBuildingRange);
-		VertexObjectList sourceObjects;
-		for(VertexList::iterator it = sourceVertices.begin(); it != sourceVertices.end(); ++it)
-		{
-			if(mPoseGraph[*it].measurement->getSensorName() == sensor->getName())
-				sourceObjects.push_back(mPoseGraph[*it]);
-		}
-		source_m = sensor->createCombinedMeasurement(sourceObjects, sourcePose);
-
-		// Create virtual measurement for target node
-		VertexList targetVertices = getVerticesInRange(target, sensor->getName(), mPatchBuildingRange);
-		VertexObjectList targetObjects;
-		for(VertexList::iterator it = targetVertices.begin(); it != targetVertices.end(); ++it)
-		{
-			if(mPoseGraph[*it].measurement->getSensorName() == sensor->getName())
-				targetObjects.push_back(mPoseGraph[*it]);
-		}
-		target_m = sensor->createCombinedMeasurement(targetObjects, targetPose);
+		source_m = buildPatch(source, sensor);
+		target_m = buildPatch(target, sensor);
 	}
 	
 	// Estimate the transform from source to target
@@ -395,6 +370,17 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	// Create new edge and return the transform
 	addEdge(source, target, twc.transform, twc.covariance, sensor->getName(), "loop");
 	return twc;
+}
+
+Measurement::Ptr BoostMapper::buildPatch(Vertex source, Sensor* sensor)
+{
+	VertexList vertices = getVerticesInRange(source, mPatchBuildingRange);
+	VertexObjectList objects;
+	for(VertexList::iterator it = vertices.begin(); it != vertices.end(); ++it)
+	{
+		objects.push_back(mPoseGraph[*it]);
+	}
+	return sensor->createCombinedMeasurement(objects, mPoseGraph[source].corrected_pose);
 }
 
 void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
@@ -579,7 +565,7 @@ private:
 	unsigned max_depth;
 };
 
-VertexList BoostMapper::getVerticesInRange(Vertex source, const std::string& sensor, unsigned range)
+VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 {
 	// Create required data structures
 	DepthMap depth_map;
@@ -588,6 +574,7 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, const std::string& sen
 	MaxDepthVisitor vis(depth_map, range);
 	
 	// Do BFS on filtered graph
+	std::string sensor = mPoseGraph[source].measurement->getSensorName();
 	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, sensor));
 	try
 	{

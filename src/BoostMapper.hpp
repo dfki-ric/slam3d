@@ -248,10 +248,9 @@ namespace slam3d
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
-		 * @param sensor follow edges from this sensor type
 		 * @param range maximum number of steps to search from source
 		 */
-		VertexList getVerticesInRange(Vertex source, const std::string& sensor, unsigned range);
+		VertexList getVerticesInRange(Vertex source, unsigned range);
 		
 		/**
 		 * @brief Calculates the distance between two vertices in the graph.
@@ -259,6 +258,13 @@ namespace slam3d
 		 * @param target
 		 */
 		float calculateGraphDistance(Vertex source, Vertex target);
+		
+		/**
+		 * @brief Builds a local patch surrounding the given source vertex.
+		 * @param source
+		 * @param sensor
+		 */
+		Measurement::Ptr buildPatch(Vertex source, Sensor* sensor);
 		
 	private:
 		// The boost graph object
