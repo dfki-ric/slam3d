@@ -12,7 +12,6 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <boost/graph/subgraph.hpp>
 
 #include <fstream>
 
@@ -35,11 +34,11 @@ BoostMapper::BoostMapper(Logger* log)
 	mVertexIndex.insert(UuidMap::value_type(origin->getUniqueId(), root));
 
 	mLastVertex = 0;
+	mPatchSolver = NULL;
 }
 
 BoostMapper::~BoostMapper()
 {
-	
 }
 
 Transform BoostMapper::getCurrentPose()
@@ -372,15 +371,57 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	return twc;
 }
 
+void BoostMapper::setPatchSolver(Solver* solver)
+{
+	mPatchSolver = solver;
+}
+
 Measurement::Ptr BoostMapper::buildPatch(Vertex source, Sensor* sensor)
 {
 	VertexList vertices = getVerticesInRange(source, mPatchBuildingRange);
-	VertexObjectList objects;
+	
+	VertexObjectList v_objects;
 	for(VertexList::iterator it = vertices.begin(); it != vertices.end(); ++it)
 	{
-		objects.push_back(mPoseGraph[*it]);
+		v_objects.push_back(mPoseGraph[*it]);
 	}
-	return sensor->createCombinedMeasurement(objects, mPoseGraph[source].corrected_pose);
+	
+	if(mPatchSolver)
+	{
+		mPatchSolver->clear();
+		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
+		{
+			mPatchSolver->addNode(v->index, v->corrected_pose);
+		}
+		
+		EdgeObjectList e_objects = getEdgeObjects(v_objects);
+		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
+		{
+			mPatchSolver->addConstraint(e->source, e->target, e->transform, e->covariance);
+		}
+		
+		mPatchSolver->setFixed(mPoseGraph[source].index);
+		mPatchSolver->compute();
+		IdPoseVector res = mPatchSolver->getCorrections();
+		for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+		{
+			bool ok = false;
+			for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
+			{
+				if(v->index == it->first)
+				{
+					v->corrected_pose = it->second;
+					ok = true;
+					break;
+				}
+			}
+			if(!ok)
+			{
+				mLogger->message(ERROR, "Could not apply patch-solver result, this is a bug!");
+			}
+		}
+	}
+	return sensor->createCombinedMeasurement(v_objects, mPoseGraph[source].corrected_pose);
 }
 
 void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
@@ -504,6 +545,24 @@ EdgeObjectList BoostMapper::getOutEdges(IdType source) const
 		++it;
 	}
 	return edges;
+}
+
+EdgeObjectList BoostMapper::getEdgeObjects(const VertexObjectList& vertices)
+{
+	std::set<int> v_ids;
+	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
+	{
+		v_ids.insert(v->index);
+	}
+	EdgeObjectList objectList;
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		EdgeObject ed = mPoseGraph[*it];
+		if(v_ids.find(ed.source) != v_ids.end() && v_ids.find(ed.target) != v_ids.end())
+			objectList.push_back(ed);
+	}
+	return objectList;
 }
 
 void BoostMapper::writeGraphToFile(const std::string& name)

@@ -152,6 +152,12 @@ namespace slam3d
 		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const;
 		
 		/**
+		 * @brief Get all connecting edges between given vertices.
+		 * @param vertices
+		 */
+		EdgeObjectList getEdgeObjects(const VertexObjectList& vertices);
+		
+		/**
 		 * @brief Get the current pose of the robot within the generated map.
 		 * @details The pose is updated at least whenever a new node is added.
 		 * Depending on the available information, it might be updated
@@ -166,6 +172,12 @@ namespace slam3d
 		 * @param name filename without type ending
 		 */
 		void writeGraphToFile(const std::string &name);
+		
+		/**
+		 * @brief Set the solver for local patch optimization.
+		 * @param solver
+		 */
+		void setPatchSolver(Solver* solver);
 
 	private:
 	
@@ -286,6 +298,9 @@ namespace slam3d
 		
 		// Some special vertices
 		Vertex mLastVertex;
+		
+		// Local solver for patch optimization
+		Solver* mPatchSolver;
 	};
 }
 
