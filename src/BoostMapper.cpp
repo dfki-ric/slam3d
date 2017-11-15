@@ -371,11 +371,6 @@ TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* 
 	return twc;
 }
 
-void BoostMapper::setPatchSolver(Solver* solver)
-{
-	mPatchSolver = solver;
-}
-
 Measurement::Ptr BoostMapper::buildPatch(Vertex source, Sensor* sensor)
 {
 	VertexList vertices = getVerticesInRange(source, mPatchBuildingRange);
@@ -485,7 +480,7 @@ void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
 				continue;
 			count++;
 			link(*it, vertex, sensor);
-			optimize();
+//			optimize();
 		}catch(NoMatch &e)
 		{
 			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());

@@ -65,6 +65,11 @@ void GraphMapper::setSolver(Solver* solver)
 	mSolver->setFixed(0);
 }
 
+void GraphMapper::setPatchSolver(Solver* solver)
+{
+	mPatchSolver = solver;
+}
+
 void GraphMapper::setOdometry(Odometry* odom, bool add_edges)
 {
 	mOdometry = odom;

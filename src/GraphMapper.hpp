@@ -172,6 +172,15 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
+		 * @brief Sets a specific solver to optimize local patches.
+		 * @details This must not be the same instance used as the backend,
+		 * as it will be reset after every optimization. If it is not set,
+		 * patches will not be optimized before matching.
+		 * @param solver used for patch optimization
+		 */
+		void setPatchSolver(Solver* solver);
+
+		/**
 		 * @brief Sets an odometry module to provide relative poses 
 		 * @details Depending on the matching abilities of the
 		 * used sensors (e.g. a 360° laser-scanner), the mapping might work
@@ -373,6 +382,7 @@ namespace slam3d
 		
 	protected:
 		Solver* mSolver;
+		Solver* mPatchSolver;
 		Logger* mLogger;
 		Odometry* mOdometry;
 		SensorList mSensors;

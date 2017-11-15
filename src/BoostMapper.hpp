@@ -173,12 +173,6 @@ namespace slam3d
 		 */
 		void writeGraphToFile(const std::string &name);
 		
-		/**
-		 * @brief Set the solver for local patch optimization.
-		 * @param solver
-		 */
-		void setPatchSolver(Solver* solver);
-
 	private:
 	
 		/**
@@ -298,9 +292,6 @@ namespace slam3d
 		
 		// Some special vertices
 		Vertex mLastVertex;
-		
-		// Local solver for patch optimization
-		Solver* mPatchSolver;
 	};
 }
 
