@@ -40,10 +40,10 @@ typedef g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType> SlamLinea
 G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
 {
 	// Initialize the SparseOptimizer
-	SlamLinearSolver* linearSolver = new SlamLinearSolver();
+	std::unique_ptr<SlamLinearSolver> linearSolver(new SlamLinearSolver);
 	linearSolver->setBlockOrdering(true);
-	g2o::BlockSolver_6_3* blockSolver = new g2o::BlockSolver_6_3(linearSolver);
-	mOptimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(blockSolver));
+	std::unique_ptr<g2o::BlockSolver_6_3> blockSolver(new g2o::BlockSolver_6_3(std::move(linearSolver)));
+	mOptimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(std::move(blockSolver)));
 	
 	// Set the default terminate action
 	g2o::SparseOptimizerTerminateAction* terminateAction = new g2o::SparseOptimizerTerminateAction;
