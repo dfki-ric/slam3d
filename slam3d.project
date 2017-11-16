@@ -42,6 +42,7 @@
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>
     <File Name="CMakeLists.txt"/>
+    <File Name="slam3d.pc.in"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="test/solver.cpp"/>

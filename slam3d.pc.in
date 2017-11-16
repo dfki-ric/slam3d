@@ -7,6 +7,6 @@ Name: slam3d
 Description: Graph-based frontend for 3D-SLAM.
 Version: @SLAM3D_VERSION@
 Requires: eigen3 flann pcl_registration-@PCL_VERSION_MAJOR@.@PCL_VERSION_MINOR@
-Libs: -L${libdir} -l@PROJECT_NAME@ -l@CHOLMOD_LIBRARIES@ -l@G2O_CORE_LIBRARY@ -l@G2O_TYPES_SLAM3D@ -l@G2O_SOLVER_CHOLMOD@
+Libs: -L${libdir} -lslam3d -l@CHOLMOD_LIBRARIES@ -l@G2O_CORE_LIBRARY@ -l@G2O_TYPES_SLAM3D@ -l@G2O_SOLVER_CHOLMOD@
 Cflags: -I${includedir} -I@G2O_INCLUDE_DIR@ -I@CHOLMOD_INCLUDE_DIR@
 
