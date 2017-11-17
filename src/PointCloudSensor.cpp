@@ -37,7 +37,7 @@ using namespace slam3d;
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transform& p)
- : Sensor(n, l, p)
+ : Sensor(n, l, p), mPatchSolver(NULL)
 {
 	
 }
@@ -173,6 +173,75 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
-	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", this->getName(), Transform::Identity()));
+	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
 	return m;
+}
+
+Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
+{	
+	VertexObjectList v_objects = mMapper->getVerticesInRange(source, mPatchBuildingRange);
+	
+	if(mPatchSolver)
+	{
+		mPatchSolver->clear();
+		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
+		{
+			mPatchSolver->addNode(v->index, v->corrected_pose);
+		}
+		
+		EdgeObjectList e_objects = mMapper->getEdgeObjects(v_objects);
+		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
+		{
+			mPatchSolver->addConstraint(e->source, e->target, e->transform, e->covariance);
+		}
+		
+		mPatchSolver->setFixed(source);
+		mPatchSolver->compute();
+		IdPoseVector res = mPatchSolver->getCorrections();
+		for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+		{
+			bool ok = false;
+			for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
+			{
+				if(v->index == it->first)
+				{
+					v->corrected_pose = it->second;
+					ok = true;
+					break;
+				}
+			}
+			if(!ok)
+			{
+				mLogger->message(ERROR, "Could not apply patch-solver result, this is a bug!");
+			}
+		}
+	}
+	return createCombinedMeasurement(v_objects, mMapper->getVertex(source).corrected_pose);
+}
+
+void PointCloudSensor::addMeasurement(Measurement::Ptr m)
+{
+	IdType newVertex = mMapper->addMeasurement(m);
+	
+	// Add edge to previous measurement
+	try
+	{
+		Measurement::Ptr target_m = mMapper->getVertex(mLastVertex).measurement;
+		if(mPatchBuildingRange > 0)
+		{
+			// Create virtual measurement for target node
+			target_m = buildPatch(mLastVertex);
+		}
+		Transform odom = mMapper->getVertex(mLastVertex).corrected_pose.inverse() * mMapper->getVertex(newVertex).corrected_pose;
+		TransformWithCovariance twc = calculateTransform(target_m, m, odom);
+		mMapper->addConstraint(mLastVertex, newVertex, twc.transform, twc.covariance, mName, "seq");
+	}catch(NoMatch &e)
+	{
+		mLogger->message(WARNING, (boost::format("Failed to match new vertex %1% to previous, because %2%.")
+			% newVertex % e.what()).str());
+	}
+
+	// Add edges to other measurements nearby
+//	buildNeighborIndex(sensor->getName());
+//	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
 }

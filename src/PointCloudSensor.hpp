@@ -109,6 +109,25 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
+		 * @brief Sets a specific solver to optimize local patches.
+		 * @details This must not be the same instance used as the backend,
+		 * as it will be reset after every optimization. If it is not set,
+		 * patches will not be optimized before matching.
+		 * @param solver used for patch optimization
+		 */
+		void setPatchSolver(Solver* solver);
+
+		/**
+		 * @brief 
+		 * @param r
+		 */
+		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
+
+		Measurement::Ptr buildPatch(IdType source);
+		
+		void addMeasurement(Measurement::Ptr m);
+		
+		/**
 		 * @brief Estimates the 6DoF transformation between source and target point cloud
 		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
 		 * @param source
@@ -172,6 +191,9 @@ namespace slam3d
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
+		
+		Solver* mPatchSolver;
+		unsigned int mPatchBuildingRange;
 	};
 }
 

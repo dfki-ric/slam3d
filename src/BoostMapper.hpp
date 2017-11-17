@@ -58,7 +58,7 @@ namespace slam3d
 		 * @param force add measurement regardless of change in robot pose
 		 * @return true if the measurement was added
 		 */
-		bool addReading(Measurement::Ptr m, bool force = false);
+		IdType addReading(Measurement::Ptr m);
 
 		/**
 		 * @brief Add a new measurement from another robot.
@@ -93,7 +93,32 @@ namespace slam3d
 		                           const Transform& relative_pose,
 		                           const Covariance& covariance,
 		                           const std::string& sensor);
-										   
+		/**
+		 * @brief Adds a new edge to the graph.
+		 * @param source id of source vertex
+		 * @param target id of target vertex
+		 * @param t transformation from source to target
+		 * @param c covariance of transformation
+		 * @param sensor name of the sensor that created this edge
+		 * @param label description to be added to this edge
+		 * @return 
+		 */
+		void addConstraint(IdType source,
+		                   IdType target,
+		                   const Transform& relative_pose,
+		                   const Covariance& covariance,
+		                   const std::string& sensor,
+		                   const std::string& label) = 0;
+		
+		/**
+		 * @brief Adds a new vertex to the graph.
+		 * @param m measurement to be attached to the vertex
+		 * @param corrected initial pose of the vertex in map coordinates
+		 * @return descriptor of the new vertex
+		 */
+		IdType addVertex(Measurement::Ptr m,
+		                 const Transform &corrected);
+		
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
 		 * @details This will not return external vertices from other robots.
@@ -146,6 +171,13 @@ namespace slam3d
 		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const;
 
 		/**
+		 * @brief Serch for nodes by using breadth-first-search
+		 * @param source start search from this node
+		 * @param range maximum number of steps to search from source
+		 */
+		VertexObjectList getVerticesInRange(IdType source, unsigned range);
+
+		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
@@ -158,15 +190,6 @@ namespace slam3d
 		EdgeObjectList getEdgeObjects(const VertexObjectList& vertices);
 		
 		/**
-		 * @brief Get the current pose of the robot within the generated map.
-		 * @details The pose is updated at least whenever a new node is added.
-		 * Depending on the available information, it might be updated
-		 * more often. (e.g. when odometry is available)
-		 * @return current robot pose in map coordinates
-		 */
-		Transform getCurrentPose();
-		
-		/**
 		 * @brief Write the current graph to a file (currently dot).
 		 * @details For larger graphs, this can take a very long time.
 		 * @param name filename without type ending
@@ -174,50 +197,6 @@ namespace slam3d
 		void writeGraphToFile(const std::string &name);
 		
 	private:
-	
-		/**
-		 * @brief Adds a new vertex to the graph.
-		 * @param m measurement to be attached to the vertex
-		 * @param corrected initial pose of the vertex in map coordinates
-		 * @return descriptor of the new vertex
-		 */
-		Vertex addVertex(Measurement::Ptr m,
-		                 const Transform &corrected);
-
-		/**
-		 * @brief Adds a new edge to the graph.
-		 * @param source descriptor of source vertex
-		 * @param target descriptor of target vertex
-		 * @param t transformation from source to target
-		 * @param c covariance of transformation
-		 * @param sensor name of the sensor that created this edge
-		 * @param label description to be added to this edge
-		 * @return 
-		 */
-		void addEdge(Vertex source,
-		             Vertex target,
-		             const Transform &t,
-		             const Covariance &c,
-		             const std::string &sensor,
-		             const std::string &label);
-
-		/**
-		 * @brief Establish a link between source and target using sensor.
-		 * @param source
-		 * @param target
-		 * @param sensor
-		 * @return estimated transform between the vertices
-		 * @throw everything Sensor::calculateTransform can throw
-		 */
-		TransformWithCovariance link(Vertex source, Vertex target, Sensor* sensor);
-
-		/**
-		 * @brief Link the given vertex to a nearby vertices using the given sensor.
-		 * @param vertex the vertex to link against
-		 * @param sensor the sensor to use for linking
-		 * @param max_links maximum amount of created links
-		 */
-		void linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links);
 		
 		/**
 		 * @brief Gets a list with all vertices from a given sensor.
@@ -252,30 +231,15 @@ namespace slam3d
 		VertexList getNearbyVertices(const Transform &tf, float radius);
 		
 		/**
-		 * @brief Serch for nodes by using breadth-first-search
-		 * @param source start search from this node
-		 * @param range maximum number of steps to search from source
-		 */
-		VertexList getVerticesInRange(Vertex source, unsigned range);
-		
-		/**
 		 * @brief Calculates the distance between two vertices in the graph.
 		 * @param source
 		 * @param target
 		 */
 		float calculateGraphDistance(Vertex source, Vertex target);
 		
-		/**
-		 * @brief Builds a local patch surrounding the given source vertex.
-		 * @param source
-		 * @param sensor
-		 */
-		Measurement::Ptr buildPatch(Vertex source, Sensor* sensor);
-		
 	private:
 		// The boost graph object
 		AdjacencyGraph mPoseGraph;
-		Indexer mIndexer;
 		
 		// Index to map a vertex' id to its descriptor
 		IndexMap mIndexMap;

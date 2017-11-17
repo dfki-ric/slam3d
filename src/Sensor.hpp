@@ -26,9 +26,6 @@
 #ifndef SLAM_SENSOR_HPP
 #define SLAM_SENSOR_HPP
 
-#include "Types.hpp"
-#include "Logger.hpp"
-
 namespace slam3d
 {	
 	/**
@@ -67,6 +64,9 @@ namespace slam3d
 		std::string message;
 	};
 	
+	class GraphMapper;
+	class Logger;
+	
 	/**
 	 * @class Sensor
 	 * @brief Base class for a sensor used in the mapping process.
@@ -78,8 +78,14 @@ namespace slam3d
 	{
 	public:
 		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mName(n), mLogger(l), mSensorPose(p){}
+		 :mName(n), mLogger(l), mSensorPose(p), mMapper(NULL){}
 		virtual ~Sensor(){}
+		
+		/**
+		 * @brief Set the mapper that this sensor is used by.
+		 * @param mapper
+		 */
+		void setMapper(GraphMapper* mapper) { mMapper = mapper; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
@@ -114,10 +120,39 @@ namespace slam3d
 		 */
 		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
 		
+		/**
+		 * @brief 
+		 * @param m
+		 */
+		virtual void addMeasurement(Measurement::Ptr m) = 0;
+		
+		/**
+		 * @brief Set minimal change in pose between adjacent nodes.
+		 * @param t Minimum translation between nodes (in meter).
+		 * @param r Minimum rotation between nodes (in rad).
+		 */
+		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
+		
+		bool checkMinDistance(const Transform &t)
+		{
+			ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
+			ScalarType trans = t.translation().norm();
+			if(trans < mMinTranslation && std::abs(rot) < mMinRotation)
+				return false;
+			else
+				return true;
+		}
+
 	protected:
 		std::string mName;
 		Logger* mLogger;
 		Transform mSensorPose;
+		GraphMapper* mMapper;
+		
+		float mMinTranslation;
+		float mMinRotation;
+		
+		IdType mLastVertex; // This is the last vertex from THIS sensor!
 	};
 	
 	typedef std::map<std::string, Sensor*> SensorList;

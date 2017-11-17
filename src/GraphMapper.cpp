@@ -46,12 +46,11 @@ GraphMapper::GraphMapper(Logger* log)
 	mLogger = log;
 	
 	mNeighborRadius = 1.0;
-	mMinTranslation = 0.5;
-	mMinRotation = 0.1;
 	mAddOdometryEdges = false;
 	mUseOdometryHeading = false;
-	mCurrentPose = Transform::Identity();
+	mOffsetToLastPose = Transform::Identity();
 	mOptimized = false;
+	mLastIndex = 0;
 }
 
 GraphMapper::~GraphMapper()
@@ -63,11 +62,6 @@ void GraphMapper::setSolver(Solver* solver)
 	mSolver = solver;
 	mSolver->addNode(0, Transform::Identity());
 	mSolver->setFixed(0);
-}
-
-void GraphMapper::setPatchSolver(Solver* solver)
-{
-	mPatchSolver = solver;
 }
 
 void GraphMapper::setOdometry(Odometry* odom, bool add_edges)
@@ -85,32 +79,26 @@ void GraphMapper::registerSensor(Sensor* s)
 		mLogger->message(ERROR, (boost::format("Sensor with name %1% already exists!") % s->getName()).str());
 		return;
 	}
+	s->setMapper(this);
 }
 
 Transform GraphMapper::getCurrentPose()
 {
-	return mCurrentPose;
+	if(mLastIndex > 0)
+	{
+		return getVertex(mLastIndex).corrected_pose * mOffsetToLastPose;
+	}
+	return mOffsetToLastPose;
 }
 
 void GraphMapper::setCurrentPose(const Transform& pose)
 {
-	mCurrentPose = pose;
+	mOffsetToLastPose = pose;
 }
 
 void GraphMapper::writeGraphToFile(const std::string &name)
 {
 	mLogger->message(ERROR, "Graph writing not implemented!");
-}
-
-bool GraphMapper::checkMinDistance(const Transform &t)
-{
-	ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
-	ScalarType trans = t.translation().norm();
-	mLogger->message(DEBUG, (boost::format("Translation: %1% / Rotation: %2%") % trans % rot).str());
-	if(trans < mMinTranslation && std::abs(rot) < mMinRotation)
-		return false;
-	else
-		return true;
 }
 
 bool GraphMapper::hasSensorForMeasurement(Measurement::Ptr measurement)
@@ -139,4 +127,69 @@ bool GraphMapper::optimized()
 	{
 		return false;
 	}
+}
+
+IdType GraphMapper::addMeasurement(Measurement::Ptr m)
+{
+	// Get the sensor responsible for this measurement
+	Sensor* sensor = NULL;
+	if(!getSensorForMeasurement(m, sensor))
+	{
+		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
+		return false;
+	}
+	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
+
+	// Get the odometric pose for this measurement
+	Transform odometry = Transform::Identity();
+	if(mOdometry)
+	{
+		try
+		{
+			odometry = mOdometry->getOdometricPose(m->getTimestamp());
+		}catch(OdometryException &e)
+		{
+			mLogger->message(ERROR, "Could not get Odometry data!");
+			return false;
+		}
+	}
+
+	// If this is the first vertex, add it and return
+	if(mLastIndex < 0)
+	{
+		// Add real vertex and link it to root
+		if(mUseOdometryHeading)
+		{
+			mOffsetToLastPose.linear() = odometry.linear();
+		}
+		mLastIndex = addVertex(m, mOffsetToLastPose);
+		mLastOdometricPose = odometry;
+		mLogger->message(INFO, "Added first node to the graph.");
+		addConstraint(0, mLastIndex, mOffsetToLastPose, Covariance::Identity() * 100, "none", "root-link");
+
+		mOffsetToLastPose = Transform::Identity();
+		return mLastIndex;
+	}
+
+	// Now we have a node, that is not the first and has not been added yet
+	if(mOdometry)
+	{
+		mOffsetToLastPose = orthogonalize(mLastOdometricPose.inverse() * odometry);
+	}
+	
+	// Add the vertex to the pose graph
+	IdType newIndex = addVertex(m, getCurrentPose());
+	
+	// Add an edge representing the odometry information
+	if(mAddOdometryEdges)
+	{
+		Covariance odom_cov = mOdometry->calculateCovariance(mOffsetToLastPose);
+		addConstraint(mLastIndex, newIndex, mOffsetToLastPose, odom_cov, "Odometry", "odom");
+	}
+	
+	// Overall last vertex
+	mLastIndex = newIndex;
+	mLastOdometricPose = odometry;
+	mOffsetToLastPose = Transform::Identity();
+	return mLastIndex;
 }

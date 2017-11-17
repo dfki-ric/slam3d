@@ -34,20 +34,10 @@ BoostMapper::BoostMapper(Logger* log)
 	mVertexIndex.insert(UuidMap::value_type(origin->getUniqueId(), root));
 
 	mLastVertex = 0;
-	mPatchSolver = NULL;
 }
 
 BoostMapper::~BoostMapper()
 {
-}
-
-Transform BoostMapper::getCurrentPose()
-{
-	if(mLastVertex)
-	{
-		return mPoseGraph[mLastVertex].corrected_pose * mCurrentPose;
-	}
-	return mCurrentPose;
 }
 
 VertexList BoostMapper::getVerticesFromSensor(const std::string& sensor)
@@ -170,120 +160,7 @@ bool BoostMapper::optimize()
 	return true;
 }
 
-bool BoostMapper::addReading(Measurement::Ptr m, bool force)
-{
-	// Get the sensor responsible for this measurement
-	Sensor* sensor = NULL;
-	if(!getSensorForMeasurement(m, sensor))
-	{
-		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
-		return false;
-	}
-	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-
-	// Get the odometric pose for this measurement
-	Transform odometry = Transform::Identity();
-	if(mOdometry)
-	{
-		try
-		{
-			odometry = mOdometry->getOdometricPose(m->getTimestamp());
-		}catch(OdometryException &e)
-		{
-			mLogger->message(ERROR, "Could not get Odometry data!");
-			return false;
-		}
-	}
-
-	// If this is the first vertex, add it and return
-	if(!mLastVertex)
-	{
-		// Add real vertex and link it to root
-		Vertex root = mIndexMap.at(0);
-		if(mUseOdometryHeading)
-		{
-			mCurrentPose.linear() = odometry.linear();
-		}
-		mLastVertex = addVertex(m, mCurrentPose);
-		mLastOdometricPose = odometry;
-		mLogger->message(INFO, "Added first node to the graph.");
-		addEdge(root, mLastVertex, mCurrentPose, Covariance::Identity() * 100, "none", "root-link");
-
-		buildNeighborIndex(sensor->getName());
-		linkToNeighbors(mLastVertex, sensor, mMaxNeighorLinks);
-		mCurrentPose = Transform::Identity();
-		return true;
-	}
-
-	// Now we have a node, that is not the first and has not been added yet
-	Vertex newVertex = 0;
-	Transform odom_dist;
-	
-	if(mOdometry)
-	{
-		odom_dist = orthogonalize(mLastOdometricPose.inverse() * odometry);
-		mCurrentPose = odom_dist;
-		if(!force && !checkMinDistance(odom_dist))
-			return false;
-	}
-	
-	if(mAddOdometryEdges)
-	{
-		// Add the vertex to the pose graph
-		newVertex = addVertex(m, orthogonalize(mPoseGraph[mLastVertex].corrected_pose * mCurrentPose));
-
-		// Add an edge representing the odometry information
-		Covariance odom_cov = mOdometry->calculateCovariance(odom_dist);
-		addEdge(mLastVertex, newVertex, odom_dist, odom_cov, "Odometry", "odom");
-	}
-	
-	// Add edge to previous measurement
-	try
-	{
-		Measurement::Ptr target_m = mPoseGraph[mLastVertex].measurement;
-		if(mPatchBuildingRange > 0)
-		{
-			target_m = buildPatch(mLastVertex, sensor);
-		}
-		TransformWithCovariance twc = sensor->calculateTransform(target_m, m, mCurrentPose);
-		mCurrentPose = twc.transform;
-		
-		if(newVertex)
-		{
-			mPoseGraph[newVertex].corrected_pose = orthogonalize(mPoseGraph[mLastVertex].corrected_pose * twc.transform);
-		}else
-		{
-			if(!force && !checkMinDistance(twc.transform))
-				return false;
-			newVertex = addVertex(m, orthogonalize(mPoseGraph[mLastVertex].corrected_pose * twc.transform));
-		}
-		addEdge(mLastVertex, newVertex, twc.transform, twc.covariance, sensor->getName(), "seq");
-	}catch(NoMatch &e)
-	{
-		if(newVertex)
-		{
-			mLogger->message(WARNING, (boost::format("Failed to match new vertex %1% to previous, because %2%.")
-				% mPoseGraph[newVertex].index % e.what()).str());
-		}else
-		{
-			mLogger->message(WARNING, (boost::format("Measurement could not be matched because %1%, and no odometry was availabe!")
-				% e.what()).str());
-			return false;
-		}
-	}
-
-	// Add edges to other measurements nearby
-	buildNeighborIndex(sensor->getName());
-	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
-
-	// Overall last vertex
-	mLastVertex = newVertex;
-	mLastOdometricPose = odometry;
-	mCurrentPose = Transform::Identity();
-	return true;
-}
-
-Vertex BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
+IdType BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
@@ -306,19 +183,19 @@ Vertex BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 	}
 	
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
-	return newVertex;
+	return id;
 }
 
-void BoostMapper::addEdge(Vertex source, Vertex target,
+void BoostMapper::addConstraint(IdType source_id, IdType target_id,
 	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
 {
 	Edge forward_edge, inverse_edge;
 	bool inserted_forward, inserted_inverse;
+	
+	Vertex source = mIndexMap[source_id];
+	Vertex target = mIndexMap[target_id];
 	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
 	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
-	
-	unsigned source_id = mPoseGraph[source].index;
-	unsigned target_id = mPoseGraph[target].index;
 
 	mPoseGraph[forward_edge].transform = t;
 	mPoseGraph[forward_edge].covariance = c;
@@ -341,84 +218,6 @@ void BoostMapper::addEdge(Vertex source, Vertex target,
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 }
 
-TransformWithCovariance BoostMapper::link(Vertex source, Vertex target, Sensor* sensor)
-{
-	if(mPoseGraph[target].measurement->getSensorName() != sensor->getName())
-	{
-		throw InvalidEdge(mPoseGraph[source].index, mPoseGraph[target].index);
-	}
-	
-	// Create virtual measurement for source node
-	Transform sourcePose = mPoseGraph[source].corrected_pose;
-	Transform targetPose = mPoseGraph[target].corrected_pose;
-	
-	Measurement::Ptr source_m = mPoseGraph[source].measurement;
-	Measurement::Ptr target_m = mPoseGraph[target].measurement;
-	
-	if(mPatchBuildingRange > 0)
-	{
-		source_m = buildPatch(source, sensor);
-		target_m = buildPatch(target, sensor);
-	}
-	
-	// Estimate the transform from source to target
-	Transform guess = sourcePose.inverse() * targetPose;
-	TransformWithCovariance twc_coarse = sensor->calculateTransform(source_m, target_m, guess, true);
-	TransformWithCovariance twc = sensor->calculateTransform(source_m, target_m, twc_coarse.transform);
-
-	// Create new edge and return the transform
-	addEdge(source, target, twc.transform, twc.covariance, sensor->getName(), "loop");
-	return twc;
-}
-
-Measurement::Ptr BoostMapper::buildPatch(Vertex source, Sensor* sensor)
-{
-	VertexList vertices = getVerticesInRange(source, mPatchBuildingRange);
-	
-	VertexObjectList v_objects;
-	for(VertexList::iterator it = vertices.begin(); it != vertices.end(); ++it)
-	{
-		v_objects.push_back(mPoseGraph[*it]);
-	}
-	
-	if(mPatchSolver)
-	{
-		mPatchSolver->clear();
-		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
-		{
-			mPatchSolver->addNode(v->index, v->corrected_pose);
-		}
-		
-		EdgeObjectList e_objects = getEdgeObjects(v_objects);
-		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
-		{
-			mPatchSolver->addConstraint(e->source, e->target, e->transform, e->covariance);
-		}
-		
-		mPatchSolver->setFixed(mPoseGraph[source].index);
-		mPatchSolver->compute();
-		IdPoseVector res = mPatchSolver->getCorrections();
-		for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
-		{
-			bool ok = false;
-			for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
-			{
-				if(v->index == it->first)
-				{
-					v->corrected_pose = it->second;
-					ok = true;
-					break;
-				}
-			}
-			if(!ok)
-			{
-				mLogger->message(ERROR, "Could not apply patch-solver result, this is a bug!");
-			}
-		}
-	}
-	return sensor->createCombinedMeasurement(v_objects, mPoseGraph[source].corrected_pose);
-}
-
 void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
 {
 	if(mVertexIndex.find(m->getUniqueId()) != mVertexIndex.end())
@@ -426,10 +225,10 @@ void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, c
 		throw DuplicateMeasurement();
 	}
 	
-	Vertex source = mVertexIndex.at(s);
+	IdType source = mVertexIndex.at(s);
 	Transform pose = mPoseGraph[source].corrected_pose * tf;
-	Vertex target = addVertex(m, pose);
-	addEdge(source, target, tf, cov, sensor, "ext");
+	IdType target = addVertex(m, pose);
+	addConstraint(source, target, tf, cov, sensor, "ext");
 }
 
 void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
@@ -444,48 +243,7 @@ void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid
 		throw DuplicateEdge(s_id, t_id, sensor);
 	}catch(InvalidEdge &ie)
 	{
-		addEdge(source, target, tf, cov, sensor, "ext");
-	}
-}
-										   
-void BoostMapper::linkToNeighbors(Vertex vertex, Sensor* sensor, int max_links)
-{
-	// Get all edges to/from this node
-	std::set<Vertex> previously_matched_vertices;
-	previously_matched_vertices.insert(vertex);
-	
-	OutEdgeIterator out_it, out_end;
-	boost::tie(out_it, out_end) = boost::out_edges(vertex, mPoseGraph);
-	for(; out_it != out_end; ++out_it)
-	{
-		if(mPoseGraph[*out_it].sensor == sensor->getName())
-		{
-			previously_matched_vertices.insert(boost::target(*out_it, mPoseGraph));
-		}
-	}
-	
-	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
-	
-	int count = 0;
-	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && count < max_links; ++it)
-	{
-		if(previously_matched_vertices.find(*it) != previously_matched_vertices.end())
-			continue;
-
-		try
-		{
-			float dist = calculateGraphDistance(*it, vertex);
-			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % mPoseGraph[*it].index % mPoseGraph[vertex].index).str());
-			if(dist < mPatchBuildingRange * 2)
-				continue;
-			count++;
-			link(*it, vertex, sensor);
-//			optimize();
-		}catch(NoMatch &e)
-		{
-			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());
-			continue;
-		}
+		addConstraint(source, target, tf, cov, sensor, "ext");
 	}
 }
 
@@ -619,9 +377,10 @@ private:
 	unsigned max_depth;
 };
 
-VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
+VertexObjectList BoostMapper::getVerticesInRange(IdType source_id, unsigned range)
 {
 	// Create required data structures
+	Vertex source = mIndexMap[source_id];
 	DepthMap depth_map;
 	depth_map[source] = 0;
 	ColorMap c_map;
@@ -638,10 +397,10 @@ VertexList BoostMapper::getVerticesInRange(Vertex source, unsigned range)
 	}
 
 	// Write the result
-	VertexList vertices;
+	VertexObjectList vertices;
 	for(DepthMap::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
 	{
-		vertices.push_back(it->first);
+		vertices.push_back(mPoseGraph[it->first]);
 	}
 	return vertices;
 }

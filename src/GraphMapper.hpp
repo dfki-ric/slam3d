@@ -172,15 +172,6 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief Sets a specific solver to optimize local patches.
-		 * @details This must not be the same instance used as the backend,
-		 * as it will be reset after every optimization. If it is not set,
-		 * patches will not be optimized before matching.
-		 * @param solver used for patch optimization
-		 */
-		void setPatchSolver(Solver* solver);
-
-		/**
 		 * @brief Sets an odometry module to provide relative poses 
 		 * @details Depending on the matching abilities of the
 		 * used sensors (e.g. a 360° laser-scanner), the mapping might work
@@ -210,7 +201,22 @@ namespace slam3d
 		 * @param force add measurement regardless of change in robot pose
 		 * @return true if the measurement was added
 		 */
-		virtual bool addReading(Measurement::Ptr m, bool force = false) = 0;
+		virtual IdType addMeasurement(Measurement::Ptr m) = 0;
+		
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param relative_pose
+		 * @param covariance
+		 * @param sensor
+		 */
+		virtual void addConstraint(IdType source,
+		                           IdType target,
+		                           const Transform& relative_pose,
+		                           const Covariance& covariance,
+		                           const std::string& sensor,
+		                           const std::string& label) = 0;
 		
 		/**
 		 * @brief Add a new measurement from another robot.
@@ -235,7 +241,7 @@ namespace slam3d
 		 * @param source uuid of a measurement
 		 * @param target uuid of a measurement
 		 * @param relative_pose transform from source to target
-		 * @param covariance covarinave of that transform
+		 * @param covariance covariance of that transform
 		 * @param sensor name of sensor that created the constraint
 		 */
 		virtual void addExternalConstraint(boost::uuids::uuid source,
@@ -298,13 +304,6 @@ namespace slam3d
 		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
 
 		/**
-		 * @brief Set minimal change in pose between adjacent nodes.
-		 * @param t Minimum translation between nodes (in meter).
-		 * @param r Minimum rotation between nodes (in rad).
-		 */
-		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
-
-		/**
 		 * @brief Set how far to continue with a breadth-first-search through
 		 * the pose graph when building local map patches to match new
 		 * measurements against. It will use all vertices that are reachable
@@ -358,14 +357,36 @@ namespace slam3d
 		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const = 0;
 
 		/**
+		 * @brief TODO
+		 * @param source
+		 * @param range
+		 */
+		virtual VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
+
+		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
 		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const = 0;
 
+		/**
+		 * @brief Get all connecting edges between given vertices.
+		 * @param vertices
+		 */
+		virtual EdgeObjectList getEdgeObjects(const VertexObjectList& vertices) = 0;
+		
 	protected:
+		// Graph access
+		virtual IdType addVertex(Measurement::Ptr m, const Transform &corrected) = 0;
+//		virtual void addEdge(IdType source_id,
+//		                     IdType target_id,
+//		                     const Transform &t,
+//		                     const Covariance &c,
+//		                     const std::string& sensor,
+//		                     const std::string& label) = 0;
+		
+		// Helper
 		static Transform orthogonalize(const Transform& t);
-		bool checkMinDistance(const Transform &t);
 
 		/**
 		 * @returns true if a sensor for the given measurement is registered
@@ -387,14 +408,15 @@ namespace slam3d
 		Odometry* mOdometry;
 		SensorList mSensors;
 
-		Transform mCurrentPose;
+		Transform mOffsetToLastPose;
 		Transform mLastOdometricPose;
+
+		Indexer mIndexer;
+		IdType mLastIndex;
 
 		// Parameters
 		int mMaxNeighorLinks;
 		float mNeighborRadius;
-		float mMinTranslation;
-		float mMinRotation;
 		bool mAddOdometryEdges;
 		unsigned mPatchBuildingRange;
 		bool mUseOdometryHeading;
