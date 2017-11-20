@@ -193,3 +193,41 @@ IdType GraphMapper::addMeasurement(Measurement::Ptr m)
 	mOffsetToLastPose = Transform::Identity();
 	return mLastIndex;
 }
+
+void GraphMapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
+{
+	if(hasMeasurement(m->getUniqueId()))
+	{
+		throw DuplicateMeasurement();
+	}
+	
+	Transform pose = getVertex(s).corrected_pose * tf;
+	IdType source = mUuidIndex.at(s);
+	IdType target = addVertex(m, pose);
+	addConstraint(source, target, tf, cov, sensor, "ext");
+}
+
+void GraphMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
+{
+	IdType source = mUuidIndex.at(s);
+	IdType target = mUuidIndex.at(t);
+
+	try
+	{
+		getEdge(source, target, sensor);
+		throw DuplicateEdge(source, target, sensor);
+	}catch(InvalidEdge &ie)
+	{
+		addConstraint(source, target, tf, cov, sensor, "ext");
+	}
+}
+
+bool GraphMapper::hasMeasurement(boost::uuids::uuid id) const
+{
+	return mUuidIndex.find(id) != mUuidIndex.end();
+}
+
+const VertexObject& GraphMapper::getVertex(boost::uuids::uuid id) const
+{
+	return getVertex(mUuidIndex.at(id));
+}

@@ -31,7 +31,7 @@ BoostMapper::BoostMapper(Logger* log)
 
 	// Add it to the indexes, so we can find it by its id and uuid
 	mIndexMap.insert(IndexMap::value_type(id, root));
-	mVertexIndex.insert(UuidMap::value_type(origin->getUniqueId(), root));
+	mUuidIndex.insert(UuidIndex::value_type(origin->getUniqueId(), id));
 
 	mLastVertex = 0;
 }
@@ -174,7 +174,7 @@ IdType BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 
 	// Add it to the indexes, so we can find it by its id and uuid
 	mIndexMap.insert(IndexMap::value_type(id, newVertex));
-	mVertexIndex.insert(UuidMap::value_type(m->getUniqueId(), newVertex));
+	mUuidIndex.insert(UuidIndex::value_type(m->getUniqueId(), id));
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
@@ -218,35 +218,6 @@ void BoostMapper::addConstraint(IdType source_id, IdType target_id,
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 }
 
-void BoostMapper::addExternalReading(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
-{
-	if(mVertexIndex.find(m->getUniqueId()) != mVertexIndex.end())
-	{
-		throw DuplicateMeasurement();
-	}
-	
-	IdType source = mVertexIndex.at(s);
-	Transform pose = mPoseGraph[source].corrected_pose * tf;
-	IdType target = addVertex(m, pose);
-	addConstraint(source, target, tf, cov, sensor, "ext");
-}
-
-void BoostMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
-{
-	Vertex source = mVertexIndex.at(s);
-	Vertex target = mVertexIndex.at(t);
-	try
-	{
-		IdType s_id = mPoseGraph[source].index;
-		IdType t_id = mPoseGraph[target].index;
-		getEdge(s_id, t_id, sensor);
-		throw DuplicateEdge(s_id, t_id, sensor);
-	}catch(InvalidEdge &ie)
-	{
-		addConstraint(source, target, tf, cov, sensor, "ext");
-	}
-}
-
 VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sensor) const
 {
 	VertexObjectList objectList;
@@ -264,11 +235,6 @@ VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sens
 const VertexObject& BoostMapper::getVertex(IdType id) const
 {
 	return mPoseGraph[mIndexMap.at(id)];
-}
-
-const VertexObject& BoostMapper::getVertex(boost::uuids::uuid id) const
-{
-	return mPoseGraph[mVertexIndex.at(id)];
 }
 
 const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::string& sensor) const

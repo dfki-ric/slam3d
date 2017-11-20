@@ -230,11 +230,11 @@ namespace slam3d
 		 * @param cov covariance of that transform
 		 * @param sensor name of sensor that created the constraint (not the measurement!)
 		 */
-		virtual void addExternalReading(Measurement::Ptr measurement,
-		                                boost::uuids::uuid source_uuid,
-		                                const Transform& tf,
-		                                const Covariance& cov,
-										const std::string& sensor) = 0;
+		virtual void addExternalMeasurement(Measurement::Ptr measurement,
+		                                    boost::uuids::uuid source_uuid,
+		                                    const Transform& tf,
+		                                    const Covariance& cov,
+										    const std::string& sensor);
 
 		/**
 		 * @brief Add a constraint from another robot between two measurements.
@@ -244,11 +244,11 @@ namespace slam3d
 		 * @param covariance covariance of that transform
 		 * @param sensor name of sensor that created the constraint
 		 */
-		virtual void addExternalConstraint(boost::uuids::uuid source,
-		                                   boost::uuids::uuid target,
-		                                   const Transform& relative_pose,
-		                                   const Covariance& covariance,
-		                                   const std::string& sensor) = 0;
+		void addExternalConstraint(boost::uuids::uuid source,
+		                           boost::uuids::uuid target,
+		                           const Transform& relative_pose,
+		                           const Covariance& covariance,
+		                           const std::string& sensor);
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
@@ -334,7 +334,13 @@ namespace slam3d
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		virtual const VertexObject& getVertex(boost::uuids::uuid id) const = 0;
+		const VertexObject& getVertex(boost::uuids::uuid id) const;
+
+		/**
+		 * @brief 
+		 * @param id
+		 */
+		bool hasMeasurement(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief 
@@ -378,12 +384,6 @@ namespace slam3d
 	protected:
 		// Graph access
 		virtual IdType addVertex(Measurement::Ptr m, const Transform &corrected) = 0;
-//		virtual void addEdge(IdType source_id,
-//		                     IdType target_id,
-//		                     const Transform &t,
-//		                     const Covariance &c,
-//		                     const std::string& sensor,
-//		                     const std::string& label) = 0;
 		
 		// Helper
 		static Transform orthogonalize(const Transform& t);
@@ -403,7 +403,6 @@ namespace slam3d
 		
 	protected:
 		Solver* mSolver;
-		Solver* mPatchSolver;
 		Logger* mLogger;
 		Odometry* mOdometry;
 		SensorList mSensors;
@@ -413,6 +412,10 @@ namespace slam3d
 
 		Indexer mIndexer;
 		IdType mLastIndex;
+		
+		// Index to find Vertices by the unique id of their measurement
+		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
+		UuidIndex mUuidIndex;
 
 		// Parameters
 		int mMaxNeighorLinks;

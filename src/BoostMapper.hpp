@@ -35,7 +35,6 @@ namespace slam3d
 	// Index types
 	typedef flann::Index< flann::L2<float> > NeighborIndex;
 	typedef std::map<IdType, Vertex> IndexMap;
-	typedef std::map<boost::uuids::uuid, Vertex> UuidMap;
 	
 	/**
 	 * @class BoostMapper
@@ -79,20 +78,6 @@ namespace slam3d
 		                        const Covariance& cov,
 		                        const std::string& sensor);
 
-		/**
-		 * @brief Add a constraint from another robot between two measurements.
-		 * @param source uuid of a measurement
-		 * @param target uuid of a measurement
-		 * @param relative_pose transform from source to target
-		 * @param covariance covarinave of that transform
-		 * @param sensor name of sensor that created the constraint
-		 * @throw DuplicateEdge
-		 */		
-		void addExternalConstraint(boost::uuids::uuid source,
-		                           boost::uuids::uuid target,
-		                           const Transform& relative_pose,
-		                           const Covariance& covariance,
-		                           const std::string& sensor);
 		/**
 		 * @brief Adds a new edge to the graph.
 		 * @param source id of source vertex
@@ -140,12 +125,7 @@ namespace slam3d
 		 */
 		const VertexObject& getVertex(IdType id) const;
 
-		/**
-		 * @brief Gets a vertex object by its given uuid.
-		 * @param id
-		 * @throw std::out_of_range
-		 */
-		const VertexObject& getVertex(boost::uuids::uuid id) const;
+		bool hasMeasurement(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Gets the edge from given sensor between source and target.
@@ -250,9 +230,6 @@ namespace slam3d
 		flann::SearchParams mSearchParams;
 		NeighborIndex mNeighborIndex;
 		IndexMap mNeighborMap;
-
-		// Index to find Vertices by their unique id
-		UuidMap mVertexIndex;
 		
 		// Some special vertices
 		Vertex mLastVertex;
