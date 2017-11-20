@@ -155,7 +155,7 @@ IdType Graph::addMeasurement(Measurement::Ptr m)
 	}
 
 	// If this is the first vertex, add it and return
-	if(mLastIndex < 0)
+	if(mLastIndex == 0)
 	{
 		// Add real vertex and link it to root
 		if(mUseOdometryHeading)

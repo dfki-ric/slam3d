@@ -26,6 +26,8 @@
 #ifndef SLAM_SENSOR_HPP
 #define SLAM_SENSOR_HPP
 
+#include "Types.hpp"
+
 namespace slam3d
 {	
 	/**
@@ -78,7 +80,7 @@ namespace slam3d
 	{
 	public:
 		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mName(n), mLogger(l), mSensorPose(p), mMapper(NULL){}
+		 :mName(n), mLogger(l), mSensorPose(p), mMapper(NULL), mLastVertex(0){}
 		virtual ~Sensor(){}
 		
 		/**
@@ -121,10 +123,10 @@ namespace slam3d
 		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
 		
 		/**
-		 * @brief 
+		 * @brief TODO
 		 * @param m
 		 */
-		virtual void addMeasurement(Measurement::Ptr m) = 0;
+		virtual bool addMeasurement(Measurement::Ptr m, bool force = false) = 0;
 		
 		/**
 		 * @brief Set minimal change in pose between adjacent nodes.

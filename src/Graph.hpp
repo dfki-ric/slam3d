@@ -193,18 +193,14 @@ namespace slam3d
 		/**
 		 * @brief Add a new measurement to the graph.
 		 * @details The sensor specified in the measurement has to be registered
-		 * with the mapper before. If the change in robot pose since the last
-		 * added scan is smaller then min-translation or min-rotation, the
-		 * measurement will not be added. Use Graph::setMinPoseDistance to
-		 * adjust this distance.
+		 * with the mapper before.
 		 * @param m pointer to a new measurement
-		 * @param force add measurement regardless of change in robot pose
-		 * @return true if the measurement was added
+		 * @return id of the newly added vertex
 		 */
-		virtual IdType addMeasurement(Measurement::Ptr m) = 0;
+		IdType addMeasurement(Measurement::Ptr m);
 		
 		/**
-		 * @brief 
+		 * @brief Add a constraint (edge) between two vertices in the graph.
 		 * @param source
 		 * @param target
 		 * @param relative_pose
@@ -302,15 +298,6 @@ namespace slam3d
 		 * @param l maximum number of neighbor links
 		 */
 		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
-
-		/**
-		 * @brief Set how far to continue with a breadth-first-search through
-		 * the pose graph when building local map patches to match new
-		 * measurements against. It will use all vertices that are reachable
-		 * by a maximum of r edges.
-		 * @param r 
-		 */
-		void setPatchBuildingRange(unsigned r) {mPatchBuildingRange = r;}
 
 		/**
 		 * @brief Set to initialize the robot's heading from odometry.
@@ -421,7 +408,6 @@ namespace slam3d
 		int mMaxNeighorLinks;
 		float mNeighborRadius;
 		bool mAddOdometryEdges;
-		unsigned mPatchBuildingRange;
 		bool mUseOdometryHeading;
 		bool mOptimized;
 	};

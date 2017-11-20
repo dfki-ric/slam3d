@@ -155,7 +155,9 @@ namespace slam3d
 		 * @param source start search from this node
 		 * @param range maximum number of steps to search from source
 		 */
-		VertexObjectList getVerticesInRange(IdType source, unsigned range);
+		VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
+
+		VertexObjectList getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.

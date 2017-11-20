@@ -219,21 +219,35 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 	return createCombinedMeasurement(v_objects, mMapper->getVertex(source).corrected_pose);
 }
 
-void PointCloudSensor::addMeasurement(Measurement::Ptr m)
-{
-	IdType newVertex = mMapper->addMeasurement(m);
+bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
+{	
+	if(mLastVertex == 0)
+	{
+		mLastVertex = mMapper->addMeasurement(m);
+		return true;
+	}
 	
-	// Add edge to previous measurement
+	Measurement::Ptr target_m;
 	try
 	{
-		Measurement::Ptr target_m = mMapper->getVertex(mLastVertex).measurement;
-		if(mPatchBuildingRange > 0)
-		{
-			// Create virtual measurement for target node
-			target_m = buildPatch(mLastVertex);
-		}
+		target_m = mMapper->getVertex(mLastVertex).measurement;
+	}catch(std::exception &e)
+	{
+		mLogger->message(ERROR, "PointCloudSensor could not get its last vertex from mapper.");
+		return false;
+	}
+
+	if(mPatchBuildingRange > 0)
+	{
+		// Create virtual measurement for target node
+		target_m = buildPatch(mLastVertex);
+	}
+
+	try
+	{
 		Transform odom = mMapper->getVertex(mLastVertex).corrected_pose.inverse() * mMapper->getVertex(newVertex).corrected_pose;
 		TransformWithCovariance twc = calculateTransform(target_m, m, odom);
+		if(checkMinDistance(twc.transform))
 		mMapper->addConstraint(mLastVertex, newVertex, twc.transform, twc.covariance, mName, "seq");
 	}catch(NoMatch &e)
 	{
@@ -244,4 +258,80 @@ void PointCloudSensor::addMeasurement(Measurement::Ptr m)
 	// Add edges to other measurements nearby
 //	buildNeighborIndex(sensor->getName());
 //	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
+	mLastVertex = newVertex;
+	return true;
+}
+
+TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_id)
+{
+	VertexObject source = mMapper->getVertex(source_id);
+	VertexObject target = mMapper->getVertex(target_id);
+
+	if(source.measurement->getSensorName() != mName || target.measurement->getSensorName() != mName)
+	{
+		throw InvalidEdge(source_id, target_id);
+	}
+	
+	// Create virtual measurement for source node
+	Transform sourcePose = source.corrected_pose;
+	Transform targetPose = target.corrected_pose;
+	
+	Measurement::Ptr source_m = source.measurement;
+	Measurement::Ptr target_m = target.measurement;
+	
+	if(mPatchBuildingRange > 0)
+	{
+		source_m = buildPatch(source_id);
+		target_m = buildPatch(target_id);
+	}
+	
+	// Estimate the transform from source to target
+	Transform guess = sourcePose.inverse() * targetPose;
+	TransformWithCovariance twc_coarse = calculateTransform(source_m, target_m, guess, true);
+	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse.transform);
+
+	// Create new edge and return the transform
+	mMapper->addConstraint(source_id, target_id, twc.transform, twc.covariance, sensor->getName(), "icp");
+	return twc;
+}
+
+void PointCloudSensor::linkToNeighbors(IdType vertex, int max_links)
+{
+	// Get all edges to/from this node
+	std::set<Vertex> previously_matched_vertices;
+	previously_matched_vertices.insert(vertex);
+	
+	OutEdgeIterator out_it, out_end;
+	boost::tie(out_it, out_end) = boost::out_edges(vertex, mPoseGraph);
+	for(; out_it != out_end; ++out_it)
+	{
+		if(mPoseGraph[*out_it].sensor == sensor->getName())
+		{
+			previously_matched_vertices.insert(boost::target(*out_it, mPoseGraph));
+		}
+	}
+	
+	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
+	
+	int count = 0;
+	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && count < max_links; ++it)
+	{
+		if(previously_matched_vertices.find(*it) != previously_matched_vertices.end())
+			continue;
+
+		try
+		{
+			float dist = calculateGraphDistance(*it, vertex);
+			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % mPoseGraph[*it].index % mPoseGraph[vertex].index).str());
+			if(dist < mPatchBuildingRange * 2)
+				continue;
+			count++;
+			link(*it, vertex, sensor);
+			optimize();
+		}catch(NoMatch &e)
+		{
+			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());
+			continue;
+		}
+	}
 }

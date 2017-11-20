@@ -307,13 +307,13 @@ void BoostGraph::writeGraphToFile(const std::string& name)
 struct EdgeFilter
 {
 	EdgeFilter() {}
-	EdgeFilter(AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
+	EdgeFilter(const AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
 	bool operator()(const Edge& e) const
 	{
 		return (*graph)[e].sensor == name;
 	}
 	
-	AdjacencyGraph* graph;
+	const AdjacencyGraph* graph;
 	std::string name;
 };
 
@@ -343,10 +343,10 @@ private:
 	unsigned max_depth;
 };
 
-VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range)
+VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
 	// Create required data structures
-	Vertex source = mIndexMap[source_id];
+	Vertex source = mIndexMap.at(source_id);
 	DepthMap depth_map;
 	depth_map[source] = 0;
 	ColorMap c_map;
@@ -393,4 +393,11 @@ float BoostGraph::calculateGraphDistance(Vertex source, Vertex target)
 
 	int target_id = boost::get(boost::vertex_index, mPoseGraph)[target];
 	return distance[target_id];
+}
+
+VertexObjectList BoostGraph::getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const
+{
+	VertexList neighbors = getNearbyVertices(tf, radius);
+	
+	
 }

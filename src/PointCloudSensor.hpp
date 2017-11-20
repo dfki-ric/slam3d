@@ -116,14 +116,25 @@ namespace slam3d
 		void setPatchSolver(Solver* solver);
 
 		/**
-		 * @brief 
-		 * @param r
+		 * @brief Set how far to continue with a breadth-first-search through
+		 * the pose graph when building local map patches to match new
+		 * measurements against. It will use all vertices that are reachable
+		 * by a maximum of r edges.
+		 * @param r 
 		 */
 		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
 
+		/**
+		 * @brief Build a local map patch starting from the given source vertex.
+		 * @param source
+		 */
 		Measurement::Ptr buildPatch(IdType source);
 		
-		void addMeasurement(Measurement::Ptr m);
+		/**
+		 * @brief Add a new measurement from this sensor.
+		 * @param m measurement
+		 */
+		bool addMeasurement(Measurement::Ptr m, bool force = false);
 		
 		/**
 		 * @brief Estimates the 6DoF transformation between source and target point cloud
@@ -140,6 +151,13 @@ namespace slam3d
 		 * @throw BadMeasurementType
 		 */		
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+
+		/**
+		 * @brief Create a linking constraint between source and target.
+		 * @param source_id
+		 * @param target_id
+		 */
+		TransformWithCovariance link(IdType source_id, IdType target_id);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.
