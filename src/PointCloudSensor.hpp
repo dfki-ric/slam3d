@@ -26,10 +26,8 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include "Types.hpp"
+#include "Graph.hpp"
 #include "GICPConfiguration.hpp"
-#include "Sensor.hpp"
-#include "GraphMapper.hpp"
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"

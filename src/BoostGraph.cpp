@@ -3,7 +3,7 @@
 #define BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
 
 
-#include "BoostMapper.hpp"
+#include "BoostGraph.hpp"
 #include "Solver.hpp"
 
 #include <boost/format.hpp>
@@ -17,8 +17,8 @@
 
 using namespace slam3d;
 
-BoostMapper::BoostMapper(Logger* log)
- : GraphMapper(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
+BoostGraph::BoostGraph(Logger* log)
+ : Graph(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	// Add root node to the graph
 	Measurement::Ptr origin(new MapOrigin());
@@ -36,11 +36,11 @@ BoostMapper::BoostMapper(Logger* log)
 	mLastVertex = 0;
 }
 
-BoostMapper::~BoostMapper()
+BoostGraph::~BoostGraph()
 {
 }
 
-VertexList BoostMapper::getVerticesFromSensor(const std::string& sensor)
+VertexList BoostGraph::getVerticesFromSensor(const std::string& sensor)
 {
 	VertexList vertexList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -54,7 +54,7 @@ VertexList BoostMapper::getVerticesFromSensor(const std::string& sensor)
 	return vertexList;
 }
 
-EdgeList BoostMapper::getEdgesFromSensor(const std::string& sensor)
+EdgeList BoostGraph::getEdgesFromSensor(const std::string& sensor)
 {
 	EdgeList edgeList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -65,7 +65,7 @@ EdgeList BoostMapper::getEdgesFromSensor(const std::string& sensor)
 	return edgeList;
 }
 
-EdgeObjectList BoostMapper::getEdgeObjectsFromSensor(const std::string& sensor) const
+EdgeObjectList BoostGraph::getEdgeObjectsFromSensor(const std::string& sensor) const
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -76,7 +76,7 @@ EdgeObjectList BoostMapper::getEdgeObjectsFromSensor(const std::string& sensor) 
 	return objectList;
 }
 
-void BoostMapper::buildNeighborIndex(const std::string& sensor)
+void BoostGraph::buildNeighborIndex(const std::string& sensor)
 {
 	VertexList vertices = getVerticesFromSensor(sensor);
 	int numOfVertices = vertices.size();
@@ -97,7 +97,7 @@ void BoostMapper::buildNeighborIndex(const std::string& sensor)
 	mNeighborIndex.buildIndex(points);
 }
 
-VertexList BoostMapper::getNearbyVertices(const Transform &tf, float radius)
+VertexList BoostGraph::getNearbyVertices(const Transform &tf, float radius)
 {
 	// Fill in the query point
 	flann::Matrix<float> query(new float[3], 1, 3);
@@ -127,7 +127,7 @@ VertexList BoostMapper::getNearbyVertices(const Transform &tf, float radius)
 	return result;
 }
 
-bool BoostMapper::optimize()
+bool BoostGraph::optimize()
 {
 	if(!mSolver)
 	{
@@ -160,7 +160,7 @@ bool BoostMapper::optimize()
 	return true;
 }
 
-IdType BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
+IdType BoostGraph::addVertex(Measurement::Ptr m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
@@ -186,7 +186,7 @@ IdType BoostMapper::addVertex(Measurement::Ptr m, const Transform &corrected)
 	return id;
 }
 
-void BoostMapper::addConstraint(IdType source_id, IdType target_id,
+void BoostGraph::addConstraint(IdType source_id, IdType target_id,
 	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
 {
 	Edge forward_edge, inverse_edge;
@@ -218,7 +218,7 @@ void BoostMapper::addConstraint(IdType source_id, IdType target_id,
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 }
 
-VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sensor) const
+VertexObjectList BoostGraph::getVertexObjectsFromSensor(const std::string& sensor) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -232,12 +232,12 @@ VertexObjectList BoostMapper::getVertexObjectsFromSensor(const std::string& sens
 	return objectList;
 }
 
-const VertexObject& BoostMapper::getVertex(IdType id) const
+const VertexObject& BoostGraph::getVertex(IdType id) const
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::string& sensor) const
+const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
@@ -253,7 +253,7 @@ const EdgeObject& BoostMapper::getEdge(IdType source, IdType target, const std::
 	throw InvalidEdge(source, target);
 }
 
-EdgeObjectList BoostMapper::getOutEdges(IdType source) const
+EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 {
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
@@ -266,7 +266,7 @@ EdgeObjectList BoostMapper::getOutEdges(IdType source) const
 	return edges;
 }
 
-EdgeObjectList BoostMapper::getEdgeObjects(const VertexObjectList& vertices)
+EdgeObjectList BoostGraph::getEdgeObjects(const VertexObjectList& vertices)
 {
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
@@ -284,7 +284,7 @@ EdgeObjectList BoostMapper::getEdgeObjects(const VertexObjectList& vertices)
 	return objectList;
 }
 
-void BoostMapper::writeGraphToFile(const std::string& name)
+void BoostGraph::writeGraphToFile(const std::string& name)
 {
 	std::string file = name + ".dot";
 	mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
@@ -343,7 +343,7 @@ private:
 	unsigned max_depth;
 };
 
-VertexObjectList BoostMapper::getVerticesInRange(IdType source_id, unsigned range)
+VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range)
 {
 	// Create required data structures
 	Vertex source = mIndexMap[source_id];
@@ -371,7 +371,7 @@ VertexObjectList BoostMapper::getVerticesInRange(IdType source_id, unsigned rang
 	return vertices;
 }
 
-float BoostMapper::calculateGraphDistance(Vertex source, Vertex target)
+float BoostGraph::calculateGraphDistance(Vertex source, Vertex target)
 {
 	int num = boost::num_vertices(mPoseGraph);
 	std::vector<Vertex> parent(num);

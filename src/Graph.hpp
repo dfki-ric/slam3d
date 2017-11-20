@@ -23,8 +23,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_GRAPHMAPPER_HPP
-#define SLAM_GRAPHMAPPER_HPP
+#ifndef SLAM_GRAPH_HPP
+#define SLAM_GRAPH_HPP
 
 /**
  * @mainpage A generic frontend for 3D Simultaneous Localization and Mapping
@@ -37,7 +37,7 @@
  * 
  * @section sec_start Getting started
  * 
- * The central component of this library is the GraphMapper class.
+ * The central component of this library is the Graph class.
  * The documentation is best read by starting from there.
  * This class is extended by registering Sensor modules, an Odometry and a Solver.
  * 
@@ -45,13 +45,13 @@
  * 
  * Start by creating the mapper itself and registering the required modules.
  @code
-#include <slam3d/GraphMapper.hpp> 
+#include <slam3d/Graph.hpp> 
 #include <slam3d/G2oSolver.hpp>
 
 using namespace slam3d;
 Clock* clock = new Clock();
 Logger* logger = new Logger(*c);
-GraphMapper* mapper = new GraphMapper(logger);
+Graph* mapper = new Graph(logger);
 
 Sensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
 mapper->registerSensor(laser);
@@ -136,9 +136,9 @@ namespace slam3d
 		}
 	};
 	/**
-	 * @class GraphMapper
+	 * @class Graph
 	 * @brief Holds measurements from different sensors in a graph.
-	 * @details The GraphMapper is the central structure that provides the
+	 * @details The Graph is the central structure that provides the
 	 * frontend for a graph-based SLAM approach. A registered Sensor
 	 * will provide a specific Measurement type to the internal graph.
 	 * For each added measurement a new vertex is created in the graph
@@ -157,11 +157,11 @@ namespace slam3d
 	 * applying a graph optimization algorithm. This will usually change the
 	 * poses of all nodes in the map coordinate frame.
 	 */
-	class GraphMapper
+	class Graph
 	{
 	public:
-		GraphMapper(Logger* log);
-		virtual ~GraphMapper();
+		Graph(Logger* log);
+		virtual ~Graph();
 
 		/**
 		 * @brief Sets a specific Solver to be used as SLAM backend.
@@ -195,7 +195,7 @@ namespace slam3d
 		 * @details The sensor specified in the measurement has to be registered
 		 * with the mapper before. If the change in robot pose since the last
 		 * added scan is smaller then min-translation or min-rotation, the
-		 * measurement will not be added. Use GraphMapper::setMinPoseDistance to
+		 * measurement will not be added. Use Graph::setMinPoseDistance to
 		 * adjust this distance.
 		 * @param m pointer to a new measurement
 		 * @param force add measurement regardless of change in robot pose

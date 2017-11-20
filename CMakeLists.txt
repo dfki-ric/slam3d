@@ -28,8 +28,8 @@ include_directories(
 )
 
 add_library(slam3d
-	src/GraphMapper.cpp
-	src/BoostMapper.cpp
+	src/Graph.cpp
+	src/BoostGraph.cpp
 	src/PointCloudSensor.cpp
 	src/G2oSolver.cpp
 )

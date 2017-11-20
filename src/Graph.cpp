@@ -23,14 +23,14 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "GraphMapper.hpp"
+#include "Graph.hpp"
 
 #include <boost/format.hpp>
 
 using namespace slam3d;
 
 // Re-orthogonalize the rotation-matrix
-Transform GraphMapper::orthogonalize(const Transform& t)
+Transform Graph::orthogonalize(const Transform& t)
 {
 	Eigen::Quaternion<ScalarType> q(t.linear());
 	q.normalize();
@@ -39,7 +39,7 @@ Transform GraphMapper::orthogonalize(const Transform& t)
 	return res;
 }
 
-GraphMapper::GraphMapper(Logger* log)
+Graph::Graph(Logger* log)
 {
 	mOdometry = NULL;
 	mSolver = NULL;
@@ -53,24 +53,24 @@ GraphMapper::GraphMapper(Logger* log)
 	mLastIndex = 0;
 }
 
-GraphMapper::~GraphMapper()
+Graph::~Graph()
 {
 }
 
-void GraphMapper::setSolver(Solver* solver)
+void Graph::setSolver(Solver* solver)
 {
 	mSolver = solver;
 	mSolver->addNode(0, Transform::Identity());
 	mSolver->setFixed(0);
 }
 
-void GraphMapper::setOdometry(Odometry* odom, bool add_edges)
+void Graph::setOdometry(Odometry* odom, bool add_edges)
 {
 	mOdometry = odom;
 	mAddOdometryEdges = add_edges;
 }
 
-void GraphMapper::registerSensor(Sensor* s)
+void Graph::registerSensor(Sensor* s)
 {
 	std::pair<SensorList::iterator, bool> result;
 	result = mSensors.insert(SensorList::value_type(s->getName(), s));
@@ -82,7 +82,7 @@ void GraphMapper::registerSensor(Sensor* s)
 	s->setMapper(this);
 }
 
-Transform GraphMapper::getCurrentPose()
+Transform Graph::getCurrentPose()
 {
 	if(mLastIndex > 0)
 	{
@@ -91,22 +91,22 @@ Transform GraphMapper::getCurrentPose()
 	return mOffsetToLastPose;
 }
 
-void GraphMapper::setCurrentPose(const Transform& pose)
+void Graph::setCurrentPose(const Transform& pose)
 {
 	mOffsetToLastPose = pose;
 }
 
-void GraphMapper::writeGraphToFile(const std::string &name)
+void Graph::writeGraphToFile(const std::string &name)
 {
 	mLogger->message(ERROR, "Graph writing not implemented!");
 }
 
-bool GraphMapper::hasSensorForMeasurement(Measurement::Ptr measurement)
+bool Graph::hasSensorForMeasurement(Measurement::Ptr measurement)
 {
 	return mSensors.find(measurement->getSensorName()) != mSensors.end();
 }
 
-bool GraphMapper::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor)
+bool Graph::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor)
 {
 	SensorList::iterator it = mSensors.find(measurement->getSensorName());
 	if(it != mSensors.end())
@@ -117,7 +117,7 @@ bool GraphMapper::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*&
 	return false;
 }
 
-bool GraphMapper::optimized()
+bool Graph::optimized()
 {
 	if(mOptimized)
 	{
@@ -129,7 +129,7 @@ bool GraphMapper::optimized()
 	}
 }
 
-IdType GraphMapper::addMeasurement(Measurement::Ptr m)
+IdType Graph::addMeasurement(Measurement::Ptr m)
 {
 	// Get the sensor responsible for this measurement
 	Sensor* sensor = NULL;
@@ -194,7 +194,7 @@ IdType GraphMapper::addMeasurement(Measurement::Ptr m)
 	return mLastIndex;
 }
 
-void GraphMapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
+void Graph::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
 {
 	if(hasMeasurement(m->getUniqueId()))
 	{
@@ -207,7 +207,7 @@ void GraphMapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid 
 	addConstraint(source, target, tf, cov, sensor, "ext");
 }
 
-void GraphMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
+void Graph::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
 {
 	IdType source = mUuidIndex.at(s);
 	IdType target = mUuidIndex.at(t);
@@ -222,12 +222,12 @@ void GraphMapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid
 	}
 }
 
-bool GraphMapper::hasMeasurement(boost::uuids::uuid id) const
+bool Graph::hasMeasurement(boost::uuids::uuid id) const
 {
 	return mUuidIndex.find(id) != mUuidIndex.end();
 }
 
-const VertexObject& GraphMapper::getVertex(boost::uuids::uuid id) const
+const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
 {
 	return getVertex(mUuidIndex.at(id));
 }

@@ -1,7 +1,7 @@
-#ifndef SLAM3D_BOOSTMAPPER_HPP
-#define SLAM3D_BOOSTMAPPER_HPP
+#ifndef SLAM3D_BOOSTGRAPH_HPP
+#define SLAM3D_BOOSTGRAPH_HPP
 
-#include "GraphMapper.hpp"
+#include "Graph.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -37,21 +37,21 @@ namespace slam3d
 	typedef std::map<IdType, Vertex> IndexMap;
 	
 	/**
-	 * @class BoostMapper
-	 * @brief Implementation of GraphMapper using BoostGraphLibrary.
+	 * @class BoostGraph
+	 * @brief Implementation of Graph using BoostGraphLibrary.
 	 */
-	class BoostMapper : public GraphMapper
+	class BoostGraph : public Graph
 	{
 	public:
-		BoostMapper(Logger* log);
-		~BoostMapper();
+		BoostGraph(Logger* log);
+		~BoostGraph();
 
 		/**
 		 * @brief Add a new measurement to the graph.
 		 * @details The sensor specified in the measurement has to be registered
 		 * with the mapper before. If the change in robot pose since the last
 		 * added scan is smaller then min-translation or min-rotation, the
-		 * measurement will not be added. Use GraphMapper::setMinPoseDistance to
+		 * measurement will not be added. Use Graph::setMinPoseDistance to
 		 * adjust this distance.
 		 * @param m pointer to a new measurement
 		 * @param force add measurement regardless of change in robot pose
@@ -93,7 +93,7 @@ namespace slam3d
 		                   const Transform& relative_pose,
 		                   const Covariance& covariance,
 		                   const std::string& sensor,
-		                   const std::string& label) = 0;
+		                   const std::string& label);
 		
 		/**
 		 * @brief Adds a new vertex to the graph.

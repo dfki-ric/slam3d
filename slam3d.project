@@ -30,14 +30,14 @@
     <File Name="src/Sensor.hpp"/>
     <File Name="src/Solver.hpp"/>
     <File Name="src/Types.hpp"/>
-    <File Name="src/BoostMapper.hpp"/>
-    <File Name="src/GraphMapper.hpp"/>
+    <File Name="src/Graph.hpp"/>
+    <File Name="src/BoostGraph.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
-    <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/PointCloudSensor.cpp"/>
-    <File Name="src/BoostMapper.cpp"/>
+    <File Name="src/Graph.cpp"/>
+    <File Name="src/BoostGraph.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="autoproj">
     <File Name="manifest.xml"/>

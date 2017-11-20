@@ -64,7 +64,7 @@ namespace slam3d
 		std::string message;
 	};
 	
-	class GraphMapper;
+	class Graph;
 	class Logger;
 	
 	/**
@@ -85,7 +85,7 @@ namespace slam3d
 		 * @brief Set the mapper that this sensor is used by.
 		 * @param mapper
 		 */
-		void setMapper(GraphMapper* mapper) { mMapper = mapper; }
+		void setMapper(Graph* mapper) { mMapper = mapper; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
@@ -147,7 +147,7 @@ namespace slam3d
 		std::string mName;
 		Logger* mLogger;
 		Transform mSensorPose;
-		GraphMapper* mMapper;
+		Graph* mMapper;
 		
 		float mMinTranslation;
 		float mMinRotation;

@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "PointCloudSensor.hpp"
-#include "GraphMapper.hpp"
+#include "Graph.hpp"
 
 #include <pcl/registration/gicp.h>
 #include <pcl/filters/voxel_grid.h>
