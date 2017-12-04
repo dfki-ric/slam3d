@@ -18,7 +18,7 @@
 using namespace slam3d;
 
 BoostGraph::BoostGraph(Logger* log)
- : Graph(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
+ : Graph(log)
 {
 	// Add root node to the graph
 	Measurement::Ptr origin(new MapOrigin());
@@ -74,57 +74,6 @@ EdgeObjectList BoostGraph::getEdgeObjectsFromSensor(const std::string& sensor) c
 		objectList.push_back(mPoseGraph[*it]);
 	}
 	return objectList;
-}
-
-void BoostGraph::buildNeighborIndex(const std::string& sensor)
-{
-	VertexList vertices = getVerticesFromSensor(sensor);
-	int numOfVertices = vertices.size();
-	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
-
-	IdType row = 0;
-	mNeighborMap.clear();
-	for(VertexList::iterator it = vertices.begin(); it < vertices.end(); ++it)
-	{
-		Transform::TranslationPart t = mPoseGraph[*it].corrected_pose.translation();
-		points[row][0] = t[0];
-		points[row][1] = t[1];
-		points[row][2] = t[2];
-		mNeighborMap.insert(IndexMap::value_type(row, *it));
-		row++;
-	}
-	
-	mNeighborIndex.buildIndex(points);
-}
-
-VertexList BoostGraph::getNearbyVertices(const Transform &tf, float radius)
-{
-	// Fill in the query point
-	flann::Matrix<float> query(new float[3], 1, 3);
-	Transform::ConstTranslationPart t = tf.translation();
-	query[0][0] = t[0];
-	query[0][1] = t[1];
-	query[0][2] = t[2];
-	mLogger->message(DEBUG, (boost::format("Doing NN search from (%1%, %2%, %3%) with radius %4%.")%t[0]%t[1]%t[2]%radius).str());
-	
-	// Find points nearby
-	std::vector< std::vector<int> > neighbors;
-	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
-	int found = mNeighborIndex.radiusSearch(query, neighbors, distances, radius*radius, mSearchParams);
-	
-	// Write the result
-	VertexList result;
-	std::vector<int>::iterator it = neighbors[0].begin();
-	std::vector<NeighborIndex::DistanceType>::iterator d = distances[0].begin();
-	for(; it < neighbors[0].end(); ++it, ++d)
-	{
-		Vertex n = mNeighborMap[*it];
-		result.push_back(n);
-		mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mPoseGraph[n].index % *d).str());
-	}
-	
-	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
-	return result;
 }
 
 bool BoostGraph::optimize()
@@ -218,7 +167,7 @@ void BoostGraph::addConstraint(IdType source_id, IdType target_id,
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 }
 
-VertexObjectList BoostGraph::getVertexObjectsFromSensor(const std::string& sensor) const
+VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -394,10 +343,16 @@ float BoostGraph::calculateGraphDistance(Vertex source, Vertex target)
 	int target_id = boost::get(boost::vertex_index, mPoseGraph)[target];
 	return distance[target_id];
 }
-
+/*
 VertexObjectList BoostGraph::getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const
 {
+	VertexObjectList objects;
 	VertexList neighbors = getNearbyVertices(tf, radius);
-	
-	
+	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
+	{
+//		const VertexObject obj = mPoseGraph[*it];
+		objects.push_back(mPoseGraph[*it]);
+	}
+	return objects;
 }
+*/

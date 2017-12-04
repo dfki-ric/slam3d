@@ -40,6 +40,7 @@ Transform Graph::orthogonalize(const Transform& t)
 }
 
 Graph::Graph(Logger* log)
+ : mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	mOdometry = NULL;
 	mSolver = NULL;
@@ -230,4 +231,63 @@ bool Graph::hasMeasurement(boost::uuids::uuid id) const
 const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
 {
 	return getVertex(mUuidIndex.at(id));
+}
+
+TransformWithCovariance Graph::getTransform(IdType source, IdType target) const
+{
+	// This method is a stub:
+	// Replace with something more elaborate, that calculates the covariance as well.
+	TransformWithCovariance twc;
+	twc.transform = getVertex(source).corrected_pose.inverse() * getVertex(target).corrected_pose;
+	return twc;
+}
+
+void Graph::buildNeighborIndex(const std::string& sensor)
+{
+	VertexObjectList vertices = getVerticesFromSensor(sensor);
+	int numOfVertices = vertices.size();
+	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
+
+	IdType row = 0;
+	mNeighborMap.clear();
+	for(VertexObjectList::iterator it = vertices.begin(); it < vertices.end(); ++it)
+	{
+		Transform::TranslationPart t = it->corrected_pose.translation();
+		points[row][0] = t[0];
+		points[row][1] = t[1];
+		points[row][2] = t[2];
+		mNeighborMap.insert(std::map<IdType, IdType>::value_type(row, it->index));
+		row++;
+	}
+	
+	mNeighborIndex.buildIndex(points);
+}
+
+VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) const
+{
+	// Fill in the query point
+	flann::Matrix<float> query(new float[3], 1, 3);
+	Transform::ConstTranslationPart t = tf.translation();
+	query[0][0] = t[0];
+	query[0][1] = t[1];
+	query[0][2] = t[2];
+	mLogger->message(DEBUG, (boost::format("Doing NN search from (%1%, %2%, %3%) with radius %4%.")%t[0]%t[1]%t[2]%radius).str());
+	
+	// Find points nearby
+	std::vector< std::vector<int> > neighbors;
+	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
+	int found = mNeighborIndex.radiusSearch(query, neighbors, distances, radius*radius, mSearchParams);
+	
+	// Write the result
+	VertexObjectList result;
+	std::vector<int>::iterator it = neighbors[0].begin();
+	std::vector<NeighborIndex::DistanceType>::iterator d = distances[0].begin();
+	for(; it < neighbors[0].end(); ++it, ++d)
+	{
+		result.push_back(getVertex(mNeighborMap.at(*it)));
+		mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mNeighborMap.at(*it) % *d).str());
+	}
+	
+	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
+	return result;
 }

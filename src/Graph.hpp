@@ -73,10 +73,13 @@ if(!mapper->addReading(m))
 #include "Sensor.hpp"
 #include "Solver.hpp"
 
+#include <flann/flann.hpp>
 #include <map>
 
 namespace slam3d
 {
+	typedef flann::Index< flann::L2<float> > NeighborIndex;
+	
 	/**
 	 * @class InvalidEdge
 	 * @brief Exception thrown when a specified edge does not exist.
@@ -300,6 +303,24 @@ namespace slam3d
 		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
 
 		/**
+		 * @brief Create the index for nearest neighbor search of nodes.
+		 * @param sensor index nodes of this sensor
+		 */
+		void buildNeighborIndex(const std::string& sensor);
+		
+		/**
+		 * @brief Search for nodes in the graph near the given pose.
+		 * @details This does not refer to a NN-Search in the graph, but to search for
+		 * spatially near poses according to their current corrected pose.
+		 * If new nodes have been added, the index has to be created with
+		 * a call to buildNeighborIndex.
+		 * @param tf The pose where to search for nodes
+		 * @param radius The radius within nodes should be returned
+		 * @return list of spatially near vertices
+		 */
+		VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+		
+		/**
 		 * @brief Set to initialize the robot's heading from odometry.
 		 * @details This is mainly useful when the robot is equipped with an
 		 * compass and IMU to provide global orientation.
@@ -324,13 +345,20 @@ namespace slam3d
 		const VertexObject& getVertex(boost::uuids::uuid id) const;
 
 		/**
-		 * @brief 
+		 * @brief Check if the measurement with this id is stored in the graph.
 		 * @param id
 		 */
 		bool hasMeasurement(boost::uuids::uuid id) const;
 
 		/**
-		 * @brief 
+		 * @brief Get the transformation between source and target node.
+		 * @param source
+		 * @param target
+		 */
+		TransformWithCovariance getTransform(IdType source, IdType target) const;
+
+		/**
+		 * @brief Get the edge between source and traget from the given sensor.
 		 * @param source
 		 * @param target
 		 * @param sensor
@@ -347,7 +375,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const = 0;
+		virtual VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief TODO
@@ -403,6 +431,13 @@ namespace slam3d
 		// Index to find Vertices by the unique id of their measurement
 		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
 		UuidIndex mUuidIndex;
+
+		// Index to use nearest neighbor search
+		// Whenever this index is created, we have to enumerate all vertices from 0 to n-1.
+		// This mapping is kept in a separate map to later apply the result to the graph.
+		flann::SearchParams mSearchParams;
+		NeighborIndex mNeighborIndex;
+		std::map<IdType, IdType> mNeighborMap; // vertex-id --> neighbor-id
 
 		// Parameters
 		int mMaxNeighorLinks;

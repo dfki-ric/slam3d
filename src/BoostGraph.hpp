@@ -5,7 +5,6 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <flann/flann.hpp>
 
 namespace slam3d
 {
@@ -33,7 +32,6 @@ namespace slam3d
 	typedef std::vector<Edge> EdgeList;
 
 	// Index types
-	typedef flann::Index< flann::L2<float> > NeighborIndex;
 	typedef std::map<IdType, Vertex> IndexMap;
 	
 	/**
@@ -148,7 +146,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const;
+		VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
 
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
@@ -157,7 +155,7 @@ namespace slam3d
 		 */
 		VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
-		VertexObjectList getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const;
+//		VertexObjectList getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
@@ -195,24 +193,6 @@ namespace slam3d
 		EdgeList getEdgesFromSensor(const std::string& sensor);
 		
 		/**
-		 * @brief Create the index for nearest neighbor search of nodes.
-		 * @param sensor index nodes of this sensor
-		 */
-		void buildNeighborIndex(const std::string& sensor);
-		
-		/**
-		 * @brief Search for nodes in the graph near the given pose.
-		 * @details This does not refer to a NN-Search in the graph, but to search for
-		 * spatially near poses according to their current corrected pose.
-		 * If new nodes have been added, the index has to be created with
-		 * a call to buildNeighborIndex.
-		 * @param tf The pose where to search for nodes
-		 * @param radius The radius within nodes should be returned
-		 * @return list of spatially near vertices
-		 */
-		VertexList getNearbyVertices(const Transform &tf, float radius);
-		
-		/**
 		 * @brief Calculates the distance between two vertices in the graph.
 		 * @param source
 		 * @param target
@@ -225,13 +205,6 @@ namespace slam3d
 		
 		// Index to map a vertex' id to its descriptor
 		IndexMap mIndexMap;
-		
-		// Index to use nearest neighbor search
-		// Whenever this index is created, we have to enumerate all vertices from 0 to n-1.
-		// This mapping is kept in a separate map to later apply the result to the graph.
-		flann::SearchParams mSearchParams;
-		NeighborIndex mNeighborIndex;
-		IndexMap mNeighborMap;
 		
 		// Some special vertices
 		Vertex mLastVertex;

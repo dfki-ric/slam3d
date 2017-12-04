@@ -80,14 +80,14 @@ namespace slam3d
 	{
 	public:
 		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mName(n), mLogger(l), mSensorPose(p), mMapper(NULL), mLastVertex(0){}
+		 :mName(n), mLogger(l), mSensorPose(p), mGraph(NULL), mLastVertex(0){}
 		virtual ~Sensor(){}
 		
 		/**
 		 * @brief Set the mapper that this sensor is used by.
 		 * @param mapper
 		 */
-		void setMapper(Graph* mapper) { mMapper = mapper; }
+		void setMapper(Graph* mapper) { mGraph = mapper; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
@@ -112,7 +112,7 @@ namespace slam3d
 		 */
 		virtual TransformWithCovariance calculateTransform(Measurement::Ptr source,
 		                                                   Measurement::Ptr target,
-		                                                   Transform odometry,
+		                                                   TransformWithCovariance odometry,
 		                                                   bool coarse = false) const = 0;		
 		/**
 		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
@@ -149,7 +149,7 @@ namespace slam3d
 		std::string mName;
 		Logger* mLogger;
 		Transform mSensorPose;
-		Graph* mMapper;
+		Graph* mGraph;
 		
 		float mMinTranslation;
 		float mMinRotation;

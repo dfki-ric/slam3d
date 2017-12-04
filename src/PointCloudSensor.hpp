@@ -142,7 +142,10 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		TransformWithCovariance calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry, bool coarse = false) const;
+		TransformWithCovariance calculateTransform(Measurement::Ptr source,
+		                                           Measurement::Ptr target,
+		                                           TransformWithCovariance odometry,
+		                                           bool coarse = false) const;
 				
 		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.

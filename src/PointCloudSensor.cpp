@@ -68,10 +68,10 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double
 	return out;
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry, bool coarse) const
+TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr source, Measurement::Ptr target, TransformWithCovariance odometry, bool coarse) const
 {
 	// Transform guess in sensor frame
-	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
+	Transform guess = source->getInverseSensorPose() * odometry.transform * target->getSensorPose();
 	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(source);
@@ -179,7 +179,7 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 
 Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 {	
-	VertexObjectList v_objects = mMapper->getVerticesInRange(source, mPatchBuildingRange);
+	VertexObjectList v_objects = mGraph->getVerticesInRange(source, mPatchBuildingRange);
 	
 	if(mPatchSolver)
 	{
@@ -189,7 +189,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 			mPatchSolver->addNode(v->index, v->corrected_pose);
 		}
 		
-		EdgeObjectList e_objects = mMapper->getEdgeObjects(v_objects);
+		EdgeObjectList e_objects = mGraph->getEdgeObjects(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
 			mPatchSolver->addConstraint(e->source, e->target, e->transform, e->covariance);
@@ -216,26 +216,28 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 			}
 		}
 	}
-	return createCombinedMeasurement(v_objects, mMapper->getVertex(source).corrected_pose);
+	return createCombinedMeasurement(v_objects, mGraph->getVertex(source).corrected_pose);
 }
 
 bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
 {	
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mGraph->addMeasurement(m);
 		return true;
 	}
 	
 	Measurement::Ptr target_m;
 	try
 	{
-		target_m = mMapper->getVertex(mLastVertex).measurement;
+		target_m = mGraph->getVertex(mLastVertex).measurement;
 	}catch(std::exception &e)
 	{
 		mLogger->message(ERROR, "PointCloudSensor could not get its last vertex from mapper.");
 		return false;
 	}
+
+	IdType newVertex = mGraph->addMeasurement(m);
 
 	if(mPatchBuildingRange > 0)
 	{
@@ -245,10 +247,10 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
 
 	try
 	{
-		Transform odom = mMapper->getVertex(mLastVertex).corrected_pose.inverse() * mMapper->getVertex(newVertex).corrected_pose;
-		TransformWithCovariance twc = calculateTransform(target_m, m, odom);
-		if(checkMinDistance(twc.transform))
-		mMapper->addConstraint(mLastVertex, newVertex, twc.transform, twc.covariance, mName, "seq");
+		TransformWithCovariance odom = mGraph->getTransform(mLastVertex, newVertex);
+		TransformWithCovariance icp_result = calculateTransform(target_m, m, odom);
+		if(checkMinDistance(icp_result.transform))
+		mGraph->addConstraint(mLastVertex, newVertex, icp_result.transform, icp_result.covariance, mName, "seq");
 	}catch(NoMatch &e)
 	{
 		mLogger->message(WARNING, (boost::format("Failed to match new vertex %1% to previous, because %2%.")
@@ -264,17 +266,13 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
 
 TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_id)
 {
-	VertexObject source = mMapper->getVertex(source_id);
-	VertexObject target = mMapper->getVertex(target_id);
+	VertexObject source = mGraph->getVertex(source_id);
+	VertexObject target = mGraph->getVertex(target_id);
 
 	if(source.measurement->getSensorName() != mName || target.measurement->getSensorName() != mName)
 	{
 		throw InvalidEdge(source_id, target_id);
 	}
-	
-	// Create virtual measurement for source node
-	Transform sourcePose = source.corrected_pose;
-	Transform targetPose = target.corrected_pose;
 	
 	Measurement::Ptr source_m = source.measurement;
 	Measurement::Ptr target_m = target.measurement;
@@ -286,15 +284,15 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 	}
 	
 	// Estimate the transform from source to target
-	Transform guess = sourcePose.inverse() * targetPose;
+	TransformWithCovariance guess = mGraph->getTransform(source_id, target_id);
 	TransformWithCovariance twc_coarse = calculateTransform(source_m, target_m, guess, true);
-	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse.transform);
+	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse);
 
 	// Create new edge and return the transform
-	mMapper->addConstraint(source_id, target_id, twc.transform, twc.covariance, sensor->getName(), "icp");
+	mGraph->addConstraint(source_id, target_id, twc.transform, twc.covariance, mName, "icp");
 	return twc;
 }
-
+/*
 void PointCloudSensor::linkToNeighbors(IdType vertex, int max_links)
 {
 	// Get all edges to/from this node
@@ -327,7 +325,6 @@ void PointCloudSensor::linkToNeighbors(IdType vertex, int max_links)
 				continue;
 			count++;
 			link(*it, vertex, sensor);
-			optimize();
 		}catch(NoMatch &e)
 		{
 			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());
@@ -335,3 +332,4 @@ void PointCloudSensor::linkToNeighbors(IdType vertex, int max_links)
 		}
 	}
 }
+*/
