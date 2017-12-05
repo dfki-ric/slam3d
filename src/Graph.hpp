@@ -294,15 +294,6 @@ namespace slam3d
 		virtual void writeGraphToFile(const std::string &name);
 
 		/**
-		 * @brief Sets neighbor radius for matching
-		 * @details New nodes are matched against nodes of the same sensor
-		 * within the given radius, but not more then given maximum.
-		 * @param r radius within additional edges are created
-		 * @param l maximum number of neighbor links
-		 */
-		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
-
-		/**
 		 * @brief Create the index for nearest neighbor search of nodes.
 		 * @param sensor index nodes of this sensor
 		 */
@@ -378,9 +369,9 @@ namespace slam3d
 		virtual VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
 
 		/**
-		 * @brief TODO
-		 * @param source
-		 * @param range
+		 * @brief Serch for nodes by using breadth-first-search
+		 * @param source start search from this node
+		 * @param range maximum number of steps to search from source
 		 */
 		virtual VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
@@ -388,13 +379,20 @@ namespace slam3d
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const = 0;
+		virtual EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		virtual EdgeObjectList getEdgeObjects(const VertexObjectList& vertices) = 0;
+		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) = 0;
+		
+		/**
+		 * @brief Calculates the distance between two vertices in the graph.
+		 * @param source
+		 * @param target
+		 */
+		virtual float calculateGraphDistance(IdType source, IdType target) = 0;
 		
 	protected:
 		// Graph access
@@ -440,8 +438,6 @@ namespace slam3d
 		std::map<IdType, IdType> mNeighborMap; // vertex-id --> neighbor-id
 
 		// Parameters
-		int mMaxNeighorLinks;
-		float mNeighborRadius;
 		bool mAddOdometryEdges;
 		bool mUseOdometryHeading;
 		bool mOptimized;

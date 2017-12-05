@@ -39,7 +39,8 @@ typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transform& p)
  : Sensor(n, l, p), mPatchSolver(NULL)
 {
-	
+	mNeighborRadius = 1.0;
+	mMaxNeighorLinks = 1;
 }
 
 PointCloudSensor::~PointCloudSensor()
@@ -189,7 +190,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 			mPatchSolver->addNode(v->index, v->corrected_pose);
 		}
 		
-		EdgeObjectList e_objects = mGraph->getEdgeObjects(v_objects);
+		EdgeObjectList e_objects = mGraph->getEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
 			mPatchSolver->addConstraint(e->source, e->target, e->transform, e->covariance);
@@ -258,8 +259,8 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
 	}
 
 	// Add edges to other measurements nearby
-//	buildNeighborIndex(sensor->getName());
-//	linkToNeighbors(newVertex, sensor, mMaxNeighorLinks);
+	mGraph->buildNeighborIndex(mName);
+	linkToNeighbors(newVertex);
 	mLastVertex = newVertex;
 	return true;
 }
@@ -292,44 +293,33 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 	mGraph->addConstraint(source_id, target_id, twc.transform, twc.covariance, mName, "icp");
 	return twc;
 }
-/*
-void PointCloudSensor::linkToNeighbors(IdType vertex, int max_links)
+
+void PointCloudSensor::linkToNeighbors(IdType vertex)
 {
-	// Get all edges to/from this node
-	std::set<Vertex> previously_matched_vertices;
-	previously_matched_vertices.insert(vertex);
-	
-	OutEdgeIterator out_it, out_end;
-	boost::tie(out_it, out_end) = boost::out_edges(vertex, mPoseGraph);
-	for(; out_it != out_end; ++out_it)
-	{
-		if(mPoseGraph[*out_it].sensor == sensor->getName())
-		{
-			previously_matched_vertices.insert(boost::target(*out_it, mPoseGraph));
-		}
-	}
-	
-	std::vector<Vertex> neighbors = getNearbyVertices(mPoseGraph[vertex].corrected_pose, mNeighborRadius);
+	VertexObject obj = mGraph->getVertex(vertex);
+	VertexObjectList neighbors = mGraph->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	
 	int count = 0;
-	for(std::vector<Vertex>::iterator it = neighbors.begin(); it != neighbors.end() && count < max_links; ++it)
+	for(VertexObjectList::iterator it = neighbors.begin(); it != neighbors.end() && count < mMaxNeighorLinks; ++it)
 	{
-		if(previously_matched_vertices.find(*it) != previously_matched_vertices.end())
+		try
+		{
+			mGraph->getEdge(vertex, it->index, mName);
 			continue;
+		}catch(InvalidEdge &e){}
 
 		try
 		{
-			float dist = calculateGraphDistance(*it, vertex);
-			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % mPoseGraph[*it].index % mPoseGraph[vertex].index).str());
+			float dist = mGraph->calculateGraphDistance(it->index, vertex);
+			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % it->index % vertex).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;
 			count++;
-			link(*it, vertex, sensor);
+			link(it->index, vertex);
 		}catch(NoMatch &e)
 		{
-			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % mPoseGraph[*it].index % mPoseGraph[vertex].index % e.what()).str());
+			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % it->index % vertex % e.what()).str());
 			continue;
 		}
 	}
 }
-*/

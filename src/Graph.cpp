@@ -46,7 +46,6 @@ Graph::Graph(Logger* log)
 	mSolver = NULL;
 	mLogger = log;
 	
-	mNeighborRadius = 1.0;
 	mAddOdometryEdges = false;
 	mUseOdometryHeading = false;
 	mOffsetToLastPose = Transform::Identity();

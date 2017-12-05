@@ -107,6 +107,15 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
+		 * @brief Sets neighbor radius for scan matching
+		 * @details New nodes are matched against nodes of the same sensor
+		 * within the given radius, but not more then given maximum.
+		 * @param r radius within additional edges are created
+		 * @param l maximum number of neighbor links
+		 */
+		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
+		
+		/**
 		 * @brief Sets a specific solver to optimize local patches.
 		 * @details This must not be the same instance used as the backend,
 		 * as it will be reset after every optimization. If it is not set,
@@ -207,12 +216,21 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
+		/**
+		 * @brief Create connecting edges to nearby vertices.
+		 * @param vertex
+		 */
+		void linkToNeighbors(IdType vertex);
+		
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
 		
 		Solver* mPatchSolver;
 		unsigned int mPatchBuildingRange;
+		
+		int mMaxNeighorLinks;
+		float mNeighborRadius;
 	};
 }
 

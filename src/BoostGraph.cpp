@@ -68,7 +68,7 @@ EdgeList BoostGraph::getEdgesFromSensor(const std::string& sensor)
 	return edgeList;
 }
 
-EdgeObjectList BoostGraph::getEdgeObjectsFromSensor(const std::string& sensor) const
+EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -218,7 +218,7 @@ EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 	return edges;
 }
 
-EdgeObjectList BoostGraph::getEdgeObjects(const VertexObjectList& vertices)
+EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices)
 {
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
@@ -323,7 +323,7 @@ VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range
 	return vertices;
 }
 
-float BoostGraph::calculateGraphDistance(Vertex source, Vertex target)
+float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 {
 	int num = boost::num_vertices(mPoseGraph);
 	std::vector<Vertex> parent(num);
@@ -338,12 +338,11 @@ float BoostGraph::calculateGraphDistance(Vertex source, Vertex target)
 			weight[*it] = 1.0;
 	}
 	
-	boost::dijkstra_shortest_paths(mPoseGraph, source,
+	boost::dijkstra_shortest_paths(mPoseGraph, mIndexMap.at(source_id),
 		boost::distance_map(boost::make_iterator_property_map(distance.begin(), boost::get(boost::vertex_index, mPoseGraph)))
 		.predecessor_map(boost::make_iterator_property_map(parent.begin(), boost::get(boost::vertex_index, mPoseGraph)))
 		.weight_map(boost::make_assoc_property_map(weight)) );
 
-	int target_id = boost::get(boost::vertex_index, mPoseGraph)[target];
 	return distance[target_id];
 }
 /*

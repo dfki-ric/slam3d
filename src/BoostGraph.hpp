@@ -161,13 +161,20 @@ namespace slam3d
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const;
+		EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
 		
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		EdgeObjectList getEdgeObjects(const VertexObjectList& vertices);
+		EdgeObjectList getEdges(const VertexObjectList& vertices);
+
+		/**
+		 * @brief Calculates the distance between two vertices in the graph.
+		 * @param source
+		 * @param target
+		 */
+		float calculateGraphDistance(IdType source, IdType target);
 		
 		/**
 		 * @brief Write the current graph to a file (currently dot).
@@ -191,13 +198,6 @@ namespace slam3d
 		 * @return list of all edges from given sensor
 		 */
 		EdgeList getEdgesFromSensor(const std::string& sensor);
-		
-		/**
-		 * @brief Calculates the distance between two vertices in the graph.
-		 * @param source
-		 * @param target
-		 */
-		float calculateGraphDistance(Vertex source, Vertex target);
 		
 	private:
 		// The boost graph object
