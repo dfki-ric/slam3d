@@ -107,7 +107,7 @@ namespace slam3d
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		const VertexObject& getLastVertex() const { return mPoseGraph[mLastVertex]; }
+		const VertexObject& getLastVertex() const;
 		
 		/**
 		 * @brief Start the backend optimization process.
@@ -205,9 +205,6 @@ namespace slam3d
 		
 		// Index to map a vertex' id to its descriptor
 		IndexMap mIndexMap;
-		
-		// Some special vertices
-		Vertex mLastVertex;
 	};
 }
 

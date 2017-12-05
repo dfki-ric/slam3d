@@ -32,12 +32,15 @@ BoostGraph::BoostGraph(Logger* log)
 	// Add it to the indexes, so we can find it by its id and uuid
 	mIndexMap.insert(IndexMap::value_type(id, root));
 	mUuidIndex.insert(UuidIndex::value_type(origin->getUniqueId(), id));
-
-	mLastVertex = 0;
 }
 
 BoostGraph::~BoostGraph()
 {
+}
+
+const VertexObject& BoostGraph::getLastVertex() const
+{
+	return mPoseGraph[mIndexMap.at(mLastIndex)];
 }
 
 VertexList BoostGraph::getVerticesFromSensor(const std::string& sensor)
