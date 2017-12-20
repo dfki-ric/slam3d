@@ -84,10 +84,10 @@ namespace slam3d
 		virtual ~Sensor(){}
 		
 		/**
-		 * @brief Set the mapper that this sensor is used by.
-		 * @param mapper
+		 * @brief Set the graph that this sensor is used by.
+		 * @param graph
 		 */
-		void setMapper(Graph* mapper) { mGraph = mapper; }
+		void setGraph(Graph* graph) { mGraph = graph; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify

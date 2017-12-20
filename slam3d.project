@@ -32,6 +32,7 @@
     <File Name="src/Types.hpp"/>
     <File Name="src/Graph.hpp"/>
     <File Name="src/BoostGraph.hpp"/>
+    <File Name="src/PoseSensor.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/G2oSolver.cpp"/>

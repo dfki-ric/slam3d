@@ -72,6 +72,7 @@ if(!mapper->addReading(m))
 #include "Odometry.hpp"
 #include "Sensor.hpp"
 #include "Solver.hpp"
+#include "PoseSensor.hpp"
 
 #include <flann/flann.hpp>
 #include <map>
@@ -419,6 +420,7 @@ namespace slam3d
 		Logger* mLogger;
 		Odometry* mOdometry;
 		SensorList mSensors;
+		PoseSensorList mPoseSensors;
 
 		Transform mOffsetToLastPose;
 		Transform mLastOdometricPose;
