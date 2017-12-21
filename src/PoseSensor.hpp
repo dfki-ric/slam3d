@@ -36,14 +36,21 @@ namespace slam3d
 	class PoseSensor
 	{
 	public:
-		PoseSensor(Graph* g, Logger* l) : mGraph(g), mLogger(l) {}
+		// Ctor / Dtor
+		PoseSensor(const std::string& n, Graph* g, Logger* l) : mGraph(g), mLogger(l), mName(n) {}
 		virtual ~PoseSensor();
 		
+		// Virtual methods
 		virtual void handleNewVertex(IdType vertex) = 0;
+
+		// Access methods
+		std::string getName(){ return mName; }
 	
 	protected:
 		Graph* mGraph;
 		Logger* mLogger;
+		
+		std::string mName;
 	};
 	
 	typedef std::map<std::string, PoseSensor*> PoseSensorList;

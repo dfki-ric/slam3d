@@ -20,18 +20,6 @@ using namespace slam3d;
 BoostGraph::BoostGraph(Logger* log)
  : Graph(log)
 {
-	// Add root node to the graph
-	Measurement::Ptr origin(new MapOrigin());
-	IdType id = mIndexer.getNext();
-	Vertex root = boost::add_vertex(mPoseGraph);
-	mPoseGraph[root].index = id;
-	mPoseGraph[root].label = "root";
-	mPoseGraph[root].corrected_pose = Transform::Identity();
-	mPoseGraph[root].measurement = origin;
-
-	// Add it to the indexes, so we can find it by its id and uuid
-	mIndexMap.insert(IndexMap::value_type(id, root));
-	mUuidIndex.insert(UuidIndex::value_type(origin->getUniqueId(), id));
 }
 
 BoostGraph::~BoostGraph()

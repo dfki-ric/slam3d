@@ -69,7 +69,7 @@ if(!mapper->addReading(m))
  @endcode
  */
 
-#include "Odometry.hpp"
+#include "PoseSensor.hpp"
 #include "Sensor.hpp"
 #include "Solver.hpp"
 #include "PoseSensor.hpp"
@@ -176,14 +176,10 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief Sets an odometry module to provide relative poses 
-		 * @details Depending on the matching abilities of the
-		 * used sensors (e.g. a 360° laser-scanner), the mapping might work
-		 * correctly without an odometry module.
-		 * @param odom odometry module
-		 * @param add_edges whether to create odometry edges in the graph
+		 * @brief 
+		 * @param s
 		 */
-		void setOdometry(Odometry* odom, bool add_edges = false);
+		void registerPoseSensor(PoseSensor* s);
 
 		/**
 		 * @brief Register a sensor, so its data can be added to the graph.
@@ -260,15 +256,6 @@ namespace slam3d
 		virtual Transform getCurrentPose();
 		
 		/**
-		 * @brief Set the robot's pose in map coordinates.
-		 * @details This can be used to set the robot's start pose before the
-		 * mapping is started. Setting it later should be avoided, as
-		 * it can corrupt the mapping process.
-		 * @param pose new pose in map coordinates
-		 */
-		virtual void setCurrentPose(const Transform& pose);
-		
-		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
 		 * @return true if optimization was successful
@@ -311,14 +298,6 @@ namespace slam3d
 		 * @return list of spatially near vertices
 		 */
 		VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
-		
-		/**
-		 * @brief Set to initialize the robot's heading from odometry.
-		 * @details This is mainly useful when the robot is equipped with an
-		 * compass and IMU to provide global orientation.
-		 * @param use whether to use odometry for initial heading
-		 */
-		void useOdometryHeading(bool use = true) {mUseOdometryHeading = use;}
 
 		/**
 		 * @brief Gets a vertex object by its given id. The id is given to each
@@ -418,12 +397,11 @@ namespace slam3d
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
-		Odometry* mOdometry;
 		SensorList mSensors;
 		PoseSensorList mPoseSensors;
 
-		Transform mOffsetToLastPose;
-		Transform mLastOdometricPose;
+//		Transform mOffsetToLastPose;
+//		Transform mLastOdometricPose;
 
 		Indexer mIndexer;
 		IdType mLastIndex;
@@ -440,8 +418,6 @@ namespace slam3d
 		std::map<IdType, IdType> mNeighborMap; // vertex-id --> neighbor-id
 
 		// Parameters
-		bool mAddOdometryEdges;
-		bool mUseOdometryHeading;
 		bool mOptimized;
 	};
 }

@@ -25,7 +25,6 @@
     <File Name="src/G2oSolver.hpp"/>
     <File Name="src/GICPConfiguration.hpp"/>
     <File Name="src/Logger.hpp"/>
-    <File Name="src/Odometry.hpp"/>
     <File Name="src/PointCloudSensor.hpp"/>
     <File Name="src/Sensor.hpp"/>
     <File Name="src/Solver.hpp"/>

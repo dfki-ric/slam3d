@@ -40,15 +40,10 @@ Transform Graph::orthogonalize(const Transform& t)
 }
 
 Graph::Graph(Logger* log)
- : mNeighborIndex(flann::KDTreeSingleIndexParams())
+ : mLogger(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
-	mOdometry = NULL;
-	mSolver = NULL;
-	mLogger = log;
-	
-	mAddOdometryEdges = false;
-	mUseOdometryHeading = false;
-	mOffsetToLastPose = Transform::Identity();
+	// Initialize some members
+	mSolver = NULL;	
 	mOptimized = false;
 	mLastIndex = 0;
 }
@@ -64,10 +59,15 @@ void Graph::setSolver(Solver* solver)
 	mSolver->setFixed(0);
 }
 
-void Graph::setOdometry(Odometry* odom, bool add_edges)
+void Graph::registerPoseSensor(PoseSensor* s)
 {
-	mOdometry = odom;
-	mAddOdometryEdges = add_edges;
+	std::pair<PoseSensorList::iterator, bool> result;
+	result = mPoseSensors.insert(PoseSensorList::value_type(s->getName(), s));
+	if(!result.second)
+	{
+		mLogger->message(ERROR, (boost::format("PoseSensor with name %1% already exists!") % s->getName()).str());
+		return;
+	}
 }
 
 void Graph::registerSensor(Sensor* s)
@@ -84,16 +84,7 @@ void Graph::registerSensor(Sensor* s)
 
 Transform Graph::getCurrentPose()
 {
-	if(mLastIndex > 0)
-	{
-		return getVertex(mLastIndex).corrected_pose * mOffsetToLastPose;
-	}
-	return mOffsetToLastPose;
-}
-
-void Graph::setCurrentPose(const Transform& pose)
-{
-	mOffsetToLastPose = pose;
+	return getVertex(mLastIndex).corrected_pose;
 }
 
 void Graph::writeGraphToFile(const std::string &name)
@@ -131,66 +122,23 @@ bool Graph::optimized()
 
 IdType Graph::addMeasurement(Measurement::Ptr m)
 {
-	// Get the sensor responsible for this measurement
-	Sensor* sensor = NULL;
-	if(!getSensorForMeasurement(m, sensor))
-	{
-		mLogger->message(ERROR, (boost::format("Sensor '%1%' has not been registered!") % m->getSensorName()).str());
-		return false;
-	}
-	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-
-	// Get the odometric pose for this measurement
-	Transform odometry = Transform::Identity();
-	if(mOdometry)
-	{
-		try
-		{
-			odometry = mOdometry->getOdometricPose(m->getTimestamp());
-		}catch(OdometryException &e)
-		{
-			mLogger->message(ERROR, "Could not get Odometry data!");
-			return false;
-		}
-	}
-
-	// If this is the first vertex, add it and return
+	// Add root node to the graph
 	if(mLastIndex == 0)
 	{
-		// Add real vertex and link it to root
-		if(mUseOdometryHeading)
-		{
-			mOffsetToLastPose.linear() = odometry.linear();
-		}
-		mLastIndex = addVertex(m, mOffsetToLastPose);
-		mLastOdometricPose = odometry;
-		mLogger->message(INFO, "Added first node to the graph.");
-		addConstraint(0, mLastIndex, mOffsetToLastPose, Covariance::Identity() * 100, "none", "root-link");
-
-		mOffsetToLastPose = Transform::Identity();
-		return mLastIndex;
-	}
-
-	// Now we have a node, that is not the first and has not been added yet
-	if(mOdometry)
-	{
-		mOffsetToLastPose = orthogonalize(mLastOdometricPose.inverse() * odometry);
+		mLastIndex = addVertex(Measurement::Ptr(new MapOrigin()), Transform::Identity());
 	}
 	
 	// Add the vertex to the pose graph
-	IdType newIndex = addVertex(m, getCurrentPose());
+	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
+	mLastIndex = addVertex(m, getCurrentPose());
 	
-	// Add an edge representing the odometry information
-	if(mAddOdometryEdges)
+	// Call all registered PoseSensor's on the new vertex
+	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)
 	{
-		Covariance odom_cov = mOdometry->calculateCovariance(mOffsetToLastPose);
-		addConstraint(mLastIndex, newIndex, mOffsetToLastPose, odom_cov, "Odometry", "odom");
+		ps->second->handleNewVertex(mLastIndex);
 	}
 	
-	// Overall last vertex
-	mLastIndex = newIndex;
-	mLastOdometricPose = odometry;
-	mOffsetToLastPose = Transform::Identity();
+	// Return the new vertex index
 	return mLastIndex;
 }
 
