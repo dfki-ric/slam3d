@@ -33,12 +33,27 @@ namespace slam3d
 {
 	class Graph;
 	
+	class InvalidPose : public std::exception
+	{
+	public:
+		InvalidPose(const std::string& r)
+		: reason(r) {}
+		~InvalidPose() throw() {}
+		
+		virtual const char* what() const throw()
+		{
+			return reason.c_str();
+		}
+		
+		std::string reason;
+	};
+	
 	class PoseSensor
 	{
 	public:
 		// Ctor / Dtor
 		PoseSensor(const std::string& n, Graph* g, Logger* l) : mGraph(g), mLogger(l), mName(n) {}
-		virtual ~PoseSensor();
+		virtual ~PoseSensor(){};
 		
 		// Virtual methods
 		virtual void handleNewVertex(IdType vertex) = 0;

@@ -376,7 +376,8 @@ namespace slam3d
 		
 	protected:
 		// Graph access
-		virtual IdType addVertex(Measurement::Ptr m, const Transform &corrected) = 0;
+		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
+		virtual void addVertex(const VertexObject& v) = 0;
 		
 		// Helper
 		static Transform orthogonalize(const Transform& t);

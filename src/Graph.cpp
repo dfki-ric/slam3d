@@ -55,8 +55,8 @@ Graph::~Graph()
 void Graph::setSolver(Solver* solver)
 {
 	mSolver = solver;
-	mSolver->addNode(0, Transform::Identity());
-	mSolver->setFixed(0);
+//	mSolver->addNode(0, Transform::Identity());
+//	mSolver->setFixed(0);
 }
 
 void Graph::registerPoseSensor(PoseSensor* s)
@@ -120,17 +120,51 @@ bool Graph::optimized()
 	}
 }
 
+IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
+{
+	// Create the new VertexObject and add it to the PoseGraph
+	IdType id = mIndexer.getNext();
+	boost::format v_name("%1%:%2%(%3%)");
+	v_name % m->getRobotName() % m->getSensorName() % id;
+	VertexObject vo;
+	vo.index = id;
+	vo.label = v_name.str();
+	vo.corrected_pose = corrected;
+	vo.measurement = m;
+	addVertex(vo);
+
+	// Add it to the uuid-index, so we can find it by its uuid
+	mUuidIndex.insert(UuidIndex::value_type(m->getUniqueId(), id));
+	
+	// Add it to the SLAM-Backend for incremental optimization
+	if(mSolver)
+	{
+		mSolver->addNode(id, corrected);
+		if(id == 0)
+			mSolver->setFixed(0);
+	}
+	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
+	return id;
+}
+
 IdType Graph::addMeasurement(Measurement::Ptr m)
 {
 	// Add root node to the graph
 	if(mLastIndex == 0)
 	{
+		mLogger->message(DEBUG, "Adding map origin before first node.");
 		mLastIndex = addVertex(Measurement::Ptr(new MapOrigin()), Transform::Identity());
 	}
 	
 	// Add the vertex to the pose graph
 	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
 	mLastIndex = addVertex(m, getCurrentPose());
+	
+	// Link first node to root
+	if(mLastIndex == 1)
+	{
+		addConstraint(0, 1, Transform::Identity(), Covariance::Identity(), "none", "root-link");
+	}
 	
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)

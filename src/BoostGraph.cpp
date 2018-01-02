@@ -100,30 +100,14 @@ bool BoostGraph::optimize()
 	return true;
 }
 
-IdType BoostGraph::addVertex(Measurement::Ptr m, const Transform &corrected)
+void BoostGraph::addVertex(const VertexObject& v)
 {
-	// Create the new VertexObject and add it to the PoseGraph
-	IdType id = mIndexer.getNext();
-	boost::format v_name("%1%:%2%(%3%)");
-	v_name % m->getRobotName() % m->getSensorName() % id;
+	// Add vertex to the graph
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
-	mPoseGraph[newVertex].index = id;
-	mPoseGraph[newVertex].label = v_name.str();
-	mPoseGraph[newVertex].corrected_pose = corrected;
-	mPoseGraph[newVertex].measurement = m;
+	mPoseGraph[newVertex] = v;
 
-	// Add it to the indexes, so we can find it by its id and uuid
-	mIndexMap.insert(IndexMap::value_type(id, newVertex));
-	mUuidIndex.insert(UuidIndex::value_type(m->getUniqueId(), id));
-	
-	// Add it to the SLAM-Backend for incremental optimization
-	if(mSolver)
-	{
-		mSolver->addNode(id, corrected);
-	}
-	
-	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
-	return id;
+	// Add it to the vertex index, so we can find it by its descriptor
+	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
 void BoostGraph::addConstraint(IdType source_id, IdType target_id,

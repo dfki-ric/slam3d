@@ -94,13 +94,10 @@ namespace slam3d
 		                   const std::string& label);
 		
 		/**
-		 * @brief Adds a new vertex to the graph.
-		 * @param m measurement to be attached to the vertex
-		 * @param corrected initial pose of the vertex in map coordinates
-		 * @return descriptor of the new vertex
+		 * @brief 
+		 * @param v
 		 */
-		IdType addVertex(Measurement::Ptr m,
-		                 const Transform &corrected);
+		void addVertex(const VertexObject& v);
 		
 		/**
 		 * @brief Get the last vertex, that was locally added to the graph.
