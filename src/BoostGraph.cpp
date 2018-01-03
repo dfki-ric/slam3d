@@ -161,6 +161,11 @@ const VertexObject& BoostGraph::getVertex(IdType id) const
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
+VertexObject& BoostGraph::getVertexInternal(IdType id)
+{
+	return mPoseGraph[mIndexMap.at(id)];
+}
+
 const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it, it_end;

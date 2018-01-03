@@ -123,12 +123,6 @@ namespace slam3d
 		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
 		
 		/**
-		 * @brief TODO
-		 * @param m
-		 */
-		virtual bool addMeasurement(Measurement::Ptr m, bool force = false) = 0;
-		
-		/**
 		 * @brief Set minimal change in pose between adjacent nodes.
 		 * @param t Minimum translation between nodes (in meter).
 		 * @param r Minimum rotation between nodes (in rad).

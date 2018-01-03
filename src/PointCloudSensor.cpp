@@ -250,8 +250,9 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
 	{
 		TransformWithCovariance odom = mGraph->getTransform(mLastVertex, newVertex);
 		TransformWithCovariance icp_result = calculateTransform(target_m, m, odom);
-		if(checkMinDistance(icp_result.transform))
-			mGraph->addConstraint(mLastVertex, newVertex, icp_result.transform, icp_result.covariance, mName, "seq");
+		mGraph->addConstraint(mLastVertex, newVertex, icp_result.transform, icp_result.covariance, mName, "seq");
+		Transform pose = mGraph->getVertex(mLastVertex).corrected_pose * icp_result.transform;
+		mGraph->setCorrectedPose(newVertex, pose);
 	}catch(NoMatch &e)
 	{
 		mLogger->message(WARNING, (boost::format("Failed to match new vertex %1% to previous, because %2%.")

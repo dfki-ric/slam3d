@@ -214,6 +214,11 @@ const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
 	return getVertex(mUuidIndex.at(id));
 }
 
+void Graph::setCorrectedPose(IdType id, const Transform& pose)
+{
+	getVertexInternal(id).corrected_pose = pose;
+}
+
 TransformWithCovariance Graph::getTransform(IdType source, IdType target) const
 {
 	// This method is a stub:

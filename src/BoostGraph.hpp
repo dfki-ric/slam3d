@@ -180,6 +180,9 @@ namespace slam3d
 		 */
 		void writeGraphToFile(const std::string &name);
 		
+	protected:
+		virtual VertexObject& getVertexInternal(IdType id);
+		
 	private:
 		
 		/**

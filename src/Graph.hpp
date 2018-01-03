@@ -256,6 +256,13 @@ namespace slam3d
 		virtual Transform getCurrentPose();
 		
 		/**
+		 * @brief 
+		 * @param id
+		 * @param pose
+		 */
+		void setCorrectedPose(IdType id, const Transform& pose);
+		
+		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
 		 * @return true if optimization was successful
@@ -378,6 +385,7 @@ namespace slam3d
 		// Graph access
 		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
 		virtual void addVertex(const VertexObject& v) = 0;
+		virtual VertexObject& getVertexInternal(IdType id) = 0;
 		
 		// Helper
 		static Transform orthogonalize(const Transform& t);

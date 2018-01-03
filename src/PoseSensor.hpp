@@ -57,6 +57,7 @@ namespace slam3d
 		
 		// Virtual methods
 		virtual void handleNewVertex(IdType vertex) = 0;
+		virtual Transform getPose(timeval stamp) = 0;
 
 		// Access methods
 		std::string getName(){ return mName; }
