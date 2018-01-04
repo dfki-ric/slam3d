@@ -92,22 +92,6 @@ void Graph::writeGraphToFile(const std::string &name)
 	mLogger->message(ERROR, "Graph writing not implemented!");
 }
 
-bool Graph::hasSensorForMeasurement(Measurement::Ptr measurement)
-{
-	return mSensors.find(measurement->getSensorName()) != mSensors.end();
-}
-
-bool Graph::getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor)
-{
-	SensorList::iterator it = mSensors.find(measurement->getSensorName());
-	if(it != mSensors.end())
-	{
-		sensor = it->second;
-		return true;
-	}
-	return false;
-}
-
 bool Graph::optimized()
 {
 	if(mOptimized)

@@ -48,6 +48,16 @@ namespace slam3d
 		std::string reason;
 	};
 	
+/**
+ * @class PoseSensor
+ * @brief Abstract base class for all pose providing sensors.
+ * @details PoseSensors provide relative or absolute poses which are used
+ * to connect measurements of the used Sensor's. Unlike the latter, which
+ * create new nodes in the graph, PoseSensor's only create edges. Upon
+ * creating a new vertex, handleNewVertex will be called on each registered
+ * PoseSensor with the new Vertex' ID. Examples for a PoseSensor are Odometry,
+ * Inertial Measurement Units, tracking systems or GPS.
+ */
 	class PoseSensor
 	{
 	public:
@@ -56,10 +66,27 @@ namespace slam3d
 		virtual ~PoseSensor(){};
 		
 		// Virtual methods
+		/**
+		 * @brief Process a newly added vertex.
+		 * @details Main callback method that is called for each vertex
+		 * that is added to the graph. The specific implementation might add
+		 * a new edge to the previous node or some global reference node.
+		 * @param vertex ID of the newly added vertex.
+		 */
 		virtual void handleNewVertex(IdType vertex) = 0;
+
+		/**
+		 * @brief Get the pose of the PoseSensor at the given time in its
+		 * own reference frame. (e.g. odometry coordinates)
+		 * @param stamp
+		 */
 		virtual Transform getPose(timeval stamp) = 0;
 
 		// Access methods
+		/**
+		 * @brief Get this sensor's registered name.
+		 * @return Name of the sensor.
+		 */
 		std::string getName(){ return mName; }
 	
 	protected:

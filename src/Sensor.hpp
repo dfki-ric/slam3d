@@ -52,6 +52,9 @@ namespace slam3d
 	/**
 	 * @class NoMatch
 	 * @brief Exception thrown when two measurements could not be matched.
+	 * @details This is not necessarily a problem if it happens once in a while.
+	 * But when matching fails regularly, the mapping can fail and matching
+	 * parameters should be changed by the user.
 	 */
 	class NoMatch: public std::exception
 	{
@@ -71,10 +74,10 @@ namespace slam3d
 	
 	/**
 	 * @class Sensor
-	 * @brief Base class for a sensor used in the mapping process.
-	 * @details The sensor is responsible for calculating relative poses between
-	 * its measurements and for creating representations (maps) from all
-	 * readings using the corrected poses from SLAM.
+	 * @brief Abstract base class for a sensor used in the mapping process.
+	 * @details The sensor is responsible for adding new measurements to the
+	 * graph holding its measurements and for creating representations (maps)
+	 * from all readings using the corrected poses from SLAM.
 	 */
 	class Sensor
 	{
@@ -129,6 +132,12 @@ namespace slam3d
 		 */
 		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
 		
+		/**
+		 * @brief Checks the given transformation using the previously set
+		 * translation and rotation thresholds.
+		 * @param t Relative motion since the last scan was added.
+		 * @return Whether a new scan should be added.
+		 */
 		bool checkMinDistance(const Transform &t)
 		{
 			ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();

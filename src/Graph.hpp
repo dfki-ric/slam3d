@@ -39,11 +39,11 @@
  * 
  * The central component of this library is the Graph class.
  * The documentation is best read by starting from there.
- * This class is extended by registering Sensor modules, an Odometry and a Solver.
+ * This class is extended by registering Sensor modules, PoseSensor modules and a Solver.
  * 
  * @section sec_example Programming example
  * 
- * Start by creating the mapper itself and registering the required modules.
+ * Start by creating the graph itself and registering the required modules.
  @code
 #include <slam3d/Graph.hpp> 
 #include <slam3d/G2oSolver.hpp>
@@ -51,18 +51,19 @@
 using namespace slam3d;
 Clock* clock = new Clock();
 Logger* logger = new Logger(*c);
-Graph* mapper = new Graph(logger);
+Graph* graph = new Graph(logger);
 
-Sensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
-mapper->registerSensor(laser);
+PointCloudSensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
+graph->registerSensor(laser);
 
 G2oSolver* g2o = new G2oSolver(logger);
-mapper->setSolver(g2o);
+graph->setSolver(g2o);
  @endcode
- * Within the callback of your sensor data, add the new measurements to the mapper.
+ * Within the callback of your sensor data, add the new measurements to the corresponding sensor module.
  @code
 Measurement m* = new PointCloudMeasurement(cloud, "my_robot", laser->getName(), laser->getSensorPose());
-if(!mapper->addReading(m))
+Transform odom = [...];
+if(!laser->addReading(m, odom))
 {
   delete m;
 }
@@ -176,15 +177,19 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief 
-		 * @param s
+		 * @brief Register a pose sensor to create spatial constraints.
+		 * @details For each node that is added by a registered sensor, each
+		 * registered pose sensor will be triggered to create additional edges
+		 * in the graph, e.g an odometry sensor will add an edge between the last
+		 * and the new vertex holding the odometry data. 
+		 * @param s pose sensor to be registered for mapping
 		 */
 		void registerPoseSensor(PoseSensor* s);
 
 		/**
 		 * @brief Register a sensor, so its data can be added to the graph.
-		 * @details Multiple sensors can be used, but in this case an odometry module
-		 * is required for the mapping to work correctly. Matching is currently
+		 * @details Multiple sensors can be used, but in this case at least one pose
+		 * sensor is required for the mapping to work correctly. Matching is currently
 		 * done only between measurements of the same sensor.
 		 * @param s sensor to be registered for mapping
 		 */
@@ -192,8 +197,8 @@ namespace slam3d
 
 		/**
 		 * @brief Add a new measurement to the graph.
-		 * @details The sensor specified in the measurement has to be registered
-		 * with the mapper before.
+		 * @details Creates a new node in the graph, adds the given measurement to it
+		 * and calls each registered PoseSensor to create spatial constraints.
 		 * @param m pointer to a new measurement
 		 * @return id of the newly added vertex
 		 */
@@ -249,16 +254,19 @@ namespace slam3d
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
 		 * @details The pose is updated at least whenever a new node is added.
-		 * Depending on the available information, it might be updated
-		 * more often. (e.g. when odometry is available)
 		 * @return current robot pose in map coordinates
 		 */
 		virtual Transform getCurrentPose();
 		
 		/**
-		 * @brief 
-		 * @param id
-		 * @param pose
+		 * @brief Set the corrected pose for the vertex with the given ID.
+		 * @details This method is designed to be used by Sensor and PoseSensor
+		 * implementations in order to position newly added measurements.
+		 * This allows to quickly set the pose of a vertex according to available
+		 * odometry or scan matching results, before it is correctly estimated by
+		 * executing the optimization backend.
+		 * @param id vertex to be changed
+		 * @param pose new corrected pose to be set
 		 */
 		void setCorrectedPose(IdType id, const Transform& pose);
 		
@@ -271,6 +279,7 @@ namespace slam3d
 		
 		/**
 		 * @brief Returns whether optimize() has been called since the last call to this.
+		 * @return true if optimization has been called
 		 */
 		bool optimized();
 
@@ -383,34 +392,43 @@ namespace slam3d
 		
 	protected:
 		// Graph access
+		/**
+		 * @brief Add a given measurement at the given pose
+		 * @details This method creates the VertexObject, adds the new vertex to
+		 * the solver, adds it to the index and then calls the method below to
+		 * actually add it to the graph.
+		 * @param m measurement
+		 * @param initial pose for the new vertex
+		 */
 		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
+
+		/**
+		 * @brief Add the given VertexObject to the actual graph.
+		 * @details This method has to be implemented by the specification class.
+		 * It should not be used directly, but is internally used by the method above.
+		 * @param v VertexObject to be stored in the graph
+		 */
 		virtual void addVertex(const VertexObject& v) = 0;
+
+		/**
+		 * @brief Get a writable reference to a VertexObject.
+		 * @param id
+		 */
 		virtual VertexObject& getVertexInternal(IdType id) = 0;
 		
 		// Helper
+		/**
+		 * @brief Re-orthogonalize the rotation-matrix
+		 * @param t input tranform
+		 * @return the orthogonalized transform
+		 */
 		static Transform orthogonalize(const Transform& t);
-
-		/**
-		 * @returns true if a sensor for the given measurement is registered
-		 */
-		bool hasSensorForMeasurement(Measurement::Ptr measurement);
-
-		/**
-		 * @brief Provides the sensor class for a given measurement
-		 * @param[in] measurement
-		 * @param[out] sensor
-		 * @returns true if a sensor for the given measurement is registered
-		 */
-		bool getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor);
 		
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
 		SensorList mSensors;
 		PoseSensorList mPoseSensors;
-
-//		Transform mOffsetToLastPose;
-//		Transform mLastOdometricPose;
 
 		Indexer mIndexer;
 		IdType mLastIndex;
