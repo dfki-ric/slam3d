@@ -174,6 +174,7 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
+	mLogger->message(DEBUG, (boost::format("Patch pointcloud has %1% points.") % cloud->size()).str());
 	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
 	return m;
 }
@@ -181,6 +182,7 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 {	
 	VertexObjectList v_objects = mGraph->getVerticesInRange(source, mPatchBuildingRange);
+	mLogger->message(DEBUG, (boost::format("Building pointcloud patch from %1% nodes.") % v_objects.size()).str());
 	
 	if(mPatchSolver)
 	{
@@ -220,14 +222,24 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 	return createCombinedMeasurement(v_objects, mGraph->getVertex(source).corrected_pose);
 }
 
-bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
-{	
+bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom, bool force)
+{
+	// Always add the first received scan 
 	if(mLastVertex == 0)
 	{
 		mLastVertex = mGraph->addMeasurement(m);
+		mLastOdometry = odom;
 		return true;
 	}
 	
+	// Discard scan if not moved enough since last scan
+	TransformWithCovariance odo_diff(mLastOdometry.inverse() * odom, Covariance::Identity());
+	if(!force && !checkMinDistance(odo_diff.transform))
+	{
+		return false;
+	}
+	
+	// Get the measurement from the last added vertex
 	Measurement::Ptr target_m;
 	try
 	{
@@ -238,31 +250,40 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, bool force)
 		return false;
 	}
 
-	IdType newVertex = mGraph->addMeasurement(m);
-
+	// Create virtual measurement for target node
 	if(mPatchBuildingRange > 0)
 	{
-		// Create virtual measurement for target node
 		target_m = buildPatch(mLastVertex);
 	}
 
+	TransformWithCovariance icp_result;
 	try
 	{
-		TransformWithCovariance odom = mGraph->getTransform(mLastVertex, newVertex);
-		TransformWithCovariance icp_result = calculateTransform(target_m, m, odom);
-		mGraph->addConstraint(mLastVertex, newVertex, icp_result.transform, icp_result.covariance, mName, "seq");
-		Transform pose = mGraph->getVertex(mLastVertex).corrected_pose * icp_result.transform;
-		mGraph->setCorrectedPose(newVertex, pose);
+		icp_result = calculateTransform(target_m, m, odo_diff);
 	}catch(NoMatch &e)
 	{
-		mLogger->message(WARNING, (boost::format("Failed to match new vertex %1% to previous, because %2%.")
-			% newVertex % e.what()).str());
+		mLogger->message(WARNING, (boost::format("Failed to match new vertex to previous, because %1%.")
+			% e.what()).str());
+		return false;
 	}
+
+	if(!force && !checkMinDistance(icp_result.transform))
+	{
+		return false;
+	}
+
+	// Add the new vertex and the ICP edge to previous one
+	IdType newVertex = mGraph->addMeasurement(m);
+	mGraph->addConstraint(mLastVertex, newVertex, icp_result.transform, icp_result.covariance, mName, "seq");
+	Transform pose = mGraph->getVertex(mLastVertex).corrected_pose * icp_result.transform;
+	mGraph->setCorrectedPose(newVertex, pose);
 
 	// Add edges to other measurements nearby
 	mGraph->buildNeighborIndex(mName);
 	linkToNeighbors(newVertex);
+
 	mLastVertex = newVertex;
+	mLastOdometry = odom;
 	return true;
 }
 

@@ -143,7 +143,7 @@ namespace slam3d
 		 * @brief Add a new measurement from this sensor.
 		 * @param m measurement
 		 */
-		bool addMeasurement(Measurement::Ptr m, bool force = false);
+		bool addMeasurement(Measurement::Ptr m, const Transform& odom, bool force = false);
 		
 		/**
 		 * @brief Estimates the 6DoF transformation between source and target point cloud
@@ -231,6 +231,8 @@ namespace slam3d
 		
 		int mMaxNeighorLinks;
 		float mNeighborRadius;
+		
+		Transform mLastOdometry;
 	};
 }
 
