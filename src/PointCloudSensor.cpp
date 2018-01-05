@@ -31,6 +31,7 @@
 #include <pcl/filters/radius_outlier_removal.h>
 
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 
 using namespace slam3d;
 
@@ -279,8 +280,7 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom,
 	mGraph->setCorrectedPose(newVertex, pose);
 
 	// Add edges to other measurements nearby
-	mGraph->buildNeighborIndex(mName);
-	linkToNeighbors(newVertex);
+	boost::thread linkThread(&PointCloudSensor::linkToNeighbors, this, newVertex);
 
 	mLastVertex = newVertex;
 	mLastOdometry = odom;
@@ -318,6 +318,7 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 
 void PointCloudSensor::linkToNeighbors(IdType vertex)
 {
+	mGraph->buildNeighborIndex(mName);
 	VertexObject obj = mGraph->getVertex(vertex);
 	VertexObjectList neighbors = mGraph->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	
