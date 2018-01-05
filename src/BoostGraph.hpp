@@ -94,7 +94,7 @@ namespace slam3d
 		                   const std::string& label);
 		
 		/**
-		 * @brief 
+		 * @brief Add the given VertexObject to the internal graph.
 		 * @param v
 		 */
 		void addVertex(const VertexObject& v);
@@ -119,8 +119,6 @@ namespace slam3d
 		 * @throw std::out_of_range
 		 */
 		const VertexObject& getVertex(IdType id) const;
-
-		bool hasMeasurement(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Gets the edge from given sensor between source and target.
