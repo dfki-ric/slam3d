@@ -288,7 +288,7 @@ namespace slam3d
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		virtual const VertexObject& getLastVertex() const = 0;
+		virtual const VertexObject& getLastVertex() const;
 
 		/**
 		 * @brief Write the current graph to a file (currently dot).

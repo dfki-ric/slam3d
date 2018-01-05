@@ -26,12 +26,6 @@ BoostGraph::~BoostGraph()
 {
 }
 
-const VertexObject& BoostGraph::getLastVertex() const
-{
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
-	return mPoseGraph[mIndexMap.at(mLastIndex)];
-}
-
 EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 {
 	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);

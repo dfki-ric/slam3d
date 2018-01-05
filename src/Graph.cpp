@@ -198,6 +198,11 @@ const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
 	return getVertex(mUuidIndex.at(id));
 }
 
+const VertexObject& Graph::getLastVertex() const
+{
+	return getVertex(mLastIndex);
+}
+
 void Graph::setCorrectedPose(IdType id, const Transform& pose)
 {
 	getVertexInternal(id).corrected_pose = pose;

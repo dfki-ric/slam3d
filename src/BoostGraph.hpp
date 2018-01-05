@@ -101,13 +101,6 @@ namespace slam3d
 		void addVertex(const VertexObject& v);
 		
 		/**
-		 * @brief Get the last vertex, that was locally added to the graph.
-		 * @details This will not return external vertices from other robots.
-		 * @return last added vertex
-		 */
-		const VertexObject& getLastVertex() const;
-		
-		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
 		 * @return true if optimization was successful
