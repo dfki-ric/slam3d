@@ -28,36 +28,13 @@ BoostGraph::~BoostGraph()
 
 const VertexObject& BoostGraph::getLastVertex() const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	return mPoseGraph[mIndexMap.at(mLastIndex)];
-}
-
-VertexList BoostGraph::getVerticesFromSensor(const std::string& sensor)
-{
-	VertexList vertexList;
-	VertexRange vertices = boost::vertices(mPoseGraph);
-	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
-	{
-		if(mPoseGraph[*it].measurement->getSensorName() == sensor)
-		{
-			vertexList.push_back(*it);
-		}
-	}
-	return vertexList;
-}
-
-EdgeList BoostGraph::getEdgesFromSensor(const std::string& sensor)
-{
-	EdgeList edgeList;
-	EdgeRange edges = boost::edges(mPoseGraph);
-	for(EdgeIterator it = edges.first; it != edges.second; ++it)
-	{
-		edgeList.push_back(*it);
-	}
-	return edgeList;
 }
 
 EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
@@ -69,6 +46,7 @@ EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 
 bool BoostGraph::optimize()
 {
+	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	if(!mSolver)
 	{
 		mLogger->message(ERROR, "A solver must be set before optimize() is called!");
@@ -102,6 +80,8 @@ bool BoostGraph::optimize()
 
 void BoostGraph::addVertex(const VertexObject& v)
 {
+	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
+	
 	// Add vertex to the graph
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
 	mPoseGraph[newVertex] = v;
@@ -113,6 +93,7 @@ void BoostGraph::addVertex(const VertexObject& v)
 void BoostGraph::addConstraint(IdType source_id, IdType target_id,
 	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
 {
+	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	Edge forward_edge, inverse_edge;
 	bool inserted_forward, inserted_inverse;
 	
@@ -144,6 +125,7 @@ void BoostGraph::addConstraint(IdType source_id, IdType target_id,
 
 VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
@@ -158,16 +140,19 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) co
 
 const VertexObject& BoostGraph::getVertex(IdType id) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
 VertexObject& BoostGraph::getVertexInternal(IdType id)
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
 const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
 	while(it != it_end)
@@ -184,6 +169,7 @@ const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::s
 
 EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
 	EdgeObjectList edges;
@@ -195,8 +181,9 @@ EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 	return edges;
 }
 
-EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices)
+EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
 	{
@@ -215,6 +202,7 @@ EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices)
 
 void BoostGraph::writeGraphToFile(const std::string& name)
 {
+	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	std::string file = name + ".dot";
 	mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
 	std::ofstream ofs;
@@ -274,6 +262,8 @@ private:
 
 VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
+	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
+	
 	// Create required data structures
 	Vertex source = mIndexMap.at(source_id);
 	DepthMap depth_map;
@@ -302,6 +292,7 @@ VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range
 
 float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 {
+	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	int num = boost::num_vertices(mPoseGraph);
 	std::vector<Vertex> parent(num);
 	std::vector<float> distance(num);
@@ -322,16 +313,3 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 
 	return distance[target_id];
 }
-/*
-VertexObjectList BoostGraph::getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const
-{
-	VertexObjectList objects;
-	VertexList neighbors = getNearbyVertices(tf, radius);
-	for(VertexList::iterator it = neighbors.begin(); it < neighbors.end(); it++)
-	{
-//		const VertexObject obj = mPoseGraph[*it];
-		objects.push_back(mPoseGraph[*it]);
-	}
-	return objects;
-}
-*/

@@ -381,7 +381,7 @@ namespace slam3d
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) = 0;
+		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
 		
 		/**
 		 * @brief Calculates the distance between two vertices in the graph.

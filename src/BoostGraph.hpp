@@ -5,6 +5,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace slam3d
 {
@@ -150,8 +151,6 @@ namespace slam3d
 		 */
 		VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
-//		VertexObjectList getNearbyUnlinkedVertices(const Transform &tf, float radius, const std::string &sensor) const;
-
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
@@ -162,7 +161,7 @@ namespace slam3d
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		EdgeObjectList getEdges(const VertexObjectList& vertices);
+		EdgeObjectList getEdges(const VertexObjectList& vertices) const;
 
 		/**
 		 * @brief Calculates the distance between two vertices in the graph.
@@ -182,24 +181,11 @@ namespace slam3d
 		virtual VertexObject& getVertexInternal(IdType id);
 		
 	private:
-		
-		/**
-		 * @brief Gets a list with all vertices from a given sensor.
-		 * @param sensor name of the sensor which vertices are requested
-		 * @return list of all vertices from given sensor
-		 */
-		VertexList getVerticesFromSensor(const std::string& sensor);
-
-		/**
-		 * @brief Get a list with all edges from a given sensor.
-		 * @param sensor name of the sensor which edges are requested
-		 * @return list of all edges from given sensor
-		 */
-		EdgeList getEdgesFromSensor(const std::string& sensor);
-		
-	private:
 		// The boost graph object
 		AdjacencyGraph mPoseGraph;
+		
+		// Mutex for graph access
+		mutable boost::shared_mutex mGraphMutex;
 		
 		// Index to map a vertex' id to its descriptor
 		IndexMap mIndexMap;
