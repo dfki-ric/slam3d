@@ -19,6 +19,13 @@ find_package(Eigen3 REQUIRED)
 find_package(Cholmod REQUIRED)
 find_package(G2O REQUIRED)
 
+find_package(OpenMP REQUIRED)
+if(OPENMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 include_directories(
 	src
 	${EIGEN3_INCLUDE_DIR}
@@ -73,15 +80,15 @@ install(FILES ${PROJECT_BINARY_DIR}/slam3d.pc
 )
 
 # Generate test cases
-enable_testing()
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-include_directories (${Boost_INCLUDE_DIRS})
-add_definitions(-DBOOST_TEST_DYN_LINK)
+#enable_testing()
+#find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+#include_directories (${Boost_INCLUDE_DIRS})
+#add_definitions(-DBOOST_TEST_DYN_LINK)
 
-file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*.cpp)
-foreach(testSrc ${TEST_SRCS})
-	get_filename_component(testName ${testSrc} NAME_WE)
-	add_executable(test_${testName} ${testSrc})
-	target_link_libraries(test_${testName} ${Boost_LIBRARIES} slam3d)
-	add_test(${testName} test_${testName}) 
-endforeach(testSrc)
+#file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*.cpp)
+#foreach(testSrc ${TEST_SRCS})
+#	get_filename_component(testName ${testSrc} NAME_WE)
+#	add_executable(test_${testName} ${testSrc})
+#	target_link_libraries(test_${testName} ${Boost_LIBRARIES} slam3d)
+#	add_test(${testName} test_${testName}) 
+#endforeach(testSrc)

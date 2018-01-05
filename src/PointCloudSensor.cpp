@@ -322,25 +322,29 @@ void PointCloudSensor::linkToNeighbors(IdType vertex)
 	VertexObjectList neighbors = mGraph->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	
 	int count = 0;
-	for(VertexObjectList::iterator it = neighbors.begin(); it != neighbors.end() && count < mMaxNeighorLinks; ++it)
+	int num = neighbors.size();
+	if(num > mMaxNeighorLinks) num = mMaxNeighorLinks;
+	#pragma omp parallel for
+	for(int i = 0; i < neighbors.size(); i++)
 	{
+		IdType index = neighbors.at(i).index;
 		try
 		{
-			mGraph->getEdge(vertex, it->index, mName);
+			mGraph->getEdge(vertex, index, mName);
 			continue;
 		}catch(InvalidEdge &e){}
 
 		try
 		{
-			float dist = mGraph->calculateGraphDistance(it->index, vertex);
-			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % it->index % vertex).str());
+			float dist = mGraph->calculateGraphDistance(index, vertex);
+			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;
 			count++;
-			link(it->index, vertex);
+			link(index, vertex);
 		}catch(NoMatch &e)
 		{
-			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % it->index % vertex % e.what()).str());
+			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % index % vertex % e.what()).str());
 			continue;
 		}
 	}
