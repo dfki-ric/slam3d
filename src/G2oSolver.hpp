@@ -43,9 +43,9 @@ namespace slam3d
 		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
-		void addNode(unsigned id, Transform pose);
-		void addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov);
-		void setFixed(unsigned id);
+		void addNode(IdType id, Transform pose);
+		void addConstraint(IdType source, IdType target, Transform tf, Covariance cov);
+		void setFixed(IdType id);
 		bool compute(unsigned iterations);
 		void clear();
 		void saveGraph(std::string filename);

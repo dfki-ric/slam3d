@@ -33,7 +33,7 @@
 
 namespace slam3d
 {
-	typedef std::pair<int, Transform> IdPose;
+	typedef std::pair<IdType, Transform> IdPose;
 	typedef std::vector<IdPose> IdPoseVector;
 	
 	/**
@@ -50,7 +50,7 @@ namespace slam3d
 		class DuplicateVertex: public std::exception
 		{
 		public:
-			DuplicateVertex(int id):vertex_id(id){}
+			DuplicateVertex(IdType id):vertex_id(id){}
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
@@ -58,7 +58,7 @@ namespace slam3d
 				return msg.str().c_str();
 			}
 			
-			int vertex_id;
+			IdType vertex_id;
 		};
 
 		/**
@@ -68,7 +68,7 @@ namespace slam3d
 		class UnknownVertex: public std::exception
 		{
 		public:
-			UnknownVertex(int id):vertex_id(id){}
+			UnknownVertex(IdType id):vertex_id(id){}
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
@@ -76,7 +76,7 @@ namespace slam3d
 				return msg.str().c_str();
 			}
 			
-			int vertex_id;
+			IdType vertex_id;
 		};
 
 		/**
@@ -86,7 +86,7 @@ namespace slam3d
 		class BadEdge: public std::exception
 		{
 		public:
-			BadEdge(int s, int t):source(s),target(t){}
+			BadEdge(IdType s, IdType t):source(s),target(t){}
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
@@ -94,8 +94,8 @@ namespace slam3d
 				return msg.str().c_str();
 			}
 			
-			int source;
-			int target;
+			IdType source;
+			IdType target;
 		};
 
 	public:
@@ -115,7 +115,7 @@ namespace slam3d
 		 * @param v VertexObject from the PoseGraph
 		 * @param id unique identifier of the vertex
 		 */
-		virtual void addNode(unsigned id, Transform pose) = 0;
+		virtual void addNode(IdType id, Transform pose) = 0;
 		
 		/**
 		 * @brief Adds a constraint between two nodes in the graph.
@@ -125,14 +125,14 @@ namespace slam3d
 		 * @param tf
 		 * @param cov
 		 */
-		virtual void addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov = Covariance::Identity()) = 0;
+		virtual void addConstraint(IdType source, IdType target, Transform tf, Covariance cov = Covariance::Identity()) = 0;
 		
 		/**
 		 * @brief Fix the node with the given id, so it is not moved during optimization.
 		 * @details At least one node must be fixed in order to hold the map in place.
 		 * @param id
 		 */
-		virtual void setFixed(unsigned id) = 0;
+		virtual void setFixed(IdType id) = 0;
 		
 		/**
 		 * @brief Start optimization of the defined graph.

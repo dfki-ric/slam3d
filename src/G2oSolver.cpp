@@ -57,7 +57,7 @@ G2oSolver::~G2oSolver()
 	clear();
 }
 
-void G2oSolver::addNode(unsigned id, Transform pose)
+void G2oSolver::addNode(IdType id, Transform pose)
 {
 	// Check that given id has not been added before
 	if(mOptimizer.vertex(id) != NULL)
@@ -75,7 +75,7 @@ void G2oSolver::addNode(unsigned id, Transform pose)
 	mNewVertices.insert(poseVertex);
 }
 
-void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov)
+void G2oSolver::addConstraint(IdType source, IdType target, Transform tf, Covariance cov)
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
@@ -98,7 +98,7 @@ void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Co
 	mNewEdges.insert(constraint);
 }
 
-void G2oSolver::setFixed(unsigned id)
+void G2oSolver::setFixed(IdType id)
 {
 	// Fix the node in the graph to hold the map in place
 	g2o::OptimizableGraph::Vertex* v = mOptimizer.vertex(id);
