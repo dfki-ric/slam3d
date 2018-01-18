@@ -141,7 +141,7 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	// Transform back to robot frame
 	TransformWithCovariance twc;
 	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
-	twc.covariance = Covariance::Identity();
+	twc.covariance = Covariance<6>::Identity();
 	return twc;
 }
 
@@ -234,7 +234,7 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom,
 	}
 	
 	// Discard scan if not moved enough since last scan
-	TransformWithCovariance odo_diff(mLastOdometry.inverse() * odom, Covariance::Identity());
+	TransformWithCovariance odo_diff(mLastOdometry.inverse() * odom, Covariance<6>::Identity());
 	if(!force && !checkMinDistance(odo_diff.transform))
 	{
 		return false;

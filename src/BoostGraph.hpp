@@ -74,7 +74,7 @@ namespace slam3d
 		void addExternalReading(Measurement::Ptr measurement,
 		                        boost::uuids::uuid source_uuid,
 		                        const Transform& tf,
-		                        const Covariance& cov,
+		                        const Covariance<6>& cov,
 		                        const std::string& sensor);
 
 		/**
@@ -90,7 +90,7 @@ namespace slam3d
 		void addConstraint(IdType source,
 		                   IdType target,
 		                   const Transform& relative_pose,
-		                   const Covariance& covariance,
+		                   const Covariance<6>& covariance,
 		                   const std::string& sensor,
 		                   const std::string& label);
 		

@@ -85,7 +85,7 @@ void BoostGraph::addVertex(const VertexObject& v)
 }
 
 void BoostGraph::addConstraint(IdType source_id, IdType target_id,
-	const Transform &t, const Covariance &c, const std::string& sensor, const std::string& label)
+	const Transform &t, const Covariance<6> &c, const std::string& sensor, const std::string& label)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	Edge forward_edge, inverse_edge;

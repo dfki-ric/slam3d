@@ -125,7 +125,7 @@ namespace slam3d
 		 * @param tf
 		 * @param cov
 		 */
-		virtual void addConstraint(IdType source, IdType target, Transform tf, Covariance cov = Covariance::Identity()) = 0;
+		virtual void addConstraint(IdType source, IdType target, Transform tf, Covariance<6> cov = Covariance<6>::Identity()) = 0;
 		
 		/**
 		 * @brief Fix the node with the given id, so it is not moved during optimization.

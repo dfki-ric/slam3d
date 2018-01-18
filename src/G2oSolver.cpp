@@ -75,7 +75,7 @@ void G2oSolver::addNode(IdType id, Transform pose)
 	mNewVertices.insert(poseVertex);
 }
 
-void G2oSolver::addConstraint(IdType source, IdType target, Transform tf, Covariance cov)
+void G2oSolver::addConstraint(IdType source, IdType target, Transform tf, Covariance<6> cov)
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
@@ -91,7 +91,7 @@ void G2oSolver::addConstraint(IdType source, IdType target, Transform tf, Covari
 	
 	// Set the measurement (odometry distance between vertices)
 	constraint->setMeasurement(tf.cast<double>());            // slam3d::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(cov.inverse().cast<double>()); // slam3d::Covariance aka Eigen::Matrix<double,6,6>
+	constraint->setInformation(cov.inverse().cast<double>()); // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);

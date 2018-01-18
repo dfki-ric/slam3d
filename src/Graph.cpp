@@ -147,7 +147,7 @@ IdType Graph::addMeasurement(Measurement::Ptr m)
 	// Link first node to root
 	if(mLastIndex == 1)
 	{
-		addConstraint(0, 1, Transform::Identity(), Covariance::Identity(), "none", "root-link");
+		addConstraint(0, 1, Transform::Identity(), Covariance<6>::Identity(), "none", "root-link");
 	}
 	
 	// Call all registered PoseSensor's on the new vertex
@@ -160,7 +160,7 @@ IdType Graph::addMeasurement(Measurement::Ptr m)
 	return mLastIndex;
 }
 
-void Graph::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance& cov, const std::string& sensor)
+void Graph::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance<6>& cov, const std::string& sensor)
 {
 	if(hasMeasurement(m->getUniqueId()))
 	{
@@ -173,7 +173,7 @@ void Graph::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, con
 	addConstraint(source, target, tf, cov, sensor, "ext");
 }
 
-void Graph::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance& cov, const std::string& sensor)
+void Graph::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance<6>& cov, const std::string& sensor)
 {
 	IdType source = mUuidIndex.at(s);
 	IdType target = mUuidIndex.at(t);
