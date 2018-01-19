@@ -54,7 +54,7 @@ namespace slam3d
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
-				msg << "Node with ID: " << vertex_id << " has already been defined!";
+				msg << "Vertex with ID: " << vertex_id << " has already been defined!";
 				return msg.str().c_str();
 			}
 			
@@ -72,7 +72,7 @@ namespace slam3d
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
-				msg << "Node with ID: " << vertex_id << " does not exist!";
+				msg << "Vertex with ID: " << vertex_id << " does not exist!";
 				return msg.str().c_str();
 			}
 			
@@ -90,7 +90,7 @@ namespace slam3d
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
-				msg << "Failed to create edge from node " <<  source << " to " << target << "!";
+				msg << "Failed to create edge from vertex " <<  source << " to " << target << "!";
 				return msg.str().c_str();
 			}
 			
@@ -111,25 +111,25 @@ namespace slam3d
 		virtual ~Solver(){}
 	
 		/**
-		 * @brief Adds a node to the internal graph representation.
+		 * @brief Adds a vertex to the internal graph representation.
 		 * @param v VertexObject from the PoseGraph
 		 * @param id unique identifier of the vertex
 		 */
-		virtual void addNode(IdType id, Transform pose) = 0;
+		virtual void addVertex(IdType id, Transform pose) = 0;
 		
 		/**
-		 * @brief Adds a constraint between two nodes in the graph.
-		 * @details The source and target nodes have to be added before the edge.
-		 * @param source the edge's from-node
-		 * @param target the edge's to-node
+		 * @brief Adds a constraint between two vertices in the graph.
+		 * @details The source and target vertices have to be added before the edge.
+		 * @param source the edge's from-vertex
+		 * @param target the edge's to-vertex
 		 * @param tf
 		 * @param cov
 		 */
 		virtual void addConstraint(IdType source, IdType target, Transform tf, Covariance<6> cov = Covariance<6>::Identity()) = 0;
 		
 		/**
-		 * @brief Fix the node with the given id, so it is not moved during optimization.
-		 * @details At least one node must be fixed in order to hold the map in place.
+		 * @brief Fix the vertex with the given id, so it is not moved during optimization.
+		 * @details At least one vertex must be fixed in order to hold the map in place.
 		 * @param id
 		 */
 		virtual void setFixed(IdType id) = 0;
@@ -140,7 +140,7 @@ namespace slam3d
 		virtual bool compute(unsigned iterations = 100) = 0;
 	
 		/**
-		 * @brief Clear internal graph structure by removing all nodes and constraints.
+		 * @brief Clear internal graph structure by removing all vertices and constraints.
 		 */
 		virtual void clear() = 0;
 	
@@ -154,7 +154,7 @@ namespace slam3d
 		/**
 		 * @brief Get the result of the optimization.
 		 * @details This should be used after compute(). It returns a list of
-		 * ID's and Transforms, that have to be applied to the nodes with the
+		 * ID's and Transforms, that have to be applied to the vertices with the
 		 * given ID to minimize the error in the PoseGraph.
 		 */
 		virtual IdPoseVector getCorrections() = 0;

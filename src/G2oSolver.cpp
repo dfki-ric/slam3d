@@ -57,7 +57,7 @@ G2oSolver::~G2oSolver()
 	clear();
 }
 
-void G2oSolver::addNode(IdType id, Transform pose)
+void G2oSolver::addVertex(IdType id, Transform pose)
 {
 	// Check that given id has not been added before
 	if(mOptimizer.vertex(id) != NULL)
@@ -100,11 +100,11 @@ void G2oSolver::addConstraint(IdType source, IdType target, Transform tf, Covari
 
 void G2oSolver::setFixed(IdType id)
 {
-	// Fix the node in the graph to hold the map in place
+	// Fix the vertex in the graph to hold the map in place
 	g2o::OptimizableGraph::Vertex* v = mOptimizer.vertex(id);
 	if(!v)
 	{
-		mLogger->message(ERROR, (boost::format("Could not fix node with ID %1%!") % id).str());
+		mLogger->message(ERROR, (boost::format("Could not fix vertex with ID %1%!") % id).str());
 		throw UnknownVertex(id);
 	}
 	v->setFixed(true);
@@ -155,8 +155,8 @@ bool G2oSolver::compute(unsigned iterations)
 	mCorrections.clear();
 
 	// Write the result so it can be used by the mapper
-	g2o::SparseOptimizer::VertexContainer nodes = mOptimizer.activeVertices();
-	for (g2o::SparseOptimizer::VertexContainer::const_iterator n = nodes.begin(); n < nodes.end(); n++)
+	g2o::SparseOptimizer::VertexContainer vertices = mOptimizer.activeVertices();
+	for (g2o::SparseOptimizer::VertexContainer::const_iterator n = vertices.begin(); n < vertices.end(); n++)
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*>(*n);
 		assert(vertex);

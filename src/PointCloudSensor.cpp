@@ -190,7 +190,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 		mPatchSolver->clear();
 		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
 		{
-			mPatchSolver->addNode(v->index, v->corrected_pose);
+			mPatchSolver->addVertex(v->index, v->corrected_pose);
 		}
 		
 		EdgeObjectList e_objects = mGraph->getEdges(v_objects);

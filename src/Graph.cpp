@@ -55,7 +55,7 @@ Graph::~Graph()
 void Graph::setSolver(Solver* solver)
 {
 	mSolver = solver;
-//	mSolver->addNode(0, Transform::Identity());
+//	mSolver->addVertex(0, Transform::Identity());
 //	mSolver->setFixed(0);
 }
 
@@ -123,7 +123,7 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
 	{
-		mSolver->addNode(id, corrected);
+		mSolver->addVertex(id, corrected);
 		if(id == 0)
 			mSolver->setFixed(0);
 	}

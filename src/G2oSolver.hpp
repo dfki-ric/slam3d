@@ -43,7 +43,7 @@ namespace slam3d
 		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
-		void addNode(IdType id, Transform pose);
+		void addVertex(IdType id, Transform pose);
 		void addConstraint(IdType source, IdType target, Transform tf, Covariance<6> cov);
 		void setFixed(IdType id);
 		bool compute(unsigned iterations);
