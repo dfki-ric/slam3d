@@ -118,14 +118,14 @@ namespace slam3d
 		virtual void addVertex(IdType id, Transform pose) = 0;
 		
 		/**
-		 * @brief Adds a constraint between two vertices in the graph.
+		 * @brief Adds a SE3 edge between two vertices in the graph.
 		 * @details The source and target vertices have to be added before the edge.
 		 * @param source the edge's from-vertex
 		 * @param target the edge's to-vertex
 		 * @param tf
 		 * @param cov
 		 */
-		virtual void addConstraint(IdType source, IdType target, Transform tf, Covariance<6> cov = Covariance<6>::Identity()) = 0;
+		virtual void addEdgeSE3(IdType source, IdType target, Transform tf, Covariance<6> cov = Covariance<6>::Identity()) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.

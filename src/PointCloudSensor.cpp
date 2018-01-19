@@ -196,7 +196,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 		EdgeObjectList e_objects = mGraph->getEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
-			mPatchSolver->addConstraint(e->source, e->target, e->transform, e->covariance);
+			mPatchSolver->addEdgeSE3(e->source, e->target, e->transform, e->covariance);
 		}
 		
 		mPatchSolver->setFixed(source);

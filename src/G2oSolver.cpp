@@ -75,7 +75,7 @@ void G2oSolver::addVertex(IdType id, Transform pose)
 	mNewVertices.insert(poseVertex);
 }
 
-void G2oSolver::addConstraint(IdType source, IdType target, Transform tf, Covariance<6> cov)
+void G2oSolver::addEdgeSE3(IdType source, IdType target, Transform tf, Covariance<6> cov)
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();

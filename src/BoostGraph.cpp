@@ -112,7 +112,7 @@ void BoostGraph::addConstraint(IdType source_id, IdType target_id,
 	
 	if(mSolver)
 	{
-		mSolver->addConstraint(source_id, target_id, t, c);
+		mSolver->addEdgeSE3(source_id, target_id, t, c);
 	}
 	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
 }
