@@ -1,14 +1,14 @@
 image: skasperski/slam3d-ci
 
-binaries:
-   stage: build
-   script:
-   - mkdir build
-   - cd build
-   - cmake ..
-   - make
-   only:
-   - master
+#binaries:
+#   stage: build
+#   script:
+#   - mkdir build
+#   - cd build
+#   - cmake ..
+#   - make
+#   only:
+#   - master
 
 pages:
    stage: deploy
