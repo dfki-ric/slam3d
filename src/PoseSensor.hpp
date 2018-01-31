@@ -32,6 +32,7 @@
 namespace slam3d
 {
 	class Graph;
+	class Solver;
 	
 	class InvalidPose : public std::exception
 	{
@@ -62,7 +63,7 @@ namespace slam3d
 	{
 	public:
 		// Ctor / Dtor
-		PoseSensor(const std::string& n, Graph* g, Logger* l) : mGraph(g), mLogger(l), mName(n) {}
+		PoseSensor(const std::string& n, Graph* g, Solver* s, Logger* l) : mGraph(g), mSolver(s), mLogger(l), mName(n) {}
 		virtual ~PoseSensor(){};
 		
 		// Virtual methods
@@ -91,6 +92,7 @@ namespace slam3d
 	
 	protected:
 		Graph* mGraph;
+		Solver* mSolver;
 		Logger* mLogger;
 		
 		std::string mName;

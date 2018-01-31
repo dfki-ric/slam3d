@@ -137,4 +137,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="g2o">
+    <File Name="src/g2o/edge_direction_prior.cpp"/>
+    <File Name="src/g2o/edge_direction_prior.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

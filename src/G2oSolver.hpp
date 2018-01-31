@@ -43,8 +43,9 @@ namespace slam3d
 		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
-		void addVertex(IdType id, Transform pose);
-		void addEdgeSE3(IdType source, IdType target, Transform tf, Covariance<6> cov);
+		void addVertex(IdType id, const Transform& pose);
+		void addEdgeSE3(IdType source, IdType target, const Transform& tf, const Covariance<6>& cov);
+		void addDirectionPrior(IdType vertex, const Direction& dir, const Direction& ref, const Covariance<1>& cov = Covariance<1>::Identity());
 		void setFixed(IdType id);
 		bool compute(unsigned iterations);
 		void clear();

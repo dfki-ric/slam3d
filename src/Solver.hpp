@@ -115,7 +115,7 @@ namespace slam3d
 		 * @param v VertexObject from the PoseGraph
 		 * @param id unique identifier of the vertex
 		 */
-		virtual void addVertex(IdType id, Transform pose) = 0;
+		virtual void addVertex(IdType id, const Transform& pose) = 0;
 		
 		/**
 		 * @brief Adds a SE3 edge between two vertices in the graph.
@@ -125,7 +125,22 @@ namespace slam3d
 		 * @param tf
 		 * @param cov
 		 */
-		virtual void addEdgeSE3(IdType source, IdType target, Transform tf, Covariance<6> cov = Covariance<6>::Identity()) = 0;
+		virtual void addEdgeSE3(IdType source, IdType target, const Transform& tf, const Covariance<6>& cov = Covariance<6>::Identity()) = 0;
+		
+		/**
+		 * @brief Adds a directional prior to a vertex in the graph.
+		 * @details The vertex has to be added to the graph before. A directional
+		 * prior defines a direction in the global reference frame. Possible sources
+		 * are IMUs (gravity vector) and compasses (north vector).
+		 * @param vertex
+		 * @param dir
+		 * @param ref
+		 * @param cov
+		 */
+		virtual void addDirectionPrior(IdType vertex,
+		                               const Direction& dir,
+		                               const Direction& ref,
+		                               const Covariance<1>& cov = Covariance<1>::Identity()) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.

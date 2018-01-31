@@ -24,6 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "G2oSolver.hpp"
+#include "g2o/edge_direction_prior.h"
 
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
@@ -57,7 +58,7 @@ G2oSolver::~G2oSolver()
 	clear();
 }
 
-void G2oSolver::addVertex(IdType id, Transform pose)
+void G2oSolver::addVertex(IdType id, const Transform& pose)
 {
 	// Check that given id has not been added before
 	if(mOptimizer.vertex(id) != NULL)
@@ -75,7 +76,7 @@ void G2oSolver::addVertex(IdType id, Transform pose)
 	mNewVertices.insert(poseVertex);
 }
 
-void G2oSolver::addEdgeSE3(IdType source, IdType target, Transform tf, Covariance<6> cov)
+void G2oSolver::addEdgeSE3(IdType source, IdType target, const Transform& tf, const Covariance<6>& cov)
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
@@ -96,6 +97,17 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, Transform tf, Covarianc
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);
 	mNewEdges.insert(constraint);
+}
+
+void G2oSolver::addDirectionPrior(IdType vertex, const Direction& dir, const Direction& ref, const Covariance<1>& cov)
+{
+	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(ref);
+	prior->vertices()[0] = mOptimizer.vertex(vertex);
+	prior->setMeasurement(dir);
+	prior->setInformation(cov.inverse());
+	
+	mOptimizer.addEdge(prior);
+	mNewEdges.insert(prior);
 }
 
 void G2oSolver::setFixed(IdType id)

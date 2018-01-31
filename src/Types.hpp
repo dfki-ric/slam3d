@@ -39,7 +39,7 @@ namespace slam3d
 {
 	typedef unsigned IdType;
 	typedef double ScalarType;
-	typedef Eigen::Matrix<ScalarType,3,1> Vector3;
+	typedef Eigen::Matrix<ScalarType,3,1> Direction;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	

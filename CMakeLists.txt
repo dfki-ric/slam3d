@@ -39,6 +39,7 @@ add_library(slam3d
 	src/BoostGraph.cpp
 	src/PointCloudSensor.cpp
 	src/G2oSolver.cpp
+	src/g2o/edge_direction_prior.cpp
 )
 
 target_link_libraries(slam3d
