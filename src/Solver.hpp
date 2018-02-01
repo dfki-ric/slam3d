@@ -140,7 +140,7 @@ namespace slam3d
 		virtual void addDirectionPrior(IdType vertex,
 		                               const Direction& dir,
 		                               const Direction& ref,
-		                               const Covariance<1>& cov = Covariance<1>::Identity()) = 0;
+		                               const Covariance<2>& cov = Covariance<2>::Identity()) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.

@@ -39,10 +39,10 @@ namespace g2o {
    * Vector3D, which scale is interpreted as a pure direction. Normalization is not 
    * required though.
    */
-  class G2O_TYPES_SLAM3D_API EdgeDirectionPrior : public BaseUnaryEdge<1, Vector3D, VertexSE3> {
+  class G2O_TYPES_SLAM3D_API EdgeDirectionPrior : public BaseUnaryEdge<2, Vector3D, VertexSE3> {
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    EdgeDirectionPrior(const Vector3D& ref);
+    EdgeDirectionPrior(const Vector3D& measurement, const Vector3D& ref);
     virtual bool read(std::istream& is);
     virtual bool write(std::ostream& os) const;
 
@@ -52,33 +52,8 @@ namespace g2o {
     // jacobian
 //  virtual void linearizeOplus();
 
-    virtual void setMeasurement(const Vector3D& m){
-      _measurement = m;
-    }
-
-    virtual bool setMeasurementData(const double* d){
-      Eigen::Map<const Vector3D> v(d);
-      _measurement = v;
-      return true;
-    }
-
-    virtual bool getMeasurementData(double* d) const{
-      Eigen::Map<Vector3D> v(d);
-      v = _measurement;
-      return true;
-    }
-    
-    virtual int measurementDimension() const {return 3;}
-
-    virtual bool setMeasurementFromState() ;
-
-    virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& /*from*/, 
-             OptimizableGraph::Vertex* /*to*/) { 
-      return 0.;
-    }
-
   protected:
-    const Vector3D reference;
+    Vector3D _reference;
   };
 
 }

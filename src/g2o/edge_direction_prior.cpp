@@ -33,8 +33,10 @@
 namespace g2o {
   using namespace std;
 
-  EdgeDirectionPrior::EdgeDirectionPrior(const Vector3D& ref)
-  : BaseUnaryEdge<1, Vector3D, VertexSE3>(), reference(ref) {
+  EdgeDirectionPrior::EdgeDirectionPrior(const Vector3D& m, const Vector3D& r)
+  : BaseUnaryEdge<2, Vector3D, VertexSE3>() {
+    _measurement = m / m.norm();
+	_reference = r / r.norm();
     information().setIdentity();
   }
 
@@ -75,15 +77,8 @@ namespace g2o {
   void EdgeDirectionPrior::computeError() {
     VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
     Eigen::Quaterniond state(vertex->estimate().rotation());
-    Vector3D expect = state.inverse() * reference;
-    _error(0,0) = acos(expect.dot(_measurement) / (expect.norm() * _measurement.norm()));
+    Vector3D expect = state.inverse() * _reference;
+    _error(0) = expect(0) - _measurement(0);
+    _error(1) = expect(1) - _measurement(1);
   }
-
-  bool EdgeDirectionPrior::setMeasurementFromState(){
-    VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
-    Eigen::Quaterniond state(vertex->estimate().rotation());
-	setMeasurement(state.inverse() * reference);
-    return true;
-  }
-
 }
