@@ -46,38 +46,6 @@ namespace slam3d
 		~BoostGraph();
 
 		/**
-		 * @brief Add a new measurement to the graph.
-		 * @details The sensor specified in the measurement has to be registered
-		 * with the mapper before. If the change in robot pose since the last
-		 * added scan is smaller then min-translation or min-rotation, the
-		 * measurement will not be added. Use Graph::setMinPoseDistance to
-		 * adjust this distance.
-		 * @param m pointer to a new measurement
-		 * @param force add measurement regardless of change in robot pose
-		 * @return true if the measurement was added
-		 */
-		IdType addReading(Measurement::Ptr m);
-
-		/**
-		 * @brief Add a new measurement from another robot.
-		 * @details The new measurement is added to the graph and directly
-		 * linked to the measurement with the given uuid. This enforces that
-		 * the graph stays connected even when external measurement cannot be
-		 * linked to local ones.
-		 * @param measurement pointer to a new measurement
-		 * @param source_uuid uuid of another measurement
-		 * @param tf transform between measurement and source
-		 * @param cov covariance of that transform
-		 * @param sensor name of sensor that created the constraint (not the measurement!)
-		 * @throw DuplicateMeasurement
-		 */
-		void addExternalReading(Measurement::Ptr measurement,
-		                        boost::uuids::uuid source_uuid,
-		                        const Transform& tf,
-		                        const Covariance<6>& cov,
-		                        const std::string& sensor);
-
-		/**
 		 * @brief Adds a new edge to the graph.
 		 * @param source id of source vertex
 		 * @param target id of target vertex
