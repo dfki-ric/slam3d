@@ -276,7 +276,7 @@ namespace slam3d
 		 * @param iterations maximum number of iteration steps
 		 * @return true if optimization was successful
 		 */
-		virtual bool optimize(unsigned iterations = 100) = 0;
+		virtual bool optimize(unsigned iterations = 100);
 		
 		/**
 		 * @brief Returns whether optimize() has been called since the last call to this.

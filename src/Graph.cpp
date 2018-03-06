@@ -92,6 +92,38 @@ void Graph::writeGraphToFile(const std::string &name)
 	mLogger->message(ERROR, "Graph writing not implemented!");
 }
 
+bool Graph::optimize(unsigned iterations)
+{
+	if(!mSolver)
+	{
+		mLogger->message(ERROR, "A solver must be set before optimize() is called!");
+		return false;
+	}
+
+	// Optimize
+	if(!mSolver->compute())
+	{
+		return false;
+	}
+	mOptimized = true;
+
+	// Retrieve results
+	IdPoseVector res = mSolver->getCorrections();
+	for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+	{
+		unsigned int id = it->first;
+		Transform tf = it->second;
+		try
+		{
+			getVertexInternal(id).corrected_pose = tf;
+		}catch(std::out_of_range &e)
+		{
+			mLogger->message(ERROR, (boost::format("Vertex with id %1% does not exist!") % id).str());
+		}
+	}
+	return true;
+}
+
 bool Graph::optimized()
 {
 	if(mOptimized)

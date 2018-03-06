@@ -41,35 +41,7 @@ EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 bool BoostGraph::optimize(unsigned iterations)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
-	if(!mSolver)
-	{
-		mLogger->message(ERROR, "A solver must be set before optimize() is called!");
-		return false;
-	}
-
-	// Optimize
-	if(!mSolver->compute())
-	{
-		return false;
-	}
-	mOptimized = true;
-
-	// Retrieve results
-	IdPoseVector res = mSolver->getCorrections();
-	for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
-	{
-		unsigned int id = it->first;
-		Transform tf = it->second;
-		try
-		{
-			Vertex v = mIndexMap.at(id);
-			mPoseGraph[v].corrected_pose = tf;
-		}catch(std::out_of_range &e)
-		{
-			mLogger->message(ERROR, (boost::format("Vertex with id %1% does not exist!") % id).str());
-		}
-	}
-	return true;
+	return Graph::optimize(iterations);
 }
 
 void BoostGraph::addVertex(const VertexObject& v)
