@@ -34,11 +34,7 @@
 
 namespace slam3d
 {
-#ifdef PCL_WITH_VIEWPOINT
-	typedef pcl::PointWithViewpoint PointType;
-#else
 	typedef pcl::PointXYZ PointType;
-#endif
 	typedef pcl::PointCloud<PointType> PointCloud;
 	
 	/**

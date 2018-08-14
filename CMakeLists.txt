@@ -7,10 +7,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 add_definitions(-std=c++11)
 
-if(PCL_WITH_VIEWPOINT)
-	add_definitions(-DPCL_WITH_VIEWPOINT)
-endif()
-
 set(BUILD_SHARED_LIBS ON)
 
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
