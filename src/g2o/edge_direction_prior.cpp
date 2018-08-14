@@ -33,8 +33,8 @@
 namespace g2o {
   using namespace std;
 
-  EdgeDirectionPrior::EdgeDirectionPrior(const Vector3D& m, const Vector3D& r)
-  : BaseUnaryEdge<2, Vector3D, VertexSE3>() {
+  EdgeDirectionPrior::EdgeDirectionPrior(const Vector3& m, const Vector3& r)
+  : BaseUnaryEdge<2, Vector3, VertexSE3>() {
     _measurement = m / m.norm();
 	_reference = r / r.norm();
     information().setIdentity();
@@ -46,7 +46,7 @@ namespace g2o {
     if (!setParameterId(0, pid))
       return false;
     // measured keypoint
-    Vector3D meas;
+    Vector3 meas;
     for (int i=0; i<3; i++) is >> meas[i];
     setMeasurement(meas);
     // don't need this if we don't use it in error calculation (???)
@@ -77,7 +77,7 @@ namespace g2o {
   void EdgeDirectionPrior::computeError() {
     VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
     Eigen::Quaterniond state(vertex->estimate().rotation());
-    Vector3D expect = state.inverse() * _reference;
+    Vector3 expect = state.inverse() * _reference;
     _error(0) = expect(0) - _measurement(0);
     _error(1) = expect(1) - _measurement(1);
   }

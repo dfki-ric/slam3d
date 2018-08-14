@@ -36,13 +36,13 @@ namespace g2o {
    * \brief prior for a direction element
    *
    * Provides a directional prior for a 3d pose vertex. The measurement is represented by a
-   * Vector3D, which scale is interpreted as a pure direction. Normalization is not 
+   * Vector3, which scale is interpreted as a pure direction. Normalization is not 
    * required though.
    */
-  class G2O_TYPES_SLAM3D_API EdgeDirectionPrior : public BaseUnaryEdge<2, Vector3D, VertexSE3> {
+  class G2O_TYPES_SLAM3D_API EdgeDirectionPrior : public BaseUnaryEdge<2, Vector3, VertexSE3> {
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    EdgeDirectionPrior(const Vector3D& measurement, const Vector3D& ref);
+    EdgeDirectionPrior(const Vector3& measurement, const Vector3& ref);
     virtual bool read(std::istream& is);
     virtual bool write(std::ostream& os) const;
 
@@ -53,7 +53,7 @@ namespace g2o {
 //  virtual void linearizeOplus();
 
   protected:
-    Vector3D _reference;
+    Vector3 _reference;
   };
 
 }
