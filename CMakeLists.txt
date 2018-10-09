@@ -5,10 +5,6 @@ project(SLAM3D VERSION "1.0.0")
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-add_definitions(-std=c++11)
-
-set(BUILD_SHARED_LIBS ON)
-
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -22,14 +18,6 @@ if(OPENMP_FOUND)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-include_directories(
-	src
-	${EIGEN3_INCLUDE_DIR}
-	${PCL_INCLUDE_DIRS}
-	${G2O_INCLUDE_DIR}
-	${CHOLMOD_INCLUDE_DIR}
-)
-
 add_library(slam3d
 	src/Graph.cpp
 	src/BoostGraph.cpp
@@ -38,20 +26,42 @@ add_library(slam3d
 	src/g2o/edge_direction_prior.cpp
 )
 
+target_compile_features(slam3d
+	PUBLIC
+		cxx_alias_templates
+)
+
+target_include_directories(slam3d
+	PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+		$<INSTALL_INTERFACE:include/slam3d>
+		${EIGEN3_INCLUDE_DIR}
+		${PCL_INCLUDE_DIRS}
+		${CHOLMOD_INCLUDE_DIR}
+)
+
 target_link_libraries(slam3d
-	${CHOLMOD_LIBRARIES}
-	${G2O_CORE_LIBRARY}
-	${G2O_STUFF_LIBRARY}
-	${G2O_TYPES_SLAM3D}
-	${G2O_SOLVER_CHOLMOD}
-	${PCL_REGISTRATION_LIBRARIES}
+	PRIVATE
+		${CHOLMOD_LIBRARIES}
+		G2O_CORE_LIBRARY
+		G2O_STUFF_LIBRARY
+		G2O_SOLVER_CHOLMOD
+		G2O_TYPES_SLAM3D
+		${PCL_REGISTRATION_LIBRARIES}
 )
 
 # Install the binaries
-install(TARGETS slam3d
+install(TARGETS slam3d EXPORT slam3d_exports
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION bin
+)
+
+# Export the library interface
+install(EXPORT slam3d_exports
+	FILE slam3dTargets.cmake
+	NAMESPACE slam3d::
+	DESTINATION lib/cmake/slam3d
 )
 
 # Install header files
@@ -65,27 +75,9 @@ install(FILES package.xml
 	DESTINATION share/slam3d
 )
 
-# Install cmake macro
-install(FILES cmake/FindSLAM3D.cmake
-	DESTINATION lib/cmake/slam3d
-)
-
 # Install pkg-config file
 configure_file(slam3d.pc.in slam3d.pc @ONLY)
 install(FILES ${PROJECT_BINARY_DIR}/slam3d.pc
 	DESTINATION lib/pkgconfig
 )
 
-# Generate test cases
-#enable_testing()
-#find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-#include_directories (${Boost_INCLUDE_DIRS})
-#add_definitions(-DBOOST_TEST_DYN_LINK)
-
-#file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*.cpp)
-#foreach(testSrc ${TEST_SRCS})
-#	get_filename_component(testName ${testSrc} NAME_WE)
-#	add_executable(test_${testName} ${testSrc})
-#	target_link_libraries(test_${testName} ${Boost_LIBRARIES} slam3d)
-#	add_test(${testName} test_${testName}) 
-#endforeach(testSrc)
