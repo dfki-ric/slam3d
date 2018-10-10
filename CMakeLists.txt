@@ -11,7 +11,7 @@ find_package(Eigen3 REQUIRED)
 find_package(Cholmod REQUIRED)
 find_package(G2O REQUIRED)
 
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 if(OPENMP_FOUND)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -42,27 +42,36 @@ target_include_directories(slam3d
 
 target_link_libraries(slam3d
 	PRIVATE
-		${CHOLMOD_LIBRARIES}
+		CHOLMOD_LIBRARIES
 		G2O_CORE_LIBRARY
 		G2O_STUFF_LIBRARY
 		G2O_SOLVER_CHOLMOD
 		G2O_TYPES_SLAM3D
-		${PCL_REGISTRATION_LIBRARIES}
+		PCL_REGISTRATION_LIBRARIES
 )
 
 # Install the binaries
-install(TARGETS slam3d EXPORT slam3d_exports
+install(TARGETS slam3d EXPORT slam3d-targets
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION bin
 )
 
 # Export the library interface
-install(EXPORT slam3d_exports
-	FILE slam3dTargets.cmake
+install(EXPORT slam3d-targets
 	NAMESPACE slam3d::
 	DESTINATION lib/cmake/slam3d
+	FILE slam3d-config.cmake
 )
+
+# Create and install the version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("slam3d-version.cmake"
+	VERSION ${SLAM3D_VERSION}
+	COMPATIBILITY SameMajorVersion
+)
+install(FILES ${PROJECT_BINARY_DIR}/slam3d-version.cmake
+	DESTINATION lib/cmake/slam3d)
 
 # Install header files
 install(DIRECTORY src/
