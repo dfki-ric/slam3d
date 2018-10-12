@@ -39,10 +39,12 @@
     <File Name="src/Graph.cpp"/>
     <File Name="src/BoostGraph.cpp"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="autoproj">
+  <VirtualDirectory Name="build">
     <File Name="manifest.xml"/>
     <File Name="CMakeLists.txt"/>
     <File Name="slam3d.pc.in"/>
+    <File Name="package.xml"/>
+    <File Name="slam3d-config.cmake"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="test/solver.cpp"/>

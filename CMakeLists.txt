@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 cmake_policy(VERSION 3.5.1)
 
 project(SLAM3D VERSION "1.0.0")
@@ -34,20 +34,21 @@ target_compile_features(slam3d
 target_include_directories(slam3d
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-		$<INSTALL_INTERFACE:include/slam3d>
+		$<INSTALL_INTERFACE:include>
 		${EIGEN3_INCLUDE_DIR}
 		${PCL_INCLUDE_DIRS}
+		${G2O_INCLUDE_DIR}
 		${CHOLMOD_INCLUDE_DIR}
 )
 
 target_link_libraries(slam3d
-	PRIVATE
-		CHOLMOD_LIBRARIES
-		G2O_CORE_LIBRARY
-		G2O_STUFF_LIBRARY
-		G2O_SOLVER_CHOLMOD
-		G2O_TYPES_SLAM3D
-		PCL_REGISTRATION_LIBRARIES
+	PUBLIC
+		${CHOLMOD_LIBRARIES}
+		${G2O_CORE_LIBRARY}
+		${G2O_STUFF_LIBRARY}
+		${G2O_SOLVER_CHOLMOD}
+		${G2O_TYPES_SLAM3D}
+		${PCL_REGISTRATION_LIBRARIES}
 )
 
 # Install the binaries
@@ -61,7 +62,6 @@ install(TARGETS slam3d EXPORT slam3d-targets
 install(EXPORT slam3d-targets
 	NAMESPACE slam3d::
 	DESTINATION lib/cmake/slam3d
-	FILE slam3d-config.cmake
 )
 
 # Create and install the version file
@@ -70,23 +70,30 @@ write_basic_package_version_file("slam3d-version.cmake"
 	VERSION ${SLAM3D_VERSION}
 	COMPATIBILITY SameMajorVersion
 )
-install(FILES ${PROJECT_BINARY_DIR}/slam3d-version.cmake
-	DESTINATION lib/cmake/slam3d)
+install(
+	FILES
+		slam3d-config.cmake
+		${PROJECT_BINARY_DIR}/slam3d-version.cmake
+	DESTINATION
+		lib/cmake/slam3d
+)
 
 # Install header files
-install(DIRECTORY src/
+install(
+	DIRECTORY src/
 	DESTINATION include/slam3d
 	FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Install catkin package-manifest
-install(FILES package.xml
+install(
+	FILES package.xml
 	DESTINATION share/slam3d
 )
 
 # Install pkg-config file
 configure_file(slam3d.pc.in slam3d.pc @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/slam3d.pc
+install(
+	FILES ${PROJECT_BINARY_DIR}/slam3d.pc
 	DESTINATION lib/pkgconfig
 )
-
