@@ -28,6 +28,7 @@
 
 #include "Graph.hpp"
 #include "GICPConfiguration.hpp"
+#include "PoseSensor.hpp"
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
@@ -118,7 +119,7 @@ namespace slam3d
 		 * patches will not be optimized before matching.
 		 * @param solver used for patch optimization
 		 */
-		void setPatchSolver(Solver* solver);
+		void setPatchSolver(Solver* solver) { mPatchSolver = solver; }
 
 		/**
 		 * @brief Set how far to continue with a breadth-first-search through
@@ -137,9 +138,18 @@ namespace slam3d
 		
 		/**
 		 * @brief Add a new measurement from this sensor.
-		 * @param m measurement
+		 * @param cloud
+		 * @param force
 		 */
-		bool addMeasurement(Measurement::Ptr m, const Transform& odom, bool force = false);
+		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, bool force = false);
+		
+		/**
+		 * @brief Add a new measurement from this sensor together with an odometry pose.
+		 * @param cloud
+		 * @param odom
+		 * @param force
+		 */
+		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, const Transform& odom, bool force = false);
 		
 		/**
 		 * @brief Estimates the 6DoF transformation between source and target point cloud
@@ -229,6 +239,7 @@ namespace slam3d
 		float mNeighborRadius;
 		
 		Transform mLastOdometry;
+		TransformWithCovariance mOdometryDelta;
 	};
 }
 

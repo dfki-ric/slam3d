@@ -38,7 +38,7 @@ using namespace slam3d;
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transform& p)
- : Sensor(n, l, p), mPatchSolver(NULL)
+ : Sensor(n, l, p), mPatchSolver(NULL), mOdometryDelta(Transform::Identity(), Covariance<6>::Identity())
 {
 	mNeighborRadius = 1.0;
 	mMaxNeighorLinks = 1;
@@ -223,7 +223,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 	return createCombinedMeasurement(v_objects, mGraph->getVertex(source).corrected_pose);
 }
 
-bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom, bool force)
+bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, const Transform& odom, bool force)
 {
 	// Always add the first received scan 
 	if(mLastVertex == 0)
@@ -233,11 +233,26 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom,
 		return true;
 	}
 	
-	// Discard scan if not moved enough since last scan
-	TransformWithCovariance odo_diff(mLastOdometry.inverse() * odom, Covariance<6>::Identity());
-	if(!force && !checkMinDistance(odo_diff.transform))
+	// Add measurement if sufficient movement is reported by the odometry
+	mOdometryDelta.transform = mLastOdometry.inverse() * odom;
+	if(force || checkMinDistance(mOdometryDelta.transform))
 	{
-		return false;
+		if(addMeasurement(m, force))
+		{
+			mLastOdometry = odom;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool force)
+{	
+	// Always add the first received scan 
+	if(mLastVertex == 0)
+	{
+		mLastVertex = mGraph->addMeasurement(m);
+		return true;
 	}
 	
 	// Get the measurement from the last added vertex
@@ -260,7 +275,7 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom,
 	TransformWithCovariance icp_result;
 	try
 	{
-		icp_result = calculateTransform(target_m, m, odo_diff);
+		icp_result = calculateTransform(target_m, m, mOdometryDelta);
 	}catch(NoMatch &e)
 	{
 		mLogger->message(WARNING, (boost::format("Failed to match new vertex to previous, because %1%.")
@@ -283,7 +298,6 @@ bool PointCloudSensor::addMeasurement(Measurement::Ptr m, const Transform& odom,
 	boost::thread linkThread(&PointCloudSensor::linkToNeighbors, this, newVertex);
 
 	mLastVertex = newVertex;
-	mLastOdometry = odom;
 	return true;
 }
 
