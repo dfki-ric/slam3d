@@ -9,6 +9,7 @@ binaries:
    - make -C build
    only:
    - master
+   - rework_cmake
 
 pages:
    stage: deploy
