@@ -1,12 +1,12 @@
 image: skasperski/slam3d-ci
 
 binaries:
+   image: registry:5000/rock-core:18.04
    stage: build
    script:
-   - mkdir build
-   - cd build
-   - cmake ..
-   - make
+   - aup
+   - amake -k
+   - make -C build
    only:
    - master
 
