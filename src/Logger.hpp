@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <boost/thread/shared_mutex.hpp>
 
 #define RST  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -79,6 +80,7 @@ namespace slam3d
 				
 			timeval tp = mClock.now();
 
+			boost::unique_lock<boost::mutex> guard(mLogMutex);
 			switch(lvl)
 			{
 			case DEBUG:
@@ -102,6 +104,7 @@ namespace slam3d
 	protected:
 		Clock mClock;
 		LOG_LEVEL mLogLevel;
+		boost::mutex mLogMutex;
 	};
 }
 

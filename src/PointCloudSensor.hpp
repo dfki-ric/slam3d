@@ -26,21 +26,16 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include "Types.hpp"
+#include "Graph.hpp"
 #include "GICPConfiguration.hpp"
-#include "Sensor.hpp"
-#include "GraphMapper.hpp"
+#include "PoseSensor.hpp"
 
 #include "pcl/point_types.h"
 #include "pcl/point_cloud.h"
 
 namespace slam3d
 {
-#ifdef PCL_WITH_VIEWPOINT
-	typedef pcl::PointWithViewpoint PointType;
-#else
 	typedef pcl::PointXYZ PointType;
-#endif
 	typedef pcl::PointCloud<PointType> PointCloud;
 	
 	/**
@@ -109,12 +104,63 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
+		 * @brief Sets neighbor radius for scan matching
+		 * @details New nodes are matched against nodes of the same sensor
+		 * within the given radius, but not more then given maximum.
+		 * @param r radius within additional edges are created
+		 * @param l maximum number of neighbor links
+		 */
+		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
+		
+		/**
+		 * @brief Sets a specific solver to optimize local patches.
+		 * @details This must not be the same instance used as the backend,
+		 * as it will be reset after every optimization. If it is not set,
+		 * patches will not be optimized before matching.
+		 * @param solver used for patch optimization
+		 */
+		void setPatchSolver(Solver* solver) { mPatchSolver = solver; }
+
+		/**
+		 * @brief Set how far to continue with a breadth-first-search through
+		 * the pose graph when building local map patches to match new
+		 * measurements against. It will use all vertices that are reachable
+		 * by a maximum of r edges.
+		 * @param r 
+		 */
+		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
+
+		/**
+		 * @brief Build a local map patch starting from the given source vertex.
+		 * @param source
+		 */
+		Measurement::Ptr buildPatch(IdType source);
+		
+		/**
+		 * @brief Add a new measurement from this sensor.
+		 * @param cloud
+		 * @param force
+		 */
+		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, bool force = false);
+		
+		/**
+		 * @brief Add a new measurement from this sensor together with an odometry pose.
+		 * @param cloud
+		 * @param odom
+		 * @param force
+		 */
+		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, const Transform& odom, bool force = false);
+		
+		/**
 		 * @brief Estimates the 6DoF transformation between source and target point cloud
 		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
 		 * @param source
 		 * @param target
 		 */
-		TransformWithCovariance calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry, bool coarse = false) const;
+		TransformWithCovariance calculateTransform(Measurement::Ptr source,
+		                                           Measurement::Ptr target,
+		                                           TransformWithCovariance odometry,
+		                                           bool coarse = false) const;
 				
 		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
@@ -123,6 +169,13 @@ namespace slam3d
 		 * @throw BadMeasurementType
 		 */		
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+
+		/**
+		 * @brief Create a linking constraint between source and target.
+		 * @param source_id
+		 * @param target_id
+		 */
+		TransformWithCovariance link(IdType source_id, IdType target_id);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.
@@ -169,9 +222,24 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
+		/**
+		 * @brief Create connecting edges to nearby vertices.
+		 * @param vertex
+		 */
+		void linkToNeighbors(IdType vertex);
+		
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
+		
+		Solver* mPatchSolver;
+		unsigned int mPatchBuildingRange;
+		
+		int mMaxNeighorLinks;
+		float mNeighborRadius;
+		
+		Transform mLastOdometry;
+		TransformWithCovariance mOdometryDelta;
 	};
 }
 

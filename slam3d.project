@@ -25,23 +25,26 @@
     <File Name="src/G2oSolver.hpp"/>
     <File Name="src/GICPConfiguration.hpp"/>
     <File Name="src/Logger.hpp"/>
-    <File Name="src/Odometry.hpp"/>
     <File Name="src/PointCloudSensor.hpp"/>
     <File Name="src/Sensor.hpp"/>
     <File Name="src/Solver.hpp"/>
     <File Name="src/Types.hpp"/>
-    <File Name="src/BoostMapper.hpp"/>
-    <File Name="src/GraphMapper.hpp"/>
+    <File Name="src/Graph.hpp"/>
+    <File Name="src/BoostGraph.hpp"/>
+    <File Name="src/PoseSensor.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
-    <File Name="src/GraphMapper.cpp"/>
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/PointCloudSensor.cpp"/>
-    <File Name="src/BoostMapper.cpp"/>
+    <File Name="src/Graph.cpp"/>
+    <File Name="src/BoostGraph.cpp"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="autoproj">
+  <VirtualDirectory Name="build">
     <File Name="manifest.xml"/>
     <File Name="CMakeLists.txt"/>
+    <File Name="slam3d.pc.in"/>
+    <File Name="package.xml"/>
+    <File Name="slam3d-config.cmake"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="test/solver.cpp"/>
@@ -136,4 +139,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="g2o">
+    <File Name="src/g2o/edge_direction_prior.cpp"/>
+    <File Name="src/g2o/edge_direction_prior.h"/>
+  </VirtualDirectory>
 </CodeLite_Project>

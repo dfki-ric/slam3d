@@ -39,9 +39,9 @@ namespace slam3d
 {
 	typedef unsigned IdType;
 	typedef double ScalarType;
-	typedef Eigen::Matrix<ScalarType,3,1> Vector3;
+	typedef Eigen::Matrix<ScalarType,3,1> Direction;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
-	typedef Eigen::Matrix<ScalarType,6,6> Covariance;
+	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	
 	/**
 	 * @class TransformWithCovariance
@@ -50,10 +50,10 @@ namespace slam3d
 	struct TransformWithCovariance
 	{
 		Transform transform;
-		Covariance covariance;
+		Covariance<6> covariance;
 
-		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance::Zero()) {}
-		TransformWithCovariance(const Transform& t, const Covariance& cov) : transform(t), covariance(cov) {}
+		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance<6>::Zero()) {}
+		TransformWithCovariance(const Transform& t, const Covariance<6>& cov) : transform(t), covariance(cov) {}
 		static TransformWithCovariance Identity() {return TransformWithCovariance();}
 	};
 	
@@ -112,8 +112,8 @@ namespace slam3d
 	public:
 		MapOrigin()
 		{
-			mRobotName = "";
-			mSensorName = "";
+			mRobotName = "none";
+			mSensorName = "none";
 			mSensorPose = Transform::Identity();
 			mInverseSensorPose = Transform::Identity();
 			mUniqueId = boost::uuids::nil_uuid();
@@ -144,7 +144,7 @@ namespace slam3d
 	struct EdgeObject
 	{
 		Transform transform;
-		Covariance covariance;
+		Covariance<6> covariance;
 		std::string sensor;
 		std::string label;
 		IdType source;

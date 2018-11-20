@@ -24,6 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "G2oSolver.hpp"
+#include "g2o/edge_direction_prior.h"
 
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
@@ -57,7 +58,7 @@ G2oSolver::~G2oSolver()
 	clear();
 }
 
-void G2oSolver::addNode(unsigned id, Transform pose)
+void G2oSolver::addVertex(IdType id, const Transform& pose)
 {
 	// Check that given id has not been added before
 	if(mOptimizer.vertex(id) != NULL)
@@ -75,7 +76,7 @@ void G2oSolver::addNode(unsigned id, Transform pose)
 	mNewVertices.insert(poseVertex);
 }
 
-void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov)
+void G2oSolver::addEdgeSE3(IdType source, IdType target, const Transform& tf, const Covariance<6>& cov)
 {
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
@@ -91,26 +92,36 @@ void G2oSolver::addConstraint(unsigned source, unsigned target, Transform tf, Co
 	
 	// Set the measurement (odometry distance between vertices)
 	constraint->setMeasurement(tf.cast<double>());            // slam3d::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(cov.inverse().cast<double>()); // slam3d::Covariance aka Eigen::Matrix<double,6,6>
+	constraint->setInformation(cov.inverse().cast<double>()); // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mOptimizer.addEdge(constraint);
 	mNewEdges.insert(constraint);
 }
 
-void G2oSolver::setFixed(unsigned id)
+void G2oSolver::addDirectionPrior(IdType vertex, const Direction& dir, const Direction& ref, const Covariance<2>& cov)
 {
-	// Fix the node in the graph to hold the map in place
+	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(dir, ref);
+	prior->vertices()[0] = mOptimizer.vertex(vertex);
+	prior->setInformation(cov.inverse());
+	
+	mOptimizer.addEdge(prior);
+	mNewEdges.insert(prior);
+}
+
+void G2oSolver::setFixed(IdType id)
+{
+	// Fix the vertex in the graph to hold the map in place
 	g2o::OptimizableGraph::Vertex* v = mOptimizer.vertex(id);
 	if(!v)
 	{
-		mLogger->message(ERROR, (boost::format("Could not fix node with ID %1%!") % id).str());
+		mLogger->message(ERROR, (boost::format("Could not fix vertex with ID %1%!") % id).str());
 		throw UnknownVertex(id);
 	}
 	v->setFixed(true);
 }
 
-bool G2oSolver::compute()
+bool G2oSolver::compute(unsigned iterations)
 {
 	// need to do something?
 	if(mOptimizer.activeVertices().size() == 0 && mNewVertices.size() < 2)
@@ -143,7 +154,7 @@ bool G2oSolver::compute()
 	mNewVertices.clear();
 	mNewEdges.clear();
 	
-	int iter = mOptimizer.optimize(100, false);
+	int iter = mOptimizer.optimize(iterations, false);
 	if (iter <= 0)
 	{		
 		mLogger->message(ERROR, "Optimization failed!");
@@ -155,8 +166,8 @@ bool G2oSolver::compute()
 	mCorrections.clear();
 
 	// Write the result so it can be used by the mapper
-	g2o::SparseOptimizer::VertexContainer nodes = mOptimizer.activeVertices();
-	for (g2o::SparseOptimizer::VertexContainer::const_iterator n = nodes.begin(); n < nodes.end(); n++)
+	g2o::SparseOptimizer::VertexContainer vertices = mOptimizer.activeVertices();
+	for (g2o::SparseOptimizer::VertexContainer::const_iterator n = vertices.begin(); n < vertices.end(); n++)
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*>(*n);
 		assert(vertex);

@@ -1,5 +1,6 @@
-// slam3d - Frontend for graph-based SLAM
-// Copyright (C) 2017 S. Kasperski
+// g2o - General Graph Optimization
+// Copyright (C) 2018 S. Arnold, S. Kasperski
+// All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -23,44 +24,37 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_G2O_SOLVER_HPP
-#define SLAM_G2O_SOLVER_HPP
+#ifndef G2O_EDGE_DIRECTION_PRIOR_H_
+#define G2O_EDGE_DIRECTION_PRIOR_H_
 
-#include "Solver.hpp"
-#include <g2o/core/sparse_optimizer.h>
+#include <g2o/types/slam3d/vertex_se3.h>
+#include <g2o/core/base_unary_edge.h>
+#include <g2o/types/slam3d/parameter_se3_offset.h>
+#include <g2o/types/slam3d/g2o_types_slam3d_api.h>
+namespace g2o {
+  /**
+   * \brief prior for a direction element
+   *
+   * Provides a directional prior for a 3d pose vertex. The measurement is represented by a
+   * Vector3, which scale is interpreted as a pure direction. Normalization is not 
+   * required though.
+   */
+  class G2O_TYPES_SLAM3D_API EdgeDirectionPrior : public BaseUnaryEdge<2, Vector3, VertexSE3> {
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EdgeDirectionPrior(const Vector3& measurement, const Vector3& ref);
+    virtual bool read(std::istream& is);
+    virtual bool write(std::ostream& os) const;
 
-namespace slam3d
-{	
-	/**
-	 * @class G2oSolver
-	 * @brief A solver for graph otimization that uses the g2o-backend.
-	 * @details See: https://github.com/RainerKuemmerle/g2o for documentation
-	 * on the backend.
-	 */
-	class G2oSolver : public Solver
-	{
-	public:
-		G2oSolver(Logger* logger);
-		~G2oSolver();
-		
-		void addVertex(IdType id, const Transform& pose);
-		void addEdgeSE3(IdType source, IdType target, const Transform& tf, const Covariance<6>& cov);
-		void addDirectionPrior(IdType vertex, const Direction& dir, const Direction& ref, const Covariance<2>& cov = Covariance<2>::Identity());
-		void setFixed(IdType id);
-		bool compute(unsigned iterations);
-		void clear();
-		void saveGraph(std::string filename);
-		
-		IdPoseVector getCorrections();
-		
-	protected:
-		g2o::SparseOptimizer mOptimizer;
-		g2o::HyperGraph::VertexSet mNewVertices;
-		g2o::HyperGraph::EdgeSet mNewEdges;
-		
-		IdPoseVector mCorrections;
-		bool mInitialized;
-	};
+    // return the error estimate as a 3-vector
+    void computeError();
+    
+    // jacobian
+//  virtual void linearizeOplus();
+
+  protected:
+    Vector3 _reference;
+  };
+
 }
-
 #endif

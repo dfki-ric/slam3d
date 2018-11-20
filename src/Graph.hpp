@@ -23,8 +23,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_GRAPHMAPPER_HPP
-#define SLAM_GRAPHMAPPER_HPP
+#ifndef SLAM_GRAPH_HPP
+#define SLAM_GRAPH_HPP
 
 /**
  * @mainpage A generic frontend for 3D Simultaneous Localization and Mapping
@@ -37,46 +37,51 @@
  * 
  * @section sec_start Getting started
  * 
- * The central component of this library is the GraphMapper class.
+ * The central component of this library is the Graph class.
  * The documentation is best read by starting from there.
- * This class is extended by registering Sensor modules, an Odometry and a Solver.
+ * This class is extended by registering Sensor modules, PoseSensor modules and a Solver.
  * 
  * @section sec_example Programming example
  * 
- * Start by creating the mapper itself and registering the required modules.
+ * Start by creating the graph itself and registering the required modules.
  @code
-#include <slam3d/GraphMapper.hpp> 
+#include <slam3d/Graph.hpp> 
 #include <slam3d/G2oSolver.hpp>
 
 using namespace slam3d;
 Clock* clock = new Clock();
 Logger* logger = new Logger(*c);
-GraphMapper* mapper = new GraphMapper(logger);
+Graph* graph = new Graph(logger);
 
-Sensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
-mapper->registerSensor(laser);
+PointCloudSensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
+graph->registerSensor(laser);
 
 G2oSolver* g2o = new G2oSolver(logger);
-mapper->setSolver(g2o);
+graph->setSolver(g2o);
  @endcode
- * Within the callback of your sensor data, add the new measurements to the mapper.
+ * Within the callback of your sensor data, add the new measurements to the corresponding sensor module.
  @code
 Measurement m* = new PointCloudMeasurement(cloud, "my_robot", laser->getName(), laser->getSensorPose());
-if(!mapper->addReading(m))
+Transform odom = [...];
+if(!laser->addReading(m, odom))
 {
   delete m;
 }
  @endcode
  */
 
-#include "Odometry.hpp"
+#include "PoseSensor.hpp"
 #include "Sensor.hpp"
 #include "Solver.hpp"
+#include "PoseSensor.hpp"
 
+#include <flann/flann.hpp>
 #include <map>
 
 namespace slam3d
 {
+	typedef flann::Index< flann::L2<float> > NeighborIndex;
+	
 	/**
 	 * @class InvalidEdge
 	 * @brief Exception thrown when a specified edge does not exist.
@@ -136,9 +141,9 @@ namespace slam3d
 		}
 	};
 	/**
-	 * @class GraphMapper
+	 * @class Graph
 	 * @brief Holds measurements from different sensors in a graph.
-	 * @details The GraphMapper is the central structure that provides the
+	 * @details The Graph is the central structure that provides the
 	 * frontend for a graph-based SLAM approach. A registered Sensor
 	 * will provide a specific Measurement type to the internal graph.
 	 * For each added measurement a new vertex is created in the graph
@@ -157,11 +162,11 @@ namespace slam3d
 	 * applying a graph optimization algorithm. This will usually change the
 	 * poses of all nodes in the map coordinate frame.
 	 */
-	class GraphMapper
+	class Graph
 	{
 	public:
-		GraphMapper(Logger* log);
-		virtual ~GraphMapper();
+		Graph(Logger* log);
+		virtual ~Graph();
 
 		/**
 		 * @brief Sets a specific Solver to be used as SLAM backend.
@@ -172,19 +177,19 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief Sets an odometry module to provide relative poses 
-		 * @details Depending on the matching abilities of the
-		 * used sensors (e.g. a 360° laser-scanner), the mapping might work
-		 * correctly without an odometry module.
-		 * @param odom odometry module
-		 * @param add_edges whether to create odometry edges in the graph
+		 * @brief Register a pose sensor to create spatial constraints.
+		 * @details For each node that is added by a registered sensor, each
+		 * registered pose sensor will be triggered to create additional edges
+		 * in the graph, e.g an odometry sensor will add an edge between the last
+		 * and the new vertex holding the odometry data. 
+		 * @param s pose sensor to be registered for mapping
 		 */
-		void setOdometry(Odometry* odom, bool add_edges = false);
+		void registerPoseSensor(PoseSensor* s);
 
 		/**
 		 * @brief Register a sensor, so its data can be added to the graph.
-		 * @details Multiple sensors can be used, but in this case an odometry module
-		 * is required for the mapping to work correctly. Matching is currently
+		 * @details Multiple sensors can be used, but in this case at least one pose
+		 * sensor is required for the mapping to work correctly. Matching is currently
 		 * done only between measurements of the same sensor.
 		 * @param s sensor to be registered for mapping
 		 */
@@ -192,16 +197,27 @@ namespace slam3d
 
 		/**
 		 * @brief Add a new measurement to the graph.
-		 * @details The sensor specified in the measurement has to be registered
-		 * with the mapper before. If the change in robot pose since the last
-		 * added scan is smaller then min-translation or min-rotation, the
-		 * measurement will not be added. Use GraphMapper::setMinPoseDistance to
-		 * adjust this distance.
+		 * @details Creates a new node in the graph, adds the given measurement to it
+		 * and calls each registered PoseSensor to create spatial constraints.
 		 * @param m pointer to a new measurement
-		 * @param force add measurement regardless of change in robot pose
-		 * @return true if the measurement was added
+		 * @return id of the newly added vertex
 		 */
-		virtual bool addReading(Measurement::Ptr m, bool force = false) = 0;
+		IdType addMeasurement(Measurement::Ptr m);
+		
+		/**
+		 * @brief Add a constraint (edge) between two vertices in the graph.
+		 * @param source
+		 * @param target
+		 * @param relative_pose
+		 * @param covariance
+		 * @param sensor
+		 */
+		virtual void addConstraint(IdType source,
+		                           IdType target,
+		                           const Transform& relative_pose,
+		                           const Covariance<6>& covariance,
+		                           const std::string& sensor,
+		                           const std::string& label) = 0;
 		
 		/**
 		 * @brief Add a new measurement from another robot.
@@ -215,53 +231,56 @@ namespace slam3d
 		 * @param cov covariance of that transform
 		 * @param sensor name of sensor that created the constraint (not the measurement!)
 		 */
-		virtual void addExternalReading(Measurement::Ptr measurement,
-		                                boost::uuids::uuid source_uuid,
-		                                const Transform& tf,
-		                                const Covariance& cov,
-										const std::string& sensor) = 0;
+		virtual void addExternalMeasurement(Measurement::Ptr measurement,
+		                                    boost::uuids::uuid source_uuid,
+		                                    const Transform& tf,
+		                                    const Covariance<6>& cov,
+										    const std::string& sensor);
 
 		/**
 		 * @brief Add a constraint from another robot between two measurements.
 		 * @param source uuid of a measurement
 		 * @param target uuid of a measurement
 		 * @param relative_pose transform from source to target
-		 * @param covariance covarinave of that transform
+		 * @param covariance covariance of that transform
 		 * @param sensor name of sensor that created the constraint
 		 */
-		virtual void addExternalConstraint(boost::uuids::uuid source,
-		                                   boost::uuids::uuid target,
-		                                   const Transform& relative_pose,
-		                                   const Covariance& covariance,
-		                                   const std::string& sensor) = 0;
+		void addExternalConstraint(boost::uuids::uuid source,
+		                           boost::uuids::uuid target,
+		                           const Transform& relative_pose,
+		                           const Covariance<6>& covariance,
+		                           const std::string& sensor);
 
 		/**
 		 * @brief Get the current pose of the robot within the generated map.
 		 * @details The pose is updated at least whenever a new node is added.
-		 * Depending on the available information, it might be updated
-		 * more often. (e.g. when odometry is available)
 		 * @return current robot pose in map coordinates
 		 */
 		virtual Transform getCurrentPose();
 		
 		/**
-		 * @brief Set the robot's pose in map coordinates.
-		 * @details This can be used to set the robot's start pose before the
-		 * mapping is started. Setting it later should be avoided, as
-		 * it can corrupt the mapping process.
-		 * @param pose new pose in map coordinates
+		 * @brief Set the corrected pose for the vertex with the given ID.
+		 * @details This method is designed to be used by Sensor and PoseSensor
+		 * implementations in order to position newly added measurements.
+		 * This allows to quickly set the pose of a vertex according to available
+		 * odometry or scan matching results, before it is correctly estimated by
+		 * executing the optimization backend.
+		 * @param id vertex to be changed
+		 * @param pose new corrected pose to be set
 		 */
-		virtual void setCurrentPose(const Transform& pose);
+		void setCorrectedPose(IdType id, const Transform& pose);
 		
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
+		 * @param iterations maximum number of iteration steps
 		 * @return true if optimization was successful
 		 */
-		virtual bool optimize() = 0;
+		virtual bool optimize(unsigned iterations = 100);
 		
 		/**
 		 * @brief Returns whether optimize() has been called since the last call to this.
+		 * @return true if optimization has been called
 		 */
 		bool optimized();
 
@@ -270,7 +289,7 @@ namespace slam3d
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		virtual const VertexObject& getLastVertex() const = 0;
+		virtual const VertexObject& getLastVertex() const;
 
 		/**
 		 * @brief Write the current graph to a file (currently dot).
@@ -280,37 +299,22 @@ namespace slam3d
 		virtual void writeGraphToFile(const std::string &name);
 
 		/**
-		 * @brief Sets neighbor radius for matching
-		 * @details New nodes are matched against nodes of the same sensor
-		 * within the given radius, but not more then given maximum.
-		 * @param r radius within additional edges are created
-		 * @param l maximum number of neighbor links
+		 * @brief Create the index for nearest neighbor search of nodes.
+		 * @param sensor index nodes of this sensor
 		 */
-		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
-
+		void buildNeighborIndex(const std::string& sensor);
+		
 		/**
-		 * @brief Set minimal change in pose between adjacent nodes.
-		 * @param t Minimum translation between nodes (in meter).
-		 * @param r Minimum rotation between nodes (in rad).
+		 * @brief Search for nodes in the graph near the given pose.
+		 * @details This does not refer to a NN-Search in the graph, but to search for
+		 * spatially near poses according to their current corrected pose.
+		 * If new nodes have been added, the index has to be created with
+		 * a call to buildNeighborIndex.
+		 * @param tf The pose where to search for nodes
+		 * @param radius The radius within nodes should be returned
+		 * @return list of spatially near vertices
 		 */
-		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
-
-		/**
-		 * @brief Set how far to continue with a breadth-first-search through
-		 * the pose graph when building local map patches to match new
-		 * measurements against. It will use all vertices that are reachable
-		 * by a maximum of r edges.
-		 * @param r 
-		 */
-		void setPatchBuildingRange(unsigned r) {mPatchBuildingRange = r;}
-
-		/**
-		 * @brief Set to initialize the robot's heading from odometry.
-		 * @details This is mainly useful when the robot is equipped with an
-		 * compass and IMU to provide global orientation.
-		 * @param use whether to use odometry for initial heading
-		 */
-		void useOdometryHeading(bool use = true) {mUseOdometryHeading = use;}
+		VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
 
 		/**
 		 * @brief Gets a vertex object by its given id. The id is given to each
@@ -326,10 +330,23 @@ namespace slam3d
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		virtual const VertexObject& getVertex(boost::uuids::uuid id) const = 0;
+		const VertexObject& getVertex(boost::uuids::uuid id) const;
 
 		/**
-		 * @brief 
+		 * @brief Check if the measurement with this id is stored in the graph.
+		 * @param id
+		 */
+		bool hasMeasurement(boost::uuids::uuid id) const;
+
+		/**
+		 * @brief Get the transformation between source and target node.
+		 * @param source
+		 * @param target
+		 */
+		TransformWithCovariance getTransform(IdType source, IdType target) const;
+
+		/**
+		 * @brief Get the edge between source and traget from the given sensor.
 		 * @param source
 		 * @param target
 		 * @param sensor
@@ -346,48 +363,89 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual VertexObjectList getVertexObjectsFromSensor(const std::string& sensor) const = 0;
+		virtual VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
+
+		/**
+		 * @brief Serch for nodes by using breadth-first-search
+		 * @param source start search from this node
+		 * @param range maximum number of steps to search from source
+		 */
+		virtual VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		virtual EdgeObjectList getEdgeObjectsFromSensor(const std::string& sensor) const = 0;
+		virtual EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
 
+		/**
+		 * @brief Get all connecting edges between given vertices.
+		 * @param vertices
+		 */
+		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
+		
+		/**
+		 * @brief Calculates the distance between two vertices in the graph.
+		 * @param source
+		 * @param target
+		 */
+		virtual float calculateGraphDistance(IdType source, IdType target) = 0;
+		
 	protected:
+		// Graph access
+		/**
+		 * @brief Add a given measurement at the given pose
+		 * @details This method creates the VertexObject, adds the new vertex to
+		 * the solver, adds it to the index and then calls the method below to
+		 * actually add it to the graph.
+		 * @param m measurement
+		 * @param initial pose for the new vertex
+		 */
+		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
+
+		/**
+		 * @brief Add the given VertexObject to the actual graph.
+		 * @details This method has to be implemented by the specification class.
+		 * It should not be used directly, but is internally used by the method above.
+		 * @param v VertexObject to be stored in the graph
+		 */
+		virtual void addVertex(const VertexObject& v) = 0;
+
+		/**
+		 * @brief Get a writable reference to a VertexObject.
+		 * @param id
+		 */
+		virtual VertexObject& getVertexInternal(IdType id) = 0;
+		
+		// Helper
+		/**
+		 * @brief Re-orthogonalize the rotation-matrix
+		 * @param t input tranform
+		 * @return the orthogonalized transform
+		 */
 		static Transform orthogonalize(const Transform& t);
-		bool checkMinDistance(const Transform &t);
-
-		/**
-		 * @returns true if a sensor for the given measurement is registered
-		 */
-		bool hasSensorForMeasurement(Measurement::Ptr measurement);
-
-		/**
-		 * @brief Provides the sensor class for a given measurement
-		 * @param[in] measurement
-		 * @param[out] sensor
-		 * @returns true if a sensor for the given measurement is registered
-		 */
-		bool getSensorForMeasurement(Measurement::Ptr measurement, Sensor*& sensor);
 		
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
-		Odometry* mOdometry;
 		SensorList mSensors;
+		PoseSensorList mPoseSensors;
 
-		Transform mCurrentPose;
-		Transform mLastOdometricPose;
+		Indexer mIndexer;
+		IdType mLastIndex;
+		
+		// Index to find Vertices by the unique id of their measurement
+		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
+		UuidIndex mUuidIndex;
+
+		// Index to use nearest neighbor search
+		// Whenever this index is created, we have to enumerate all vertices from 0 to n-1.
+		// This mapping is kept in a separate map to later apply the result to the graph.
+		flann::SearchParams mSearchParams;
+		NeighborIndex mNeighborIndex;
+		std::map<IdType, IdType> mNeighborMap; // vertex-id --> neighbor-id
 
 		// Parameters
-		int mMaxNeighorLinks;
-		float mNeighborRadius;
-		float mMinTranslation;
-		float mMinRotation;
-		bool mAddOdometryEdges;
-		unsigned mPatchBuildingRange;
-		bool mUseOdometryHeading;
 		bool mOptimized;
 	};
 }
