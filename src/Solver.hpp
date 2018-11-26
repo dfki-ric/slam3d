@@ -117,15 +117,28 @@ namespace slam3d
 		 */
 		virtual void addVertex(IdType id, const Transform& pose) = 0;
 		
+		void addEdge(IdType source, IdType target, Constraint::Ptr c)
+		{
+			switch(c->getType())
+			{
+			case SE3:
+				addEdgeSE3(source, target, boost::static_pointer_cast<ConstraintSE3>(c));
+				break;
+			default:
+				std::ostringstream msg;
+				msg << "Edge with type " << c->getTypeName() << " is not available in G2oSolver!";
+				mLogger->message(ERROR, msg.str().c_str());
+			}
+		}
+		
 		/**
 		 * @brief Adds a SE3 edge between two vertices in the graph.
 		 * @details The source and target vertices have to be added before the edge.
 		 * @param source the edge's from-vertex
 		 * @param target the edge's to-vertex
-		 * @param tf
-		 * @param cov
+		 * @param se3
 		 */
-		virtual void addEdgeSE3(IdType source, IdType target, const Transform& tf, const Covariance<6>& cov = Covariance<6>::Identity()) = 0;
+		virtual void addEdgeSE3(IdType source, IdType target, ConstraintSE3::Ptr se3) = 0;
 		
 		/**
 		 * @brief Adds a directional prior to a vertex in the graph.

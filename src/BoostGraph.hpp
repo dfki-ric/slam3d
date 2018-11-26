@@ -57,10 +57,7 @@ namespace slam3d
 		 */
 		void addConstraint(IdType source,
 		                   IdType target,
-		                   const Transform& relative_pose,
-		                   const Covariance<6>& covariance,
-		                   const std::string& sensor,
-		                   const std::string& label);
+		                   Constraint::Ptr c);
 		
 		/**
 		 * @brief Add the given VertexObject to the internal graph.

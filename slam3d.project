@@ -32,12 +32,14 @@
     <File Name="src/Graph.hpp"/>
     <File Name="src/BoostGraph.hpp"/>
     <File Name="src/PoseSensor.hpp"/>
+    <File Name="src/Mapper.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src">
     <File Name="src/G2oSolver.cpp"/>
     <File Name="src/PointCloudSensor.cpp"/>
     <File Name="src/Graph.cpp"/>
     <File Name="src/BoostGraph.cpp"/>
+    <File Name="src/Mapper.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="build">
     <File Name="manifest.xml"/>

@@ -19,6 +19,7 @@ if(OPENMP_FOUND)
 endif()
 
 add_library(slam3d
+	src/Mapper.cpp
 	src/Graph.cpp
 	src/BoostGraph.cpp
 	src/PointCloudSensor.cpp

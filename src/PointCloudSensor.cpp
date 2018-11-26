@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "PointCloudSensor.hpp"
-#include "Graph.hpp"
+#include "Mapper.hpp"
 
 #include <pcl/registration/gicp.h>
 #include <pcl/filters/voxel_grid.h>
@@ -196,7 +196,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 		EdgeObjectList e_objects = mGraph->getEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
-			mPatchSolver->addEdgeSE3(e->source, e->target, e->transform, e->covariance);
+			mPatchSolver->addEdge(e->source, e->target, e->constraint);
 		}
 		
 		mPatchSolver->setFixed(source);
@@ -228,7 +228,7 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, const
 	// Always add the first received scan 
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mGraph->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m);
 		mLastOdometry = odom;
 		return true;
 	}
@@ -251,7 +251,7 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	// Always add the first received scan 
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mGraph->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m);
 		return true;
 	}
 	
@@ -289,8 +289,9 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	}
 
 	// Add the new vertex and the ICP edge to previous one
-	IdType newVertex = mGraph->addMeasurement(m);
-	mGraph->addConstraint(mLastVertex, newVertex, icp_result.transform, icp_result.covariance, mName, "seq");
+	IdType newVertex = mMapper->addMeasurement(m);
+	ConstraintSE3::Ptr se3(new ConstraintSE3(mName, TransformWithCovariance(icp_result.transform, icp_result.covariance)));
+	mGraph->addConstraint(mLastVertex, newVertex, se3);
 	Transform pose = mGraph->getVertex(mLastVertex).corrected_pose * icp_result.transform;
 	mGraph->setCorrectedPose(newVertex, pose);
 
@@ -326,7 +327,8 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse);
 
 	// Create new edge and return the transform
-	mGraph->addConstraint(source_id, target_id, twc.transform, twc.covariance, mName, "icp");
+	ConstraintSE3::Ptr se3(new ConstraintSE3(mName, twc));
+	mGraph->addConstraint(source_id, target_id, se3);
 	return twc;
 }
 

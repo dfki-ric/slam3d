@@ -69,6 +69,7 @@ namespace slam3d
 		std::string message;
 	};
 	
+	class Mapper;
 	class Graph;
 	class Logger;
 	
@@ -83,14 +84,15 @@ namespace slam3d
 	{
 	public:
 		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mName(n), mLogger(l), mSensorPose(p), mGraph(NULL), mLastVertex(0){}
+		 :mMapper(NULL), mGraph(NULL), mLogger(l), mName(n), mSensorPose(p), mLastVertex(0){}
 		virtual ~Sensor(){}
 		
 		/**
-		 * @brief Set the graph that this sensor is used by.
-		 * @param graph
+		 * @brief Set the mapper and graph that this sensor is used by.
+		 * @param m Mapper
+		 * @param g Graph
 		 */
-		void setGraph(Graph* graph) { mGraph = graph; }
+		void setMapperAndGraph(Mapper* m, Graph* g) { mMapper = m, mGraph = g; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
@@ -149,15 +151,16 @@ namespace slam3d
 		}
 
 	protected:
-		std::string mName;
-		Logger* mLogger;
-		Transform mSensorPose;
+		Mapper* mMapper;
 		Graph* mGraph;
+		Logger* mLogger;
+
+		std::string mName;
+		Transform mSensorPose;
+		IdType mLastVertex; // This is the last vertex from THIS sensor!
 		
 		float mMinTranslation;
 		float mMinRotation;
-		
-		IdType mLastVertex; // This is the last vertex from THIS sensor!
 	};
 	
 	typedef std::map<std::string, Sensor*> SensorList;

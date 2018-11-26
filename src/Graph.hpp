@@ -71,9 +71,7 @@ if(!laser->addReading(m, odom))
  */
 
 #include "PoseSensor.hpp"
-#include "Sensor.hpp"
 #include "Solver.hpp"
-#include "PoseSensor.hpp"
 
 #include <flann/flann.hpp>
 #include <map>
@@ -177,87 +175,25 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief Register a pose sensor to create spatial constraints.
-		 * @details For each node that is added by a registered sensor, each
-		 * registered pose sensor will be triggered to create additional edges
-		 * in the graph, e.g an odometry sensor will add an edge between the last
-		 * and the new vertex holding the odometry data. 
-		 * @param s pose sensor to be registered for mapping
+		 * @brief Add a given measurement at the given pose
+		 * @details This method creates the VertexObject, adds the new vertex to
+		 * the solver, adds it to the index and then calls the method below to
+		 * actually add it to the graph.
+		 * @param m measurement
+		 * @param corrected initial pose for the new vertex
 		 */
-		void registerPoseSensor(PoseSensor* s);
+		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
 
-		/**
-		 * @brief Register a sensor, so its data can be added to the graph.
-		 * @details Multiple sensors can be used, but in this case at least one pose
-		 * sensor is required for the mapping to work correctly. Matching is currently
-		 * done only between measurements of the same sensor.
-		 * @param s sensor to be registered for mapping
-		 */
-		void registerSensor(Sensor* s);
-
-		/**
-		 * @brief Add a new measurement to the graph.
-		 * @details Creates a new node in the graph, adds the given measurement to it
-		 * and calls each registered PoseSensor to create spatial constraints.
-		 * @param m pointer to a new measurement
-		 * @return id of the newly added vertex
-		 */
-		IdType addMeasurement(Measurement::Ptr m);
-		
-		/**
+				/**
 		 * @brief Add a constraint (edge) between two vertices in the graph.
 		 * @param source
 		 * @param target
-		 * @param relative_pose
-		 * @param covariance
-		 * @param sensor
+		 * @param constraint
 		 */
 		virtual void addConstraint(IdType source,
 		                           IdType target,
-		                           const Transform& relative_pose,
-		                           const Covariance<6>& covariance,
-		                           const std::string& sensor,
-		                           const std::string& label) = 0;
-		
-		/**
-		 * @brief Add a new measurement from another robot.
-		 * @details The new measurement is added to the graph and directly
-		 * linked to the measurement with the given uuid. This enforces that
-		 * the graph stays connected even when external measurement cannot be
-		 * linked to local ones.
-		 * @param measurement pointer to a new measurement
-		 * @param source_uuid uuid of another measurement
-		 * @param tf transform between measurement and source
-		 * @param cov covariance of that transform
-		 * @param sensor name of sensor that created the constraint (not the measurement!)
-		 */
-		virtual void addExternalMeasurement(Measurement::Ptr measurement,
-		                                    boost::uuids::uuid source_uuid,
-		                                    const Transform& tf,
-		                                    const Covariance<6>& cov,
-										    const std::string& sensor);
+		                           Constraint::Ptr c) = 0;
 
-		/**
-		 * @brief Add a constraint from another robot between two measurements.
-		 * @param source uuid of a measurement
-		 * @param target uuid of a measurement
-		 * @param relative_pose transform from source to target
-		 * @param covariance covariance of that transform
-		 * @param sensor name of sensor that created the constraint
-		 */
-		void addExternalConstraint(boost::uuids::uuid source,
-		                           boost::uuids::uuid target,
-		                           const Transform& relative_pose,
-		                           const Covariance<6>& covariance,
-		                           const std::string& sensor);
-
-		/**
-		 * @brief Get the current pose of the robot within the generated map.
-		 * @details The pose is updated at least whenever a new node is added.
-		 * @return current robot pose in map coordinates
-		 */
-		virtual Transform getCurrentPose();
-		
 		/**
 		 * @brief Set the corrected pose for the vertex with the given ID.
 		 * @details This method is designed to be used by Sensor and PoseSensor
@@ -285,13 +221,6 @@ namespace slam3d
 		bool optimized();
 
 		/**
-		 * @brief Get the last vertex, that was locally added to the graph.
-		 * @details This will not return external vertices from other robots.
-		 * @return last added vertex
-		 */
-		virtual const VertexObject& getLastVertex() const;
-
-		/**
 		 * @brief Write the current graph to a file (currently dot).
 		 * @details For larger graphs, this can take a very long time.
 		 * @param name filename without type ending
@@ -315,6 +244,12 @@ namespace slam3d
 		 * @return list of spatially near vertices
 		 */
 		VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+
+		/**
+		 * @brief Gets the index of the vertex with the given Measurement
+		 * @param id uuid of a measurement
+		 */
+		IdType getIndex(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Gets a vertex object by its given id. The id is given to each
@@ -394,19 +329,9 @@ namespace slam3d
 	protected:
 		// Graph access
 		/**
-		 * @brief Add a given measurement at the given pose
-		 * @details This method creates the VertexObject, adds the new vertex to
-		 * the solver, adds it to the index and then calls the method below to
-		 * actually add it to the graph.
-		 * @param m measurement
-		 * @param initial pose for the new vertex
-		 */
-		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
-
-		/**
 		 * @brief Add the given VertexObject to the actual graph.
 		 * @details This method has to be implemented by the specification class.
-		 * It should not be used directly, but is internally used by the method above.
+		 * It should not be used directly, but is used internally.
 		 * @param v VertexObject to be stored in the graph
 		 */
 		virtual void addVertex(const VertexObject& v) = 0;
@@ -428,11 +353,8 @@ namespace slam3d
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
-		SensorList mSensors;
-		PoseSensorList mPoseSensors;
-
+		
 		Indexer mIndexer;
-		IdType mLastIndex;
 		
 		// Index to find Vertices by the unique id of their measurement
 		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;

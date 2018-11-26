@@ -28,6 +28,7 @@
 
 #include "Graph.hpp"
 #include "GICPConfiguration.hpp"
+#include "Sensor.hpp"
 #include "PoseSensor.hpp"
 
 #include "pcl/point_types.h"

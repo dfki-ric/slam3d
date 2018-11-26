@@ -120,6 +120,56 @@ namespace slam3d
 		}
 	};
 	
+	enum ConstraintType {SE3};
+	
+	/**
+	 * @class Constraint
+	 * @brief Base class for a constraint in the pose graph.
+	 * @details This can be a unary contraint on a pose (e.g. GPS, gravity)
+	 * or a binary constraint on two poses (e.g. ICP result)
+	 */
+	class Constraint
+	{
+	public:
+		typedef boost::shared_ptr<Constraint> Ptr;
+		
+	public:
+		Constraint(const std::string& sensor) : mSensorName(sensor) {}
+		virtual ~Constraint(){}
+		virtual ConstraintType getType() = 0;
+		virtual const char* getTypeName() = 0;
+
+		timeval getTimestamp() const { return mStamp; }
+		std::string getSensorName() const { return mSensorName; }
+
+	protected:
+		timeval mStamp;
+		std::string mSensorName;
+	};
+	
+	/**
+	 * @class SE3Constraint
+	 * @brief 
+	 */
+	class ConstraintSE3 : public Constraint
+	{
+	public:
+		typedef boost::shared_ptr<ConstraintSE3> Ptr;
+		
+	public:
+		ConstraintSE3(const std::string& sensor, const TransformWithCovariance& twc)
+		: Constraint(sensor), mRelativePose(twc) {}
+
+		ConstraintType getType() { return SE3; }
+		const char* getTypeName() { return "SE(3)"; }
+		
+		const TransformWithCovariance& getRelativePose() const { return mRelativePose; }
+		
+	protected:
+		TransformWithCovariance mRelativePose;
+		
+	};
+	
 	/**
 	 * @struct VertexObject
 	 * @brief Object attached to a vertex in the pose graph.
@@ -143,12 +193,11 @@ namespace slam3d
 	 */
 	struct EdgeObject
 	{
-		Transform transform;
-		Covariance<6> covariance;
-		std::string sensor;
 		std::string label;
+		std::string sensor;
 		IdType source;
 		IdType target;
+		Constraint::Ptr constraint;
 	};
 
 	typedef std::vector<VertexObject> VertexObjectList;

@@ -45,7 +45,6 @@ Graph::Graph(Logger* log)
 	// Initialize some members
 	mSolver = NULL;	
 	mOptimized = false;
-	mLastIndex = 0;
 }
 
 Graph::~Graph()
@@ -57,34 +56,6 @@ void Graph::setSolver(Solver* solver)
 	mSolver = solver;
 //	mSolver->addVertex(0, Transform::Identity());
 //	mSolver->setFixed(0);
-}
-
-void Graph::registerPoseSensor(PoseSensor* s)
-{
-	std::pair<PoseSensorList::iterator, bool> result;
-	result = mPoseSensors.insert(PoseSensorList::value_type(s->getName(), s));
-	if(!result.second)
-	{
-		mLogger->message(ERROR, (boost::format("PoseSensor with name %1% already exists!") % s->getName()).str());
-		return;
-	}
-}
-
-void Graph::registerSensor(Sensor* s)
-{
-	std::pair<SensorList::iterator, bool> result;
-	result = mSensors.insert(SensorList::value_type(s->getName(), s));
-	if(!result.second)
-	{
-		mLogger->message(ERROR, (boost::format("Sensor with name %1% already exists!") % s->getName()).str());
-		return;
-	}
-	s->setGraph(this);
-}
-
-Transform Graph::getCurrentPose()
-{
-	return getVertex(mLastIndex).corrected_pose;
 }
 
 void Graph::writeGraphToFile(const std::string &name)
@@ -163,61 +134,9 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	return id;
 }
 
-IdType Graph::addMeasurement(Measurement::Ptr m)
+IdType Graph::getIndex(boost::uuids::uuid id) const
 {
-	// Add root node to the graph
-	if(mLastIndex == 0)
-	{
-		mLogger->message(DEBUG, "Adding map origin before first node.");
-		mLastIndex = addVertex(Measurement::Ptr(new MapOrigin()), Transform::Identity());
-	}
-	
-	// Add the vertex to the pose graph
-	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-	mLastIndex = addVertex(m, getCurrentPose());
-	
-	// Link first node to root
-	if(mLastIndex == 1)
-	{
-		addConstraint(0, 1, Transform::Identity(), Covariance<6>::Identity(), "none", "root-link");
-	}
-	
-	// Call all registered PoseSensor's on the new vertex
-	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)
-	{
-		ps->second->handleNewVertex(mLastIndex);
-	}
-	
-	// Return the new vertex index
-	return mLastIndex;
-}
-
-void Graph::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& tf, const Covariance<6>& cov, const std::string& sensor)
-{
-	if(hasMeasurement(m->getUniqueId()))
-	{
-		throw DuplicateMeasurement();
-	}
-	
-	Transform pose = getVertex(s).corrected_pose * tf;
-	IdType source = mUuidIndex.at(s);
-	IdType target = addVertex(m, pose);
-	addConstraint(source, target, tf, cov, sensor, "ext");
-}
-
-void Graph::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& tf, const Covariance<6>& cov, const std::string& sensor)
-{
-	IdType source = mUuidIndex.at(s);
-	IdType target = mUuidIndex.at(t);
-
-	try
-	{
-		getEdge(source, target, sensor);
-		throw DuplicateEdge(source, target, sensor);
-	}catch(InvalidEdge &ie)
-	{
-		addConstraint(source, target, tf, cov, sensor, "ext");
-	}
+	return mUuidIndex.at(id);
 }
 
 bool Graph::hasMeasurement(boost::uuids::uuid id) const
@@ -228,16 +147,6 @@ bool Graph::hasMeasurement(boost::uuids::uuid id) const
 const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
 {
 	return getVertex(mUuidIndex.at(id));
-}
-
-const VertexObject& Graph::getLastVertex() const
-{
-	return getVertex(mLastIndex);
-}
-
-void Graph::setCorrectedPose(IdType id, const Transform& pose)
-{
-	getVertexInternal(id).corrected_pose = pose;
 }
 
 TransformWithCovariance Graph::getTransform(IdType source, IdType target) const
@@ -297,4 +206,9 @@ VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) con
 	
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
 	return result;
+}
+
+void Graph::setCorrectedPose(IdType id, const Transform& pose)
+{
+	getVertexInternal(id).corrected_pose = pose;
 }

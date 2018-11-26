@@ -56,37 +56,36 @@ void BoostGraph::addVertex(const VertexObject& v)
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
-void BoostGraph::addConstraint(IdType source_id, IdType target_id,
-	const Transform &t, const Covariance<6> &c, const std::string& sensor, const std::string& label)
+void BoostGraph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	Edge forward_edge, inverse_edge;
 	bool inserted_forward, inserted_inverse;
 	
+	// TODO: Where to get sensor and label from?
 	Vertex source = mIndexMap[source_id];
 	Vertex target = mIndexMap[target_id];
 	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
 	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
 
-	mPoseGraph[forward_edge].transform = t;
-	mPoseGraph[forward_edge].covariance = c;
-	mPoseGraph[forward_edge].sensor = sensor;
-	mPoseGraph[forward_edge].label = label;
+	
+//	mPoseGraph[forward_edge].sensor = sensor;
+//	mPoseGraph[forward_edge].label = label;
 	mPoseGraph[forward_edge].source = source_id;
 	mPoseGraph[forward_edge].target = target_id;
+	mPoseGraph[forward_edge].constraint = c;
 	
-	mPoseGraph[inverse_edge].transform = t.inverse();
-	mPoseGraph[inverse_edge].covariance = c;
-	mPoseGraph[inverse_edge].sensor = sensor;
-	mPoseGraph[inverse_edge].label = label;
+//	mPoseGraph[inverse_edge].sensor = sensor;
+//	mPoseGraph[inverse_edge].label = label;
 	mPoseGraph[inverse_edge].source = target_id;
 	mPoseGraph[inverse_edge].target = source_id;
+	mPoseGraph[inverse_edge].constraint = c;
 	
 	if(mSolver)
 	{
-		mSolver->addEdgeSE3(source_id, target_id, t, c);
+		mSolver->addEdge(source_id, target_id, c);
 	}
-	mLogger->message(INFO, (boost::format("Created '%4%' edge from node %1% to node %2% (from %3%).") % source_id % target_id % sensor % label).str());
+	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source_id % target_id).str());
 }
 
 VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
