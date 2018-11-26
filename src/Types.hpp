@@ -52,7 +52,7 @@ namespace slam3d
 		Transform transform;
 		Covariance<6> covariance;
 
-		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance<6>::Zero()) {}
+		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance<6>::Identity()) {}
 		TransformWithCovariance(const Transform& t, const Covariance<6>& cov) : transform(t), covariance(cov) {}
 		static TransformWithCovariance Identity() {return TransformWithCovariance();}
 	};
