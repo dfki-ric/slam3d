@@ -28,7 +28,6 @@ BoostGraph::~BoostGraph()
 
 EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
@@ -90,7 +89,6 @@ void BoostGraph::addConstraint(IdType source_id, IdType target_id, Constraint::P
 
 VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
@@ -105,19 +103,16 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) co
 
 const VertexObject& BoostGraph::getVertex(IdType id) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
 VertexObject& BoostGraph::getVertexInternal(IdType id)
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
 const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
 	while(it != it_end)
@@ -134,7 +129,6 @@ const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::s
 
 EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
 	EdgeObjectList edges;
@@ -148,7 +142,6 @@ EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 
 EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
 	{
@@ -227,8 +220,6 @@ private:
 
 VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
-	boost::shared_lock<boost::shared_mutex> guard(mGraphMutex);
-	
 	// Create required data structures
 	Vertex source = mIndexMap.at(source_id);
 	DepthMap depth_map;
