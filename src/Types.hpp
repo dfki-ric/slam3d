@@ -151,13 +151,13 @@ namespace slam3d
 	 * @class SE3Constraint
 	 * @brief 
 	 */
-	class ConstraintSE3 : public Constraint
+	class SE3Constraint : public Constraint
 	{
 	public:
-		typedef boost::shared_ptr<ConstraintSE3> Ptr;
+		typedef boost::shared_ptr<SE3Constraint> Ptr;
 		
 	public:
-		ConstraintSE3(const std::string& sensor, const TransformWithCovariance& twc)
+		SE3Constraint(const std::string& sensor, const TransformWithCovariance& twc)
 		: Constraint(sensor), mRelativePose(twc) {}
 
 		ConstraintType getType() { return SE3; }

@@ -85,7 +85,7 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 	// Link first node to root
 	if(mLastIndex == 1)
 	{
-		ConstraintSE3::Ptr se3(new ConstraintSE3("root-link", TransformWithCovariance()));
+		SE3Constraint::Ptr se3(new SE3Constraint("root-link", TransformWithCovariance()));
 		mGraph->addConstraint(0, 1, se3);
 	}
 	
@@ -109,7 +109,7 @@ void Mapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, co
 	Transform pose = mGraph->getVertex(s).corrected_pose * twc.transform;
 	IdType source = mGraph->getIndex(s);
 	IdType target = mGraph->addVertex(m, pose);
-	ConstraintSE3::Ptr se3(new ConstraintSE3(sensor, twc));
+	SE3Constraint::Ptr se3(new SE3Constraint(sensor, twc));
 	mGraph->addConstraint(source, target, se3);
 }
 
@@ -124,7 +124,7 @@ void Mapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, c
 		throw DuplicateEdge(source, target, sensor);
 	}catch(InvalidEdge &ie)
 	{
-		ConstraintSE3::Ptr se3(new ConstraintSE3(sensor, twc));
+		SE3Constraint::Ptr se3(new SE3Constraint(sensor, twc));
 		mGraph->addConstraint(source, target, se3);
 	}
 }

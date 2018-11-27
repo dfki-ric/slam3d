@@ -290,7 +290,7 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 
 	// Add the new vertex and the ICP edge to previous one
 	IdType newVertex = mMapper->addMeasurement(m);
-	ConstraintSE3::Ptr se3(new ConstraintSE3(mName, TransformWithCovariance(icp_result.transform, icp_result.covariance)));
+	SE3Constraint::Ptr se3(new SE3Constraint(mName, TransformWithCovariance(icp_result.transform, icp_result.covariance)));
 	mGraph->addConstraint(mLastVertex, newVertex, se3);
 	Transform pose = mGraph->getVertex(mLastVertex).corrected_pose * icp_result.transform;
 	mGraph->setCorrectedPose(newVertex, pose);
@@ -327,7 +327,7 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse);
 
 	// Create new edge and return the transform
-	ConstraintSE3::Ptr se3(new ConstraintSE3(mName, twc));
+	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
 	mGraph->addConstraint(source_id, target_id, se3);
 	return twc;
 }

@@ -122,7 +122,7 @@ namespace slam3d
 			switch(c->getType())
 			{
 			case SE3:
-				addEdgeSE3(source, target, boost::static_pointer_cast<ConstraintSE3>(c));
+				addEdgeSE3(source, target, boost::static_pointer_cast<SE3Constraint>(c));
 				break;
 			default:
 				std::ostringstream msg;
@@ -138,7 +138,7 @@ namespace slam3d
 		 * @param target the edge's to-vertex
 		 * @param se3
 		 */
-		virtual void addEdgeSE3(IdType source, IdType target, ConstraintSE3::Ptr se3) = 0;
+		virtual void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3) = 0;
 		
 		/**
 		 * @brief Adds a directional prior to a vertex in the graph.
