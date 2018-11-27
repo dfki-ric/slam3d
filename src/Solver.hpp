@@ -124,9 +124,12 @@ namespace slam3d
 			case SE3:
 				addEdgeSE3(source, target, boost::static_pointer_cast<SE3Constraint>(c));
 				break;
+			case GRAVITY:
+				addEdgeGravity(source, boost::static_pointer_cast<GravityConstraint>(c));
+				break;
 			default:
 				std::ostringstream msg;
-				msg << "Edge with type " << c->getTypeName() << " is not available in G2oSolver!";
+				msg << "Edge with type " << c->getTypeName() << " is not known!";
 				mLogger->message(ERROR, msg.str().c_str());
 			}
 		}
@@ -141,19 +144,12 @@ namespace slam3d
 		virtual void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3) = 0;
 		
 		/**
-		 * @brief Adds a directional prior to a vertex in the graph.
-		 * @details The vertex has to be added to the graph before. A directional
-		 * prior defines a direction in the global reference frame. Possible sources
-		 * are IMUs (gravity vector) and compasses (north vector).
+		 * @brief Adds a gravity edge to a vertex in the graph.
+		 * @details The vertex has to be added to the graph before.
 		 * @param vertex
-		 * @param dir
-		 * @param ref
-		 * @param cov
+		 * @param grav
 		 */
-		virtual void addDirectionPrior(IdType vertex,
-		                               const Direction& dir,
-		                               const Direction& ref,
-		                               const Covariance<2>& cov = Covariance<2>::Identity()) = 0;
+		virtual void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.

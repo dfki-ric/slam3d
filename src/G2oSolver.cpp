@@ -100,11 +100,11 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 	mNewEdges.insert(constraint);
 }
 
-void G2oSolver::addDirectionPrior(IdType vertex, const Direction& dir, const Direction& ref, const Covariance<2>& cov)
+void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 {
-	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(dir, ref);
+	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(grav->getDirection(), grav->getReference());
 	prior->vertices()[0] = mOptimizer.vertex(vertex);
-	prior->setInformation(cov.inverse());
+	prior->setInformation(grav->getCovariance().inverse());
 	
 	mOptimizer.addEdge(prior);
 	mNewEdges.insert(prior);

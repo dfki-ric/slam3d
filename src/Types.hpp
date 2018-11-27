@@ -120,7 +120,7 @@ namespace slam3d
 		}
 	};
 	
-	enum ConstraintType {SE3};
+	enum ConstraintType {SE3, GRAVITY};
 	
 	/**
 	 * @class Constraint
@@ -156,9 +156,8 @@ namespace slam3d
 	public:
 		typedef boost::shared_ptr<SE3Constraint> Ptr;
 		
-	public:
-		SE3Constraint(const std::string& sensor, const TransformWithCovariance& twc)
-		: Constraint(sensor), mRelativePose(twc) {}
+		SE3Constraint(const std::string& s, const TransformWithCovariance& twc)
+		: Constraint(s), mRelativePose(twc) {}
 
 		ConstraintType getType() { return SE3; }
 		const char* getTypeName() { return "SE(3)"; }
@@ -168,6 +167,31 @@ namespace slam3d
 	protected:
 		TransformWithCovariance mRelativePose;
 		
+	};
+	
+	/**
+	 * @class GravityConstraint
+	 * @brief 
+	 */
+	class GravityConstraint : public Constraint
+	{
+	public:
+		typedef boost::shared_ptr<GravityConstraint> Ptr;
+		
+		GravityConstraint(const std::string& s, const Direction& d, const Direction& r, const Covariance<2>& c)
+		: Constraint(s), mDirection(d), mReference(r), mCovariance(c) {}
+		
+		ConstraintType getType() { return GRAVITY; }
+		const char* getTypeName() { return "Gravity"; }
+		
+		const Direction& getDirection() const { return mDirection; }
+		const Direction& getReference() const { return mReference; }
+		const Covariance<2>& getCovariance() const { return mCovariance; }
+		
+	protected:
+		Direction mDirection;
+		Direction mReference;
+		Covariance<2> mCovariance;
 	};
 	
 	/**
