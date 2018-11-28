@@ -54,17 +54,18 @@ namespace slam3d
 		 * @param cloud shared pointer to the PointCloud
 		 * @param r name of the robot that accquired this measurement
 		 * @param s name of the sensor managing this measurement
+		 * @param p pose of the sensor in the robot's coordinate frame
 		 * @param id unique identifier of this measurement
 		 */
 		PointCloudMeasurement(const PointCloud::Ptr &cloud,
 		                      const std::string& r, const std::string& s,
-		                      const Transform& tr, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		                      const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
 		{
 			mPointCloud = cloud;
 			mRobotName = r;
 			mSensorName = s;
-			mSensorPose = tr;
-			mInverseSensorPose = tr.inverse();
+			mSensorPose = p;
+			mInverseSensorPose = p.inverse();
 			if(id.is_nil())
 				mUniqueId = boost::uuids::random_generator()();
 			else
@@ -96,6 +97,7 @@ namespace slam3d
 		 * @brief Constructor
 		 * @param n unique name of this sensor (used to identify measurements)
 		 * @param l pointer to a Logger to write messages
+		 * @param p pose of the sensor in the robot's coordinate frame
 		 */
 		PointCloudSensor(const std::string& n, Logger* l, const Transform& p);
 		
@@ -153,10 +155,13 @@ namespace slam3d
 		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, const Transform& odom, bool force = false);
 		
 		/**
-		 * @brief Estimates the 6DoF transformation between source and target point cloud
+		 * @brief Calculate the estimated transform between two measurements of this sensor.
 		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
-		 * @param source
-		 * @param target
+		 * @param source measurement of the source node
+		 * @param target measurement of the target node
+		 * @param odometry estimation of robot movement
+		 * @param coarse whether to do a coarse estimate
+		 * @throw BadMeasurementType
 		 */
 		TransformWithCovariance calculateTransform(Measurement::Ptr source,
 		                                           Measurement::Ptr target,

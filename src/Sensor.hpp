@@ -109,8 +109,8 @@ namespace slam3d
 		
 		/**
 		 * @brief Calculate the estimated transform between two measurements of this sensor.
-		 * @param source
-		 * @param target
+		 * @param source measurement of the source node
+		 * @param target measurement of the target node
 		 * @param odometry estimation of robot movement
 		 * @param coarse whether to do a coarse estimate
 		 * @throw BadMeasurementType

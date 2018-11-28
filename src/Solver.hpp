@@ -112,11 +112,17 @@ namespace slam3d
 	
 		/**
 		 * @brief Adds a vertex to the internal graph representation.
-		 * @param v VertexObject from the PoseGraph
 		 * @param id unique identifier of the vertex
+		 * @param pose initial pose of the new vertex
 		 */
 		virtual void addVertex(IdType id, const Transform& pose) = 0;
 		
+		/**
+		 * @brief Add an edge to the internal graph representation.
+		 * @param source id of source vertex
+		 * @param target id of target vertex
+		 * @param c pointer to a generic constraint
+		 */
 		void addEdge(IdType source, IdType target, Constraint::Ptr c)
 		{
 			switch(c->getType())
@@ -137,17 +143,17 @@ namespace slam3d
 		/**
 		 * @brief Adds a SE3 edge between two vertices in the graph.
 		 * @details The source and target vertices have to be added before the edge.
-		 * @param source the edge's from-vertex
-		 * @param target the edge's to-vertex
-		 * @param se3
+		 * @param source id of the edge's from-vertex
+		 * @param target id if the edge's to-vertex
+		 * @param se3 constraint describing a relative pose between two vertices
 		 */
 		virtual void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3) = 0;
 		
 		/**
 		 * @brief Adds a gravity edge to a vertex in the graph.
 		 * @details The vertex has to be added to the graph before.
-		 * @param vertex
-		 * @param grav
+		 * @param vertex id of the vertex this edge connects to
+		 * @param grav constraint describing the measured direction of gravity
 		 */
 		virtual void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav) = 0;
 		

@@ -86,7 +86,7 @@ namespace slam3d
 		 * @brief Add a constraint from another robot between two measurements.
 		 * @param source uuid of a measurement
 		 * @param target uuid of a measurement
-		 * @param relative_pose transform from source to target
+		 * @param twc transform from source to target
 		 * @param sensor name of sensor that created the constraint
 		 */
 		void addExternalConstraint(boost::uuids::uuid source,

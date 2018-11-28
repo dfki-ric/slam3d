@@ -192,7 +192,7 @@ namespace slam3d
 		 */
 		virtual void addConstraint(IdType source,
 		                           IdType target,
-		                           Constraint::Ptr c) = 0;
+		                           Constraint::Ptr constraint) = 0;
 
 		/**
 		 * @brief Set the corrected pose for the vertex with the given ID.

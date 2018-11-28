@@ -49,10 +49,7 @@ namespace slam3d
 		 * @brief Adds a new edge to the graph.
 		 * @param source id of source vertex
 		 * @param target id of target vertex
-		 * @param t transformation from source to target
-		 * @param c covariance of transformation
-		 * @param sensor name of the sensor that created this edge
-		 * @param label description to be added to this edge
+		 * @param c constraint
 		 * @return 
 		 */
 		void addConstraint(IdType source,
