@@ -26,13 +26,14 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include "Graph.hpp"
-#include "GICPConfiguration.hpp"
-#include "Sensor.hpp"
-#include "PoseSensor.hpp"
+#include <slam3d/sensor/pcl/GICPConfiguration.hpp>
 
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
+#include <slam3d/core/Graph.hpp>
+#include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/PoseSensor.hpp>
+
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 namespace slam3d
 {

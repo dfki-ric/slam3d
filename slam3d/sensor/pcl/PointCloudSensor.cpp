@@ -24,7 +24,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "PointCloudSensor.hpp"
-#include "Mapper.hpp"
+
+#include <slam3d/core/Mapper.hpp>
 
 #include <pcl/registration/gicp.h>
 #include <pcl/filters/voxel_grid.h>

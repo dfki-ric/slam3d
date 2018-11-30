@@ -1,7 +1,7 @@
 #ifndef SLAM3D_BOOSTGRAPH_HPP
 #define SLAM3D_BOOSTGRAPH_HPP
 
-#include "Graph.hpp"
+#include <slam3d/core/Graph.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>

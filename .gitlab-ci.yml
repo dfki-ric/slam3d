@@ -6,10 +6,8 @@ binaries:
    script:
    - aup
    - amake -k
-   - make -C build
    only:
    - master
-   - rework_cmake
 
 pages:
    stage: deploy

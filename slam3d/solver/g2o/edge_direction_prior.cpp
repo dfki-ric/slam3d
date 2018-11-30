@@ -28,7 +28,7 @@
 #include <g2o/types/slam3d/isometry3d_gradients.h>
 #include <iostream>
 
-#include "g2o/edge_direction_prior.h"
+#include "edge_direction_prior.h"
 
 namespace g2o {
   using namespace std;

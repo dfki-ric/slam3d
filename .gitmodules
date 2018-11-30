@@ -1,0 +1,3 @@
+[submodule "slam3d/solver/g2o/g2o"]
+	path = slam3d/solver/g2o/g2o
+	url = git@github.com:RainerKuemmerle/g2o.git

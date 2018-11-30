@@ -26,7 +26,7 @@
 #ifndef SLAM_G2O_SOLVER_HPP
 #define SLAM_G2O_SOLVER_HPP
 
-#include "Solver.hpp"
+#include <slam3d/core/Solver.hpp>
 #include <g2o/core/sparse_optimizer.h>
 
 namespace slam3d

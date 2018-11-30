@@ -4,7 +4,8 @@
 
 
 #include "BoostGraph.hpp"
-#include "Solver.hpp"
+
+#include <slam3d/core/Solver.hpp>
 
 #include <boost/format.hpp>
 #include <boost/graph/visitors.hpp>
