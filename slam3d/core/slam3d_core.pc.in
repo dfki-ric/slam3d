@@ -3,9 +3,9 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: slam3d
-Description: Meta-Package for all components of SLAM3D.
+Name: slam3d_core
+Description: Core components of the SLAM3D library.
 Version: @SLAM3D_VERSION@
-Requires: @PKG_REQUIRES@
-Libs:
-Cflags:
+Requires: 
+Libs: -L${libdir} -lslam3d_core
+Cflags: -I${includedir}

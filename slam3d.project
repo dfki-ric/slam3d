@@ -127,6 +127,7 @@
       <File Name="slam3d/core/Sensor.hpp"/>
       <File Name="slam3d/core/Solver.hpp"/>
       <File Name="slam3d/core/Types.hpp"/>
+      <File Name="slam3d/core/slam3d_core.pc.in"/>
     </VirtualDirectory>
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>
@@ -136,6 +137,7 @@
         <File Name="slam3d/solver/g2o/edge_direction_prior.h"/>
         <File Name="slam3d/solver/g2o/G2oSolver.cpp"/>
         <File Name="slam3d/solver/g2o/G2oSolver.hpp"/>
+        <File Name="slam3d/solver/g2o/slam3d_solver_g2o.pc.in"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="graph">
@@ -144,6 +146,7 @@
         <File Name="slam3d/graph/boost/BoostGraph.cpp"/>
         <File Name="slam3d/graph/boost/BoostGraph.hpp"/>
         <File Name="slam3d/graph/boost/CMakeLists.txt"/>
+        <File Name="slam3d/graph/boost/slam3d_graph_boost.pc.in"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="sensor">
@@ -153,7 +156,15 @@
         <File Name="slam3d/sensor/pcl/GICPConfiguration.hpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.cpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.hpp"/>
+        <File Name="slam3d/sensor/pcl/slam3d_sensor_pcl.pc.in"/>
       </VirtualDirectory>
     </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="build">
+    <File Name="CMakeLists.txt"/>
+    <File Name="Doxyfile"/>
+    <File Name="manifest.xml"/>
+    <File Name="package.xml"/>
+    <File Name="slam3d.pc.in"/>
   </VirtualDirectory>
 </CodeLite_Project>

@@ -12,17 +12,25 @@ target_include_directories(core
 		${EIGEN3_INCLUDE_DIR}
 	)
 
+# Install header files
+install(DIRECTORY ./
+	DESTINATION include/slam3d/core
+	FILES_MATCHING PATTERN "*.hpp"
+)
+
 # Install the binaries
-install(TARGETS core EXPORT core-targets
+install(TARGETS core EXPORT slam3d-targets
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION bin
 )
 
-# Export the library interface
-install(EXPORT core-targets
-	NAMESPACE slam3d::
-	DESTINATION lib/cmake/slam3d
+# Install pkg-config file
+configure_file(slam3d_core.pc.in slam3d_core.pc @ONLY)
+install(
+	FILES ${PROJECT_BINARY_DIR}/slam3d/core/slam3d_core.pc
+	DESTINATION lib/pkgconfig
 )
 
 set_target_properties(core PROPERTIES OUTPUT_NAME slam3d_core)
+add_slam3d_library(slam3d_core)

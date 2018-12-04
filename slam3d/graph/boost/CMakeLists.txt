@@ -12,21 +12,22 @@ target_link_libraries(graph-boost
 # Install header files
 install(
 	FILES BoostGraph.hpp
-	DESTINATION include/slam3d
+	DESTINATION include/slam3d/graph/boost/
 )
 
 # Install the binaries
-install(TARGETS graph-boost EXPORT graph-boost-targets
+install(TARGETS graph-boost EXPORT slam3d-targets
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION bin
 )
 
-# Export the library interface
-install(EXPORT graph-boost-targets
-	NAMESPACE slam3d::
-	DESTINATION lib/cmake/slam3d
+# Install pkg-config file
+configure_file(slam3d_graph_boost.pc.in slam3d_graph_boost.pc @ONLY)
+install(
+	FILES ${PROJECT_BINARY_DIR}/slam3d/graph/boost/slam3d_graph_boost.pc
+	DESTINATION lib/pkgconfig
 )
 
 set_target_properties(graph-boost PROPERTIES OUTPUT_NAME slam3d_graph_boost)
-
+add_slam3d_library(slam3d_graph_boost)

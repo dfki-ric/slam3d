@@ -26,29 +26,37 @@
 #include "G2oSolver.hpp"
 #include "edge_direction_prior.h"
 
+#include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
 #include <g2o/core/sparse_optimizer_terminate_action.h>
 
-#include "boost/format.hpp"
+#include <boost/format.hpp>
 
 using namespace slam3d;
 
 typedef g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType> SlamLinearSolver;
 
-G2oSolver::G2oSolver(Logger* logger) : Solver(logger)
+struct G2oSolver::Internal
+{
+	g2o::SparseOptimizer optimizer;
+	g2o::HyperGraph::VertexSet newVertices;
+	g2o::HyperGraph::EdgeSet newEdges;
+};
+
+G2oSolver::G2oSolver(Logger* logger) : Solver(logger), mInt(new Internal)
 {
 	// Initialize the SparseOptimizer
 	std::unique_ptr<SlamLinearSolver> linearSolver(new SlamLinearSolver);
 	linearSolver->setBlockOrdering(true);
 	std::unique_ptr<g2o::BlockSolver_6_3> blockSolver(new g2o::BlockSolver_6_3(std::move(linearSolver)));
-	mOptimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(std::move(blockSolver)));
+	mInt->optimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(std::move(blockSolver)));
 	
 	// Set the default terminate action
 	g2o::SparseOptimizerTerminateAction* terminateAction = new g2o::SparseOptimizerTerminateAction;
-	mOptimizer.addPostIterationAction(terminateAction);
+	mInt->optimizer.addPostIterationAction(terminateAction);
 	
 	mInitialized = false;
 }
@@ -61,7 +69,7 @@ G2oSolver::~G2oSolver()
 void G2oSolver::addVertex(IdType id, const Transform& pose)
 {
 	// Check that given id has not been added before
-	if(mOptimizer.vertex(id) != NULL)
+	if(mInt->optimizer.vertex(id) != NULL)
 	{
 		throw DuplicateVertex(id);
 	}
@@ -72,8 +80,8 @@ void G2oSolver::addVertex(IdType id, const Transform& pose)
 	poseVertex->setId(id);
 	
 	// Add the vertex to the optimizer
-	mOptimizer.addVertex(poseVertex);
-	mNewVertices.insert(poseVertex);
+	mInt->optimizer.addVertex(poseVertex);
+	mInt->newVertices.insert(poseVertex);
 }
 
 void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
@@ -82,8 +90,8 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
 	
 	// Set source and target
-	constraint->vertices()[0] = mOptimizer.vertex(source);
-	constraint->vertices()[1] = mOptimizer.vertex(target);
+	constraint->vertices()[0] = mInt->optimizer.vertex(source);
+	constraint->vertices()[1] = mInt->optimizer.vertex(target);
 	if(constraint->vertices()[0] == NULL || constraint->vertices()[1] == NULL)
 	{
 		delete constraint;
@@ -96,24 +104,24 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 	constraint->setInformation(twc.covariance.inverse().cast<double>()); // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
-	mOptimizer.addEdge(constraint);
-	mNewEdges.insert(constraint);
+	mInt->optimizer.addEdge(constraint);
+	mInt->newEdges.insert(constraint);
 }
 
 void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 {
 	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(grav->getDirection(), grav->getReference());
-	prior->vertices()[0] = mOptimizer.vertex(vertex);
+	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
 	prior->setInformation(grav->getCovariance().inverse());
 	
-	mOptimizer.addEdge(prior);
-	mNewEdges.insert(prior);
+	mInt->optimizer.addEdge(prior);
+	mInt->newEdges.insert(prior);
 }
 
 void G2oSolver::setFixed(IdType id)
 {
 	// Fix the vertex in the graph to hold the map in place
-	g2o::OptimizableGraph::Vertex* v = mOptimizer.vertex(id);
+	g2o::OptimizableGraph::Vertex* v = mInt->optimizer.vertex(id);
 	if(!v)
 	{
 		mLogger->message(ERROR, (boost::format("Could not fix vertex with ID %1%!") % id).str());
@@ -125,18 +133,18 @@ void G2oSolver::setFixed(IdType id)
 bool G2oSolver::compute(unsigned iterations)
 {
 	// need to do something?
-	if(mOptimizer.activeVertices().size() == 0 && mNewVertices.size() < 2)
+	if(mInt->optimizer.activeVertices().size() == 0 && mInt->newVertices.size() < 2)
 		return true;
 	
 	// Check input
-	if(!mOptimizer.verifyInformationMatrices(true))
+	if(!mInt->optimizer.verifyInformationMatrices(true))
 	{
 		mLogger->message(ERROR, "Failed to verify information matrices!");
 		return false;
 	}
 
 	// Reset the stop flag that is set by TerminateAction
-	bool* stopFlag = mOptimizer.forceStopFlag();
+	bool* stopFlag = mInt->optimizer.forceStopFlag();
 	if(stopFlag)
 	{
 		*stopFlag = false;
@@ -146,16 +154,16 @@ bool G2oSolver::compute(unsigned iterations)
 	if(mInitialized)
 	{
 		mLogger->message(DEBUG, "Update Initialization.");
-		mOptimizer.updateInitialization(mNewVertices, mNewEdges);
+		mInt->optimizer.updateInitialization(mInt->newVertices, mInt->newEdges);
 	}else
 	{
 		mLogger->message(DEBUG, "Do first Initialization.");
-		mInitialized = mOptimizer.initializeOptimization();
+		mInitialized = mInt->optimizer.initializeOptimization();
 	}
-	mNewVertices.clear();
-	mNewEdges.clear();
+	mInt->newVertices.clear();
+	mInt->newEdges.clear();
 	
-	int iter = mOptimizer.optimize(iterations, false);
+	int iter = mInt->optimizer.optimize(iterations, false);
 	if (iter <= 0)
 	{		
 		mLogger->message(ERROR, "Optimization failed!");
@@ -167,7 +175,7 @@ bool G2oSolver::compute(unsigned iterations)
 	mCorrections.clear();
 
 	// Write the result so it can be used by the mapper
-	g2o::SparseOptimizer::VertexContainer vertices = mOptimizer.activeVertices();
+	g2o::SparseOptimizer::VertexContainer vertices = mInt->optimizer.activeVertices();
 	for (g2o::SparseOptimizer::VertexContainer::const_iterator n = vertices.begin(); n < vertices.end(); n++)
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*>(*n);
@@ -185,13 +193,13 @@ IdPoseVector G2oSolver::getCorrections()
 
 void G2oSolver::clear()
 {
-	mOptimizer.clear();
+	mInt->optimizer.clear();
 	mInitialized = false;
 }
 
 void G2oSolver::saveGraph(std::string filename)
 {
-	if(mOptimizer.save(filename.c_str()))
+	if(mInt->optimizer.save(filename.c_str()))
 	{
 		mLogger->message(INFO, (boost::format("Saved current g2o graph in %1%.") % filename).str());
 	}else

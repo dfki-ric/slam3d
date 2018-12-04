@@ -27,7 +27,6 @@
 #define SLAM_G2O_SOLVER_HPP
 
 #include <slam3d/core/Solver.hpp>
-#include <g2o/core/sparse_optimizer.h>
 
 namespace slam3d
 {	
@@ -54,12 +53,12 @@ namespace slam3d
 		IdPoseVector getCorrections();
 		
 	protected:
-		g2o::SparseOptimizer mOptimizer;
-		g2o::HyperGraph::VertexSet mNewVertices;
-		g2o::HyperGraph::EdgeSet mNewEdges;
-		
 		IdPoseVector mCorrections;
 		bool mInitialized;
+
+	private:
+		struct Internal;
+		std::unique_ptr<Internal> mInt;
 	};
 }
 
