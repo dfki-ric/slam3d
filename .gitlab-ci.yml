@@ -13,7 +13,7 @@ binaries:
      when: on_failure
      expire_in: 1 week
      paths:
-       - /opt/rock/builds/
+       - /builds/
      
 
 pages:
