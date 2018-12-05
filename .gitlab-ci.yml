@@ -5,9 +5,10 @@ binaries:
    stage: build
    script:
    - aup
-   - amake -k
+   - amake
    only:
    - master
+   - devel
 
 pages:
    stage: deploy
