@@ -1,7 +1,7 @@
 image: skasperski/slam3d-ci
 
 binaries:
-   image: registry:5000/rock-core:18.04
+   image: d-reg.hb.dfki.de:5000/rock-core:18.04
    stage: build
    script:
    - aup
