@@ -9,6 +9,12 @@ binaries:
    only:
    - master
    - devel
+   artifacts:
+     when: on_failure
+     expire_in: 1 week
+     paths:
+       - /opt/rock/install/log/
+     
 
 pages:
    stage: deploy
