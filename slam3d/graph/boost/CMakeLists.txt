@@ -1,12 +1,20 @@
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS graph)
 
 # Define graph-boost library
 add_library(graph-boost
 	BoostGraph.cpp
 )
 
+target_include_directories(graph-boost
+	PUBLIC
+		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+		$<INSTALL_INTERFACE:include>
+)
+
 target_link_libraries(graph-boost
-	PUBLIC core
+	PUBLIC
+		Boost::graph 
+		core
 )
 
 # Install header files

@@ -1,16 +1,21 @@
-find_package(Eigen3 REQUIRED)
-
 add_library(core
 	Mapper.cpp
 	Graph.cpp
 )
 
+find_package(Eigen3 NO_MODULE)
+if (TARGET Eigen3::Eigen)
+	target_link_libraries(core PUBLIC Eigen3::Eigen)
+else()
+  find_package(Eigen3 REQUIRED)
+  target_include_directories(core PUBLIC ${EIGEN3_INCLUDE_DIR})
+endif ()
+
 target_include_directories(core
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
 		$<INSTALL_INTERFACE:include>
-		${EIGEN3_INCLUDE_DIR}
-	)
+)
 
 # Install header files
 install(DIRECTORY ./

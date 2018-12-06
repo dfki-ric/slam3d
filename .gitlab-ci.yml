@@ -6,7 +6,6 @@ binaries:
    script:
    - aup
    - amake
-   - cat /opt/rock/install/log/../../builds/dfki-slam/slam3d-configure.log
    only:
    - master
    - devel
