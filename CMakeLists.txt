@@ -15,6 +15,7 @@ endif ()
 find_package(Boost REQUIRED COMPONENTS graph)
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
 find_package(g2o REQUIRED)
+find_package(OpenGL)
 
 # Define a global property to hold all libraries. This can be
 # used to create a pkg-config file for all of SLAM3D.
