@@ -3,6 +3,19 @@ cmake_policy(VERSION 3.5.1)
 
 project(SLAM3D VERSION "1.0.0")
 
+# Find all dependencies
+find_package(Eigen3 NO_MODULE)
+if (NOT TARGET Eigen3::Eigen)
+	find_package(Eigen3 REQUIRED)
+	add_library(Eigen3::Eigen INTERFACE IMPORTED)
+	set_property(TARGET Eigen3::Eigen APPEND PROPERTY
+		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
+endif ()
+
+find_package(Boost REQUIRED COMPONENTS graph)
+find_package(PCL 1.7 REQUIRED COMPONENTS registration)
+find_package(g2o REQUIRED)
+
 # Define a global property to hold all libraries. This can be
 # used to create a pkg-config file for all of SLAM3D.
 set_property(GLOBAL PROPERTY SLAM3D_ALL_LIBRARIES)

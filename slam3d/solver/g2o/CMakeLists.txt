@@ -1,5 +1,3 @@
-find_package(g2o REQUIRED)
-
 add_library(solver-g2o
 	edge_direction_prior.cpp
 	G2oSolver.cpp

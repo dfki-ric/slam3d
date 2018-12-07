@@ -1,5 +1,3 @@
-find_package(PCL 1.7 REQUIRED COMPONENTS registration)
-
 add_library(sensor-pcl
 	PointCloudSensor.cpp
 )

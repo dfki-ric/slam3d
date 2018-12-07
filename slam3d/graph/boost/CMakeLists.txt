@@ -1,5 +1,3 @@
-find_package(Boost REQUIRED COMPONENTS graph)
-
 # Define graph-boost library
 add_library(graph-boost
 	BoostGraph.cpp
