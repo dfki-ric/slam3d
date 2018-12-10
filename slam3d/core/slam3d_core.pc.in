@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: slam3d_core
 Description: Core components of the SLAM3D library.
 Version: @SLAM3D_VERSION@
-Requires: 
+Requires: eigen3
 Libs: -L${libdir} -lslam3d_core
 Cflags: -I${includedir}
