@@ -1,19 +1,13 @@
-image: skasperski/slam3d-ci
+image: d-reg.hb.dfki.de:5000/slam3d/ci-plain
 
 binaries:
-   image: d-reg.hb.dfki.de:5000/rock-core:18.04
    stage: build
    script:
-   - aup
-   - amake
+   - cmake .
+   - make
    only:
    - master
    - devel
-   artifacts:
-     when: on_failure
-     expire_in: 1 week
-     paths:
-       - /opt/rock/install/log/../../builds/     
 
 pages:
    stage: deploy
