@@ -11,6 +11,8 @@ target_include_directories(core
 
 target_link_libraries(core PUBLIC Eigen3::Eigen)
 
+target_compile_features(core PUBLIC cxx_alias_templates)
+
 # Install header files
 install(DIRECTORY ./
 	DESTINATION include/slam3d/core
