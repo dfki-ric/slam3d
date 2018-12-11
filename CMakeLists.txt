@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 cmake_policy(VERSION 3.5.1)
 
-project(SLAM3D VERSION "1.0.0")
+project(SLAM3D VERSION "2.0.0")
 
 # Find all dependencies
 find_package(Eigen3 NO_MODULE)
