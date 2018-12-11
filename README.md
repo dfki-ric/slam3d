@@ -15,6 +15,9 @@ Content
 This package contains the following subdirectories:
 
 - [ci] Description file for a Docker container to test the build process
-- [cmake] CMake-Macros to find dependencies and SLAM3D once it has been installed
-- [src] Contains all header (.h/.hpp) and source files
+- [slam3d] Contains all header (.h/.hpp) and source files
 - [test] Boost-Test modules to verify basic functionality
+
+Contributing
+------------
+Commits into the master-branch should only be done via merge requests. For project-specific development this repository should be forked into the project's gitlab-group.
