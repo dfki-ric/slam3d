@@ -7,7 +7,6 @@ binaries:
    - make
    only:
    - master
-   - devel
 
 pages:
    stage: deploy
