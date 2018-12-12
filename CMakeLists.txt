@@ -1,90 +1,65 @@
-cmake_minimum_required(VERSION 2.6)
-project(slam3d)
+cmake_minimum_required(VERSION 2.8)
+cmake_policy(VERSION 3.5.1)
 
-set(SLAM3D_MAJOR_VERSION 0)
-set(SLAM3D_MINOR_VERSION 1)
-set(SLAM3D_PATCH_VERSION 0)
-set(SLAM3D_VERSION ${SLAM3D_MAJOR_VERSION}.${SLAM3D_MINOR_VERSION}.${SLAM3D_PATCH_VERSION})
+project(SLAM3D VERSION "2.0.0")
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+# Find all dependencies
+find_package(Eigen3 NO_MODULE)
+if (NOT TARGET Eigen3::Eigen)
+	find_package(Eigen3 REQUIRED)
+	add_library(Eigen3::Eigen INTERFACE IMPORTED)
+	set_property(TARGET Eigen3::Eigen APPEND PROPERTY
+		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
+endif ()
 
-add_definitions(-std=c++11)
-
-if(PCL_WITH_VIEWPOINT)
-	add_definitions(-DPCL_WITH_VIEWPOINT)
-endif()
-
-set(BUILD_SHARED_LIBS ON)
-
+find_package(Boost REQUIRED COMPONENTS graph)
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
-find_package(Boost REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(Cholmod REQUIRED)
-find_package(G2O REQUIRED)
+find_package(g2o REQUIRED)
 
-include_directories(
-	src
-	${EIGEN3_INCLUDE_DIR}
-	${PCL_INCLUDE_DIRS}
-	${G2O_INCLUDE_DIR}
-	${CHOLMOD_INCLUDE_DIR}
-)
+# Define a global property to hold all libraries. This can be
+# used to create a pkg-config file for all of SLAM3D.
+set_property(GLOBAL PROPERTY SLAM3D_ALL_LIBRARIES)
+function(add_slam3d_library)
+    get_property(tmp GLOBAL PROPERTY SLAM3D_ALL_LIBRARIES)
+    foreach(arg ${ARGV})
+        set(tmp "${tmp} ${arg}")
+    endforeach()
+    set_property(GLOBAL PROPERTY SLAM3D_ALL_LIBRARIES "${tmp}")
+endfunction(add_slam3d_library)
 
-add_library(slam3d
-	src/GraphMapper.cpp
-	src/BoostMapper.cpp
-	src/PointCloudSensor.cpp
-	src/G2oSolver.cpp
-)
+add_subdirectory(slam3d)
 
-target_link_libraries(slam3d
-	${CHOLMOD_LIBRARIES}
-	${G2O_CORE_LIBRARY}
-	${G2O_STUFF_LIBRARY}
-	${G2O_TYPES_SLAM3D}
-	${G2O_SOLVER_CHOLMOD}
-	${PCL_REGISTRATION_LIBRARIES}
-)
-
-# Install the binaries
-install(TARGETS slam3d
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
-)
-
-# Install header files
-install(DIRECTORY src/
-	DESTINATION include/slam3d
-	FILES_MATCHING PATTERN "*.hpp"
-)
-
-# Install catkin package-manifest
-install(FILES package.xml
-	DESTINATION share/slam3d
-)
-
-# Install cmake macro
-install(FILES cmake/FindSLAM3D.cmake
+# Export the library interface
+install(EXPORT slam3d-targets
+	NAMESPACE slam3d::
 	DESTINATION lib/cmake/slam3d
 )
 
-# Install pkg-config file
-configure_file(slam3d.pc.in slam3d.pc @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/slam3d.pc
-	DESTINATION lib/pkgconfig
+# Create and install the version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("slam3d-version.cmake"
+	VERSION ${SLAM3D_VERSION}
+	COMPATIBILITY SameMajorVersion
 )
 
-# Generate test cases
-enable_testing()
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-include_directories (${Boost_INCLUDE_DIRS})
-add_definitions(-DBOOST_TEST_DYN_LINK)
+install(
+	FILES
+		slam3d-config.cmake
+		${PROJECT_BINARY_DIR}/slam3d-version.cmake
+	DESTINATION
+		lib/cmake/slam3d
+)
 
-file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*.cpp)
-foreach(testSrc ${TEST_SRCS})
-	get_filename_component(testName ${testSrc} NAME_WE)
-	add_executable(test_${testName} ${testSrc})
-	target_link_libraries(test_${testName} ${Boost_LIBRARIES} slam3d)
-	add_test(${testName} test_${testName}) 
-endforeach(testSrc)
+# Install catkin package-manifest
+install(
+	FILES package.xml
+	DESTINATION share/slam3d
+)
+
+# Install pkg-config file
+get_property(PKG_REQUIRES GLOBAL PROPERTY SLAM3D_ALL_LIBRARIES)
+configure_file(slam3d.pc.in slam3d.pc @ONLY)
+install(
+	FILES ${PROJECT_BINARY_DIR}/slam3d.pc
+	DESTINATION lib/pkgconfig
+)

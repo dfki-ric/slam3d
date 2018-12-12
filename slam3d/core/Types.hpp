@@ -39,9 +39,9 @@ namespace slam3d
 {
 	typedef unsigned IdType;
 	typedef double ScalarType;
-	typedef Eigen::Matrix<ScalarType,3,1> Vector3;
+	typedef Eigen::Matrix<ScalarType,3,1> Direction;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
-	typedef Eigen::Matrix<ScalarType,6,6> Covariance;
+	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	
 	/**
 	 * @class TransformWithCovariance
@@ -50,10 +50,10 @@ namespace slam3d
 	struct TransformWithCovariance
 	{
 		Transform transform;
-		Covariance covariance;
+		Covariance<6> covariance;
 
-		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance::Zero()) {}
-		TransformWithCovariance(const Transform& t, const Covariance& cov) : transform(t), covariance(cov) {}
+		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance<6>::Identity()) {}
+		TransformWithCovariance(const Transform& t, const Covariance<6>& cov) : transform(t), covariance(cov) {}
 		static TransformWithCovariance Identity() {return TransformWithCovariance();}
 	};
 	
@@ -112,12 +112,86 @@ namespace slam3d
 	public:
 		MapOrigin()
 		{
-			mRobotName = "";
-			mSensorName = "";
+			mRobotName = "none";
+			mSensorName = "none";
 			mSensorPose = Transform::Identity();
 			mInverseSensorPose = Transform::Identity();
 			mUniqueId = boost::uuids::nil_uuid();
 		}
+	};
+	
+	enum ConstraintType {SE3, GRAVITY};
+	
+	/**
+	 * @class Constraint
+	 * @brief Base class for a constraint in the pose graph.
+	 * @details This can be a unary contraint on a pose (e.g. GPS, gravity)
+	 * or a binary constraint on two poses (e.g. ICP result)
+	 */
+	class Constraint
+	{
+	public:
+		typedef boost::shared_ptr<Constraint> Ptr;
+		
+	public:
+		Constraint(const std::string& sensor) : mSensorName(sensor) {}
+		virtual ~Constraint(){}
+		virtual ConstraintType getType() = 0;
+		virtual const char* getTypeName() = 0;
+
+		timeval getTimestamp() const { return mStamp; }
+		std::string getSensorName() const { return mSensorName; }
+
+	protected:
+		timeval mStamp;
+		std::string mSensorName;
+	};
+	
+	/**
+	 * @class SE3Constraint
+	 * @brief 
+	 */
+	class SE3Constraint : public Constraint
+	{
+	public:
+		typedef boost::shared_ptr<SE3Constraint> Ptr;
+		
+		SE3Constraint(const std::string& s, const TransformWithCovariance& twc)
+		: Constraint(s), mRelativePose(twc) {}
+
+		ConstraintType getType() { return SE3; }
+		const char* getTypeName() { return "SE(3)"; }
+		
+		const TransformWithCovariance& getRelativePose() const { return mRelativePose; }
+		
+	protected:
+		TransformWithCovariance mRelativePose;
+		
+	};
+	
+	/**
+	 * @class GravityConstraint
+	 * @brief 
+	 */
+	class GravityConstraint : public Constraint
+	{
+	public:
+		typedef boost::shared_ptr<GravityConstraint> Ptr;
+		
+		GravityConstraint(const std::string& s, const Direction& d, const Direction& r, const Covariance<2>& c)
+		: Constraint(s), mDirection(d), mReference(r), mCovariance(c) {}
+		
+		ConstraintType getType() { return GRAVITY; }
+		const char* getTypeName() { return "Gravity"; }
+		
+		const Direction& getDirection() const { return mDirection; }
+		const Direction& getReference() const { return mReference; }
+		const Covariance<2>& getCovariance() const { return mCovariance; }
+		
+	protected:
+		Direction mDirection;
+		Direction mReference;
+		Covariance<2> mCovariance;
 	};
 	
 	/**
@@ -143,12 +217,11 @@ namespace slam3d
 	 */
 	struct EdgeObject
 	{
-		Transform transform;
-		Covariance covariance;
-		std::string sensor;
 		std::string label;
+		std::string sensor;
 		IdType source;
 		IdType target;
+		Constraint::Ptr constraint;
 	};
 
 	typedef std::vector<VertexObject> VertexObjectList;

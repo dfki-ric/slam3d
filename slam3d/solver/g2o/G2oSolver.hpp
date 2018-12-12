@@ -23,66 +23,43 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_ODOMETRY_HPP
-#define SLAM_ODOMETRY_HPP
+#ifndef SLAM_G2O_SOLVER_HPP
+#define SLAM_G2O_SOLVER_HPP
 
-#include "Types.hpp"
-#include "Logger.hpp"
+#include <slam3d/core/Solver.hpp>
 
 namespace slam3d
-{
+{	
 	/**
-	 * @class OdometryException
-	 * @brief Exception thrown when the requested odometry information is not available.
+	 * @class G2oSolver
+	 * @brief A solver for graph otimization that uses the g2o-backend.
+	 * @details See: https://github.com/RainerKuemmerle/g2o for documentation
+	 * on the backend.
 	 */
-	class OdometryException: public std::exception
+	class G2oSolver : public Solver
 	{
 	public:
-		OdometryException(){}
-		virtual const char* what() const throw()
-		{
-			return "Odometry at given time is not available!";
-		}
-	};
-	
-	/**
-	 * @class Odometry
-	 * @brief Base class for all odometry modules.
-	 */
-	class Odometry
-	{
-	public:
-
-		Odometry(Logger* logger) : mLogger(logger) {}
-		virtual ~Odometry(){}
+		G2oSolver(Logger* logger);
+		~G2oSolver();
 		
-		/**
-		 * @brief Gets the robot's location at given poin in time.
-		 * @param stamp
-		 */
-		virtual Transform getOdometricPose(timeval stamp) = 0;
+		void addVertex(IdType id, const Transform& pose);
+		void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3);
+		void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav);
+		void setFixed(IdType id);
+		bool compute(unsigned iterations);
+		void clear();
+		void saveGraph(std::string filename);
 		
-		/**
-		 * @brief Gets relative pose and uncertainty between two points in time.
-		 * @param last
-		 * @param next
-		 * @return relative pose with covariance
-		 * @throw OdometryException
-		 */
-		virtual TransformWithCovariance getRelativePose(timeval last, timeval next) = 0;
-		
-		/**
-		 * @brief Calculates covariance from simple motion model
-		 * @param tf relative transform between two poses
-		 * @return covariance of the relative transform tf
-		 */
-		virtual Covariance calculateCovariance(const Transform &tf) = 0;
+		IdPoseVector getCorrections();
 		
 	protected:
-		Logger* mLogger;
+		IdPoseVector mCorrections;
+		bool mInitialized;
 
+	private:
+		struct Internal;
+		std::unique_ptr<Internal> mInt;
 	};
-
 }
 
 #endif

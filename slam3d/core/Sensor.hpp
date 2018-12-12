@@ -27,7 +27,6 @@
 #define SLAM_SENSOR_HPP
 
 #include "Types.hpp"
-#include "Logger.hpp"
 
 namespace slam3d
 {	
@@ -53,6 +52,9 @@ namespace slam3d
 	/**
 	 * @class NoMatch
 	 * @brief Exception thrown when two measurements could not be matched.
+	 * @details This is not necessarily a problem if it happens once in a while.
+	 * But when matching fails regularly, the mapping can fail and matching
+	 * parameters should be changed by the user.
 	 */
 	class NoMatch: public std::exception
 	{
@@ -67,19 +69,30 @@ namespace slam3d
 		std::string message;
 	};
 	
+	class Mapper;
+	class Graph;
+	class Logger;
+	
 	/**
 	 * @class Sensor
-	 * @brief Base class for a sensor used in the mapping process.
-	 * @details The sensor is responsible for calculating relative poses between
-	 * its measurements and for creating representations (maps) from all
-	 * readings using the corrected poses from SLAM.
+	 * @brief Abstract base class for a sensor used in the mapping process.
+	 * @details The sensor is responsible for adding new measurements to the
+	 * graph holding its measurements and for creating representations (maps)
+	 * from all readings using the corrected poses from SLAM.
 	 */
 	class Sensor
 	{
 	public:
 		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mName(n), mLogger(l), mSensorPose(p){}
+		 :mMapper(NULL), mGraph(NULL), mLogger(l), mName(n), mSensorPose(p), mLastVertex(0){}
 		virtual ~Sensor(){}
+		
+		/**
+		 * @brief Set the mapper and graph that this sensor is used by.
+		 * @param m Mapper
+		 * @param g Graph
+		 */
+		void setMapperAndGraph(Mapper* m, Graph* g) { mMapper = m, mGraph = g; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
@@ -96,15 +109,15 @@ namespace slam3d
 		
 		/**
 		 * @brief Calculate the estimated transform between two measurements of this sensor.
-		 * @param source
-		 * @param target
+		 * @param source measurement of the source node
+		 * @param target measurement of the target node
 		 * @param odometry estimation of robot movement
 		 * @param coarse whether to do a coarse estimate
 		 * @throw BadMeasurementType
 		 */
 		virtual TransformWithCovariance calculateTransform(Measurement::Ptr source,
 		                                                   Measurement::Ptr target,
-		                                                   Transform odometry,
+		                                                   TransformWithCovariance odometry,
 		                                                   bool coarse = false) const = 0;		
 		/**
 		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
@@ -114,10 +127,40 @@ namespace slam3d
 		 */
 		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
 		
+		/**
+		 * @brief Set minimal change in pose between adjacent nodes.
+		 * @param t Minimum translation between nodes (in meter).
+		 * @param r Minimum rotation between nodes (in rad).
+		 */
+		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
+		
+		/**
+		 * @brief Checks the given transformation using the previously set
+		 * translation and rotation thresholds.
+		 * @param t Relative motion since the last scan was added.
+		 * @return Whether a new scan should be added.
+		 */
+		bool checkMinDistance(const Transform &t)
+		{
+			ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
+			ScalarType trans = t.translation().norm();
+			if(trans < mMinTranslation && std::abs(rot) < mMinRotation)
+				return false;
+			else
+				return true;
+		}
+
 	protected:
-		std::string mName;
+		Mapper* mMapper;
+		Graph* mGraph;
 		Logger* mLogger;
+
+		std::string mName;
 		Transform mSensorPose;
+		IdType mLastVertex; // This is the last vertex from THIS sensor!
+		
+		float mMinTranslation;
+		float mMinRotation;
 	};
 	
 	typedef std::map<std::string, Sensor*> SensorList;

@@ -19,30 +19,6 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <VirtualDirectory Name="include">
-    <File Name="src/Clock.hpp"/>
-    <File Name="src/FileLogger.hpp"/>
-    <File Name="src/G2oSolver.hpp"/>
-    <File Name="src/GICPConfiguration.hpp"/>
-    <File Name="src/Logger.hpp"/>
-    <File Name="src/Odometry.hpp"/>
-    <File Name="src/PointCloudSensor.hpp"/>
-    <File Name="src/Sensor.hpp"/>
-    <File Name="src/Solver.hpp"/>
-    <File Name="src/Types.hpp"/>
-    <File Name="src/BoostMapper.hpp"/>
-    <File Name="src/GraphMapper.hpp"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="src">
-    <File Name="src/GraphMapper.cpp"/>
-    <File Name="src/G2oSolver.cpp"/>
-    <File Name="src/PointCloudSensor.cpp"/>
-    <File Name="src/BoostMapper.cpp"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="autoproj">
-    <File Name="manifest.xml"/>
-    <File Name="CMakeLists.txt"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="test">
     <File Name="test/solver.cpp"/>
     <File Name="test/pcl_sensor.cpp"/>
@@ -136,4 +112,59 @@
       </Completion>
     </Configuration>
   </Settings>
+  <VirtualDirectory Name="slam3d">
+    <File Name="slam3d/CMakeLists.txt"/>
+    <VirtualDirectory Name="core">
+      <File Name="slam3d/core/Clock.hpp"/>
+      <File Name="slam3d/core/CMakeLists.txt"/>
+      <File Name="slam3d/core/FileLogger.hpp"/>
+      <File Name="slam3d/core/Graph.cpp"/>
+      <File Name="slam3d/core/Graph.hpp"/>
+      <File Name="slam3d/core/Logger.hpp"/>
+      <File Name="slam3d/core/Mapper.cpp"/>
+      <File Name="slam3d/core/Mapper.hpp"/>
+      <File Name="slam3d/core/PoseSensor.hpp"/>
+      <File Name="slam3d/core/Sensor.hpp"/>
+      <File Name="slam3d/core/Solver.hpp"/>
+      <File Name="slam3d/core/Types.hpp"/>
+      <File Name="slam3d/core/slam3d_core.pc.in"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="solver">
+      <File Name="slam3d/solver/CMakeLists.txt"/>
+      <VirtualDirectory Name="g2o">
+        <File Name="slam3d/solver/g2o/CMakeLists.txt"/>
+        <File Name="slam3d/solver/g2o/edge_direction_prior.cpp"/>
+        <File Name="slam3d/solver/g2o/edge_direction_prior.h"/>
+        <File Name="slam3d/solver/g2o/G2oSolver.cpp"/>
+        <File Name="slam3d/solver/g2o/G2oSolver.hpp"/>
+        <File Name="slam3d/solver/g2o/slam3d_solver_g2o.pc.in"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="graph">
+      <File Name="slam3d/graph/CMakeLists.txt"/>
+      <VirtualDirectory Name="boost">
+        <File Name="slam3d/graph/boost/BoostGraph.cpp"/>
+        <File Name="slam3d/graph/boost/BoostGraph.hpp"/>
+        <File Name="slam3d/graph/boost/CMakeLists.txt"/>
+        <File Name="slam3d/graph/boost/slam3d_graph_boost.pc.in"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="sensor">
+      <File Name="slam3d/sensor/CMakeLists.txt"/>
+      <VirtualDirectory Name="pcl">
+        <File Name="slam3d/sensor/pcl/CMakeLists.txt"/>
+        <File Name="slam3d/sensor/pcl/GICPConfiguration.hpp"/>
+        <File Name="slam3d/sensor/pcl/PointCloudSensor.cpp"/>
+        <File Name="slam3d/sensor/pcl/PointCloudSensor.hpp"/>
+        <File Name="slam3d/sensor/pcl/slam3d_sensor_pcl.pc.in"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="build">
+    <File Name="CMakeLists.txt"/>
+    <File Name="Doxyfile"/>
+    <File Name="manifest.xml"/>
+    <File Name="package.xml"/>
+    <File Name="slam3d.pc.in"/>
+  </VirtualDirectory>
 </CodeLite_Project>

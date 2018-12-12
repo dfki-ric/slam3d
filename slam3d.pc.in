@@ -4,9 +4,8 @@ libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: slam3d
-Description: Graph-based frontend for 3D-SLAM.
+Description: Meta-Package for all components of SLAM3D.
 Version: @SLAM3D_VERSION@
-Requires: eigen3 flann pcl_registration-@PCL_VERSION_MAJOR@.@PCL_VERSION_MINOR@
-Libs: -L${libdir} -l@PROJECT_NAME@ -l@CHOLMOD_LIBRARIES@ -l@G2O_CORE_LIBRARY@ -l@G2O_TYPES_SLAM3D@ -l@G2O_SOLVER_CHOLMOD@
-Cflags: -I${includedir} -I@G2O_INCLUDE_DIR@ -I@CHOLMOD_INCLUDE_DIR@
-
+Requires: @PKG_REQUIRES@
+Libs:
+Cflags:

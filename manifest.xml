@@ -13,9 +13,7 @@
   <depend package="flann" />
   
   <keywords>
-    <keyword>slam</keyword>
-    <keyword>mapping</keyword>
-    <keyword>graph</keyword>
+    <keyword>Mapping</keyword>
   </keywords>
  
   <stage>1</stage>

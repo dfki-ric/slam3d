@@ -33,7 +33,7 @@
 
 namespace slam3d
 {
-	typedef std::pair<int, Transform> IdPose;
+	typedef std::pair<IdType, Transform> IdPose;
 	typedef std::vector<IdPose> IdPoseVector;
 	
 	/**
@@ -50,15 +50,15 @@ namespace slam3d
 		class DuplicateVertex: public std::exception
 		{
 		public:
-			DuplicateVertex(int id):vertex_id(id){}
+			DuplicateVertex(IdType id):vertex_id(id){}
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
-				msg << "Node with ID: " << vertex_id << " has already been defined!";
+				msg << "Vertex with ID: " << vertex_id << " has already been defined!";
 				return msg.str().c_str();
 			}
 			
-			int vertex_id;
+			IdType vertex_id;
 		};
 
 		/**
@@ -68,15 +68,15 @@ namespace slam3d
 		class UnknownVertex: public std::exception
 		{
 		public:
-			UnknownVertex(int id):vertex_id(id){}
+			UnknownVertex(IdType id):vertex_id(id){}
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
-				msg << "Node with ID: " << vertex_id << " does not exist!";
+				msg << "Vertex with ID: " << vertex_id << " does not exist!";
 				return msg.str().c_str();
 			}
 			
-			int vertex_id;
+			IdType vertex_id;
 		};
 
 		/**
@@ -86,16 +86,16 @@ namespace slam3d
 		class BadEdge: public std::exception
 		{
 		public:
-			BadEdge(int s, int t):source(s),target(t){}
+			BadEdge(IdType s, IdType t):source(s),target(t){}
 			virtual const char* what() const throw()
 			{
 				std::ostringstream msg;
-				msg << "Failed to create edge from node " <<  source << " to " << target << "!";
+				msg << "Failed to create edge from vertex " <<  source << " to " << target << "!";
 				return msg.str().c_str();
 			}
 			
-			int source;
-			int target;
+			IdType source;
+			IdType target;
 		};
 
 	public:
@@ -111,36 +111,66 @@ namespace slam3d
 		virtual ~Solver(){}
 	
 		/**
-		 * @brief Adds a node to the internal graph representation.
-		 * @param v VertexObject from the PoseGraph
+		 * @brief Adds a vertex to the internal graph representation.
 		 * @param id unique identifier of the vertex
+		 * @param pose initial pose of the new vertex
 		 */
-		virtual void addNode(unsigned id, Transform pose) = 0;
+		virtual void addVertex(IdType id, const Transform& pose) = 0;
 		
 		/**
-		 * @brief Adds a constraint between two nodes in the graph.
-		 * @details The source and target nodes have to be added before the edge.
-		 * @param source the edge's from-node
-		 * @param target the edge's to-node
-		 * @param tf
-		 * @param cov
+		 * @brief Add an edge to the internal graph representation.
+		 * @param source id of source vertex
+		 * @param target id of target vertex
+		 * @param c pointer to a generic constraint
 		 */
-		virtual void addConstraint(unsigned source, unsigned target, Transform tf, Covariance cov = Covariance::Identity()) = 0;
+		void addEdge(IdType source, IdType target, Constraint::Ptr c)
+		{
+			switch(c->getType())
+			{
+			case SE3:
+				addEdgeSE3(source, target, boost::static_pointer_cast<SE3Constraint>(c));
+				break;
+			case GRAVITY:
+				addEdgeGravity(source, boost::static_pointer_cast<GravityConstraint>(c));
+				break;
+			default:
+				std::ostringstream msg;
+				msg << "Edge with type " << c->getTypeName() << " is not known!";
+				mLogger->message(ERROR, msg.str().c_str());
+			}
+		}
 		
 		/**
-		 * @brief Fix the node with the given id, so it is not moved during optimization.
-		 * @details At least one node must be fixed in order to hold the map in place.
+		 * @brief Adds a SE3 edge between two vertices in the graph.
+		 * @details The source and target vertices have to be added before the edge.
+		 * @param source id of the edge's from-vertex
+		 * @param target id if the edge's to-vertex
+		 * @param se3 constraint describing a relative pose between two vertices
+		 */
+		virtual void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3) = 0;
+		
+		/**
+		 * @brief Adds a gravity edge to a vertex in the graph.
+		 * @details The vertex has to be added to the graph before.
+		 * @param vertex id of the vertex this edge connects to
+		 * @param grav constraint describing the measured direction of gravity
+		 */
+		virtual void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav) = 0;
+		
+		/**
+		 * @brief Fix the vertex with the given id, so it is not moved during optimization.
+		 * @details At least one vertex must be fixed in order to hold the map in place.
 		 * @param id
 		 */
-		virtual void setFixed(unsigned id) = 0;
+		virtual void setFixed(IdType id) = 0;
 		
 		/**
 		 * @brief Start optimization of the defined graph.
 		 */
-		virtual bool compute() = 0;
+		virtual bool compute(unsigned iterations = 100) = 0;
 	
 		/**
-		 * @brief Clear internal graph structure by removing all nodes and constraints.
+		 * @brief Clear internal graph structure by removing all vertices and constraints.
 		 */
 		virtual void clear() = 0;
 	
@@ -154,7 +184,7 @@ namespace slam3d
 		/**
 		 * @brief Get the result of the optimization.
 		 * @details This should be used after compute(). It returns a list of
-		 * ID's and Transforms, that have to be applied to the nodes with the
+		 * ID's and Transforms, that have to be applied to the vertices with the
 		 * given ID to minimize the error in the PoseGraph.
 		 */
 		virtual IdPoseVector getCorrections() = 0;

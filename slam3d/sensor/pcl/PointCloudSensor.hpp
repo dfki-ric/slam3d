@@ -26,21 +26,18 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include "Types.hpp"
-#include "GICPConfiguration.hpp"
-#include "Sensor.hpp"
-#include "GraphMapper.hpp"
+#include <slam3d/sensor/pcl/GICPConfiguration.hpp>
 
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
+#include <slam3d/core/Graph.hpp>
+#include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/PoseSensor.hpp>
+
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 namespace slam3d
 {
-#ifdef PCL_WITH_VIEWPOINT
-	typedef pcl::PointWithViewpoint PointType;
-#else
 	typedef pcl::PointXYZ PointType;
-#endif
 	typedef pcl::PointCloud<PointType> PointCloud;
 	
 	/**
@@ -58,17 +55,18 @@ namespace slam3d
 		 * @param cloud shared pointer to the PointCloud
 		 * @param r name of the robot that accquired this measurement
 		 * @param s name of the sensor managing this measurement
+		 * @param p pose of the sensor in the robot's coordinate frame
 		 * @param id unique identifier of this measurement
 		 */
 		PointCloudMeasurement(const PointCloud::Ptr &cloud,
 		                      const std::string& r, const std::string& s,
-		                      const Transform& tr, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		                      const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
 		{
 			mPointCloud = cloud;
 			mRobotName = r;
 			mSensorName = s;
-			mSensorPose = tr;
-			mInverseSensorPose = tr.inverse();
+			mSensorPose = p;
+			mInverseSensorPose = p.inverse();
 			if(id.is_nil())
 				mUniqueId = boost::uuids::random_generator()();
 			else
@@ -100,6 +98,7 @@ namespace slam3d
 		 * @brief Constructor
 		 * @param n unique name of this sensor (used to identify measurements)
 		 * @param l pointer to a Logger to write messages
+		 * @param p pose of the sensor in the robot's coordinate frame
 		 */
 		PointCloudSensor(const std::string& n, Logger* l, const Transform& p);
 		
@@ -109,12 +108,66 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
-		 * @brief Estimates the 6DoF transformation between source and target point cloud
-		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
-		 * @param source
-		 * @param target
+		 * @brief Sets neighbor radius for scan matching
+		 * @details New nodes are matched against nodes of the same sensor
+		 * within the given radius, but not more then given maximum.
+		 * @param r radius within additional edges are created
+		 * @param l maximum number of neighbor links
 		 */
-		TransformWithCovariance calculateTransform(Measurement::Ptr source, Measurement::Ptr target, Transform odometry, bool coarse = false) const;
+		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
+		
+		/**
+		 * @brief Sets a specific solver to optimize local patches.
+		 * @details This must not be the same instance used as the backend,
+		 * as it will be reset after every optimization. If it is not set,
+		 * patches will not be optimized before matching.
+		 * @param solver used for patch optimization
+		 */
+		void setPatchSolver(Solver* solver) { mPatchSolver = solver; }
+
+		/**
+		 * @brief Set how far to continue with a breadth-first-search through
+		 * the pose graph when building local map patches to match new
+		 * measurements against. It will use all vertices that are reachable
+		 * by a maximum of r edges.
+		 * @param r 
+		 */
+		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
+
+		/**
+		 * @brief Build a local map patch starting from the given source vertex.
+		 * @param source
+		 */
+		Measurement::Ptr buildPatch(IdType source);
+		
+		/**
+		 * @brief Add a new measurement from this sensor.
+		 * @param cloud
+		 * @param force
+		 */
+		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, bool force = false);
+		
+		/**
+		 * @brief Add a new measurement from this sensor together with an odometry pose.
+		 * @param cloud
+		 * @param odom
+		 * @param force
+		 */
+		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, const Transform& odom, bool force = false);
+		
+		/**
+		 * @brief Calculate the estimated transform between two measurements of this sensor.
+		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
+		 * @param source measurement of the source node
+		 * @param target measurement of the target node
+		 * @param odometry estimation of robot movement
+		 * @param coarse whether to do a coarse estimate
+		 * @throw BadMeasurementType
+		 */
+		TransformWithCovariance calculateTransform(Measurement::Ptr source,
+		                                           Measurement::Ptr target,
+		                                           TransformWithCovariance odometry,
+		                                           bool coarse = false) const;
 				
 		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
@@ -123,6 +176,13 @@ namespace slam3d
 		 * @throw BadMeasurementType
 		 */		
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+
+		/**
+		 * @brief Create a linking constraint between source and target.
+		 * @param source_id
+		 * @param target_id
+		 */
+		TransformWithCovariance link(IdType source_id, IdType target_id);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.
@@ -169,9 +229,24 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
+		/**
+		 * @brief Create connecting edges to nearby vertices.
+		 * @param vertex
+		 */
+		void linkToNeighbors(IdType vertex);
+		
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
+		
+		Solver* mPatchSolver;
+		unsigned int mPatchBuildingRange;
+		
+		int mMaxNeighorLinks;
+		float mNeighborRadius;
+		
+		Transform mLastOdometry;
+		TransformWithCovariance mOdometryDelta;
 	};
 }
 
