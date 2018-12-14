@@ -33,40 +33,45 @@
  * 
  * This library provides a frontend for a graph-based SLAM in three dimensional space.
  * It does not provide a graph-optimization-backend itself (often referred to as SLAM).
- * Instead different backends can be used by implementing the Solver-Interface.
+ * Instead different backends can be used by implementing the Solver-Interface. All
+ * collected information is stored in a graph, which can be accessed via the Graph-Interface.
+ * Data processing is done within specific implementations of the Sensor-Interface.
  * 
  * @section sec_start Getting started
  * 
- * The central component of this library is the Graph class.
- * The documentation is best read by starting from there.
- * This class is extended by registering Sensor modules, PoseSensor modules and a Solver.
+ * The central component of this library is the Mapper class. The documentation is best read
+ * by starting from there. This class is extended by registering Sensor modules, PoseSensor
+ * modules and a Solver. A Graph module is required upon construction to hold the inserted data.
  * 
  * @section sec_example Programming example
  * 
- * Start by creating the graph itself and registering the required modules.
+ * Start by creating the graph and the mapper and registering the required modules.
  @code
-#include <slam3d/Graph.hpp> 
-#include <slam3d/G2oSolver.hpp>
+#include <slam3d/core/Mapper.hpp>
+#include <slam3d/core/FileLogger.hpp>
 
+#include <slam3d/graph/boost/BoostGraph.hpp>
+#include <slam3d/solver/g2o/G2oSolver.hpp>
+#include <slam3d/sensor/pcl/PointCloudSensor.hpp>
+ 
 using namespace slam3d;
+
 Clock* clock = new Clock();
 Logger* logger = new Logger(*c);
-Graph* graph = new Graph(logger);
+
+BoostGraph* graph = new BoostGraph(logger);
+Mapper* mapper = new Mapper(graph, logger);
 
 PointCloudSensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
-graph->registerSensor(laser);
+mapper->registerSensor(laser);
 
 G2oSolver* g2o = new G2oSolver(logger);
 graph->setSolver(g2o);
  @endcode
  * Within the callback of your sensor data, add the new measurements to the corresponding sensor module.
  @code
-Measurement m* = new PointCloudMeasurement(cloud, "my_robot", laser->getName(), laser->getSensorPose());
-Transform odom = [...];
-if(!laser->addReading(m, odom))
-{
-  delete m;
-}
+PointCloudMeasurement::Ptr m(new PointCloudMeasurement(cloud, "my_robot", laser->getName(), laser->getSensorPose()));
+laser->addMeasurement(m);
  @endcode
  */
 

@@ -166,5 +166,6 @@
     <File Name="manifest.xml"/>
     <File Name="package.xml"/>
     <File Name="slam3d.pc.in"/>
+    <File Name="README.md"/>
   </VirtualDirectory>
 </CodeLite_Project>
