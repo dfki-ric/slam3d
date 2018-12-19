@@ -4,9 +4,8 @@ cmake_policy(VERSION 3.5.1)
 project(SLAM3D VERSION "2.0.0")
 
 # Find all dependencies
-find_package(Eigen3 NO_MODULE)
+find_package(Eigen3 REQUIRED)
 if (NOT TARGET Eigen3::Eigen)
-	find_package(Eigen3 REQUIRED)
 	add_library(Eigen3::Eigen INTERFACE IMPORTED)
 	set_property(TARGET Eigen3::Eigen APPEND PROPERTY
 		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
