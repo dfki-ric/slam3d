@@ -134,6 +134,23 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	return id;
 }
 
+void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
+{
+	// Create the new EdgeObject and add it to the PoseGraph
+	EdgeObject eo;
+	eo.source = source_id;
+	eo.target = target_id;
+	eo.constraint = c;
+	addEdge(eo);
+	
+	// Add it to the SLAM-Backend for incremental optimization
+	if(mSolver)
+	{
+		mSolver->addEdge(source_id, target_id, c);
+	}
+	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source_id % target_id).str());
+}
+
 IdType Graph::getIndex(boost::uuids::uuid id) const
 {
 	return mUuidIndex.at(id);

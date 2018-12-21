@@ -75,7 +75,7 @@ void G2oSolver::addVertex(IdType id, const Transform& pose)
 	}
 	
 	// Set current pose and id
-	g2o::VertexSE3* poseVertex = new g2o::VertexSE3;
+	g2o::VertexSE3* poseVertex = new g2o::VertexSE3();
 	poseVertex->setEstimate(pose.cast<double>());  //Eigen::Isometry3d
 	poseVertex->setId(id);
 	

@@ -189,7 +189,7 @@ namespace slam3d
 		 */
 		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
 
-				/**
+		/**
 		 * @brief Add a constraint (edge) between two vertices in the graph.
 		 * @param source
 		 * @param target
@@ -197,7 +197,7 @@ namespace slam3d
 		 */
 		virtual void addConstraint(IdType source,
 		                           IdType target,
-		                           Constraint::Ptr constraint) = 0;
+		                           Constraint::Ptr constraint);
 
 		/**
 		 * @brief Set the corrected pose for the vertex with the given ID.
@@ -340,6 +340,14 @@ namespace slam3d
 		 * @param v VertexObject to be stored in the graph
 		 */
 		virtual void addVertex(const VertexObject& v) = 0;
+
+		/**
+		 * @brief Add the given EdgeObject to the actual graph.
+		 * @details This method has to be implemented by the specification class.
+		 * It should not be used directly, but is used internally.
+		 * @param e EdgeObject to be stored in the graph
+		 */
+		virtual void addEdge(const EdgeObject& e) = 0;
 
 		/**
 		 * @brief Get a writable reference to a VertexObject.

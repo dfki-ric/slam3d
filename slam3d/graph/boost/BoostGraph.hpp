@@ -44,23 +44,6 @@ namespace slam3d
 	public:
 		BoostGraph(Logger* log);
 		~BoostGraph();
-
-		/**
-		 * @brief Adds a new edge to the graph.
-		 * @param source id of source vertex
-		 * @param target id of target vertex
-		 * @param c constraint
-		 * @return 
-		 */
-		void addConstraint(IdType source,
-		                   IdType target,
-		                   Constraint::Ptr c);
-		
-		/**
-		 * @brief Add the given VertexObject to the internal graph.
-		 * @param v
-		 */
-		void addVertex(const VertexObject& v);
 		
 		/**
 		 * @brief Start the backend optimization process.
@@ -134,6 +117,22 @@ namespace slam3d
 		void writeGraphToFile(const std::string &name);
 		
 	protected:
+		/**
+		 * @brief Add the given VertexObject to the internal graph.
+		 * @param v
+		 */
+		void addVertex(const VertexObject& v);
+		
+		/**
+		 * @brief Add the given EdgeObject to the internal graph.
+		 * @param e
+		 */
+		virtual void addEdge(const EdgeObject& e);
+
+		/**
+		 * @brief Get a writable reference to a VertexObject.
+		 * @param id
+		 */
 		virtual VertexObject& getVertexInternal(IdType id);
 		
 	private:
