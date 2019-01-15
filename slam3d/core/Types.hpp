@@ -218,7 +218,6 @@ namespace slam3d
 	struct EdgeObject
 	{
 		std::string label;
-		std::string sensor;
 		IdType source;
 		IdType target;
 		Constraint::Ptr constraint;

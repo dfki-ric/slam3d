@@ -67,8 +67,15 @@ void BoostGraph::addEdge(const EdgeObject& e)
 	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
 	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
 
-	mPoseGraph[forward_edge] = e;
-	mPoseGraph[inverse_edge] = e;
+	if(inserted_forward && inserted_inverse)
+	{
+		mPoseGraph[forward_edge] = e;
+		mPoseGraph[inverse_edge] = e;
+	}else
+	{
+		mLogger->message(WARNING, (boost::format("Could not add an edge (%1%,%2%) to the BoostGraph.") % e.source % e.target).str());
+		throw InvalidEdge(e.source, e.target);
+	}
 }
 
 VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
@@ -102,7 +109,7 @@ const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::s
 	while(it != it_end)
 	{
 		const VertexObject& tObject = mPoseGraph[boost::target(*it, mPoseGraph)];
-		if(tObject.index == target && mPoseGraph[*it].sensor == sensor)
+		if(tObject.index == target && mPoseGraph[*it].constraint->getSensorName() == sensor)
 		{
 			return mPoseGraph[*it];
 		}
@@ -169,7 +176,7 @@ struct EdgeFilter
 	EdgeFilter(const AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
 	bool operator()(const Edge& e) const
 	{
-		return (*graph)[e].sensor == name;
+		return (*graph)[e].constraint->getSensorName() == name;
 	}
 	
 	const AdjacencyGraph* graph;
@@ -240,7 +247,7 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		if(mPoseGraph[*it].sensor == "none")
+		if(mPoseGraph[*it].constraint->getSensorName() == "none")
 			weight[*it] = 100.0;
 		else
 			weight[*it] = 1.0;

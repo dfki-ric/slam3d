@@ -148,7 +148,7 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	{
 		mSolver->addEdge(source_id, target_id, c);
 	}
-	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2%.") % source_id % target_id).str());
+	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2% from '%3%'.") % source_id % target_id % c->getSensorName()).str());
 }
 
 IdType Graph::getIndex(boost::uuids::uuid id) const
