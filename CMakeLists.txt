@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 cmake_policy(VERSION 3.5.1)
 
 project(SLAM3D VERSION "2.0.0")
+enable_testing()
 
 # Find all dependencies
 find_package(Eigen3 REQUIRED)
@@ -11,7 +12,7 @@ if (NOT TARGET Eigen3::Eigen)
 		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
 endif ()
 
-find_package(Boost REQUIRED COMPONENTS graph)
+find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework)
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
 find_package(g2o REQUIRED)
 

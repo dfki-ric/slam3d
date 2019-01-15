@@ -19,10 +19,6 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <VirtualDirectory Name="test">
-    <File Name="test/solver.cpp"/>
-    <File Name="test/pcl_sensor.cpp"/>
-  </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
   <Settings Type="Dynamic Library">
@@ -147,6 +143,7 @@
         <File Name="slam3d/graph/boost/BoostGraph.hpp"/>
         <File Name="slam3d/graph/boost/CMakeLists.txt"/>
         <File Name="slam3d/graph/boost/slam3d_graph_boost.pc.in"/>
+        <File Name="slam3d/graph/boost/test.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="sensor">
