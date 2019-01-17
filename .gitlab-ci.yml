@@ -3,8 +3,13 @@ image: d-reg.hb.dfki.de:5000/slam3d/ci-plain
 binaries:
    stage: build
    script:
-   - cmake .
+   - mkdir build
+   - cd build
+   - cmake ..
    - make
+   cache:
+     paths:
+     - build
    only:
    - master
 
@@ -24,6 +29,7 @@ pages:
 tests:
    stage: test
    script:
+   - cd build
    - make test
    only:
    - master
