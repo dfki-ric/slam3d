@@ -340,12 +340,10 @@ void PointCloudSensor::linkToNeighbors(IdType vertex)
 	VertexObjectList neighbors = mGraph->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	
 	int count = 0;
-	int num = neighbors.size();
-	if(num > mMaxNeighorLinks) num = mMaxNeighorLinks;
-	#pragma omp parallel for
-	for(int i = 0; i < neighbors.size(); i++)
+	for(int i = 0; i < neighbors.size() && count < mMaxNeighorLinks; i++)
 	{
 		IdType index = neighbors.at(i).index;
+		if(index == vertex) continue;
 		try
 		{
 			mGraph->getEdge(vertex, index, mName);
