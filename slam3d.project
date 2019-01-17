@@ -124,6 +124,7 @@
       <File Name="slam3d/core/Solver.hpp"/>
       <File Name="slam3d/core/Types.hpp"/>
       <File Name="slam3d/core/slam3d_core.pc.in"/>
+      <File Name="slam3d/core/SolverTest.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>
@@ -134,6 +135,7 @@
         <File Name="slam3d/solver/g2o/G2oSolver.cpp"/>
         <File Name="slam3d/solver/g2o/G2oSolver.hpp"/>
         <File Name="slam3d/solver/g2o/slam3d_solver_g2o.pc.in"/>
+        <File Name="slam3d/solver/g2o/G2oSolverTest.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="graph">

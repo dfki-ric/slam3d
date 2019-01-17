@@ -35,3 +35,14 @@ install(
 
 set_target_properties(solver-g2o PROPERTIES OUTPUT_NAME slam3d_solver_g2o)
 add_slam3d_library(slam3d_solver_g2o)
+
+# Build test
+add_executable(g2o_solver_test G2oSolverTest.cpp)
+
+target_link_libraries(g2o_solver_test
+	Boost::unit_test_framework
+	Boost::system
+	solver-g2o)
+
+target_compile_definitions(g2o_solver_test PRIVATE -DBOOST_TEST_DYN_LINK)
+add_test(g2o_solver g2o_solver_test)
