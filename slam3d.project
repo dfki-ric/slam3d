@@ -145,7 +145,7 @@
         <File Name="slam3d/graph/boost/BoostGraph.hpp"/>
         <File Name="slam3d/graph/boost/CMakeLists.txt"/>
         <File Name="slam3d/graph/boost/slam3d_graph_boost.pc.in"/>
-        <File Name="slam3d/graph/boost/test.cpp"/>
+        <File Name="slam3d/graph/boost/BoostGraphTest.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="sensor">
