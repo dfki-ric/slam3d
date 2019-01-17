@@ -21,6 +21,13 @@ pages:
    only:
    - master
 
+tests:
+   stage: test
+   script:
+   - make test
+   only:
+   - master
+
 software_catalogue_entry:
    image: d-reg.hb.dfki.de:5000/ubuntu:overview_generator
    stage: deploy
