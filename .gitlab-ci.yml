@@ -29,7 +29,7 @@ pages:
 tests:
    stage: test
    dependencies: 
-   - build
+   - binaries
    script:
    - cd build
    - make test
