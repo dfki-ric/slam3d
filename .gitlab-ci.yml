@@ -7,9 +7,9 @@ binaries:
    - cd build
    - cmake ..
    - make
-   cache:
+   artifacts:
      paths:
-     - build
+     - build/
    only:
    - master
 
@@ -28,6 +28,8 @@ pages:
 
 tests:
    stage: test
+   dependencies: 
+   - build
    script:
    - cd build
    - make test
