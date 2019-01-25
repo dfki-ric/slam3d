@@ -68,6 +68,8 @@ G2oSolver::~G2oSolver()
 
 void G2oSolver::addVertex(IdType id, const Transform& pose)
 {
+	boost::unique_lock<boost::mutex> guard(mMutex);
+	
 	// Check that given id has not been added before
 	if(mInt->optimizer.vertex(id) != NULL)
 	{
@@ -86,6 +88,8 @@ void G2oSolver::addVertex(IdType id, const Transform& pose)
 
 void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 {
+	boost::unique_lock<boost::mutex> guard(mMutex);
+
 	// Create a new edge
 	g2o::EdgeSE3* constraint = new g2o::EdgeSE3();
 	
@@ -110,6 +114,7 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 
 void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 {
+	boost::unique_lock<boost::mutex> guard(mMutex);
 	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(grav->getDirection(), grav->getReference());
 	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
 	prior->setInformation(grav->getCovariance().inverse());
@@ -120,6 +125,8 @@ void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 
 void G2oSolver::setFixed(IdType id)
 {
+	boost::unique_lock<boost::mutex> guard(mMutex);
+	
 	// Fix the vertex in the graph to hold the map in place
 	g2o::OptimizableGraph::Vertex* v = mInt->optimizer.vertex(id);
 	if(!v)
@@ -133,6 +140,7 @@ void G2oSolver::setFixed(IdType id)
 bool G2oSolver::compute(unsigned iterations)
 {
 	// need to do something?
+	boost::unique_lock<boost::mutex> guard(mMutex);
 	if(mInt->optimizer.activeVertices().size() == 0 && mInt->newVertices.size() < 2)
 		return true;
 	
@@ -193,12 +201,14 @@ IdPoseVector G2oSolver::getCorrections()
 
 void G2oSolver::clear()
 {
+	boost::unique_lock<boost::mutex> guard(mMutex);
 	mInt->optimizer.clear();
 	mInitialized = false;
 }
 
 void G2oSolver::saveGraph(std::string filename)
 {
+	boost::unique_lock<boost::mutex> guard(mMutex);
 	if(mInt->optimizer.save(filename.c_str()))
 	{
 		mLogger->message(INFO, (boost::format("Saved current g2o graph in %1%.") % filename).str());

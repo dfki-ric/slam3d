@@ -27,6 +27,7 @@
 #define SLAM_G2O_SOLVER_HPP
 
 #include <slam3d/core/Solver.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace slam3d
 {	
@@ -55,6 +56,7 @@ namespace slam3d
 	protected:
 		IdPoseVector mCorrections;
 		bool mInitialized;
+		boost::mutex mMutex;
 
 	private:
 		struct Internal;
