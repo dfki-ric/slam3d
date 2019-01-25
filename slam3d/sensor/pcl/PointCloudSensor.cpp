@@ -297,7 +297,10 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	mGraph->setCorrectedPose(newVertex, pose);
 
 	// Add edges to other measurements nearby
-	boost::thread linkThread(&PointCloudSensor::linkToNeighbors, this, newVertex);
+	if(mMultiThreaded)
+		boost::thread linkThread(&PointCloudSensor::linkToNeighbors, this, newVertex);
+	else
+		linkToNeighbors(newVertex);
 
 	mLastVertex = newVertex;
 	return true;

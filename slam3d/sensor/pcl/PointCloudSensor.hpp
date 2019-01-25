@@ -135,6 +135,12 @@ namespace slam3d
 		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
 
 		/**
+		 * @brief Set if scan matching to neighbors is done in a separate thread.
+		 * @param mt 
+		 */
+		void setMultiThreaded(bool mt) { mMultiThreaded = mt; }
+
+		/**
 		 * @brief Build a local map patch starting from the given source vertex.
 		 * @param source
 		 */
@@ -244,6 +250,7 @@ namespace slam3d
 		
 		int mMaxNeighorLinks;
 		float mNeighborRadius;
+		bool mMultiThreaded;
 		
 		Transform mLastOdometry;
 		TransformWithCovariance mOdometryDelta;
