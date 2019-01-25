@@ -45,17 +45,18 @@ Graph::Graph(Logger* log)
 	// Initialize some members
 	mSolver = NULL;	
 	mOptimized = false;
+	mConstraintsAdded = 0;
+	mOptimizationRate = 0;
 }
 
 Graph::~Graph()
 {
 }
 
-void Graph::setSolver(Solver* solver)
+void Graph::setSolver(Solver* solver, unsigned rate)
 {
 	mSolver = solver;
-//	mSolver->addVertex(0, Transform::Identity());
-//	mSolver->setFixed(0);
+	mOptimizationRate = rate;
 }
 
 void Graph::writeGraphToFile(const std::string &name)
@@ -119,6 +120,7 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	vo.corrected_pose = corrected;
 	vo.measurement = m;
 	addVertex(vo);
+	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
 	mUuidIndex.insert(UuidIndex::value_type(m->getUniqueId(), id));
@@ -130,7 +132,6 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 		if(id == 0)
 			mSolver->setFixed(0);
 	}
-	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 	return id;
 }
 
@@ -142,13 +143,16 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	eo.target = target_id;
 	eo.constraint = c;
 	addEdge(eo);
+	mConstraintsAdded++;
+	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2% from '%3%'.") % source_id % target_id % c->getSensorName()).str());
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
 	{
 		mSolver->addEdge(source_id, target_id, c);
+		if(mOptimizationRate > 0 && (mConstraintsAdded % mOptimizationRate) == 0)
+			optimize();
 	}
-	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2% from '%3%'.") % source_id % target_id % c->getSensorName()).str());
 }
 
 IdType Graph::getIndex(boost::uuids::uuid id) const
