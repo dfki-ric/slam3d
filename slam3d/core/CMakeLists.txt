@@ -9,7 +9,7 @@ target_include_directories(core
 		$<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(core PUBLIC Eigen3::Eigen)
+target_link_libraries(core PUBLIC Eigen3::Eigen ${FLANN_LIBRARIES})
 
 target_compile_features(core PUBLIC cxx_alias_templates)
 
