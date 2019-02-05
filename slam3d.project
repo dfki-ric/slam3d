@@ -125,6 +125,7 @@
       <File Name="slam3d/core/Types.hpp"/>
       <File Name="slam3d/core/slam3d_core.pc.in"/>
       <File Name="slam3d/core/SolverTest.hpp"/>
+      <File Name="slam3d/core/GraphTest.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>
