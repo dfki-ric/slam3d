@@ -43,6 +43,7 @@ PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transf
 {
 	mNeighborRadius = 1.0;
 	mMaxNeighorLinks = 1;
+	mMultiThreaded = false;
 }
 
 PointCloudSensor::~PointCloudSensor()
