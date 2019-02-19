@@ -103,11 +103,13 @@ namespace slam3d
 		EdgeObjectList getEdges(const VertexObjectList& vertices) const;
 
 		/**
-		 * @brief Calculates the distance between two vertices in the graph.
+		 * @brief Calculates the minimum number of edges from a given sensor
+		 * between two vertices in the graph.
 		 * @param source
 		 * @param target
+		 * @param sensor
 		 */
-		float calculateGraphDistance(IdType source, IdType target);
+		float calculateGraphDistance(IdType source, IdType target, const std::string& sensor);
 		
 		/**
 		 * @brief Write the current graph to a file (currently dot).

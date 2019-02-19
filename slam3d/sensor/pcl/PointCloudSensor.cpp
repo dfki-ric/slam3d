@@ -356,7 +356,7 @@ void PointCloudSensor::linkToNeighbors(IdType vertex)
 
 		try
 		{
-			float dist = mGraph->calculateGraphDistance(index, vertex);
+			float dist = mGraph->calculateGraphDistance(index, vertex, mName);
 			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;

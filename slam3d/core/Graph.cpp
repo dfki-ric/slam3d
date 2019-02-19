@@ -144,7 +144,8 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	eo.constraint = c;
 	addEdge(eo);
 	mConstraintsAdded++;
-	mLogger->message(INFO, (boost::format("Created edge from node %1% to node %2% from '%3%'.") % source_id % target_id % c->getSensorName()).str());
+	mLogger->message(INFO, (boost::format("%3% created edge from node %1% to node %2% of type %4%.")
+	 % source_id % target_id % c->getSensorName() % c->getTypeName()).str());
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)

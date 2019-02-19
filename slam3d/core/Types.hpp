@@ -112,8 +112,8 @@ namespace slam3d
 	public:
 		MapOrigin()
 		{
-			mRobotName = "none";
-			mSensorName = "none";
+			mRobotName = "System";
+			mSensorName = "Mapper";
 			mSensorPose = Transform::Identity();
 			mInverseSensorPose = Transform::Identity();
 			mUniqueId = boost::uuids::nil_uuid();

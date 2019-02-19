@@ -85,7 +85,7 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 	// Link first node to root
 	if(mLastIndex == 1)
 	{
-		SE3Constraint::Ptr se3(new SE3Constraint("root-link", TransformWithCovariance()));
+		SE3Constraint::Ptr se3(new SE3Constraint("Mapper", TransformWithCovariance()));
 		mGraph->addConstraint(0, 1, se3);
 	}
 	
