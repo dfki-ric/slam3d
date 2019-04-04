@@ -38,8 +38,8 @@ using namespace slam3d;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 
-PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l, const Transform& p)
- : Sensor(n, l, p), mPatchSolver(NULL), mOdometryDelta(Transform::Identity(), Covariance<6>::Identity())
+PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
+ : Sensor(n, l), mPatchSolver(NULL)
 {
 	mNeighborRadius = 1.0;
 	mMaxNeighorLinks = 1;

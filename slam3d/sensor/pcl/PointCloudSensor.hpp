@@ -100,7 +100,7 @@ namespace slam3d
 		 * @param l pointer to a Logger to write messages
 		 * @param p pose of the sensor in the robot's coordinate frame
 		 */
-		PointCloudSensor(const std::string& n, Logger* l, const Transform& p);
+		PointCloudSensor(const std::string& n, Logger* l);
 		
 		/**
 		 * @brief Destructor

@@ -83,8 +83,8 @@ namespace slam3d
 	class Sensor
 	{
 	public:
-		Sensor(const std::string& n, Logger* l, const Transform& p)
-		 :mMapper(NULL), mGraph(NULL), mLogger(l), mName(n), mSensorPose(p), mLastVertex(0){}
+		Sensor(const std::string& n, Logger* l)
+		 :mMapper(NULL), mGraph(NULL), mLogger(l), mName(n), mLastVertex(0){}
 		virtual ~Sensor(){}
 		
 		/**
@@ -100,12 +100,6 @@ namespace slam3d
 		 * @return name of the sensor
 		 */
 		std::string getName() const { return mName; }
-		
-		/**
-		 * @brief Get the sensor's pose in robot coordinate frame.
-		 * @return pose sensor pose in robot coordinates
-		 */
-		Transform getSensorPose() const { return mSensorPose; }
 		
 		/**
 		 * @brief Calculate the estimated transform between two measurements of this sensor.
@@ -156,7 +150,6 @@ namespace slam3d
 		Logger* mLogger;
 
 		std::string mName;
-		Transform mSensorPose;
 		IdType mLastVertex; // This is the last vertex from THIS sensor!
 		
 		float mMinTranslation;
