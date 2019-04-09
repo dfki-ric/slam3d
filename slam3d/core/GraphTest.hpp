@@ -5,7 +5,7 @@
 
 void addVertexToGraph(slam3d::Graph* g, slam3d::IdType exp_id)
 {
-	slam3d::Measurement::Ptr m(new slam3d::Measurement());
+	slam3d::Measurement::Ptr m(new slam3d::Measurement("Robot", "Sensor", slam3d::Transform::Identity()));
 	slam3d::Transform tf = slam3d::Transform::Identity();
 	slam3d::IdType id = g->addVertex(m, tf);
 	BOOST_CHECK_EQUAL(id, exp_id);

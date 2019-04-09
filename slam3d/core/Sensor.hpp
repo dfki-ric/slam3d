@@ -100,26 +100,6 @@ namespace slam3d
 		std::string getName() const { return mName; }
 		
 		/**
-		 * @brief Calculate the estimated transform between two measurements of this sensor.
-		 * @param source measurement of the source node
-		 * @param target measurement of the target node
-		 * @param odometry estimation of robot movement
-		 * @param coarse whether to do a coarse estimate
-		 * @throw BadMeasurementType
-		 */
-		virtual TransformWithCovariance calculateTransform(Measurement::Ptr source,
-		                                                   Measurement::Ptr target,
-		                                                   TransformWithCovariance odometry,
-		                                                   bool coarse = false) const = 0;		
-		/**
-		 * @brief Creates a virtual measurement at the given pose from a set of vertices.
-		 * @param vertices list of vertices that should contain measurements from this sensor
-		 * @param pose origin of the virtual measurement
-		 * @throw BadMeasurementType
-		 */
-		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const = 0;
-		
-		/**
 		 * @brief Set minimal change in pose between adjacent nodes.
 		 * @param t Minimum translation between nodes (in meter).
 		 * @param r Minimum rotation between nodes (in rad).

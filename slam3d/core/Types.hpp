@@ -83,7 +83,18 @@ namespace slam3d
 		typedef boost::shared_ptr<Measurement> Ptr;
 		
 	public:
-		Measurement(){}
+		Measurement(const std::string& r, const std::string& s,
+		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		{
+			mRobotName = r;
+			mSensorName = s;
+			mSensorPose = p;
+			mInverseSensorPose = p.inverse();
+			if(id.is_nil())
+				mUniqueId = boost::uuids::random_generator()();
+			else
+				mUniqueId = id;
+		}
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
@@ -111,13 +122,7 @@ namespace slam3d
 	{
 	public:
 		MapOrigin()
-		{
-			mRobotName = "System";
-			mSensorName = "Mapper";
-			mSensorPose = Transform::Identity();
-			mInverseSensorPose = Transform::Identity();
-			mUniqueId = boost::uuids::nil_uuid();
-		}
+		: Measurement("System", "Mapper", Transform::Identity()){}
 	};
 	
 	enum ConstraintType {SE3, GRAVITY};

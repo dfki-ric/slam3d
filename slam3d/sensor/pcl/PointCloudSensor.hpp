@@ -61,16 +61,9 @@ namespace slam3d
 		PointCloudMeasurement(const PointCloud::Ptr &cloud,
 		                      const std::string& r, const std::string& s,
 		                      const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		: Measurement(r, s, p, id)
 		{
 			mPointCloud = cloud;
-			mRobotName = r;
-			mSensorName = s;
-			mSensorPose = p;
-			mInverseSensorPose = p.inverse();
-			if(id.is_nil())
-				mUniqueId = boost::uuids::random_generator()();
-			else
-				mUniqueId = id;
 
 			// PCL header should contain microseconds
 			mStamp.tv_sec  = cloud->header.stamp / 1000000;

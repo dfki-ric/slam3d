@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="slam3d" InternalType="">
+<CodeLite_Project Name="slam3d" InternalType="" Version="10.0.0">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00010001N0005Debug000000000000]]>
@@ -157,6 +157,12 @@
         <File Name="slam3d/sensor/pcl/PointCloudSensor.cpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.hpp"/>
         <File Name="slam3d/sensor/pcl/slam3d_sensor_pcl.pc.in"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="scan">
+        <File Name="slam3d/sensor/scan/ScanSensor.hpp"/>
+        <File Name="slam3d/sensor/scan/ScanSensor.cpp"/>
+        <File Name="slam3d/sensor/scan/CMakeLists.txt"/>
+        <File Name="slam3d/sensor/scan/slam3d_sensor_scan.pc.in"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
