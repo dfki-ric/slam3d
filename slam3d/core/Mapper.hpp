@@ -39,6 +39,12 @@ namespace slam3d
 		~Mapper();
 	
 		/**
+		 * @brief Access to the graph structure.
+		 * @return graph
+		 */
+		Graph* getGraph() { return mGraph; }
+	
+		/**
 		 * @brief Register a pose sensor to create spatial constraints.
 		 * @details For each node that is added by a registered sensor, each
 		 * registered pose sensor will be triggered to create additional edges

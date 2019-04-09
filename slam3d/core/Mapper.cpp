@@ -61,7 +61,7 @@ void Mapper::registerSensor(Sensor* s)
 		mLogger->message(ERROR, (boost::format("Sensor with name %1% already exists!") % s->getName()).str());
 		return;
 	}
-	s->setMapperAndGraph(this, mGraph);
+	s->setMapper(this);
 }
 
 Transform Mapper::getCurrentPose()

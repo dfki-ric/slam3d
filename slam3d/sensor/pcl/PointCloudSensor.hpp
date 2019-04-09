@@ -98,7 +98,6 @@ namespace slam3d
 		 * @brief Constructor
 		 * @param n unique name of this sensor (used to identify measurements)
 		 * @param l pointer to a Logger to write messages
-		 * @param p pose of the sensor in the robot's coordinate frame
 		 */
 		PointCloudSensor(const std::string& n, Logger* l);
 		

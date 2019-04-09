@@ -70,7 +70,6 @@ namespace slam3d
 	};
 	
 	class Mapper;
-	class Graph;
 	class Logger;
 	
 	/**
@@ -84,15 +83,14 @@ namespace slam3d
 	{
 	public:
 		Sensor(const std::string& n, Logger* l)
-		 :mMapper(NULL), mGraph(NULL), mLogger(l), mName(n), mLastVertex(0){}
+		 :mMapper(NULL), mLogger(l), mName(n), mLastVertex(0){}
 		virtual ~Sensor(){}
 		
 		/**
-		 * @brief Set the mapper and graph that this sensor is used by.
+		 * @brief Set the mapper that this sensor is used by.
 		 * @param m Mapper
-		 * @param g Graph
 		 */
-		void setMapperAndGraph(Mapper* m, Graph* g) { mMapper = m, mGraph = g; }
+		void setMapper(Mapper* m) { mMapper = m; }
 		
 		/**
 		 * @brief Get the sensor's name. The name is used to identify
@@ -146,7 +144,6 @@ namespace slam3d
 
 	protected:
 		Mapper* mMapper;
-		Graph* mGraph;
 		Logger* mLogger;
 
 		std::string mName;

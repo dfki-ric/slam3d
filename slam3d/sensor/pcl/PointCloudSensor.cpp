@@ -184,7 +184,7 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 
 Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 {	
-	VertexObjectList v_objects = mGraph->getVerticesInRange(source, mPatchBuildingRange);
+	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);
 	mLogger->message(DEBUG, (boost::format("Building pointcloud patch from %1% nodes.") % v_objects.size()).str());
 	
 	if(mPatchSolver)
@@ -195,7 +195,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 			mPatchSolver->addVertex(v->index, v->corrected_pose);
 		}
 		
-		EdgeObjectList e_objects = mGraph->getEdges(v_objects);
+		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
 			mPatchSolver->addEdge(e->source, e->target, e->constraint);
@@ -222,7 +222,7 @@ Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
 			}
 		}
 	}
-	return createCombinedMeasurement(v_objects, mGraph->getVertex(source).corrected_pose);
+	return createCombinedMeasurement(v_objects, mMapper->getGraph()->getVertex(source).corrected_pose);
 }
 
 bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, const Transform& odom, bool force)
@@ -261,7 +261,7 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	Measurement::Ptr target_m;
 	try
 	{
-		target_m = mGraph->getVertex(mLastVertex).measurement;
+		target_m = mMapper->getGraph()->getVertex(mLastVertex).measurement;
 	}catch(std::exception &e)
 	{
 		mLogger->message(ERROR, "PointCloudSensor could not get its last vertex from mapper.");
@@ -293,9 +293,9 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	// Add the new vertex and the ICP edge to previous one
 	IdType newVertex = mMapper->addMeasurement(m);
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, TransformWithCovariance(icp_result.transform, icp_result.covariance)));
-	mGraph->addConstraint(mLastVertex, newVertex, se3);
-	Transform pose = mGraph->getVertex(mLastVertex).corrected_pose * icp_result.transform;
-	mGraph->setCorrectedPose(newVertex, pose);
+	mMapper->getGraph()->addConstraint(mLastVertex, newVertex, se3);
+	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
+	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 
 	// Add edges to other measurements nearby
 	if(mMultiThreaded)
@@ -309,8 +309,8 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 
 TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_id)
 {
-	VertexObject source = mGraph->getVertex(source_id);
-	VertexObject target = mGraph->getVertex(target_id);
+	VertexObject source = mMapper->getGraph()->getVertex(source_id);
+	VertexObject target = mMapper->getGraph()->getVertex(target_id);
 
 	if(source.measurement->getSensorName() != mName || target.measurement->getSensorName() != mName)
 	{
@@ -327,21 +327,21 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 	}
 	
 	// Estimate the transform from source to target
-	TransformWithCovariance guess = mGraph->getTransform(source_id, target_id);
+	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
 	TransformWithCovariance twc_coarse = calculateTransform(source_m, target_m, guess, true);
 	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse);
 
 	// Create new edge and return the transform
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
-	mGraph->addConstraint(source_id, target_id, se3);
+	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 	return twc;
 }
 
 void PointCloudSensor::linkToNeighbors(IdType vertex)
 {
-	mGraph->buildNeighborIndex(mName);
-	VertexObject obj = mGraph->getVertex(vertex);
-	VertexObjectList neighbors = mGraph->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
+	mMapper->getGraph()->buildNeighborIndex(mName);
+	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
+	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	
 	int count = 0;
 	for(int i = 0; i < neighbors.size() && count < mMaxNeighorLinks; i++)
@@ -350,13 +350,13 @@ void PointCloudSensor::linkToNeighbors(IdType vertex)
 		if(index == vertex) continue;
 		try
 		{
-			mGraph->getEdge(vertex, index, mName);
+			mMapper->getGraph()->getEdge(vertex, index, mName);
 			continue;
 		}catch(InvalidEdge &e){}
 
 		try
 		{
-			float dist = mGraph->calculateGraphDistance(index, vertex, mName);
+			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex, mName);
 			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;
