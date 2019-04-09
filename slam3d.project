@@ -158,11 +158,11 @@
         <File Name="slam3d/sensor/pcl/PointCloudSensor.hpp"/>
         <File Name="slam3d/sensor/pcl/slam3d_sensor_pcl.pc.in"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="scan">
-        <File Name="slam3d/sensor/scan/ScanSensor.hpp"/>
-        <File Name="slam3d/sensor/scan/ScanSensor.cpp"/>
-        <File Name="slam3d/sensor/scan/CMakeLists.txt"/>
-        <File Name="slam3d/sensor/scan/slam3d_sensor_scan.pc.in"/>
+      <VirtualDirectory Name="pointmatcher">
+        <File Name="slam3d/sensor/pointmatcher/CMakeLists.txt"/>
+        <File Name="slam3d/sensor/pointmatcher/ScanSensor.cpp"/>
+        <File Name="slam3d/sensor/pointmatcher/ScanSensor.hpp"/>
+        <File Name="slam3d/sensor/pointmatcher/slam3d_sensor_pointmatcher.pc.in"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>

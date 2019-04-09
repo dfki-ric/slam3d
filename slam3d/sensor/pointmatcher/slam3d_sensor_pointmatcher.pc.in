@@ -3,9 +3,9 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: slam3d_sensor_scan
-Description: Sensor module to handle scan data of 2D range finders.
+Name: slam3d_sensor_pointmatcher
+Description: Sensor module to handle scan data of range finders using libpointmatcher.
 Version: @SLAM3D_VERSION@
 Requires: slam3d_core
-Libs: -L${libdir} -lslam3d_sensor_scan
+Libs: -L${libdir} -lslam3d_sensor_pointmatcher
 Cflags: -I${includedir}

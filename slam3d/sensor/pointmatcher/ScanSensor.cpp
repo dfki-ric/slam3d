@@ -1,5 +1,7 @@
 #include "ScanSensor.hpp"
 
+#include <pointmatcher/PointMatcher.h>
+
 using namespace slam3d;
 
 ScanSensor::ScanSensor(const std::string& n, Logger* l)
