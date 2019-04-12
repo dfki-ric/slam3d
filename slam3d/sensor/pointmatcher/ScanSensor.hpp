@@ -26,21 +26,37 @@
 #ifndef SLAM_SCANSENSOR_HPP
 #define SLAM_SCANSENSOR_HPP
 
-#include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/Mapper.hpp>
+#include <pointmatcher/PointMatcher.h>
 
 namespace slam3d
 {
+	typedef PointMatcher<ScalarType> PM;
+
+	/**
+	 * @class ScanMeasurement
+	 * @brief 
+	 */
 	class ScanMeasurement : public Measurement
 	{
 	public:
 		typedef boost::shared_ptr<ScanMeasurement> Ptr;
 		
-		ScanMeasurement(
+		ScanMeasurement(const PM::DataPoints& points, timeval t,
 	                    const std::string& r, const std::string& s,
 	                    const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
-		: Measurement(r, s, p, id){}
+		: Measurement(r, s, p, id), mDataPoints(points) { mStamp = t; }
+
+		const PM::DataPoints& getDataPoints() { return mDataPoints; }
+
+	protected:
+		PM::DataPoints mDataPoints;
 	};
-	
+
+	/**
+	 * @class ScanSensor
+	 * @brief 
+	 */
 	class ScanSensor : public Sensor
 	{
 	public:
@@ -55,6 +71,21 @@ namespace slam3d
 		 * @brief Destructor
 		 */
 		~ScanSensor();
+		
+		bool addMeasurement(const ScanMeasurement::Ptr& scan, const Transform& odom);
+		
+		TransformWithCovariance calculateTransform(ScanMeasurement::Ptr source,
+		                                           ScanMeasurement::Ptr target,
+		                                           TransformWithCovariance odometry);
+
+		Transform convert2Dto3D(const PM::TransformationParameters& in);
+		PM::TransformationParameters convert3Dto2D(const Transform& in);
+
+	protected:
+		PM::ICP mICP;
+
+		Transform mLastOdometry;
+		TransformWithCovariance mOdometryDelta;
 	};
 }
 
