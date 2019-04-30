@@ -39,10 +39,8 @@ using namespace slam3d;
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
- : Sensor(n, l), mPatchSolver(NULL)
+ : ScanSensor(n, l)
 {
-	mNeighborRadius = 1.0;
-	mMaxNeighorLinks = 1;
 	mMultiThreaded = false;
 }
 
@@ -182,49 +180,6 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 	return m;
 }
 
-Measurement::Ptr PointCloudSensor::buildPatch(IdType source)
-{	
-	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);
-	mLogger->message(DEBUG, (boost::format("Building pointcloud patch from %1% nodes.") % v_objects.size()).str());
-	
-	if(mPatchSolver)
-	{
-		mPatchSolver->clear();
-		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
-		{
-			mPatchSolver->addVertex(v->index, v->corrected_pose);
-		}
-		
-		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
-		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
-		{
-			mPatchSolver->addEdge(e->source, e->target, e->constraint);
-		}
-		
-		mPatchSolver->setFixed(source);
-		mPatchSolver->compute();
-		IdPoseVector res = mPatchSolver->getCorrections();
-		for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
-		{
-			bool ok = false;
-			for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
-			{
-				if(v->index == it->first)
-				{
-					v->corrected_pose = it->second;
-					ok = true;
-					break;
-				}
-			}
-			if(!ok)
-			{
-				mLogger->message(ERROR, "Could not apply patch-solver result, this is a bug!");
-			}
-		}
-	}
-	return createCombinedMeasurement(v_objects, mMapper->getGraph()->getVertex(source).corrected_pose);
-}
-
 bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, const Transform& odom, bool force)
 {
 	// Always add the first received scan 
@@ -261,17 +216,11 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	Measurement::Ptr target_m;
 	try
 	{
-		target_m = mMapper->getGraph()->getVertex(mLastVertex).measurement;
+		target_m = buildPatch(mLastVertex);
 	}catch(std::exception &e)
 	{
 		mLogger->message(ERROR, "PointCloudSensor could not get its last vertex from mapper.");
 		return false;
-	}
-
-	// Create virtual measurement for target node
-	if(mPatchBuildingRange > 0)
-	{
-		target_m = buildPatch(mLastVertex);
 	}
 
 	TransformWithCovariance icp_result;
@@ -307,7 +256,7 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	return true;
 }
 
-TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_id)
+void PointCloudSensor::link(IdType source_id, IdType target_id)
 {
 	VertexObject source = mMapper->getGraph()->getVertex(source_id);
 	VertexObject target = mMapper->getGraph()->getVertex(target_id);
@@ -317,14 +266,8 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 		throw InvalidEdge(source_id, target_id);
 	}
 	
-	Measurement::Ptr source_m = source.measurement;
-	Measurement::Ptr target_m = target.measurement;
-	
-	if(mPatchBuildingRange > 0)
-	{
-		source_m = buildPatch(source_id);
-		target_m = buildPatch(target_id);
-	}
+	Measurement::Ptr source_m = buildPatch(source_id);
+	Measurement::Ptr target_m = buildPatch(target_id);
 	
 	// Estimate the transform from source to target
 	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
@@ -334,38 +277,4 @@ TransformWithCovariance PointCloudSensor::link(IdType source_id, IdType target_i
 	// Create new edge and return the transform
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
 	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
-	return twc;
-}
-
-void PointCloudSensor::linkToNeighbors(IdType vertex)
-{
-	mMapper->getGraph()->buildNeighborIndex(mName);
-	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
-	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
-	
-	int count = 0;
-	for(int i = 0; i < neighbors.size() && count < mMaxNeighorLinks; i++)
-	{
-		IdType index = neighbors.at(i).index;
-		if(index == vertex) continue;
-		try
-		{
-			mMapper->getGraph()->getEdge(vertex, index, mName);
-			continue;
-		}catch(InvalidEdge &e){}
-
-		try
-		{
-			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex, mName);
-			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
-			if(dist < mPatchBuildingRange * 2)
-				continue;
-			count++;
-			link(index, vertex);
-		}catch(NoMatch &e)
-		{
-			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % index % vertex % e.what()).str());
-			continue;
-		}
-	}
 }

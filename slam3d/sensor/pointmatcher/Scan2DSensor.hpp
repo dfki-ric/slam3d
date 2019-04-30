@@ -27,6 +27,8 @@
 #define SLAM_SCANSENSOR_HPP
 
 #include <slam3d/core/Mapper.hpp>
+#include <slam3d/core/ScanSensor.hpp>
+
 #include <pointmatcher/PointMatcher.h>
 
 namespace slam3d
@@ -34,15 +36,15 @@ namespace slam3d
 	typedef PointMatcher<ScalarType> PM;
 
 	/**
-	 * @class ScanMeasurement
+	 * @class Scan2DMeasurement
 	 * @brief 
 	 */
-	class ScanMeasurement : public Measurement
+	class Scan2DMeasurement : public Measurement
 	{
 	public:
-		typedef boost::shared_ptr<ScanMeasurement> Ptr;
+		typedef boost::shared_ptr<Scan2DMeasurement> Ptr;
 		
-		ScanMeasurement(const PM::DataPoints& points, timeval t,
+		Scan2DMeasurement(const PM::DataPoints& points, timeval t,
 	                    const std::string& r, const std::string& s,
 	                    const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
 		: Measurement(r, s, p, id), mDataPoints(points) { mStamp = t; }
@@ -54,10 +56,10 @@ namespace slam3d
 	};
 
 	/**
-	 * @class ScanSensor
+	 * @class Scan2DSensor
 	 * @brief 
 	 */
-	class ScanSensor : public Sensor
+	class Scan2DSensor : public ScanSensor
 	{
 	public:
 		/**
@@ -65,18 +67,33 @@ namespace slam3d
 		 * @param n unique name of this sensor (used to identify measurements)
 		 * @param l pointer to a Logger to write messages
 		 */
-		ScanSensor(const std::string& n, Logger* l);
+		Scan2DSensor(const std::string& n, Logger* l);
 		
 		/**
 		 * @brief Destructor
 		 */
-		~ScanSensor();
+		~Scan2DSensor();
 		
-		bool addMeasurement(const ScanMeasurement::Ptr& scan, const Transform& odom);
+		bool addMeasurement(const Scan2DMeasurement::Ptr& scan, const Transform& odom);
 		
-		TransformWithCovariance calculateTransform(ScanMeasurement::Ptr source,
-		                                           ScanMeasurement::Ptr target,
+		/**
+		 * @brief Create a linking constraint between source and target.
+		 * @param source_id
+		 * @param target_id
+		 */
+		void link(IdType source_id, IdType target_id);
+		
+		TransformWithCovariance calculateTransform(Scan2DMeasurement::Ptr source,
+		                                           Scan2DMeasurement::Ptr target,
 		                                           TransformWithCovariance odometry);
+
+		/**
+		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
+		 * @param vertices list of vertices that should contain a PointCloudMeasurement
+		 * @param pose origin of the accumulated pointcloud
+		 * @throw BadMeasurementType
+		 */		
+		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
 
 		Transform convert2Dto3D(const PM::TransformationParameters& in);
 		PM::TransformationParameters convert3Dto2D(const Transform& in);

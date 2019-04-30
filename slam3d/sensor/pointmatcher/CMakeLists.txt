@@ -1,7 +1,7 @@
 find_package(libpointmatcher 1.3.1 REQUIRED)
 
 add_library(sensor-pointmatcher
-	ScanSensor.cpp
+	Scan2DSensor.cpp
 )
 
 target_include_directories(sensor-pointmatcher
@@ -18,7 +18,7 @@ target_link_libraries(sensor-pointmatcher
 # Install header files
 install(
 	FILES
-		ScanSensor.hpp
+		Scan2DSensor.hpp
 	DESTINATION include/slam3d/sensor/pointmatcher
 )
 

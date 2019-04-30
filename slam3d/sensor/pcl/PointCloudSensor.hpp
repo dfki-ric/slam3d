@@ -29,7 +29,7 @@
 #include <slam3d/sensor/pcl/GICPConfiguration.hpp>
 
 #include <slam3d/core/Graph.hpp>
-#include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/ScanSensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
 
 #include <pcl/point_types.h>
@@ -84,7 +84,7 @@ namespace slam3d
 	 * @class PointCloudSensor
 	 * @brief Plugin for the mapper that manages point cloud measurements.
 	 */
-	class PointCloudSensor : public Sensor
+	class PointCloudSensor : public ScanSensor
 	{
 	public:
 		/**
@@ -100,43 +100,10 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
-		 * @brief Sets neighbor radius for scan matching
-		 * @details New nodes are matched against nodes of the same sensor
-		 * within the given radius, but not more then given maximum.
-		 * @param r radius within additional edges are created
-		 * @param l maximum number of neighbor links
-		 */
-		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
-		
-		/**
-		 * @brief Sets a specific solver to optimize local patches.
-		 * @details This must not be the same instance used as the backend,
-		 * as it will be reset after every optimization. If it is not set,
-		 * patches will not be optimized before matching.
-		 * @param solver used for patch optimization
-		 */
-		void setPatchSolver(Solver* solver) { mPatchSolver = solver; }
-
-		/**
-		 * @brief Set how far to continue with a breadth-first-search through
-		 * the pose graph when building local map patches to match new
-		 * measurements against. It will use all vertices that are reachable
-		 * by a maximum of r edges.
-		 * @param r 
-		 */
-		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
-
-		/**
 		 * @brief Set if scan matching to neighbors is done in a separate thread.
 		 * @param mt 
 		 */
 		void setMultiThreaded(bool mt) { mMultiThreaded = mt; }
-
-		/**
-		 * @brief Build a local map patch starting from the given source vertex.
-		 * @param source
-		 */
-		Measurement::Ptr buildPatch(IdType source);
 		
 		/**
 		 * @brief Add a new measurement from this sensor.
@@ -174,13 +141,13 @@ namespace slam3d
 		 * @throw BadMeasurementType
 		 */		
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
-
+		
 		/**
 		 * @brief Create a linking constraint between source and target.
 		 * @param source_id
 		 * @param target_id
 		 */
-		TransformWithCovariance link(IdType source_id, IdType target_id);
+		void link(IdType source_id, IdType target_id);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.
@@ -227,21 +194,10 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
-		/**
-		 * @brief Create connecting edges to nearby vertices.
-		 * @param vertex
-		 */
-		void linkToNeighbors(IdType vertex);
-		
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
 		
-		Solver* mPatchSolver;
-		unsigned int mPatchBuildingRange;
-		
-		int mMaxNeighorLinks;
-		float mNeighborRadius;
 		bool mMultiThreaded;
 		
 		Transform mLastOdometry;

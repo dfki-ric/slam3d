@@ -1,19 +1,19 @@
-#include "ScanSensor.hpp"
+#include "Scan2DSensor.hpp"
 
 using namespace slam3d;
 
-ScanSensor::ScanSensor(const std::string& n, Logger* l)
-: Sensor(n, l)
+Scan2DSensor::Scan2DSensor(const std::string& n, Logger* l)
+: ScanSensor(n, l)
 {
 	mICP.setDefault();
 }
 
-ScanSensor::~ScanSensor()
+Scan2DSensor::~Scan2DSensor()
 {
 	
 }
 
-bool ScanSensor::addMeasurement(const ScanMeasurement::Ptr& scan, const Transform& odom)
+bool Scan2DSensor::addMeasurement(const Scan2DMeasurement::Ptr& scan, const Transform& odom)
 {
 	// Always add the first received scan 
 	if(mLastVertex == 0)
@@ -31,14 +31,14 @@ bool ScanSensor::addMeasurement(const ScanMeasurement::Ptr& scan, const Transfor
 	}
 	
 	// Get the measurement from the last added vertex
-	ScanMeasurement::Ptr target_m;
+	Scan2DMeasurement::Ptr target_m;
 	try
 	{
 		Measurement::Ptr m = mMapper->getGraph()->getVertex(mLastVertex).measurement;
-		target_m = boost::dynamic_pointer_cast<ScanMeasurement>(m);
+		target_m = boost::dynamic_pointer_cast<Scan2DMeasurement>(m);
 	}catch(std::exception &e)
 	{
-		mLogger->message(ERROR, "ScanSensor could not get its last vertex from mapper.");
+		mLogger->message(ERROR, "Scan2DSensor could not get its last vertex from mapper.");
 		return false;
 	}
 	
@@ -60,12 +60,15 @@ bool ScanSensor::addMeasurement(const ScanMeasurement::Ptr& scan, const Transfor
 	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
 	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 	
+	// Add edges to other measurements nearby
+	linkToNeighbors(newVertex);
+	
 	mLastVertex = newVertex;
 	mLastOdometry = odom;
 	return true;
 }
 
-Transform ScanSensor::convert2Dto3D(const PM::TransformationParameters& in)
+Transform Scan2DSensor::convert2Dto3D(const PM::TransformationParameters& in)
 {
 	assert(in.rows() == 3);
 	assert(in.cols() == 3);
@@ -75,7 +78,7 @@ Transform ScanSensor::convert2Dto3D(const PM::TransformationParameters& in)
 	return out;
 }
 
-PM::TransformationParameters ScanSensor::convert3Dto2D(const Transform& in)
+PM::TransformationParameters Scan2DSensor::convert3Dto2D(const Transform& in)
 {
 	PM::TransformationParameters out(3,3);
 	out.setIdentity();
@@ -84,8 +87,8 @@ PM::TransformationParameters ScanSensor::convert3Dto2D(const Transform& in)
 	return out;
 }
 
-TransformWithCovariance ScanSensor::calculateTransform(ScanMeasurement::Ptr source,
-                                                       ScanMeasurement::Ptr target,
+TransformWithCovariance Scan2DSensor::calculateTransform(Scan2DMeasurement::Ptr source,
+                                                       Scan2DMeasurement::Ptr target,
                                                        TransformWithCovariance odometry)
 {
 	// Transform target by odometry transform
@@ -98,4 +101,32 @@ TransformWithCovariance ScanSensor::calculateTransform(ScanMeasurement::Ptr sour
 	TransformWithCovariance twc;
 	twc.transform = odometry.transform * convert2Dto3D(icp_result);
 	return twc;
+}
+
+void Scan2DSensor::link(IdType source_id, IdType target_id)
+{
+	VertexObject source = mMapper->getGraph()->getVertex(source_id);
+	VertexObject target = mMapper->getGraph()->getVertex(target_id);
+
+	if(source.measurement->getSensorName() != mName || target.measurement->getSensorName() != mName)
+	{
+		throw InvalidEdge(source_id, target_id);
+	}
+	
+	Scan2DMeasurement::Ptr source_m = boost::dynamic_pointer_cast<Scan2DMeasurement>(source.measurement);
+	Scan2DMeasurement::Ptr target_m = boost::dynamic_pointer_cast<Scan2DMeasurement>(target.measurement);
+	
+	// Estimate the transform from source to target
+	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
+	TransformWithCovariance twc = calculateTransform(source_m, target_m, guess);
+
+	// Create new edge and return the transform
+	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
+	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
+}
+
+Measurement::Ptr Scan2DSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const
+{
+	mLogger->message(WARNING, "Scan2DSensor::createCombinedMeasurement not implemented, this will not work!");
+	return vertices.begin()->measurement;
 }

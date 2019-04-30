@@ -1,6 +1,7 @@
 add_library(core
 	Mapper.cpp
 	Graph.cpp
+	ScanSensor.cpp
 )
 
 target_include_directories(core

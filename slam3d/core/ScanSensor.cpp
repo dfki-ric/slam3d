@@ -1,0 +1,123 @@
+// slam3d - Frontend for graph-based SLAM
+// Copyright (C) 2019 S. Kasperski
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above copyright
+//   notice, this list of conditions and the following disclaimer in the
+//   documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+// IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+// PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+// TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#include "ScanSensor.hpp"
+#include "Mapper.hpp"
+
+#include <boost/format.hpp>
+
+using namespace slam3d;
+
+ScanSensor::ScanSensor(const std::string& n, Logger* l)
+ : Sensor(n,l), mPatchSolver(NULL)
+{
+	mNeighborRadius = 1.0;
+	mMaxNeighorLinks = 1;
+}
+
+ScanSensor::~ScanSensor()
+{
+}
+
+void ScanSensor::linkToNeighbors(IdType vertex)
+{
+	mMapper->getGraph()->buildNeighborIndex(mName);
+	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
+	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
+	
+	int count = 0;
+	for(int i = 0; i < neighbors.size() && count < mMaxNeighorLinks; i++)
+	{
+		IdType index = neighbors.at(i).index;
+		if(index == vertex) continue;
+		try
+		{
+			mMapper->getGraph()->getEdge(vertex, index, mName);
+			continue;
+		}catch(InvalidEdge &e){}
+
+		try
+		{
+			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex, mName);
+			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
+			if(dist < mPatchBuildingRange * 2)
+				continue;
+			count++;
+			link(index, vertex);
+		}catch(NoMatch &e)
+		{
+			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % index % vertex % e.what()).str());
+			continue;
+		}
+	}
+}
+
+Measurement::Ptr ScanSensor::buildPatch(IdType source)
+{
+	if(mPatchBuildingRange == 0)
+	{
+		return mMapper->getGraph()->getVertex(source).measurement;
+	}
+
+	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);
+	mLogger->message(DEBUG, (boost::format("Building pointcloud patch from %1% nodes.") % v_objects.size()).str());
+	
+	if(mPatchSolver)
+	{
+		mPatchSolver->clear();
+		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
+		{
+			mPatchSolver->addVertex(v->index, v->corrected_pose);
+		}
+		
+		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
+		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
+		{
+			mPatchSolver->addEdge(e->source, e->target, e->constraint);
+		}
+		
+		mPatchSolver->setFixed(source);
+		mPatchSolver->compute();
+		IdPoseVector res = mPatchSolver->getCorrections();
+		for(IdPoseVector::iterator it = res.begin(); it < res.end(); it++)
+		{
+			bool ok = false;
+			for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
+			{
+				if(v->index == it->first)
+				{
+					v->corrected_pose = it->second;
+					ok = true;
+					break;
+				}
+			}
+			if(!ok)
+			{
+				mLogger->message(ERROR, "Could not apply patch-solver result, this is a bug!");
+			}
+		}
+	}
+	return createCombinedMeasurement(v_objects, mMapper->getGraph()->getVertex(source).corrected_pose);
+}

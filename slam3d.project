@@ -126,6 +126,8 @@
       <File Name="slam3d/core/slam3d_core.pc.in"/>
       <File Name="slam3d/core/SolverTest.hpp"/>
       <File Name="slam3d/core/GraphTest.hpp"/>
+      <File Name="slam3d/core/ScanSensor.hpp"/>
+      <File Name="slam3d/core/ScanSensor.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>
@@ -160,9 +162,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="pointmatcher">
         <File Name="slam3d/sensor/pointmatcher/CMakeLists.txt"/>
-        <File Name="slam3d/sensor/pointmatcher/ScanSensor.cpp"/>
-        <File Name="slam3d/sensor/pointmatcher/ScanSensor.hpp"/>
         <File Name="slam3d/sensor/pointmatcher/slam3d_sensor_pointmatcher.pc.in"/>
+        <File Name="slam3d/sensor/pointmatcher/Scan2DSensor.hpp"/>
+        <File Name="slam3d/sensor/pointmatcher/Scan2DSensor.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
