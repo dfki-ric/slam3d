@@ -53,17 +53,12 @@ bool ScanSensor::addMeasurement(const ScanMeasurement::Ptr& scan, const Transfor
 		return false;
 	}
 
-	if(!checkMinDistance(icp_result.transform))
-	{
-		return false;
-	}
-
 	// Add the new vertex and the ICP edge to previous one
 	IdType newVertex = mMapper->addMeasurement(scan);
-//	SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_result));
-//	mMapper->getGraph()->addConstraint(mLastVertex, newVertex, se3);
-//	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
-//	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
+	SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_result));
+	mMapper->getGraph()->addConstraint(mLastVertex, newVertex, se3);
+	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
+	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 	
 	mLastVertex = newVertex;
 	mLastOdometry = odom;
@@ -74,7 +69,7 @@ Transform ScanSensor::convert2Dto3D(const PM::TransformationParameters& in)
 {
 	assert(in.rows() == 3);
 	assert(in.cols() == 3);
-	Transform out;
+	Transform out = Transform::Identity();
 	out.matrix().block<2,2>(0,0) = in.block<2,2>(0,0);
 	out.matrix().block<2,1>(0,3) = in.block<2,1>(0,2);
 	return out;
@@ -93,7 +88,7 @@ TransformWithCovariance ScanSensor::calculateTransform(ScanMeasurement::Ptr sour
                                                        ScanMeasurement::Ptr target,
                                                        TransformWithCovariance odometry)
 {
-/*	// Transform target by odometry transform
+	// Transform target by odometry transform
 	std::shared_ptr<PM::Transformation> rigidTrans;
 	rigidTrans = PM::get().REG(Transformation).create("RigidTransformation");
 	const PM::DataPoints initializedTarget = rigidTrans->compute(target->getDataPoints(), convert3Dto2D(odometry.transform));
@@ -103,6 +98,4 @@ TransformWithCovariance ScanSensor::calculateTransform(ScanMeasurement::Ptr sour
 	TransformWithCovariance twc;
 	twc.transform = odometry.transform * convert2Dto3D(icp_result);
 	return twc;
-	 */
-	return odometry;
 }
