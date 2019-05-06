@@ -83,8 +83,16 @@ namespace slam3d
 		 */
 		void link(IdType source_id, IdType target_id);
 		
-		TransformWithCovariance calculateTransform(Scan2DMeasurement::Ptr source,
-		                                           Scan2DMeasurement::Ptr target,
+		/**
+		 * @brief Calculate the estimated transform between two measurements of this sensor.
+		 * @details It uses the ICP class from libpointmatcher.
+		 * @param source measurement of the source node
+		 * @param target measurement of the target node
+		 * @param odometry estimation of robot movement
+		 * @throw BadMeasurementType
+		 */
+		TransformWithCovariance calculateTransform(Measurement::Ptr source,
+		                                           Measurement::Ptr target,
 		                                           TransformWithCovariance odometry);
 
 		/**
@@ -95,14 +103,30 @@ namespace slam3d
 		 */		
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
 
-		Transform convert2Dto3D(const PM::TransformationParameters& in);
-		PM::TransformationParameters convert3Dto2D(const Transform& in);
+		/**
+		 * @brief Convert the 2D ICP result to a 3D transformation
+		 * @param in
+		 */
+		Transform convert2Dto3D(const PM::TransformationParameters& in) const;
+
+		/**
+		 * @brief Convert a 3D transformation to a 2D transformation (x,y,yaw)
+		 * @param in
+		 */
+		PM::TransformationParameters convert3Dto2D(const Transform& in) const;
+
+		PM::DataPoints createDataPoints() const;
+		PM::DataPoints transformDataPoints(const PM::DataPoints& source, const Transform tf) const;
+
 
 	protected:
 		PM::ICP mICP;
 
 		Transform mLastOdometry;
 		TransformWithCovariance mOdometryDelta;
+		
+		mutable bool debug; 
+		mutable unsigned loops;
 	};
 }
 
