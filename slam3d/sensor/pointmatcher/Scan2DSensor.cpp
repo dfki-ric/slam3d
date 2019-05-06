@@ -1,13 +1,29 @@
 #include "Scan2DSensor.hpp"
 
 #include <math.h>
+#include <fstream>
 
 using namespace slam3d;
 
-Scan2DSensor::Scan2DSensor(const std::string& n, Logger* l)
+Scan2DSensor::Scan2DSensor(const std::string& n, Logger* l, const std::string& configFile)
 : ScanSensor(n, l)
 {
-	mICP.setDefault();
+	if (configFile.empty())
+	{
+		mLogger->message(INFO, "No ICP configuration specified, using default.");
+		mICP.setDefault();
+	}else
+	{
+		// load YAML config
+		std::ifstream ifs(configFile.c_str());
+		if (!ifs.good())
+		{
+			mLogger->message(WARNING, (boost::format("Could not load ICP configuration from: %1%") % configFile).str());
+			mICP.setDefault();
+		}
+		mICP.loadFromYaml(ifs);
+		mLogger->message(INFO, (boost::format("Successfully loaded ICP configuration from: %1%") % configFile).str());
+	}
 	debug = false;
 }
 

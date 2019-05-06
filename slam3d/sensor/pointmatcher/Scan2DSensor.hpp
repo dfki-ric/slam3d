@@ -66,8 +66,9 @@ namespace slam3d
 		 * @brief Constructor
 		 * @param n unique name of this sensor (used to identify measurements)
 		 * @param l pointer to a Logger to write messages
+		 * @param c path to ICP configuration file
 		 */
-		Scan2DSensor(const std::string& n, Logger* l);
+		Scan2DSensor(const std::string& n, Logger* l, const std::string& c);
 		
 		/**
 		 * @brief Destructor
