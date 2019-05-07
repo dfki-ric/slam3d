@@ -1,5 +1,3 @@
-find_package(libpointmatcher 1.3.1 REQUIRED)
-
 add_library(sensor-pointmatcher
 	Scan2DSensor.cpp
 )
