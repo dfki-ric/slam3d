@@ -43,7 +43,7 @@ namespace slam3d
 	{
 	public:
 		typedef boost::shared_ptr<Scan2DMeasurement> Ptr;
-		
+
 		Scan2DMeasurement(const PM::DataPoints& points, timeval t,
 	                    const std::string& r, const std::string& s,
 	                    const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
@@ -69,21 +69,28 @@ namespace slam3d
 		 * @param c path to ICP configuration file
 		 */
 		Scan2DSensor(const std::string& n, Logger* l, const std::string& c);
-		
+
 		/**
 		 * @brief Destructor
 		 */
 		~Scan2DSensor();
-		
+
+		/**
+		 * @brief Add a scan measurement to the graph.
+		 * @details It will create a link to the previous scan and to neighbors
+		 * depending on the set neighbor radius and link number.
+		 * @param scan
+		 * @param odom
+		 */
 		bool addMeasurement(const Scan2DMeasurement::Ptr& scan, const Transform& odom);
-		
+
 		/**
 		 * @brief Create a linking constraint between source and target.
 		 * @param source_id
 		 * @param target_id
 		 */
 		void link(IdType source_id, IdType target_id);
-		
+
 		/**
 		 * @brief Calculate the estimated transform between two measurements of this sensor.
 		 * @details It uses the ICP class from libpointmatcher.
@@ -116,16 +123,24 @@ namespace slam3d
 		 */
 		PM::TransformationParameters convert3Dto2D(const Transform& in) const;
 
+		/**
+		 * @brief Creates an empty DataPoints struct for 2D scans (x,y,w)
+		 */
 		PM::DataPoints createDataPoints() const;
-		PM::DataPoints transformDataPoints(const PM::DataPoints& source, const Transform tf) const;
 
+		/**
+		 * @brief Transforms the source by the given transform.
+		 * @param source
+		 * @param tf
+		 */
+		PM::DataPoints transformDataPoints(const PM::DataPoints& source, const Transform tf) const;
 
 	protected:
 		PM::ICP mICP;
 
 		Transform mLastOdometry;
 		TransformWithCovariance mOdometryDelta;
-		
+
 		mutable bool debug; 
 		mutable unsigned loops;
 	};
