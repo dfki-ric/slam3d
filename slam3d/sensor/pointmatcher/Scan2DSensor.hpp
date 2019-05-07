@@ -97,11 +97,13 @@ namespace slam3d
 		 * @param source measurement of the source node
 		 * @param target measurement of the target node
 		 * @param odometry estimation of robot movement
+		 * @param debug whether to write alignment result to file
 		 * @throw BadMeasurementType
 		 */
 		TransformWithCovariance calculateTransform(Measurement::Ptr source,
 		                                           Measurement::Ptr target,
-		                                           TransformWithCovariance odometry);
+		                                           TransformWithCovariance odometry,
+		                                           bool debug = false);
 
 		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
@@ -135,14 +137,19 @@ namespace slam3d
 		 */
 		PM::DataPoints transformDataPoints(const PM::DataPoints& source, const Transform tf) const;
 
+		/**
+		 * @brief Activate writing of source and target pointclouds when perfomring loop closures.
+		 * @param debug
+		 */
+		void writeDebugData(bool debug = true) { mWriteDebugData = debug; }
+
 	protected:
 		PM::ICP mICP;
 
 		Transform mLastOdometry;
 		TransformWithCovariance mOdometryDelta;
 
-		mutable bool debug; 
-		mutable unsigned loops;
+		bool mWriteDebugData; 
 	};
 }
 

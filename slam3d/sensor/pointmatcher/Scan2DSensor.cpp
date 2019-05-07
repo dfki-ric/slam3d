@@ -24,7 +24,7 @@ Scan2DSensor::Scan2DSensor(const std::string& n, Logger* l, const std::string& c
 		mICP.loadFromYaml(ifs);
 		mLogger->message(INFO, (boost::format("Successfully loaded ICP configuration from: %1%") % configFile).str());
 	}
-	debug = false;
+	mWriteDebugData = false;
 }
 
 Scan2DSensor::~Scan2DSensor()
@@ -113,7 +113,8 @@ PM::TransformationParameters Scan2DSensor::convert3Dto2D(const Transform& in) co
 
 TransformWithCovariance Scan2DSensor::calculateTransform(Measurement::Ptr source,
                                                          Measurement::Ptr target,
-                                                         TransformWithCovariance odometry)
+                                                         TransformWithCovariance odometry,
+                                                         bool debug)
 {
 	// Transform guess in sensor frame
 	Transform guess = source->getInverseSensorPose() * odometry.transform * target->getSensorPose();
@@ -134,9 +135,8 @@ TransformWithCovariance Scan2DSensor::calculateTransform(Measurement::Ptr source
 
 	if(debug)
 	{
-		sourceScan->getDataPoints().save((boost::format("loop_%1%_source.vtk") % loops).str());
-		initializedTarget.save((boost::format("loop_%1%_target.vtk") % loops).str());
-		loops++;
+		sourceScan->getDataPoints().save("source.vtk");
+		initializedTarget.save("target.vtk");
 	}
 	
 	// Perform ICP
@@ -157,9 +157,7 @@ void Scan2DSensor::link(IdType source_id, IdType target_id)
 	
 	// Estimate the transform from source to target
 	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
-	debug = true;
-	TransformWithCovariance icp_res = calculateTransform(source_m, target_m, guess);
-	debug = false;
+	TransformWithCovariance icp_res = calculateTransform(source_m, target_m, guess, mWriteDebugData);
 
 	// Create new edge and return the transform
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_res));
