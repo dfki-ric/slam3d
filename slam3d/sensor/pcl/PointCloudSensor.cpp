@@ -32,7 +32,6 @@
 #include <pcl/filters/radius_outlier_removal.h>
 
 #include <boost/format.hpp>
-#include <boost/thread.hpp>
 
 using namespace slam3d;
 
@@ -41,7 +40,6 @@ typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
-	mMultiThreaded = false;
 }
 
 PointCloudSensor::~PointCloudSensor()
@@ -245,12 +243,6 @@ bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool 
 	mMapper->getGraph()->addConstraint(mLastVertex, newVertex, se3);
 	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
 	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
-
-	// Add edges to other measurements nearby
-	if(mMultiThreaded)
-		boost::thread linkThread(&PointCloudSensor::linkToNeighbors, this, newVertex);
-	else
-		linkToNeighbors(newVertex);
 
 	mLastVertex = newVertex;
 	return true;

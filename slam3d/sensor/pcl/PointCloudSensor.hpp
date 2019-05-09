@@ -100,12 +100,6 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
-		 * @brief Set if scan matching to neighbors is done in a separate thread.
-		 * @param mt 
-		 */
-		void setMultiThreaded(bool mt) { mMultiThreaded = mt; }
-		
-		/**
 		 * @brief Add a new measurement from this sensor.
 		 * @param cloud
 		 * @param force
@@ -197,8 +191,6 @@ namespace slam3d
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
-		
-		bool mMultiThreaded;
 		
 		Transform mLastOdometry;
 		TransformWithCovariance mOdometryDelta;
