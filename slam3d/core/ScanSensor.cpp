@@ -27,6 +27,7 @@
 #include "Mapper.hpp"
 
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 
 using namespace slam3d;
 
@@ -72,6 +73,15 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 			continue;
 		}
 	}
+}
+
+void ScanSensor::linkLastToNeighbors(bool mt)
+{
+	// Add edges to other measurements nearby
+	if(mt)
+		boost::thread linkThread(&ScanSensor::linkToNeighbors, this, mLastVertex);
+	else
+		linkToNeighbors(mLastVertex);
 }
 
 Measurement::Ptr ScanSensor::buildPatch(IdType source)

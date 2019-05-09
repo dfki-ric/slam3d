@@ -90,6 +90,12 @@ namespace slam3d
 		 * @param vertex
 		 */
 		void linkToNeighbors(IdType vertex);
+		
+		/**
+		 * @brief Create connecting edges for last added vertex.
+		 * @param mt whether to run in a separate thread
+		 */
+		void linkLastToNeighbors(bool mt = false);
 
 	private:
 		Solver* mPatchSolver;
