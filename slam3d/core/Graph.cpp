@@ -184,6 +184,10 @@ void Graph::buildNeighborIndex(const std::string& sensor)
 {
 	VertexObjectList vertices = getVerticesFromSensor(sensor);
 	int numOfVertices = vertices.size();
+	if(numOfVertices == 0)
+	{
+		throw std::runtime_error((boost::format("Cannot build neighbor index, because there are no vertices from %1%.") % sensor).str());
+	}
 	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
 
 	IdType row = 0;
