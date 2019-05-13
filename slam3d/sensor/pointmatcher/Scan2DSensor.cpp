@@ -79,9 +79,6 @@ bool Scan2DSensor::addMeasurement(const Scan2DMeasurement::Ptr& scan, const Tran
 	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
 	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 	
-	// Add edges to other measurements nearby
-	linkToNeighbors(newVertex);
-	
 	mLastVertex = newVertex;
 	mLastOdometry = odom;
 	return true;
@@ -99,13 +96,13 @@ Transform Scan2DSensor::convert2Dto3D(const PM::TransformationParameters& in) co
 
 PM::TransformationParameters Scan2DSensor::convert3Dto2D(const Transform& in) const
 {
-	ScalarType yaw = in.linear().eulerAngles(0, 1, 2)[2];
+//	ScalarType yaw = in.linear().eulerAngles(2, 0, 2)[2];
 	PM::TransformationParameters out(3,3);
 	out.setIdentity();
 	out.block<2,2>(0,0) = in.matrix().block<2,2>(0,0);
 	out.block<2,1>(0,2) = in.matrix().block<2,1>(0,3);
 //	out(0,0) = cos(yaw);
-//	out(1,0) = sin(yaw);
+//	out(1,0) = -sin(yaw);
 //	out(0,1) = -out(1,0);
 //	out(1,1) = out(0,0);
 	return out;
