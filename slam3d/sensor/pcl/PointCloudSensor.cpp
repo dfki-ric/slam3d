@@ -180,23 +180,13 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 
 bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, const Transform& odom, bool force)
 {
-	// Always add the first received scan 
-	if(mLastVertex == 0)
+	// Add measurement if sufficient movement is reported by the odometry
+	mOdometryDelta.transform = mLastOdometry.inverse() * odom;
+	if(force || checkMinDistance(mOdometryDelta.transform) || mLastVertex == 0)
 	{
 		mLastVertex = mMapper->addMeasurement(m);
 		mLastOdometry = odom;
 		return true;
-	}
-	
-	// Add measurement if sufficient movement is reported by the odometry
-	mOdometryDelta.transform = mLastOdometry.inverse() * odom;
-	if(force || checkMinDistance(mOdometryDelta.transform))
-	{
-		if(addMeasurement(m, force))
-		{
-			mLastOdometry = odom;
-			return true;
-		}
 	}
 	return false;
 }
@@ -267,6 +257,10 @@ void PointCloudSensor::link(IdType source_id, IdType target_id)
 	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse);
 
 	// Create new edge and return the transform
+	if(!twc.isValid())
+	{
+		throw NoMatch("ICP result is not valid");
+	}
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
 	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 }
