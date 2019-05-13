@@ -55,6 +55,13 @@ namespace slam3d
 		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance<6>::Identity()) {}
 		TransformWithCovariance(const Transform& t, const Covariance<6>& cov) : transform(t), covariance(cov) {}
 		static TransformWithCovariance Identity() {return TransformWithCovariance();}
+		
+		bool isValid()
+		{
+			if(transform.matrix().determinant() != 1)
+				return false;
+			return true;
+		}
 	};
 	
 	/**
