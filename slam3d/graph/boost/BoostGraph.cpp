@@ -237,7 +237,7 @@ VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range
 	return vertices;
 }
 
-float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id, const std::string& sensor)
+float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	int num = boost::num_vertices(mPoseGraph);
@@ -247,10 +247,7 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id, con
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		if(mPoseGraph[*it].constraint->getSensorName() == sensor)
 			weight[*it] = 1.0;
-		else
-			weight[*it] = 100.0;
 	}
 	
 	boost::dijkstra_shortest_paths(mPoseGraph, mIndexMap.at(source_id),

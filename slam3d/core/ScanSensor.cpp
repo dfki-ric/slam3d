@@ -61,7 +61,7 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 
 		try
 		{
-			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex, mName);
+			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex);
 			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
 			if(dist < mPatchBuildingRange * 2)
 				continue;
