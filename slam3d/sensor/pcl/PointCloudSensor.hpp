@@ -100,21 +100,6 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
-		 * @brief Add a new measurement from this sensor.
-		 * @param cloud
-		 * @param force
-		 */
-		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, bool force = false);
-		
-		/**
-		 * @brief Add a new measurement from this sensor together with an odometry pose.
-		 * @param cloud
-		 * @param odom
-		 * @param force
-		 */
-		bool addMeasurement(const PointCloudMeasurement::Ptr& cloud, const Transform& odom, bool force = false);
-		
-		/**
 		 * @brief Calculate the estimated transform between two measurements of this sensor.
 		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
 		 * @param source measurement of the source node
@@ -191,9 +176,6 @@ namespace slam3d
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
-		
-		Transform mLastOdometry;
-		TransformWithCovariance mOdometryDelta;
 	};
 }
 

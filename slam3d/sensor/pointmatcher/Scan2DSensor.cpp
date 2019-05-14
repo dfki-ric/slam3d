@@ -32,58 +32,6 @@ Scan2DSensor::~Scan2DSensor()
 	
 }
 
-bool Scan2DSensor::addMeasurement(const Scan2DMeasurement::Ptr& scan, const Transform& odom)
-{
-	// Always add the first received scan 
-	if(mLastVertex == 0)
-	{
-		mLastVertex = mMapper->addMeasurement(scan);
-		mLastOdometry = odom;
-		return true;
-	}
-	
-	// Add measurement if sufficient movement is reported by the odometry
-	mOdometryDelta.transform = mLastOdometry.inverse() * odom;
-	if(!checkMinDistance(mOdometryDelta.transform))
-	{
-		return false;
-	}
-	
-	// Get the measurement from the last added vertex
-	Scan2DMeasurement::Ptr target_m;
-	try
-	{
-		Measurement::Ptr m = mMapper->getGraph()->getVertex(mLastVertex).measurement;
-		target_m = boost::dynamic_pointer_cast<Scan2DMeasurement>(m);
-	}catch(std::exception &e)
-	{
-		mLogger->message(ERROR, "Scan2DSensor could not get its last vertex from mapper.");
-		return false;
-	}
-	
-	TransformWithCovariance icp_result;
-	try
-	{
-		icp_result = calculateTransform(target_m, scan, mOdometryDelta);
-	}catch(NoMatch &e)
-	{
-		mLogger->message(WARNING, (boost::format("Failed to match new vertex to previous, because %1%.")
-			% e.what()).str());
-		return false;
-	}
-
-	// Add the new vertex and the ICP edge to previous one
-	IdType newVertex = mMapper->addMeasurement(scan);
-	SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_result));
-	mMapper->getGraph()->addConstraint(mLastVertex, newVertex, se3);
-	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
-	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
-	
-	mLastVertex = newVertex;
-	mLastOdometry = odom;
-	return true;
-}
-
 Transform Scan2DSensor::convert2Dto3D(const PM::TransformationParameters& in) const
 {
 	assert(in.rows() == 3);

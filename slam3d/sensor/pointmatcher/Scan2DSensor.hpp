@@ -76,15 +76,6 @@ namespace slam3d
 		~Scan2DSensor();
 
 		/**
-		 * @brief Add a scan measurement to the graph.
-		 * @details It will create a link to the previous scan and to neighbors
-		 * depending on the set neighbor radius and link number.
-		 * @param scan
-		 * @param odom
-		 */
-		bool addMeasurement(const Scan2DMeasurement::Ptr& scan, const Transform& odom);
-
-		/**
 		 * @brief Create a linking constraint between source and target.
 		 * @param source_id
 		 * @param target_id
@@ -145,9 +136,6 @@ namespace slam3d
 
 	protected:
 		PM::ICP mICP;
-
-		Transform mLastOdometry;
-		TransformWithCovariance mOdometryDelta;
 
 		bool mWriteDebugData; 
 	};

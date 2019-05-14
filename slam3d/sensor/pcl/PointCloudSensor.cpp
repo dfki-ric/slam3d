@@ -178,67 +178,24 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 	return m;
 }
 
-bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, const Transform& odom, bool force)
+void PointCloudSensor::link(IdType source_id, IdType target_id)
 {
-	// Add measurement if sufficient movement is reported by the odometry
-	mOdometryDelta.transform = mLastOdometry.inverse() * odom;
-	if(force || checkMinDistance(mOdometryDelta.transform) || mLastVertex == 0)
-	{
-		mLastVertex = mMapper->addMeasurement(m);
-		mLastOdometry = odom;
-		return true;
-	}
-	return false;
-}
+	Measurement::Ptr source_m = mMapper->getGraph()->getVertex(source_id).measurement;
+	Measurement::Ptr target_m = mMapper->getGraph()->getVertex(target_id).measurement;
 
-bool PointCloudSensor::addMeasurement(const PointCloudMeasurement::Ptr& m, bool force)
-{	
-	// Always add the first received scan 
-	if(mLastVertex == 0)
-	{
-		mLastVertex = mMapper->addMeasurement(m);
-		return true;
-	}
-	
-	// Get the measurement from the last added vertex
-	Measurement::Ptr target_m;
+	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
 	try
 	{
-		target_m = buildPatch(mLastVertex);
+		TransformWithCovariance icp_result = calculateTransform(source_m, target_m, guess);
+		SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_result));
+		mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 	}catch(std::exception &e)
 	{
-		mLogger->message(ERROR, "PointCloudSensor could not get its last vertex from mapper.");
-		return false;
+		mLogger->message(WARNING, e.what());
 	}
-
-	TransformWithCovariance icp_result;
-	try
-	{
-		icp_result = calculateTransform(target_m, m, mOdometryDelta);
-	}catch(NoMatch &e)
-	{
-		mLogger->message(WARNING, (boost::format("Failed to match new vertex to previous, because %1%.")
-			% e.what()).str());
-		return false;
-	}
-
-	if(!force && !checkMinDistance(icp_result.transform))
-	{
-		return false;
-	}
-
-	// Add the new vertex and the ICP edge to previous one
-	IdType newVertex = mMapper->addMeasurement(m);
-	SE3Constraint::Ptr se3(new SE3Constraint(mName, TransformWithCovariance(icp_result.transform, icp_result.covariance)));
-	mMapper->getGraph()->addConstraint(mLastVertex, newVertex, se3);
-	Transform pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * icp_result.transform;
-	mMapper->getGraph()->setCorrectedPose(newVertex, pose);
-
-	mLastVertex = newVertex;
-	return true;
 }
-
-void PointCloudSensor::link(IdType source_id, IdType target_id)
+/*
+void PointCloudSensor::closeLoop(IdType source_id, IdType target_id)
 {
 	VertexObject source = mMapper->getGraph()->getVertex(source_id);
 	VertexObject target = mMapper->getGraph()->getVertex(target_id);
@@ -264,3 +221,4 @@ void PointCloudSensor::link(IdType source_id, IdType target_id)
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
 	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 }
+*/

@@ -65,6 +65,13 @@ namespace slam3d
 		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
 
 		/**
+		 * @brief Add a new measurement from this sensor together with an odometry pose.
+		 * @param scan
+		 * @param odom
+		 */
+		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom);
+
+		/**
 		 * @brief Create a virtual measurement by accumulating scans from given vertices.
 		 * @param vertices list of vertices that should contain a Measurement of this sensor
 		 * @param pose origin of the accumulated scan
@@ -100,9 +107,10 @@ namespace slam3d
 	private:
 		Solver* mPatchSolver;
 		unsigned int mPatchBuildingRange;
-		
 		int mMaxNeighorLinks;
 		float mNeighborRadius;
+
+		Transform mLastOdometry;
 	};
 }
 

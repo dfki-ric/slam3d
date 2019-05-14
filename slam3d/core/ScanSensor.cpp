@@ -42,6 +42,28 @@ ScanSensor::~ScanSensor()
 {
 }
 
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
+{
+	if(mLastVertex == 0)
+	{
+		mLastVertex = mMapper->addMeasurement(m);
+		mLastOdometry = odom;
+		return true;
+	}
+	
+	// Add measurement if sufficient movement is reported by the odometry
+	Transform odom_delta = mLastOdometry.inverse() * odom;
+	if(checkMinDistance(odom_delta))
+	{
+		IdType newVertex = mMapper->addMeasurement(m);
+		link(mLastVertex, newVertex);
+		mLastOdometry = odom;
+		mLastVertex = newVertex;
+		return true;
+	}
+	return false;
+}
+
 void ScanSensor::linkToNeighbors(IdType vertex)
 {
 	mMapper->getGraph()->buildNeighborIndex(mName);
