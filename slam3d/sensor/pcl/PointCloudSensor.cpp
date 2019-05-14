@@ -259,7 +259,7 @@ void PointCloudSensor::link(IdType source_id, IdType target_id)
 	// Create new edge and return the transform
 	if(!twc.isValid())
 	{
-		throw NoMatch("ICP result is not valid");
+		throw NoMatch((boost::format("transform determinant is %1%") % twc.transform.matrix().determinant()).str());
 	}
 	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
 	mMapper->getGraph()->addConstraint(source_id, target_id, se3);

@@ -58,7 +58,7 @@ namespace slam3d
 		
 		bool isValid()
 		{
-			if(transform.matrix().determinant() != 1)
+			if(std::fabs(transform.matrix().determinant() - 1.0) > 0.0001)
 				return false;
 			return true;
 		}
