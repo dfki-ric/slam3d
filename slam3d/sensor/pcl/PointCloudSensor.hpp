@@ -100,20 +100,6 @@ namespace slam3d
 		~PointCloudSensor();
 		
 		/**
-		 * @brief Calculate the estimated transform between two measurements of this sensor.
-		 * @details It applies the Generalized Iterative Closest Point algorithm. (GICP)
-		 * @param source measurement of the source node
-		 * @param target measurement of the target node
-		 * @param odometry estimation of robot movement
-		 * @param coarse whether to do a coarse estimate
-		 * @throw BadMeasurementType
-		 */
-		TransformWithCovariance calculateTransform(Measurement::Ptr source,
-		                                           Measurement::Ptr target,
-		                                           TransformWithCovariance odometry,
-		                                           bool coarse = false) const;
-				
-		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
 		 * @param vertices list of vertices that should contain a PointCloudMeasurement
 		 * @param pose origin of the accumulated pointcloud
@@ -122,11 +108,14 @@ namespace slam3d
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
 		
 		/**
-		 * @brief Create a linking constraint between source and target.
-		 * @param source_id
-		 * @param target_id
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param odometry
 		 */
-		void link(IdType source_id, IdType target_id);
+		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
+		                                         const Measurement::Ptr& target,
+		                                         const TransformWithCovariance& odometry);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.

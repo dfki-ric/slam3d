@@ -64,6 +64,22 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	return false;
 }
 
+void ScanSensor::link(IdType source_id, IdType target_id)
+{
+	Measurement::Ptr source_m = mMapper->getGraph()->getVertex(source_id).measurement;
+	Measurement::Ptr target_m = mMapper->getGraph()->getVertex(target_id).measurement;
+
+	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
+	try
+	{
+		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess);
+		mMapper->getGraph()->addConstraint(source_id, target_id, se3);
+	}catch(std::exception &e)
+	{
+		mLogger->message(WARNING, e.what());
+	}
+}
+
 void ScanSensor::linkToNeighbors(IdType vertex)
 {
 	mMapper->getGraph()->buildNeighborIndex(mName);

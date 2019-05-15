@@ -68,7 +68,45 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double
 	return out;
 }
 
-TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr source, Measurement::Ptr target, TransformWithCovariance odometry, bool coarse) const
+PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const
+{
+	PointCloud::Ptr transformedCloud(new PointCloud);
+	pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
+	return transformedCloud;
+}
+
+PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices) const
+{
+	PointCloud::Ptr accu(new PointCloud);
+	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
+	{
+		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(it->measurement);
+		if(!pcl)
+		{
+			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
+			throw BadMeasurementType();
+		}
+		
+		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (it->corrected_pose * pcl->getSensorPose()));
+		*accu += *tempCloud;
+	}
+	return accu;
+}
+
+Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const
+{
+	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
+	PointCloud::Ptr shifted(new PointCloud);
+	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
+	mLogger->message(DEBUG, (boost::format("Patch pointcloud has %1% points.") % cloud->size()).str());
+	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
+	return m;
+}
+
+
+Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& source,
+                                                   const Measurement::Ptr& target,
+                                                   const TransformWithCovariance& odometry)
 {
 	// Transform guess in sensor frame
 	Transform guess = source->getInverseSensorPose() * odometry.transform * target->getSensorPose();
@@ -78,19 +116,19 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	PointCloudMeasurement::Ptr targetCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(target);
 	if(!sourceCloud || !targetCloud)
 	{
-		mLogger->message(ERROR, "Measurement given to calculateTransform() is not a PointCloud!");
+		mLogger->message(ERROR, "Measurement given to createConstraint() is not a PointCloud!");
 		throw BadMeasurementType();
 	}
 	
 	// Set GICP configuration
 	GICPConfiguration config;
-	if(coarse)
-	{
-		config = mCoarseConfiguration;
-	}else
-	{
+//	if(coarse)
+//	{
+//		config = mCoarseConfiguration;
+//	}else
+//	{
 		config = mFineConfiguration;
-	}
+//	}
 	
 	// Downsample the scans
 	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), config.point_cloud_density);
@@ -140,60 +178,10 @@ TransformWithCovariance PointCloudSensor::calculateTransform(Measurement::Ptr so
 	TransformWithCovariance twc;
 	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
 	twc.covariance = Covariance<6>::Identity();
-	return twc;
+	
+	return Constraint::Ptr(new SE3Constraint(mName, twc));
 }
 
-PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const
-{
-	PointCloud::Ptr transformedCloud(new PointCloud);
-	pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
-	return transformedCloud;
-}
-
-PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices) const
-{
-	PointCloud::Ptr accu(new PointCloud);
-	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
-	{
-		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(it->measurement);
-		if(!pcl)
-		{
-			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
-			throw BadMeasurementType();
-		}
-		
-		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (it->corrected_pose * pcl->getSensorPose()));
-		*accu += *tempCloud;
-	}
-	return accu;
-}
-
-Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const
-{
-	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
-	PointCloud::Ptr shifted(new PointCloud);
-	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
-	mLogger->message(DEBUG, (boost::format("Patch pointcloud has %1% points.") % cloud->size()).str());
-	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
-	return m;
-}
-
-void PointCloudSensor::link(IdType source_id, IdType target_id)
-{
-	Measurement::Ptr source_m = mMapper->getGraph()->getVertex(source_id).measurement;
-	Measurement::Ptr target_m = mMapper->getGraph()->getVertex(target_id).measurement;
-
-	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
-	try
-	{
-		TransformWithCovariance icp_result = calculateTransform(source_m, target_m, guess);
-		SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_result));
-		mMapper->getGraph()->addConstraint(source_id, target_id, se3);
-	}catch(std::exception &e)
-	{
-		mLogger->message(WARNING, e.what());
-	}
-}
 /*
 void PointCloudSensor::closeLoop(IdType source_id, IdType target_id)
 {

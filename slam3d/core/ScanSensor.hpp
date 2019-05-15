@@ -86,11 +86,24 @@ namespace slam3d
 		Measurement::Ptr buildPatch(IdType source);
 
 		/**
+		 * @brief Create a constraint between two measurements.
+		 * @details The odometry transformation and the resulting constraint are
+		 * with regards to the robot coordinate system. Make sure that sensor_pose
+		 * is properly set within the measurements.
+		 * @param source
+		 * @param target
+		 * @param odometry
+		 */
+		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
+		                                         const Measurement::Ptr& target,
+		                                         const TransformWithCovariance& odometry) = 0;
+
+		/**
 		 * @brief Create a linking constraint between source and target.
 		 * @param source_id
 		 * @param target_id
 		 */
-		virtual void link(IdType source_id, IdType target_id) = 0;
+		virtual void link(IdType source_id, IdType target_id);
 
 		/**
 		 * @brief Create connecting edges to nearby vertices.

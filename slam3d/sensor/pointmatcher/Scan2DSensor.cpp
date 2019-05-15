@@ -56,10 +56,9 @@ PM::TransformationParameters Scan2DSensor::convert3Dto2D(const Transform& in) co
 	return out;
 }
 
-TransformWithCovariance Scan2DSensor::calculateTransform(Measurement::Ptr source,
-                                                         Measurement::Ptr target,
-                                                         TransformWithCovariance odometry,
-                                                         bool debug)
+Constraint::Ptr Scan2DSensor::createConstraint(const Measurement::Ptr& source,
+		                                       const Measurement::Ptr& target,
+		                                       const TransformWithCovariance& odometry)
 {
 	// Transform guess in sensor frame
 	Transform guess = source->getInverseSensorPose() * odometry.transform * target->getSensorPose();
@@ -78,11 +77,11 @@ TransformWithCovariance Scan2DSensor::calculateTransform(Measurement::Ptr source
 	rigidTrans = PM::get().REG(Transformation).create("RigidTransformation");
 	const PM::DataPoints initializedTarget = rigidTrans->compute(targetScan->getDataPoints(), convert3Dto2D(guess));
 
-	if(debug)
-	{
-		sourceScan->getDataPoints().save("source.vtk");
-		initializedTarget.save("target.vtk");
-	}
+//	if(debug)
+//	{
+//		sourceScan->getDataPoints().save("source.vtk");
+//		initializedTarget.save("target.vtk");
+//	}
 	
 	// Perform ICP
 	PM::TransformationParameters tp = mICP(initializedTarget, sourceScan->getDataPoints());
@@ -92,21 +91,8 @@ TransformWithCovariance Scan2DSensor::calculateTransform(Measurement::Ptr source
 	TransformWithCovariance twc;
 	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
 	twc.covariance = Covariance<6>::Identity();
-	return twc;
-}
-
-void Scan2DSensor::link(IdType source_id, IdType target_id)
-{
-	Measurement::Ptr source_m = buildPatch(source_id);
-	Measurement::Ptr target_m = buildPatch(target_id);
 	
-	// Estimate the transform from source to target
-	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
-	TransformWithCovariance icp_res = calculateTransform(source_m, target_m, guess, mWriteDebugData);
-
-	// Create new edge and return the transform
-	SE3Constraint::Ptr se3(new SE3Constraint(mName, icp_res));
-	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
+	return Constraint::Ptr(new SE3Constraint(mName, twc));
 }
 
 Measurement::Ptr Scan2DSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const

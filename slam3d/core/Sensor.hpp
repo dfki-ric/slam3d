@@ -121,6 +121,12 @@ namespace slam3d
 			else
 				return true;
 		}
+		
+		/**
+		 * @brief Get the ID of the last vertex from this sensor.
+		 * @return Vertex ID
+		 */
+		IdType getLastVertexId(){ return mLastVertex; }
 
 	protected:
 		Mapper* mMapper;

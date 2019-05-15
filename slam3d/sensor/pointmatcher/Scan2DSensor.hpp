@@ -76,33 +76,22 @@ namespace slam3d
 		~Scan2DSensor();
 
 		/**
-		 * @brief Create a linking constraint between source and target.
-		 * @param source_id
-		 * @param target_id
-		 */
-		void link(IdType source_id, IdType target_id);
-
-		/**
-		 * @brief Calculate the estimated transform between two measurements of this sensor.
-		 * @details It uses the ICP class from libpointmatcher.
-		 * @param source measurement of the source node
-		 * @param target measurement of the target node
-		 * @param odometry estimation of robot movement
-		 * @param debug whether to write alignment result to file
-		 * @throw BadMeasurementType
-		 */
-		TransformWithCovariance calculateTransform(Measurement::Ptr source,
-		                                           Measurement::Ptr target,
-		                                           TransformWithCovariance odometry,
-		                                           bool debug = false);
-
-		/**
 		 * @brief Create a virtual measurement by accumulating pointclouds from given vertices.
 		 * @param vertices list of vertices that should contain a PointCloudMeasurement
 		 * @param pose origin of the accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */		
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param odometry
+		 */
+		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
+		                                         const Measurement::Ptr& target,
+		                                         const TransformWithCovariance& odometry);
 
 		/**
 		 * @brief Convert the 2D ICP result to a 3D transformation
