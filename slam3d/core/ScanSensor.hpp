@@ -65,6 +65,12 @@ namespace slam3d
 		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
 
 		/**
+		 * @brief Add a new measurement from this sensor.
+		 * @param scan
+		 */
+		bool addMeasurement(const Measurement::Ptr& scan);
+
+		/**
 		 * @brief Add a new measurement from this sensor together with an odometry pose.
 		 * @param scan
 		 * @param odom

@@ -42,6 +42,39 @@ ScanSensor::~ScanSensor()
 {
 }
 
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
+{
+	if(mLastVertex == 0)
+	{
+		mLastVertex = mMapper->addMeasurement(m);
+		return true;
+	}
+
+	Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
+	try
+	{
+		Constraint::Ptr c = createConstraint(source, m, TransformWithCovariance::Identity());
+		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
+		if(!se3 || checkMinDistance(se3->getRelativePose().transform))
+		{
+			Transform pose = mMapper->getCurrentPose();
+			IdType newVertex = mMapper->addMeasurement(m);
+			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
+			if(se3)
+			{
+				pose = pose * se3->getRelativePose().transform;
+				mMapper->getGraph()->setCorrectedPose(newVertex, pose);
+			}
+			mLastVertex = newVertex;
+			return true;
+		}
+	}catch(std::exception &e)
+	{
+		mLogger->message(WARNING, (boost::format("Could not add Measurement: %1%") % e.what()).str());
+	}
+	return false;
+}
+
 bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
 {
 	if(mLastVertex == 0)
@@ -56,7 +89,13 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	if(checkMinDistance(odom_delta))
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
-		link(mLastVertex, newVertex);
+		try
+		{
+			link(mLastVertex, newVertex);
+		}catch(std::exception &e)
+		{
+			mLogger->message(WARNING, (boost::format("Could not link Measurement to previous: %1%") % e.what()).str());
+		}
 		mLastOdometry = odom;
 		mLastVertex = newVertex;
 		return true;
