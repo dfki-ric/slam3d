@@ -74,8 +74,9 @@ namespace slam3d
 		 * @brief Add a new measurement from this sensor together with an odometry pose.
 		 * @param scan
 		 * @param odom
+		 * @param linkPrev
 		 */
-		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom);
+		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom, bool linkPrev = true);
 
 		/**
 		 * @brief Create a virtual measurement by accumulating scans from given vertices.

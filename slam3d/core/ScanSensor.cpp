@@ -75,7 +75,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	return false;
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom, bool linkPrev)
 {
 	if(mLastVertex == 0)
 	{
@@ -89,12 +89,15 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	if(checkMinDistance(odom_delta))
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
-		try
+		if(linkPrev)
 		{
-			link(mLastVertex, newVertex);
-		}catch(std::exception &e)
-		{
-			mLogger->message(WARNING, (boost::format("Could not link Measurement to previous: %1%") % e.what()).str());
+			try
+			{
+				link(mLastVertex, newVertex);
+			}catch(std::exception &e)
+			{
+				mLogger->message(WARNING, (boost::format("Could not link Measurement to previous: %1%") % e.what()).str());
+			}
 		}
 		mLastOdometry = odom;
 		mLastVertex = newVertex;
