@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: slam3d_sensor_gdal
+Description: Sensor module to handle gps data using gdal.
+Version: @SLAM3D_VERSION@
+Requires: slam3d_core
+Libs: -L${libdir} -lslam3d_sensor_gdal
+Cflags: -I${includedir}
