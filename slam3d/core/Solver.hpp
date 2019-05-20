@@ -133,6 +133,9 @@ namespace slam3d
 			case GRAVITY:
 				addEdgeGravity(source, boost::static_pointer_cast<GravityConstraint>(c));
 				break;
+			case POSITION:
+				addEdgePosition(source, boost::static_pointer_cast<PositionConstraint>(c));
+				break;
 			default:
 				std::ostringstream msg;
 				msg << "Edge with type " << c->getTypeName() << " is not known!";
@@ -156,6 +159,13 @@ namespace slam3d
 		 * @param grav constraint describing the measured direction of gravity
 		 */
 		virtual void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav) = 0;
+		
+		/**
+		 * @brief Adds a position edge to a vertex in the graph.
+		 * @param vertex id of the vertex this edge connects to
+		 * @param pos constraint describing the measured position
+		 */
+		virtual void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.

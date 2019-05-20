@@ -32,21 +32,24 @@ class OGRCoordinateTransformation;
 
 namespace slam3d
 {
-	typedef Eigen::Matrix<ScalarType,3,1> Position; // Eventually move to Types.hpp
-	
 	class GpsMeasurement : public Measurement
 	{
 	public:
 		typedef boost::shared_ptr<GpsMeasurement> Ptr;
 		
-		GpsMeasurement( timeval t, const std::string& r, const std::string& s,
-	                    const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
-		: Measurement(r, s, p, id) { mStamp = t; }
-		
+		GpsMeasurement(const Position& pos, const Covariance<3>& cov,
+		               timeval t, const std::string& r, const std::string& s,
+	                   const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		: Measurement(r, s, p, id), mPosition(pos), mCovariance(cov){ mStamp = t; }
+
 		~GpsMeasurement() {}
 		
-	protected:
+		const Position& getPosition() const { return mPosition; }
+		const Covariance<3>& getCovariance() const { return mCovariance; }
 		
+	protected:
+		Position mPosition;
+		Covariance<3> mCovariance;
 	};
 	
 	class GpsSensor : public Sensor
@@ -63,7 +66,7 @@ namespace slam3d
 	
 		int mUtmZone;
 		bool mUtmNorth;
-		Position mUtmOrigin;
+		Position mReference;
 	};
 }
 

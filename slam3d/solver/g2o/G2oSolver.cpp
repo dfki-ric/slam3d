@@ -123,6 +123,18 @@ void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 	mInt->newEdges.insert(prior);
 }
 
+void G2oSolver::addEdgePosition(IdType vertex, PositionConstraint::Ptr pos)
+{
+	boost::unique_lock<boost::mutex> guard(mMutex);
+	g2o::EdgeSE3XYZPrior* prior = new g2o::EdgeSE3XYZPrior();
+	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
+	prior->setMeasurement(pos->getPosition().cast<double>());
+	prior->setInformation(pos->getCovariance().inverse());
+	
+	mInt->optimizer.addEdge(prior);
+	mInt->newEdges.insert(prior);
+}
+
 void G2oSolver::setFixed(IdType id)
 {
 	boost::unique_lock<boost::mutex> guard(mMutex);

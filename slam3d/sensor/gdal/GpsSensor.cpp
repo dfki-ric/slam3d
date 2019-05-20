@@ -25,6 +25,8 @@
 
 #include "GpsSensor.hpp"
 
+#include <slam3d/core/Mapper.hpp>
+
 #include <ogr_spatialref.h>
 
 using namespace slam3d;
@@ -48,5 +50,21 @@ void GpsSensor::initCoordTransform(int utmZone, bool utmNorth)
 
 void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
 {
-	
+//	ScalarType lon = m->getLongitude();
+//	ScalarType lat m->getLatitude();
+//	ScalarType alt = m->getAltitude();
+//	mCoordTransform->Transform(1,lon, lat, alt);
+//	Position gps;
+//	gps(0) = lat;
+//	gps(1) = lon;
+//	gps(2) = alt;
+	if(!mLastVertex)
+	{
+		mReference = m->getPosition();
+	}
+
+	mLastVertex = mMapper->addMeasurement(m);
+	Position rel_pos = m->getPosition() - mReference;
+	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, Covariance<3>::Identity()));
+	mMapper->getGraph()->addConstraint(mLastVertex, 0, position);
 }

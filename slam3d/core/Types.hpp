@@ -39,6 +39,7 @@ namespace slam3d
 {
 	typedef unsigned IdType;
 	typedef double ScalarType;
+	typedef Eigen::Matrix<ScalarType,3,1> Position;
 	typedef Eigen::Matrix<ScalarType,3,1> Direction;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
@@ -132,7 +133,7 @@ namespace slam3d
 		: Measurement("System", "Mapper", Transform::Identity()){}
 	};
 	
-	enum ConstraintType {SE3, GRAVITY};
+	enum ConstraintType {SE3, GRAVITY, POSITION};
 	
 	/**
 	 * @class Constraint
@@ -204,6 +205,29 @@ namespace slam3d
 		Direction mDirection;
 		Direction mReference;
 		Covariance<2> mCovariance;
+	};
+	
+	/**
+	 * @class PositionConstraint
+	 * @brief 
+	 */
+	class PositionConstraint : public Constraint
+	{
+	public:
+		typedef boost::shared_ptr<PositionConstraint> Ptr;
+		
+		PositionConstraint(const std::string& s, const Position& p, const Covariance<3>& c)
+		: Constraint(s), mPosition(p), mCovariance(c) {}
+		
+		ConstraintType getType() { return POSITION; }
+		const char* getTypeName() { return "Position"; }
+		
+		const Position& getPosition() const { return mPosition; }
+		const Covariance<3>& getCovariance() const { return mCovariance; }
+
+	protected:
+		Position mPosition;
+		Covariance<3> mCovariance;
 	};
 	
 	/**
