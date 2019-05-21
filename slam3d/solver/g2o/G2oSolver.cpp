@@ -25,6 +25,7 @@
 
 #include "G2oSolver.hpp"
 #include "edge_direction_prior.h"
+#include "edge_position_prior.h"
 
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
@@ -117,7 +118,7 @@ void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 	boost::unique_lock<boost::mutex> guard(mMutex);
 	g2o::EdgeDirectionPrior* prior = new g2o::EdgeDirectionPrior(grav->getDirection(), grav->getReference());
 	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
-	prior->setInformation(grav->getCovariance().inverse());
+	prior->setInformation(grav->getCovariance().inverse().cast<double>());
 	
 	mInt->optimizer.addEdge(prior);
 	mInt->newEdges.insert(prior);
@@ -126,10 +127,9 @@ void G2oSolver::addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav)
 void G2oSolver::addEdgePosition(IdType vertex, PositionConstraint::Ptr pos)
 {
 	boost::unique_lock<boost::mutex> guard(mMutex);
-	g2o::EdgeSE3XYZPrior* prior = new g2o::EdgeSE3XYZPrior();
+	g2o::EdgePositionPrior* prior = new g2o::EdgePositionPrior(pos->getPosition());
 	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
-	prior->setMeasurement(pos->getPosition().cast<double>());
-	prior->setInformation(pos->getCovariance().inverse());
+	prior->setInformation(pos->getCovariance().inverse().cast<double>());
 	
 	mInt->optimizer.addEdge(prior);
 	mInt->newEdges.insert(prior);

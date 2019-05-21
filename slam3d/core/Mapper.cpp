@@ -92,7 +92,13 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)
 	{
-		ps->second->handleNewVertex(mLastIndex);
+		try
+		{
+			ps->second->handleNewVertex(mLastIndex);
+		}catch(InvalidPose &e)
+		{
+			mLogger->message(ERROR, (boost::format("Could not get pose from '%1%': %2%") % ps->second->getName() % e.what()).str());
+		}
 	}
 	
 	// Return the new vertex index

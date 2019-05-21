@@ -139,6 +139,8 @@
         <File Name="slam3d/solver/g2o/G2oSolver.hpp"/>
         <File Name="slam3d/solver/g2o/slam3d_solver_g2o.pc.in"/>
         <File Name="slam3d/solver/g2o/G2oSolverTest.cpp"/>
+        <File Name="slam3d/solver/g2o/edge_position_prior.h"/>
+        <File Name="slam3d/solver/g2o/edge_position_prior.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="graph">
