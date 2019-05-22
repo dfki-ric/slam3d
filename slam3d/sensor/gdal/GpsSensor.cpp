@@ -53,8 +53,8 @@ Position GpsSensor::toUTM(ScalarType lon, ScalarType lat, ScalarType alt)
 {
 	mCoordTransform->Transform(1, &lon, &lat, &alt);
 	Position utm;
-	utm(0) = lat;
-	utm(1) = lon;
+	utm(0) = lon;
+	utm(1) = lat;
 	utm(2) = alt;
 	return utm;
 }
