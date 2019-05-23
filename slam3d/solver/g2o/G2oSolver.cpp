@@ -29,7 +29,7 @@
 
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
-#include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
 #include <g2o/core/sparse_optimizer_terminate_action.h>
@@ -53,7 +53,7 @@ G2oSolver::G2oSolver(Logger* logger) : Solver(logger), mInt(new Internal)
 	std::unique_ptr<SlamLinearSolver> linearSolver(new SlamLinearSolver);
 	linearSolver->setBlockOrdering(true);
 	std::unique_ptr<g2o::BlockSolver_6_3> blockSolver(new g2o::BlockSolver_6_3(std::move(linearSolver)));
-	mInt->optimizer.setAlgorithm(new g2o::OptimizationAlgorithmGaussNewton(std::move(blockSolver)));
+	mInt->optimizer.setAlgorithm(new g2o::OptimizationAlgorithmLevenberg(std::move(blockSolver)));
 	
 	// Set the default terminate action
 	g2o::SparseOptimizerTerminateAction* terminateAction = new g2o::SparseOptimizerTerminateAction;
@@ -151,6 +151,9 @@ void G2oSolver::setFixed(IdType id)
 
 bool G2oSolver::compute(unsigned iterations)
 {
+	// Clear previous optimization result
+	mCorrections.clear();
+	
 	// need to do something?
 	boost::unique_lock<boost::mutex> guard(mMutex);
 	if(mInt->optimizer.activeVertices().size() == 0 && mInt->newVertices.size() < 2)
@@ -189,10 +192,7 @@ bool G2oSolver::compute(unsigned iterations)
 		mLogger->message(ERROR, "Optimization failed!");
 		return false;
 	}
-	mLogger->message(INFO ,(boost::format("Optimization finished after %1% iterations.") % iter).str());
-
-	// Clear previous optimization result
-	mCorrections.clear();
+	mLogger->message(DEBUG ,(boost::format("Optimization finished after %1% iterations.") % iter).str());
 
 	// Write the result so it can be used by the mapper
 	g2o::SparseOptimizer::VertexContainer vertices = mInt->optimizer.activeVertices();
@@ -216,6 +216,7 @@ void G2oSolver::clear()
 	boost::unique_lock<boost::mutex> guard(mMutex);
 	mInt->optimizer.clear();
 	mInitialized = false;
+	mCorrections.clear();
 }
 
 void G2oSolver::saveGraph(std::string filename)
