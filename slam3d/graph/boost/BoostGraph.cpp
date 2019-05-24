@@ -33,7 +33,12 @@ EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		objectList.push_back(mPoseGraph[*it]);
+		EdgeObject eo = mPoseGraph[*it];
+		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
+		if(eo.constraint->getSensorName() == sensor && eo.source == source_id)
+		{
+			objectList.push_back(mPoseGraph[*it]);
+		}
 	}
 	return objectList;
 }
