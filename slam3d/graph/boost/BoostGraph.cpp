@@ -35,7 +35,8 @@ EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 	{
 		EdgeObject eo = mPoseGraph[*it];
 		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
-		if(eo.constraint->getSensorName() == sensor && eo.source == source_id)
+		bool add_sensor = (sensor == "") || (sensor == eo.constraint->getSensorName());
+		if(add_sensor && eo.source == source_id)
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}
@@ -110,7 +111,13 @@ VertexObject& BoostGraph::getVertexInternal(IdType id)
 const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it, it_end;
-	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
+	try
+	{
+		boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
+	}catch(std::out_of_range &e)
+	{
+		throw InvalidVertex(source);
+	}
 	while(it != it_end)
 	{
 		const VertexObject& tObject = mPoseGraph[boost::target(*it, mPoseGraph)];

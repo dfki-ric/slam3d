@@ -108,8 +108,8 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 
 void ScanSensor::link(IdType source_id, IdType target_id)
 {
-	Measurement::Ptr source_m = mMapper->getGraph()->getVertex(source_id).measurement;
-	Measurement::Ptr target_m = mMapper->getGraph()->getVertex(target_id).measurement;
+	Measurement::Ptr source_m = buildPatch(source_id);
+	Measurement::Ptr target_m = buildPatch(target_id);
 
 	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
 	try
@@ -129,15 +129,21 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	
 	int count = 0;
-	for(int i = 0; i < neighbors.size() && count < mMaxNeighorLinks; i++)
+	for(auto i = neighbors.rbegin(); i != neighbors.rend() && count < mMaxNeighorLinks; i++)
 	{
-		IdType index = neighbors.at(i).index;
+		IdType index = i->index;
 		if(index == vertex) continue;
 		try
 		{
 			mMapper->getGraph()->getEdge(vertex, index, mName);
 			continue;
-		}catch(InvalidEdge &e){}
+		}
+		catch(InvalidEdge &e){}
+		catch(InvalidVertex &e)
+		{
+			mLogger->message(ERROR, e.what());
+			return;
+		}
 
 		try
 		{
@@ -205,7 +211,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 			}
 			if(!ok)
 			{
-				mLogger->message(ERROR, "Could not apply patch-solver result, this is a bug!");
+				mLogger->message(ERROR, (boost::format("Could not apply patch-solver result for vertex %1%!") % it->first).str());
 			}
 		}
 	}

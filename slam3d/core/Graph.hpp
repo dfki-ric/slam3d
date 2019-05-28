@@ -86,6 +86,25 @@ namespace slam3d
 	typedef flann::Index< flann::L2<float> > NeighborIndex;
 	
 	/**
+	 * @class InvalidVertex
+	 * @brief Exception thrown when a vertex ID does not exist in the graph.
+	 */
+	class InvalidVertex : public std::exception
+	{
+	public:
+		InvalidVertex(IdType id) : index(id){}
+		
+		virtual const char* what() const throw()
+		{
+			std::ostringstream msg;
+			msg << "There is no vertex with ID " << index << " in the graph!";
+			return msg.str().c_str();
+		}
+
+		IdType index;
+	};
+	
+	/**
 	 * @class InvalidEdge
 	 * @brief Exception thrown when a specified edge does not exist.
 	 */
@@ -291,12 +310,14 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 * @param sensor
+		 * @throw InvalidVertex, InvalidEdge
 		 */
 		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all outgoing edges from given source.
 		 * @param source
+		 * @throw InvalidVertex
 		 */
 		virtual EdgeObjectList getOutEdges(IdType source) const = 0;
 
@@ -310,6 +331,7 @@ namespace slam3d
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
 		 * @param range maximum number of steps to search from source
+		 * @throw InvalidVertex
 		 */
 		virtual VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
@@ -322,6 +344,7 @@ namespace slam3d
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
+		 * @throw InvalidVertex
 		 */
 		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
 		
@@ -329,6 +352,7 @@ namespace slam3d
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
 		 * @param source
 		 * @param target
+		 * @throw InvalidVertex
 		 */
 		virtual float calculateGraphDistance(IdType source, IdType target) = 0;
 		
@@ -353,6 +377,7 @@ namespace slam3d
 		/**
 		 * @brief Get a writable reference to a VertexObject.
 		 * @param id
+		 * @throw InvalidVertex
 		 */
 		virtual VertexObject& getVertexInternal(IdType id) = 0;
 		
