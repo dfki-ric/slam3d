@@ -55,7 +55,7 @@ namespace slam3d
 		 * by a maximum of r edges.
 		 * @param r 
 		 */
-		void setPatchBuildingRange(unsigned int r) { mPatchBuildingRange = r; }
+		void setPatchBuildingRange(unsigned r) { mPatchBuildingRange = r; }
 
 		/**
 		 * @brief Sets neighbor radius for scan matching
@@ -64,7 +64,13 @@ namespace slam3d
 		 * @param r radius within additional edges are created
 		 * @param l maximum number of neighbor links
 		 */
-		void setNeighborRadius(float r, int l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
+		void setNeighborRadius(float r, unsigned l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
+
+		/**
+		 * @brief Sets the minimum length of a loop.
+		 * @param l
+		 */
+		void setMinLoopLength(unsigned l) { mMinLoopLength = l; }
 
 		/**
 		 * @brief Add a new measurement from this sensor.
@@ -130,9 +136,10 @@ namespace slam3d
 		Solver* mPatchSolver;
 		std::mutex mPatchSolverMutex;
 
-		unsigned int mPatchBuildingRange;
-		int mMaxNeighorLinks;
+		unsigned mPatchBuildingRange;
+		unsigned mMaxNeighorLinks;
 		float mNeighborRadius;
+		unsigned mMinLoopLength;
 
 		Transform mLastOdometry;
 	};

@@ -36,6 +36,7 @@ ScanSensor::ScanSensor(const std::string& n, Logger* l)
 {
 	mNeighborRadius = 1.0;
 	mMaxNeighorLinks = 1;
+	mMinLoopLength = 10;
 }
 
 ScanSensor::~ScanSensor()
@@ -149,7 +150,7 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 		{
 			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex);
 			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
-			if(dist < mPatchBuildingRange * 2)
+			if(dist < mMinLoopLength)
 				continue;
 			count++;
 			link(index, vertex);
