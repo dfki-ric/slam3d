@@ -29,6 +29,8 @@
 #include "Sensor.hpp"
 #include "Solver.hpp"
 
+#include <mutex>
+
 namespace slam3d
 {
 	class ScanSensor : public Sensor
@@ -126,6 +128,8 @@ namespace slam3d
 
 	private:
 		Solver* mPatchSolver;
+		std::mutex mPatchSolverMutex;
+
 		unsigned int mPatchBuildingRange;
 		int mMaxNeighorLinks;
 		float mNeighborRadius;

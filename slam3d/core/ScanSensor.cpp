@@ -182,6 +182,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 	
 	if(mPatchSolver)
 	{
+		std::lock_guard<std::mutex> guard(mPatchSolverMutex);
 		mPatchSolver->clear();
 		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
 		{
@@ -191,7 +192,13 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
-			mPatchSolver->addEdge(e->source, e->target, e->constraint);
+			try
+			{
+				mPatchSolver->addEdge(e->source, e->target, e->constraint);
+			}catch(Solver::BadEdge &be)
+			{
+				mLogger->message(ERROR, be.what());
+			}
 		}
 		
 		mPatchSolver->setFixed(source);
