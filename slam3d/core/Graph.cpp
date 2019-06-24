@@ -73,7 +73,7 @@ bool Graph::optimize(unsigned iterations)
 	}
 
 	// Optimize
-	if(!mSolver->compute())
+	if(!mSolver->compute(iterations))
 	{
 		return false;
 	}
