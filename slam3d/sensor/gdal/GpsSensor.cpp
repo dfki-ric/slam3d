@@ -69,6 +69,6 @@ void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
 	mLastVertex = mMapper->addMeasurement(m);
 	Position rel_pos = m->getPosition() - mReference;
 	mLogger->message(INFO, (boost::format("GPS: relative pose (%1%, %2%, %3%)") % rel_pos(0) % rel_pos(1) % rel_pos(2)).str());
-	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, Covariance<3>::Identity()));
+	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, m->getCovariance()));
 	mMapper->getGraph()->addConstraint(mLastVertex, 0, position);
 }
