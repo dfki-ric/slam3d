@@ -87,7 +87,7 @@ bool Graph::optimize(unsigned iterations)
 		Transform tf = it->second;
 		try
 		{
-			getVertexInternal(id).corrected_pose = tf;
+			setCorrectedPose(id, tf);
 		}catch(std::out_of_range &e)
 		{
 			mLogger->message(ERROR, (boost::format("Vertex with id %1% does not exist!") % id).str());
@@ -129,8 +129,8 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	if(mSolver)
 	{
 		mSolver->addVertex(id, corrected);
-		if(id == 0)
-			mSolver->setFixed(0);
+		if(id == 1)
+			mSolver->setFixed(1);
 	}
 	return id;
 }

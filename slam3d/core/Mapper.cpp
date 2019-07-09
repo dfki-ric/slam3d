@@ -71,23 +71,9 @@ Transform Mapper::getCurrentPose()
 
 IdType Mapper::addMeasurement(Measurement::Ptr m)
 {
-	// Add root node to the graph
-	if(mLastIndex == 0)
-	{
-		mLogger->message(DEBUG, "Adding map origin before first node.");
-		mLastIndex = mGraph->addVertex(Measurement::Ptr(new MapOrigin()), Transform::Identity());
-	}
-	
 	// Add the vertex to the pose graph
 	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-	mLastIndex = mGraph->addVertex(m, getCurrentPose());
-	
-	// Link first node to root
-	if(mLastIndex == 1)
-	{
-		SE3Constraint::Ptr se3(new SE3Constraint("Mapper", TransformWithCovariance()));
-		mGraph->addConstraint(0, 1, se3);
-	}
+	mLastIndex = mGraph->addVertex(m, Transform::Identity());
 	
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)

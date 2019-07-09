@@ -72,7 +72,7 @@ namespace slam3d
 	class Indexer
 	{
 	public:
-		Indexer():mNextID(0) {}
+		Indexer():mNextID(1) {}
 		IdType getNext() { return mNextID++; }
 	private:
 		IdType mNextID;
@@ -120,17 +120,6 @@ namespace slam3d
 		
 		Transform mSensorPose;
 		Transform mInverseSensorPose;
-	};
-	
-	/**
-	 * @class MapOrigin
-	 * @brief Placeholder for root node in the graph.
-	 */
-	class MapOrigin : public Measurement
-	{
-	public:
-		MapOrigin()
-		: Measurement("System", "Mapper", Transform::Identity()){}
 	};
 	
 	enum ConstraintType {SE3, GRAVITY, POSITION};
