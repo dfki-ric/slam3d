@@ -246,6 +246,11 @@ namespace slam3d
 		bool optimized();
 
 		/**
+		 * @brief Causes the next added vertex to be fixed in the solver.
+		 */
+		void fixNext() { mFixNext = true; }
+
+		/**
 		 * @brief Write the current graph to a file (currently dot).
 		 * @details For larger graphs, this can take a very long time.
 		 * @param name filename without type ending
@@ -407,6 +412,7 @@ namespace slam3d
 		std::map<IdType, IdType> mNeighborMap; // vertex-id --> neighbor-id
 
 		// Parameters
+		bool mFixNext;
 		bool mOptimized;
 		unsigned mOptimizationRate;
 		unsigned mConstraintsAdded;

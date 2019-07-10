@@ -44,6 +44,7 @@ Graph::Graph(Logger* log)
 {
 	// Initialize some members
 	mSolver = NULL;	
+	mFixNext = false;
 	mOptimized = false;
 	mConstraintsAdded = 0;
 	mOptimizationRate = 0;
@@ -129,8 +130,11 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	if(mSolver)
 	{
 		mSolver->addVertex(id, corrected);
-		if(id == 1)
-			mSolver->setFixed(1);
+		if(mFixNext)
+		{
+			mSolver->setFixed(id);
+			mFixNext = false;
+		}
 	}
 	return id;
 }
