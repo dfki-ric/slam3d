@@ -177,7 +177,7 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	// Transform back to robot frame
 	TransformWithCovariance twc;
 	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
-	twc.covariance = Covariance<6>::Identity();
+	twc.covariance = Covariance<6>::Identity() * mCovarianceScale;
 	
 	return Constraint::Ptr(new SE3Constraint(mName, twc));
 }

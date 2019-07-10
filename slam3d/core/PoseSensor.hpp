@@ -62,7 +62,7 @@ namespace slam3d
 	{
 	public:
 		// Ctor / Dtor
-		PoseSensor(const std::string& n, Graph* g, Logger* l) : mGraph(g), mLogger(l), mName(n) {}
+		PoseSensor(const std::string& n, Graph* g, Logger* l) : mGraph(g), mLogger(l), mName(n), mCovarianceScale(1.0) {}
 		virtual ~PoseSensor(){};
 		
 		// Virtual methods
@@ -89,11 +89,18 @@ namespace slam3d
 		 */
 		std::string getName(){ return mName; }
 	
+		/**
+		 * @brief Set the covariance scale for measurements of this sensor.
+		 * @param s
+		 */
+		void setCovarianceScale(ScalarType s){ mCovarianceScale = s; }
+	
 	protected:
 		Graph* mGraph;
 		Logger* mLogger;
 		
 		std::string mName;
+		ScalarType mCovarianceScale;
 	};
 	
 	typedef std::map<std::string, PoseSensor*> PoseSensorList;

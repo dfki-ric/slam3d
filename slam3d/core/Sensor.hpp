@@ -83,7 +83,7 @@ namespace slam3d
 	{
 	public:
 		Sensor(const std::string& n, Logger* l)
-		 :mMapper(NULL), mLogger(l), mName(n), mLastVertex(0){}
+		 :mMapper(NULL), mLogger(l), mName(n), mLastVertex(0), mCovarianceScale(1.0){}
 		virtual ~Sensor(){}
 		
 		/**
@@ -128,6 +128,12 @@ namespace slam3d
 		 */
 		IdType getLastVertexId(){ return mLastVertex; }
 
+		/**
+		 * @brief Set the covariance scale for measurements of this sensor.
+		 * @param s
+		 */
+		void setCovarianceScale(ScalarType s){ mCovarianceScale = s; }
+
 	protected:
 		Mapper* mMapper;
 		Logger* mLogger;
@@ -137,6 +143,8 @@ namespace slam3d
 		
 		float mMinTranslation;
 		float mMinRotation;
+		
+		ScalarType mCovarianceScale;
 	};
 	
 	typedef std::map<std::string, Sensor*> SensorList;
