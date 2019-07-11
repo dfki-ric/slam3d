@@ -66,14 +66,17 @@ void Mapper::registerSensor(Sensor* s)
 
 Transform Mapper::getCurrentPose()
 {
-	return mGraph->getVertex(mLastIndex).corrected_pose;
+	if(mLastIndex > 0)
+		return mGraph->getVertex(mLastIndex).corrected_pose;
+	else
+		return Transform::Identity();
 }
 
 IdType Mapper::addMeasurement(Measurement::Ptr m)
 {
 	// Add the vertex to the pose graph
 	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-	mLastIndex = mGraph->addVertex(m, Transform::Identity());
+	mLastIndex = mGraph->addVertex(m, getCurrentPose());
 	
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)
