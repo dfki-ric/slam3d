@@ -259,7 +259,10 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 	EdgeRange edges = boost::edges(mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
+		if(mPoseGraph[*it].constraint->getType() == SE3)
 			weight[*it] = 1.0;
+		else
+			weight[*it] = 10000;
 	}
 	
 	boost::dijkstra_shortest_paths(mPoseGraph, mIndexMap.at(source_id),
@@ -267,5 +270,5 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 		.predecessor_map(boost::make_iterator_property_map(parent.begin(), boost::get(boost::vertex_index, mPoseGraph)))
 		.weight_map(boost::make_assoc_property_map(weight)) );
 
-	return distance[target_id];
+	return distance[mIndexMap.at(target_id)];
 }
