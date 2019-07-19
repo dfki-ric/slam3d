@@ -164,7 +164,9 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 
 void ScanSensor::linkLastToNeighbors(bool mt)
 {
-	// Add edges to other measurements nearby
+	if(mMaxNeighorLinks < 1)
+		return;
+
 	if(mt)
 		boost::thread linkThread(&ScanSensor::linkToNeighbors, this, mLastVertex);
 	else
