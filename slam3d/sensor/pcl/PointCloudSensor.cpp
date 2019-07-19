@@ -106,10 +106,10 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 
 Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& source,
                                                    const Measurement::Ptr& target,
-                                                   const TransformWithCovariance& odometry)
+                                                   const Transform& odometry)
 {
 	// Transform guess in sensor frame
-	Transform guess = source->getInverseSensorPose() * odometry.transform * target->getSensorPose();
+	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
 	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(source);

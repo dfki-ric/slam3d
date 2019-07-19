@@ -115,7 +115,7 @@ namespace slam3d
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
-		                                         const TransformWithCovariance& odometry);
+		                                         const Transform& odometry);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.

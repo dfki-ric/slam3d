@@ -54,7 +54,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
 	try
 	{
-		Constraint::Ptr c = createConstraint(source, m, TransformWithCovariance::Identity());
+		Constraint::Ptr c = createConstraint(source, m, Transform::Identity());
 		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
 		if(!se3 || checkMinDistance(se3->getRelativePose().transform))
 		{
@@ -109,10 +109,16 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 
 void ScanSensor::link(IdType source_id, IdType target_id)
 {
+	// We have no guess, so we use the current relative pose from the graph
+	Transform guess = mMapper->getGraph()->getTransform(source_id, target_id).transform;
+	link(source_id, target_id, guess);
+}
+
+void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess)
+{
 	Measurement::Ptr source_m = buildPatch(source_id);
 	Measurement::Ptr target_m = buildPatch(target_id);
 
-	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
 	try
 	{
 		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess);

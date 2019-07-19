@@ -111,7 +111,7 @@ namespace slam3d
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
-		                                         const TransformWithCovariance& odometry) = 0;
+		                                         const Transform& odometry) = 0;
 
 		/**
 		 * @brief Create a linking constraint between source and target.
@@ -119,6 +119,15 @@ namespace slam3d
 		 * @param target_id
 		 */
 		virtual void link(IdType source_id, IdType target_id);
+
+		/**
+		 * @brief Create a linking constraint between source and target.
+		 * @param source_id
+		 * @param target_id
+		 * @param guess
+		 */
+		virtual void link(IdType source_id, IdType target_id, const Transform& guess);
+
 
 		/**
 		 * @brief Create connecting edges to nearby vertices.
