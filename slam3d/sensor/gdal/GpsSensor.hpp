@@ -69,6 +69,7 @@ namespace slam3d
 		int mUtmZone;
 		bool mUtmNorth;
 		Position mReference;
+		Position mLastPosition;
 	};
 }
 
