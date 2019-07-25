@@ -257,9 +257,10 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 	std::vector<float> distance(num);
 	std::map<Edge, float> weight;
 	EdgeRange edges = boost::edges(mPoseGraph);
+	EdgeFilter filter(&mPoseGraph, getVertex(source_id).measurement->getSensorName());
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
-		if(mPoseGraph[*it].constraint->getType() == SE3)
+		if(filter(*it))
 			weight[*it] = 1.0;
 		else
 			weight[*it] = 10000;
