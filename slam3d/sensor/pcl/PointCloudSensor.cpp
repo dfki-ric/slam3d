@@ -40,6 +40,9 @@ typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
+	mMapResolution = 0.1;
+	mMapOutlierRadius = 0.2;
+	mMapOutlierNeighbors = 3;
 }
 
 PointCloudSensor::~PointCloudSensor()
@@ -210,3 +213,10 @@ void PointCloudSensor::closeLoop(IdType source_id, IdType target_id)
 	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 }
 */
+
+PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) const
+{
+	PointCloud::Ptr accu = getAccumulatedCloud(vertices);
+	PointCloud::Ptr cleaned = removeOutliers(accu, mMapOutlierRadius, mMapOutlierNeighbors);
+	return downsample(cleaned, mMapResolution);
+}

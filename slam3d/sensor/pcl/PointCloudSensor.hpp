@@ -130,6 +130,19 @@ namespace slam3d
 		void setCoarseConfiguaration(GICPConfiguration c) { mCoarseConfiguration = c; }
 		
 		/**
+		 * @brief 
+		 * @param r
+		 */
+		void setMapResolution(double r) { mMapResolution = r; }
+		
+		/**
+		 * @brief 
+		 * @param r
+		 * @param n
+		 */
+		void setMapOutlierRemoval(double r, unsigned n) { mMapOutlierRadius = r; mMapOutlierNeighbors = n; }
+		
+		/**
 		 * @brief Reduces the size of the source cloud by sampling with the given resolution.
 		 * @param source
 		 * @param resolution 
@@ -162,9 +175,15 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
+		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
+		
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;
+		
+		double   mMapResolution;
+		double   mMapOutlierRadius;
+		unsigned mMapOutlierNeighbors;
 	};
 }
 
