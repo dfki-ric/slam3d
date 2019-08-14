@@ -58,12 +58,11 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
 		if(!se3 || checkMinDistance(se3->getRelativePose().transform))
 		{
-			Transform pose = mMapper->getCurrentPose();
 			IdType newVertex = mMapper->addMeasurement(m);
 			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 			if(se3)
 			{
-				pose = pose * se3->getRelativePose().transform;
+				Transform pose = mMapper->getCurrentPose() * se3->getRelativePose().transform;
 				mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 			}
 			mLastVertex = newVertex;
