@@ -109,7 +109,7 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 
 Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& source,
                                                    const Measurement::Ptr& target,
-                                                   const Transform& odometry)
+                                                   const Transform& odometry, bool loop)
 {
 	// Transform guess in sensor frame
 	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
@@ -123,19 +123,38 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 		throw BadMeasurementType();
 	}
 	
-	// Set GICP configuration
-	GICPConfiguration config;
-//	if(coarse)
-//	{
-//		config = mCoarseConfiguration;
-//	}else
-//	{
-		config = mFineConfiguration;
-//	}
+	// For large loops, refine guess by a coarse ICP
+	if(loop)
+	{
+		guess = doICP(sourceCloud, targetCloud, guess, mCoarseConfiguration);
+	}
 	
+	// Calculate precise alignement with fine ICP
+	Transform icp_result = doICP(sourceCloud, targetCloud, guess, mFineConfiguration);
+	
+	// Transform back to robot frame
+	TransformWithCovariance twc;
+	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
+	twc.covariance = Covariance<6>::Identity() * mCovarianceScale;
+	
+	return Constraint::Ptr(new SE3Constraint(mName, twc));
+}
+
+
+
+Transform PointCloudSensor::doICP(PointCloudMeasurement::Ptr source,
+                                  PointCloudMeasurement::Ptr target,
+                                  const Transform& guess,
+                                  const GICPConfiguration& config)
+{
 	// Downsample the scans
-	PointCloud::Ptr filtered_source = downsample(sourceCloud->getPointCloud(), config.point_cloud_density);
-	PointCloud::Ptr filtered_target = downsample(targetCloud->getPointCloud(), config.point_cloud_density);
+	PointCloud::Ptr filtered_source = source->getPointCloud();
+	PointCloud::Ptr filtered_target = target->getPointCloud();
+	if(config.point_cloud_density > 0)
+	{
+		PointCloud::Ptr filtered_source = downsample(source->getPointCloud(), config.point_cloud_density);
+		PointCloud::Ptr filtered_target = downsample(target->getPointCloud(), config.point_cloud_density);
+	}
 	
 	// Make sure that there are enough points left (ICP will crash if not)
 	if(filtered_target->size() < config.correspondence_randomness || filtered_source->size() < config.correspondence_randomness)
@@ -175,14 +194,7 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	
 	// Get estimated transform
 	Eigen::Isometry3f tf_matrix(icp.getFinalTransformation());
-	Transform icp_result = Transform(tf_matrix) * guess;
-
-	// Transform back to robot frame
-	TransformWithCovariance twc;
-	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
-	twc.covariance = Covariance<6>::Identity() * mCovarianceScale;
-	
-	return Constraint::Ptr(new SE3Constraint(mName, twc));
+	return Transform(tf_matrix) * guess;
 }
 
 /*

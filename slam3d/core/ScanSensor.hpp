@@ -111,7 +111,8 @@ namespace slam3d
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
-		                                         const Transform& odometry) = 0;
+		                                         const Transform& odometry,
+		                                         bool loop) = 0;
 
 		/**
 		 * @brief Create a linking constraint between source and target.

@@ -115,7 +115,8 @@ namespace slam3d
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
-		                                         const Transform& odometry);
+		                                         const Transform& odometry,
+		                                         bool loop);
 		
 		/**
 		 * @brief Sets configuration for fine GICP algorithm.
@@ -176,7 +177,11 @@ namespace slam3d
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
 		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
-		
+	
+	protected:
+		Transform doICP(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,
+		                const Transform& guess, const GICPConfiguration& config);
+
 	protected:
 		GICPConfiguration mFineConfiguration;
 		GICPConfiguration mCoarseConfiguration;

@@ -54,7 +54,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
 	try
 	{
-		Constraint::Ptr c = createConstraint(source, m, Transform::Identity());
+		Constraint::Ptr c = createConstraint(source, m, Transform::Identity(), false);
 		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
 		if(!se3 || checkMinDistance(se3->getRelativePose().transform))
 		{
@@ -89,11 +89,13 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	if(checkMinDistance(odom_delta))
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
+		Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
 		if(linkPrev)
 		{
 			try
 			{
-				link(mLastVertex, newVertex);
+				Constraint::Ptr c = createConstraint(source, m, Transform::Identity(), false);
+				mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 			}catch(std::exception &e)
 			{
 				mLogger->message(WARNING, (boost::format("Could not link Measurement to previous: %1%") % e.what()).str());
@@ -120,7 +122,7 @@ void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess
 
 	try
 	{
-		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess);
+		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess, true);
 		mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 	}catch(std::exception &e)
 	{
