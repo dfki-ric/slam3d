@@ -59,12 +59,12 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 		if(!se3 || checkMinDistance(se3->getRelativePose().transform))
 		{
 			IdType newVertex = mMapper->addMeasurement(m);
-			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 			if(se3)
 			{
 				Transform pose = mMapper->getCurrentPose() * se3->getRelativePose().transform;
 				mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 			}
+			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 			mLastVertex = newVertex;
 			return true;
 		}
