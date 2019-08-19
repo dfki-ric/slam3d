@@ -139,14 +139,39 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	return id;
 }
 
-void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
+void Graph::addTentativeConstraint(IdType source_id, IdType target_id, std::string& sensor)
 {
-	// Create the new EdgeObject and add it to the PoseGraph
 	EdgeObject eo;
 	eo.source = source_id;
 	eo.target = target_id;
-	eo.constraint = c;
+	eo.constraint = Constraint::Ptr(new TentativeConstraint(sensor));
 	addEdge(eo);
+}
+
+void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
+{
+	// Create the new EdgeObject and add it to the PoseGraph
+	try
+	{
+		EdgeObject& eo = getEdgeInternal(source_id, target_id, c->getSensorName());
+		if(eo.constraint->getType() == TENTATIVE)
+		{
+			eo.constraint = c;
+		}else
+		{
+			// This edge already exists, this is an error?
+			mLogger->message(ERROR, "Cannot add constraint, edge already exists!");
+			return;
+		}
+	}catch(InvalidEdge& e)
+	{
+		EdgeObject eo;
+		eo.source = source_id;
+		eo.target = target_id;
+		eo.constraint = c;
+		addEdge(eo);
+	}
+	
 	mConstraintsAdded++;
 	mLogger->message(INFO, (boost::format("%3% created edge from node %1% to node %2% of type %4%.")
 	 % source_id % target_id % c->getSensorName() % c->getTypeName()).str());

@@ -44,7 +44,7 @@ namespace slam3d
 	public:
 		BoostGraph(Logger* log);
 		~BoostGraph();
-		
+
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
@@ -54,22 +54,19 @@ namespace slam3d
 		bool optimize(unsigned iterations = 100);
 		
 		/**
-		 * @brief Gets a vertex object by its given id.
+		 * @brief 
 		 * @param id
-		 * @throw std::out_of_range
 		 */
 		const VertexObject& getVertex(IdType id) const;
-
+		
 		/**
-		 * @brief Gets the edge from given sensor between source and target.
+		 * @brief 
 		 * @param source
 		 * @param target
 		 * @param sensor
-		 * @throw std::out_of_range if source or target don't exist
-		 * @throw InvalidEdge
 		 */
 		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const;
-
+		
 		/**
 		 * @brief Get all outgoing edges from given source.
 		 * @param source
@@ -82,7 +79,7 @@ namespace slam3d
 		 * @param sensor
 		 */
 		VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
-
+		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
@@ -115,7 +112,7 @@ namespace slam3d
 		 * @param name filename without type ending
 		 */
 		void writeGraphToFile(const std::string &name);
-		
+
 	protected:
 		/**
 		 * @brief Add the given VertexObject to the internal graph.
@@ -135,6 +132,22 @@ namespace slam3d
 		 */
 		virtual VertexObject& getVertexInternal(IdType id);
 		
+		/**
+		 * @brief Get a writable reference to an EdgeObject.
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor);
+		
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
+
 	private:
 		// The boost graph object
 		AdjacencyGraph mPoseGraph;

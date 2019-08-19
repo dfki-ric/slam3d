@@ -110,6 +110,18 @@ VertexObject& BoostGraph::getVertexInternal(IdType id)
 
 const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
+	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
+	return mPoseGraph[*it];
+}
+
+EdgeObject& BoostGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor)
+{
+	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
+	return mPoseGraph[*it];
+}
+
+OutEdgeIterator BoostGraph::getEdgeIterator(IdType source, IdType target, const std::string& sensor) const
+{
 	OutEdgeIterator it, it_end;
 	try
 	{
@@ -123,7 +135,7 @@ const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::s
 		const VertexObject& tObject = mPoseGraph[boost::target(*it, mPoseGraph)];
 		if(tObject.index == target && mPoseGraph[*it].constraint->getSensorName() == sensor)
 		{
-			return mPoseGraph[*it];
+			return it;
 		}
 		++it;
 	}

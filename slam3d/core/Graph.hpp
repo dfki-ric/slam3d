@@ -210,6 +210,14 @@ namespace slam3d
 		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
 
 		/**
+		 * @brief Add a placeholder constraint
+		 * @param source_id
+		 * @param target_id
+		 * @param sensor
+		 */
+		void addTentativeConstraint(IdType source_id, IdType target_id, std::string& sensor);
+
+		/**
 		 * @brief Add a constraint (edge) between two vertices in the graph.
 		 * @param source
 		 * @param target
@@ -385,6 +393,14 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual VertexObject& getVertexInternal(IdType id) = 0;
+		
+		/**
+		 * @brief Get a writable reference to an EdgeObject.
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor) = 0;
 		
 		// Helper
 		/**

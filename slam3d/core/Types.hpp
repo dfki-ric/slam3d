@@ -122,7 +122,7 @@ namespace slam3d
 		Transform mInverseSensorPose;
 	};
 	
-	enum ConstraintType {SE3, GRAVITY, POSITION};
+	enum ConstraintType {SE3, GRAVITY, POSITION, TENTATIVE};
 	
 	/**
 	 * @class Constraint
@@ -217,6 +217,19 @@ namespace slam3d
 	protected:
 		Position mPosition;
 		Covariance<3> mCovariance;
+	};
+	
+/**
+ * @class TentativeConstraint
+ * @brief Placeholder for a constraint to be added at a later time
+ */
+	class TentativeConstraint : public Constraint
+	{
+	public:
+		TentativeConstraint(const std::string& s):  Constraint(s){}
+		
+		ConstraintType getType() { return TENTATIVE; }
+		const char* getTypeName() { return "Tentative"; }
 	};
 	
 	/**

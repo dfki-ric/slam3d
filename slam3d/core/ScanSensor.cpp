@@ -117,17 +117,17 @@ void ScanSensor::link(IdType source_id, IdType target_id)
 
 void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess)
 {
+	// Add a placeholder before starting the computation
+	mMapper->getGraph()->addTentativeConstraint(source_id, target_id, mName);
+	
+	// Build local patches around source and target
 	Measurement::Ptr source_m = buildPatch(source_id);
 	Measurement::Ptr target_m = buildPatch(target_id);
 
-	try
-	{
-		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess, true);
-		mMapper->getGraph()->addConstraint(source_id, target_id, se3);
-	}catch(std::exception &e)
-	{
-		mLogger->message(WARNING, e.what());
-	}
+	// Create the relative pose constraint
+	Constraint::Ptr se3 = createConstraint(source_m, target_m, guess, true);
+	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
+	
 }
 
 void ScanSensor::linkToNeighbors(IdType vertex)
@@ -202,6 +202,8 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
+			if(e->constraint->getType() != SE3)
+				continue;
 			try
 			{
 				mPatchSolver->addEdge(e->source, e->target, e->constraint);

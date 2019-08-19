@@ -139,7 +139,7 @@ namespace slam3d
 			default:
 				std::ostringstream msg;
 				msg << "Edge with type " << c->getTypeName() << " is not known!";
-				mLogger->message(ERROR, msg.str().c_str());
+				throw std::runtime_error(msg.str().c_str());
 			}
 		}
 		
