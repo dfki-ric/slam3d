@@ -125,6 +125,14 @@ namespace slam3d
 		 * @param e
 		 */
 		virtual void addEdge(const EdgeObject& e);
+		
+		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		virtual void removeEdge(IdType source, IdType target, const std::string& sensor);
 
 		/**
 		 * @brief Get a writable reference to a VertexObject.

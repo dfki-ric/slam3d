@@ -175,6 +175,15 @@ void Graph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Pt
 	eo.constraint = c;
 }
 
+void Graph::removeConstraint(IdType source, IdType target, const std::string& sensor)
+{
+	// Remove from graph
+	removeEdge(source, target, sensor);
+	
+	// Remove from solver
+	// TODO
+}
+
 IdType Graph::getIndex(boost::uuids::uuid id) const
 {
 	return mUuidIndex.at(id);

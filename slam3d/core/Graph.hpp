@@ -237,6 +237,10 @@ namespace slam3d
 		                               IdType target,
 		                               Constraint::Ptr constraint);
 
+		virtual void removeConstraint(IdType source,
+		                              IdType target,
+		                              const std::string& sensor);
+
 		/**
 		 * @brief Set the corrected pose for the vertex with the given ID.
 		 * @details This method is designed to be used by Sensor and PoseSensor
@@ -248,7 +252,7 @@ namespace slam3d
 		 * @param pose new corrected pose to be set
 		 */
 		void setCorrectedPose(IdType id, const Transform& pose);
-		
+
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
@@ -280,7 +284,7 @@ namespace slam3d
 		 * @param sensor index nodes of this sensor
 		 */
 		void buildNeighborIndex(const std::string& sensor);
-		
+
 		/**
 		 * @brief Search for nodes in the graph near the given pose.
 		 * @details This does not refer to a NN-Search in the graph, but to search for
@@ -370,7 +374,7 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
-		
+
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
 		 * @param source
@@ -378,7 +382,7 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual float calculateGraphDistance(IdType source, IdType target) = 0;
-		
+
 	protected:
 		// Graph access
 		/**
@@ -398,12 +402,20 @@ namespace slam3d
 		virtual void addEdge(const EdgeObject& e) = 0;
 
 		/**
+		 * @brief 
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
+		virtual void removeEdge(IdType source, IdType target, const std::string& sensor) = 0;
+
+		/**
 		 * @brief Get a writable reference to a VertexObject.
 		 * @param id
 		 * @throw InvalidVertex
 		 */
 		virtual VertexObject& getVertexInternal(IdType id) = 0;
-		
+
 		/**
 		 * @brief Get a writable reference to an EdgeObject.
 		 * @param source
@@ -411,7 +423,7 @@ namespace slam3d
 		 * @param sensor
 		 */
 		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor) = 0;
-		
+
 		// Helper
 		/**
 		 * @brief Re-orthogonalize the rotation-matrix
@@ -419,13 +431,13 @@ namespace slam3d
 		 * @return the orthogonalized transform
 		 */
 		static Transform orthogonalize(const Transform& t);
-		
+
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
-		
+
 		Indexer mIndexer;
-		
+
 		// Index to find Vertices by the unique id of their measurement
 		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
 		UuidIndex mUuidIndex;
