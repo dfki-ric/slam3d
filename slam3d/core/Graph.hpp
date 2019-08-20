@@ -424,7 +424,13 @@ namespace slam3d
 		 */
 		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor) = 0;
 
-		// Helper
+	protected:
+		/**
+		 * @brief Add the given edge to the solver.
+		 * @param eo
+		 */
+		virtual void addToSolver(const EdgeObject& eo);
+
 		/**
 		 * @brief Re-orthogonalize the rotation-matrix
 		 * @param t input tranform

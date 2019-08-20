@@ -156,23 +156,29 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	eo.target = target_id;
 	eo.constraint = c;
 	addEdge(eo);
-	mConstraintsAdded++;
-	mLogger->message(INFO, (boost::format("%3% created edge from node %1% to node %2% of type %4%.")
-	 % source_id % target_id % c->getSensorName() % c->getTypeName()).str());
-	
-	// Add it to the SLAM-Backend for incremental optimization
-	if(mSolver)
-	{
-		mSolver->addEdge(source_id, target_id, c);
-		if(mOptimizationRate > 0 && (mConstraintsAdded % mOptimizationRate) == 0)
-			optimize();
-	}
+	addToSolver(eo);
 }
 
 void Graph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 {
 	EdgeObject& eo = getEdgeInternal(source_id, target_id, c->getSensorName());
 	eo.constraint = c;
+	addToSolver(eo);
+}
+
+void Graph::addToSolver(const EdgeObject& eo)
+{
+	mConstraintsAdded++;
+	mLogger->message(INFO, (boost::format("%3% created edge from node %1% to node %2% of type %4%.")
+	 % eo.source % eo.target % eo.constraint->getSensorName() % eo.constraint->getTypeName()).str());
+	
+	// Add it to the SLAM-Backend for incremental optimization
+	if(mSolver)
+	{
+		mSolver->addEdge(eo.source, eo.target, eo.constraint);
+		if(mOptimizationRate > 0 && (mConstraintsAdded % mOptimizationRate) == 0)
+			optimize();
+	}
 }
 
 void Graph::removeConstraint(IdType source, IdType target, const std::string& sensor)
