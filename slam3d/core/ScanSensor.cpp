@@ -125,8 +125,16 @@ void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess
 	Measurement::Ptr target_m = buildPatch(target_id);
 
 	// Create the relative pose constraint
-	Constraint::Ptr se3 = createConstraint(source_m, target_m, guess, true);
-	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
+	try
+	{
+		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess, true);
+		mMapper->getGraph()->replaceConstraint(source_id, target_id, se3);
+	}catch(NoMatch &e)
+	{
+		mLogger->message(WARNING, (boost::format("Failed to link vertex %1% and %2%, because %3%.") % source_id % target_id % e.what()).str());
+		// delete tentative constraint
+		return;
+	}
 	
 }
 
@@ -153,19 +161,12 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 			return;
 		}
 
-		try
-		{
-			float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex);
-			mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
-			if(dist <= mPatchBuildingRange * 2 || dist < mMinLoopLength)
-				continue;
-			count++;
-			link(index, vertex);
-		}catch(NoMatch &e)
-		{
-			mLogger->message(WARNING, (boost::format("Failed to match vertex %1% and %2%, because %3%.") % index % vertex % e.what()).str());
+		float dist = mMapper->getGraph()->calculateGraphDistance(index, vertex);
+		mLogger->message(DEBUG, (boost::format("Distance(%2%,%3%) in Graph is: %1%") % dist % index % vertex).str());
+		if(dist <= mPatchBuildingRange * 2 || dist < mMinLoopLength)
 			continue;
-		}
+		count++;
+		link(index, vertex);
 	}
 }
 

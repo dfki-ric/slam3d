@@ -228,6 +228,16 @@ namespace slam3d
 		                           Constraint::Ptr constraint);
 
 		/**
+		 * @brief Replace the constraint of the same sensor for the specified edge.
+		 * @param source
+		 * @param target
+		 * @param constraint
+		 */
+		virtual void replaceConstraint(IdType source,
+		                               IdType target,
+		                               Constraint::Ptr constraint);
+
+		/**
 		 * @brief Set the corrected pose for the vertex with the given ID.
 		 * @details This method is designed to be used by Sensor and PoseSensor
 		 * implementations in order to position newly added measurements.
