@@ -28,6 +28,7 @@
 #include <slam3d/core/Mapper.hpp>
 
 #include <pcl/registration/gicp.h>
+#include <pcl/registration/ndt.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
 
@@ -36,6 +37,7 @@
 using namespace slam3d;
 
 typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
+typedef pcl::NormalDistributionsTransform<PointType, PointType> NDT;
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
@@ -161,14 +163,21 @@ Transform PointCloudSensor::doICP(PointCloudMeasurement::Ptr source,
 		throw NoMatch("ICP has too few points");
 	
 	// Configure Generalized-ICP
-	GICP icp;
+	NDT icp;
 	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	icp.setMaximumIterations(config.maximum_iterations);
-	icp.setTransformationEpsilon(config.transformation_epsilon);
+//	icp.setTransformationEpsilon(config.transformation_epsilon);
 	icp.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
-	icp.setCorrespondenceRandomness(config.correspondence_randomness);
-	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
-	icp.setRotationEpsilon(config.rotation_epsilon);
+//	icp.setCorrespondenceRandomness(config.correspondence_randomness);
+//	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
+//	icp.setRotationEpsilon(config.rotation_epsilon);
+
+	// Setting minimum transformation difference for termination condition.
+	icp.setTransformationEpsilon (0.01);
+	// Setting maximum step size for More-Thuente line search.
+	icp.setStepSize (0.1);
+	//Setting Resolution of NDT grid structure (VoxelGridCovariance).
+	icp.setResolution (1.0);
 	
 	// We cannot use the "guess" parameter from align() due to a bug in PCL.
 	// Instead we have to shift the source cloud to the target frame before
