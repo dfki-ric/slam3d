@@ -17,7 +17,7 @@ target_link_libraries(sensor-pcl
 install(
 	FILES
 		PointCloudSensor.hpp
-		GICPConfiguration.hpp
+		RegistrationParameters.hpp
 	DESTINATION include/slam3d/sensor/pcl
 )
 

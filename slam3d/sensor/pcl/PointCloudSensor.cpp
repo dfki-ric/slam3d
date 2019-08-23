@@ -36,9 +36,6 @@
 
 using namespace slam3d;
 
-typedef pcl::GeneralizedIterativeClosestPoint<PointType, PointType> GICP;
-typedef pcl::NormalDistributionsTransform<PointType, PointType> NDT;
-
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
@@ -128,11 +125,11 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	// For large loops, refine guess by a coarse ICP
 	if(loop)
 	{
-		guess = doICP(sourceCloud, targetCloud, guess, mCoarseConfiguration);
+		guess = align(sourceCloud, targetCloud, guess, mCoarseConfiguration);
 	}
 	
 	// Calculate precise alignement with fine ICP
-	Transform icp_result = doICP(sourceCloud, targetCloud, guess, mFineConfiguration);
+	Transform icp_result = align(sourceCloud, targetCloud, guess, mFineConfiguration);
 	
 	// Transform back to robot frame
 	TransformWithCovariance twc;
@@ -142,12 +139,10 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	return Constraint::Ptr(new SE3Constraint(mName, twc));
 }
 
-
-
-Transform PointCloudSensor::doICP(PointCloudMeasurement::Ptr source,
+Transform PointCloudSensor::align(PointCloudMeasurement::Ptr source,
                                   PointCloudMeasurement::Ptr target,
                                   const Transform& guess,
-                                  const GICPConfiguration& config)
+                                  const RegistrationParameters& config)
 {
 	// Downsample the scans
 	PointCloud::Ptr filtered_source = source->getPointCloud();
@@ -159,25 +154,32 @@ Transform PointCloudSensor::doICP(PointCloudMeasurement::Ptr source,
 	}
 	
 	// Make sure that there are enough points left (ICP will crash if not)
-	if(filtered_target->size() < config.correspondence_randomness || filtered_source->size() < config.correspondence_randomness)
-		throw NoMatch("ICP has too few points");
+	if(filtered_target->size() < 100 || filtered_source->size() < 100)
+		throw NoMatch("Too few points after filtering, you may have to decrease 'point_cloud_density'.");
 	
 	// Configure Generalized-ICP
-	NDT icp;
+	if(config.registration_algorithm == GICP)
+	{
+		return doICP(filtered_source, filtered_target, guess, config);
+	}else
+	{
+		return doNDT(filtered_source, filtered_target, guess, config);
+	}
+}
+
+Transform PointCloudSensor::doICP(PointCloud::Ptr source,
+                                  PointCloud::Ptr target,
+                                  const Transform& guess,
+                                  const RegistrationParameters& config)
+{
+	pcl::GeneralizedIterativeClosestPoint<PointType, PointType> icp;
 	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	icp.setMaximumIterations(config.maximum_iterations);
-//	icp.setTransformationEpsilon(config.transformation_epsilon);
+	icp.setTransformationEpsilon(config.transformation_epsilon);
 	icp.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
-//	icp.setCorrespondenceRandomness(config.correspondence_randomness);
-//	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
-//	icp.setRotationEpsilon(config.rotation_epsilon);
-
-	// Setting minimum transformation difference for termination condition.
-	icp.setTransformationEpsilon (0.01);
-	// Setting maximum step size for More-Thuente line search.
-	icp.setStepSize (0.1);
-	//Setting Resolution of NDT grid structure (VoxelGridCovariance).
-	icp.setResolution (1.0);
+	icp.setCorrespondenceRandomness(config.correspondence_randomness);
+	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
+	icp.setRotationEpsilon(config.rotation_epsilon);
 	
 	// We cannot use the "guess" parameter from align() due to a bug in PCL.
 	// Instead we have to shift the source cloud to the target frame before
@@ -185,13 +187,13 @@ Transform PointCloudSensor::doICP(PointCloudMeasurement::Ptr source,
 	// TODO: Change once the issue in PCL is resolved:
 	// > https://github.com/PointCloudLibrary/pcl/pull/989
 	PointCloud::Ptr shifted_target(new PointCloud);
-	pcl::transformPointCloud(*filtered_target, *shifted_target, guess.matrix());
+	pcl::transformPointCloud(*target, *shifted_target, guess.matrix());
 	
 	// Source and target are switched at this point!
 	// In the pose graph, our edge (with transform) goes from source to target,
 	// but ICP calculates the transformation from target to source.
 	icp.setInputSource(shifted_target);
-	icp.setInputTarget(filtered_source);
+	icp.setInputTarget(source);
 	PointCloud result;
 	icp.align(result);
 
@@ -206,34 +208,46 @@ Transform PointCloudSensor::doICP(PointCloudMeasurement::Ptr source,
 	return Transform(tf_matrix) * guess;
 }
 
-/*
-void PointCloudSensor::closeLoop(IdType source_id, IdType target_id)
+Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
+                                  PointCloud::Ptr target,
+                                  const Transform& guess,
+                                  const RegistrationParameters& config)
 {
-	VertexObject source = mMapper->getGraph()->getVertex(source_id);
-	VertexObject target = mMapper->getGraph()->getVertex(target_id);
+	pcl::NormalDistributionsTransform<PointType, PointType> ndt;
+	ndt.setMaxCorrespondenceDistance(config.max_correspondence_distance);
+	ndt.setMaximumIterations(config.maximum_iterations);
+	ndt.setTransformationEpsilon(config.transformation_epsilon);
+	ndt.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
+	ndt.setOulierRatio(config.outlier_ratio);
+	ndt.setStepSize(config.step_size);
+	ndt.setResolution(config.resolution);
+	
+	// We cannot use the "guess" parameter from align() due to a bug in PCL.
+	// Instead we have to shift the source cloud to the target frame before
+	// calling align on it.
+	// TODO: Change once the issue in PCL is resolved:
+	// > https://github.com/PointCloudLibrary/pcl/pull/989
+	PointCloud::Ptr shifted_target(new PointCloud);
+	pcl::transformPointCloud(*target, *shifted_target, guess.matrix());
+	
+	// Source and target are switched at this point!
+	// In the pose graph, our edge (with transform) goes from source to target,
+	// but ICP calculates the transformation from target to source.
+	ndt.setInputSource(shifted_target);
+	ndt.setInputTarget(source);
+	PointCloud result;
+	ndt.align(result);
 
-	if(source.measurement->getSensorName() != mName || target.measurement->getSensorName() != mName)
+	// Check if ICP was successful (kind of...)
+	if(!ndt.hasConverged() || ndt.getFitnessScore() > config.max_fitness_score)
 	{
-		throw InvalidEdge(source_id, target_id);
+		throw NoMatch((boost::format("NDT failed with Fitness-Score %1% > %2%") % ndt.getFitnessScore() % config.max_fitness_score).str());
 	}
 	
-	Measurement::Ptr source_m = buildPatch(source_id);
-	Measurement::Ptr target_m = buildPatch(target_id);
-	
-	// Estimate the transform from source to target
-	TransformWithCovariance guess = mMapper->getGraph()->getTransform(source_id, target_id);
-	TransformWithCovariance twc_coarse = calculateTransform(source_m, target_m, guess, true);
-	TransformWithCovariance twc = calculateTransform(source_m, target_m, twc_coarse);
-
-	// Create new edge and return the transform
-	if(!twc.isValid())
-	{
-		throw NoMatch((boost::format("transform determinant is %1%") % twc.transform.matrix().determinant()).str());
-	}
-	SE3Constraint::Ptr se3(new SE3Constraint(mName, twc));
-	mMapper->getGraph()->addConstraint(source_id, target_id, se3);
+	// Get estimated transform
+	Eigen::Isometry3f tf_matrix(ndt.getFinalTransformation());
+	return Transform(tf_matrix) * guess;
 }
-*/
 
 PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) const
 {

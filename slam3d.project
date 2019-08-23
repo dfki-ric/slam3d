@@ -157,10 +157,10 @@
       <File Name="slam3d/sensor/CMakeLists.txt"/>
       <VirtualDirectory Name="pcl">
         <File Name="slam3d/sensor/pcl/CMakeLists.txt"/>
-        <File Name="slam3d/sensor/pcl/GICPConfiguration.hpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.cpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.hpp"/>
         <File Name="slam3d/sensor/pcl/slam3d_sensor_pcl.pc.in"/>
+        <File Name="slam3d/sensor/pcl/RegistrationParameters.hpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="pointmatcher">
         <File Name="slam3d/sensor/pointmatcher/CMakeLists.txt"/>

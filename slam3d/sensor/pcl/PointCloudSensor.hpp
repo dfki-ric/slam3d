@@ -26,7 +26,7 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include <slam3d/sensor/pcl/GICPConfiguration.hpp>
+#include <slam3d/sensor/pcl/RegistrationParameters.hpp>
 
 #include <slam3d/core/Graph.hpp>
 #include <slam3d/core/ScanSensor.hpp>
@@ -122,13 +122,13 @@ namespace slam3d
 		 * @brief Sets configuration for fine GICP algorithm.
 		 * @param c New configuration paramerters
 		 */
-		void setFineConfiguaration(GICPConfiguration c) { mFineConfiguration = c; }
+		void setFineConfiguaration(const RegistrationParameters& c) { mFineConfiguration = c; }
 		
 		/**
 		 * @brief Sets configuration for coarse GICP algorithm.
 		 * @param c New configuration paramerters
 		 */
-		void setCoarseConfiguaration(GICPConfiguration c) { mCoarseConfiguration = c; }
+		void setCoarseConfiguaration(const RegistrationParameters& c) { mCoarseConfiguration = c; }
 		
 		/**
 		 * @brief 
@@ -179,12 +179,18 @@ namespace slam3d
 		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
 	
 	protected:
-		Transform doICP(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,
-		                const Transform& guess, const GICPConfiguration& config);
+		Transform align(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,
+		                const Transform& guess, const RegistrationParameters& config);
+
+		Transform doICP(PointCloud::Ptr source, PointCloud::Ptr target,
+		                const Transform& guess, const RegistrationParameters& config);
+
+		Transform doNDT(PointCloud::Ptr source, PointCloud::Ptr target,
+		                const Transform& guess, const RegistrationParameters& config);
 
 	protected:
-		GICPConfiguration mFineConfiguration;
-		GICPConfiguration mCoarseConfiguration;
+		RegistrationParameters mFineConfiguration;
+		RegistrationParameters mCoarseConfiguration;
 		
 		double   mMapResolution;
 		double   mMapOutlierRadius;
