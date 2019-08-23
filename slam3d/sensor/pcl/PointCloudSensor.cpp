@@ -31,6 +31,7 @@
 #include <pcl/registration/ndt.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/pcl_config.h>
 
 #include <boost/format.hpp>
 
@@ -181,10 +182,12 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
 	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
 	icp.setRotationEpsilon(config.rotation_epsilon);
 	
+	PointCloud result;
+
+#if PCL_VERSION_COMPARE(<, 1, 8, 1)
 	// We cannot use the "guess" parameter from align() due to a bug in PCL.
 	// Instead we have to shift the source cloud to the target frame before
 	// calling align on it.
-	// TODO: Change once the issue in PCL is resolved:
 	// > https://github.com/PointCloudLibrary/pcl/pull/989
 	PointCloud::Ptr shifted_target(new PointCloud);
 	pcl::transformPointCloud(*target, *shifted_target, guess.matrix());
@@ -194,8 +197,12 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
 	// but ICP calculates the transformation from target to source.
 	icp.setInputSource(shifted_target);
 	icp.setInputTarget(source);
-	PointCloud result;
 	icp.align(result);
+#else
+	icp.setInputSource(target);
+	icp.setInputTarget(source);
+	icp.align(result, guess.matrix().cast<float>());
+#endif
 
 	// Check if ICP was successful (kind of...)
 	if(!icp.hasConverged() || icp.getFitnessScore() > config.max_fitness_score)
@@ -204,8 +211,11 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
 	}
 	
 	// Get estimated transform
-	Eigen::Isometry3f tf_matrix(icp.getFinalTransformation());
-	return Transform(tf_matrix) * guess;
+	Transform icp_result(Eigen::Isometry3f(icp.getFinalTransformation()));
+#if PCL_VERSION_COMPARE(<, 1, 8, 1)
+	icp_result = icp_result * guess;
+#endif
+	return icp_result;
 }
 
 Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
@@ -222,21 +232,13 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
 	ndt.setStepSize(config.step_size);
 	ndt.setResolution(config.resolution);
 	
-	// We cannot use the "guess" parameter from align() due to a bug in PCL.
-	// Instead we have to shift the source cloud to the target frame before
-	// calling align on it.
-	// TODO: Change once the issue in PCL is resolved:
-	// > https://github.com/PointCloudLibrary/pcl/pull/989
-	PointCloud::Ptr shifted_target(new PointCloud);
-	pcl::transformPointCloud(*target, *shifted_target, guess.matrix());
-	
 	// Source and target are switched at this point!
 	// In the pose graph, our edge (with transform) goes from source to target,
 	// but ICP calculates the transformation from target to source.
-	ndt.setInputSource(shifted_target);
+	ndt.setInputSource(target);
 	ndt.setInputTarget(source);
 	PointCloud result;
-	ndt.align(result);
+	ndt.align(result, guess.matrix().cast<float>());
 
 	// Check if ICP was successful (kind of...)
 	if(!ndt.hasConverged() || ndt.getFitnessScore() > config.max_fitness_score)
@@ -246,7 +248,7 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
 	
 	// Get estimated transform
 	Eigen::Isometry3f tf_matrix(ndt.getFinalTransformation());
-	return Transform(tf_matrix) * guess;
+	return Transform(tf_matrix);
 }
 
 PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) const
