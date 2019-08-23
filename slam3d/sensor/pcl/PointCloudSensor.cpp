@@ -205,9 +205,10 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
 #endif
 
 	// Check if ICP was successful (kind of...)
-	if(!icp.hasConverged() || icp.getFitnessScore() > config.max_fitness_score)
+	double score = icp.getFitnessScore(config.max_correspondence_distance);
+	if(!icp.hasConverged() || score > config.max_fitness_score)
 	{
-		throw NoMatch((boost::format("ICP failed with Fitness-Score %1% > %2%") % icp.getFitnessScore() % config.max_fitness_score).str());
+		throw NoMatch((boost::format("ICP failed with Fitness-Score %1% > %2%") % score % config.max_fitness_score).str());
 	}
 	
 	// Get estimated transform
@@ -240,10 +241,11 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
 	PointCloud result;
 	ndt.align(result, guess.matrix().cast<float>());
 
-	// Check if ICP was successful (kind of...)
-	if(!ndt.hasConverged() || ndt.getFitnessScore() > config.max_fitness_score)
+	// Check if NDT was successful (kind of...)
+	double score = ndt.getFitnessScore(config.max_correspondence_distance);
+	if(!ndt.hasConverged() || score > config.max_fitness_score)
 	{
-		throw NoMatch((boost::format("NDT failed with Fitness-Score %1% > %2%") % ndt.getFitnessScore() % config.max_fitness_score).str());
+		throw NoMatch((boost::format("NDT failed with Fitness-Score %1% > %2%") % score % config.max_fitness_score).str());
 	}
 	
 	// Get estimated transform
