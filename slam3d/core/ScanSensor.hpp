@@ -152,6 +152,7 @@ namespace slam3d
 		unsigned mMinLoopLength;
 
 		Transform mLastOdometry;
+		Transform mLastTransform;
 	};
 }
 

@@ -37,6 +37,7 @@ ScanSensor::ScanSensor(const std::string& n, Logger* l)
 	mNeighborRadius = 1.0;
 	mMaxNeighorLinks = 1;
 	mMinLoopLength = 10;
+	mLastTransform = Transform::Identity();
 }
 
 ScanSensor::~ScanSensor()
@@ -54,14 +55,15 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
 	try
 	{
-		Constraint::Ptr c = createConstraint(source, m, Transform::Identity(), false);
+		Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
 		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
-		if(!se3 || checkMinDistance(se3->getRelativePose().transform))
+		mLastTransform = se3->getRelativePose().transform;
+		if(!se3 || checkMinDistance(mLastTransform))
 		{
 			IdType newVertex = mMapper->addMeasurement(m);
 			if(se3)
 			{
-				Transform pose = mMapper->getCurrentPose() * se3->getRelativePose().transform;
+				Transform pose = mMapper->getCurrentPose() * mLastTransform;
 				mMapper->getGraph()->setCorrectedPose(newVertex, pose);
 			}
 			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
