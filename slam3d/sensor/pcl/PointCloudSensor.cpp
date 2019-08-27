@@ -243,6 +243,8 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
 
 	// Check if NDT was successful (kind of...)
 	double score = ndt.getFitnessScore(config.max_correspondence_distance);
+	mLogger->message(DEBUG, (boost::format("NDT: fitness(%1%) probability(%2%) iterations(%3%)")
+		%score % ndt.getTransformationProbability() % ndt.getFinalNumIteration()).str());
 	if(!ndt.hasConverged() || score > config.max_fitness_score)
 	{
 		throw NoMatch((boost::format("NDT failed with Fitness-Score %1% > %2%") % score % config.max_fitness_score).str());
