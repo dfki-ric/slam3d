@@ -58,17 +58,18 @@ PM::TransformationParameters Scan2DSensor::convert3Dto2D(const Transform& in) co
 
 Constraint::Ptr Scan2DSensor::createConstraint(const Measurement::Ptr& source,
 		                                       const Measurement::Ptr& target,
-		                                       const TransformWithCovariance& odometry)
+		                                       const Transform& odometry,
+		                                       bool loop)
 {
 	// Transform guess in sensor frame
-	Transform guess = source->getInverseSensorPose() * odometry.transform * target->getSensorPose();
+	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
 
 	// Cast to this sensors measurement type
 	Scan2DMeasurement::Ptr sourceScan = boost::dynamic_pointer_cast<Scan2DMeasurement>(source);
 	Scan2DMeasurement::Ptr targetScan = boost::dynamic_pointer_cast<Scan2DMeasurement>(target);
 	if(!sourceScan || !targetScan)
 	{
-		mLogger->message(ERROR, "Measurement given to calculateTransform() is not a PointCloud!");
+		mLogger->message(ERROR, "Measurement given to calculateTransform() is not a Scan!");
 		throw BadMeasurementType();
 	}
 	

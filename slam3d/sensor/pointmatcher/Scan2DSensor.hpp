@@ -91,7 +91,8 @@ namespace slam3d
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
-		                                         const TransformWithCovariance& odometry);
+		                                         const Transform& odometry,
+												 bool loop);
 
 		/**
 		 * @brief Convert the 2D ICP result to a 3D transformation
