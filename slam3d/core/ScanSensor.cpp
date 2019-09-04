@@ -96,7 +96,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 		{
 			try
 			{
-				Constraint::Ptr c = createConstraint(source, m, Transform::Identity(), false);
+				Constraint::Ptr c = createConstraint(source, m, odom_delta, false);
 				mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 			}catch(std::exception &e)
 			{
