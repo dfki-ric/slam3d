@@ -37,6 +37,7 @@ ScanSensor::ScanSensor(const std::string& n, Logger* l)
 	mNeighborRadius = 1.0;
 	mMaxNeighorLinks = 1;
 	mMinLoopLength = 10;
+	mLinkPrevious = true;
 	mLastTransform = Transform::Identity();
 }
 
@@ -77,7 +78,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	return false;
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom, bool linkPrev)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
 {
 	if(mLastVertex == 0)
 	{
@@ -92,7 +93,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
 		Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
-		if(linkPrev)
+		if(mLinkPrevious)
 		{
 			try
 			{

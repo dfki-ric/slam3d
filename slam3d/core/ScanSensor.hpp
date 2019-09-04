@@ -73,6 +73,12 @@ namespace slam3d
 		void setMinLoopLength(unsigned l) { mMinLoopLength = l; }
 
 		/**
+		 * @brief Sets whether to link each scan to its predecessor.
+		 * @param l
+		 */
+		void setLinkPrevious(bool l) { mLinkPrevious = l; }
+
+		/**
 		 * @brief Add a new measurement from this sensor.
 		 * @param scan
 		 */
@@ -82,9 +88,8 @@ namespace slam3d
 		 * @brief Add a new measurement from this sensor together with an odometry pose.
 		 * @param scan
 		 * @param odom
-		 * @param linkPrev
 		 */
-		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom, bool linkPrev = true);
+		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom);
 
 		/**
 		 * @brief Create a virtual measurement by accumulating scans from given vertices.
@@ -150,6 +155,7 @@ namespace slam3d
 		unsigned mMaxNeighorLinks;
 		float mNeighborRadius;
 		unsigned mMinLoopLength;
+		bool mLinkPrevious;
 
 		Transform mLastOdometry;
 		Transform mLastTransform;
