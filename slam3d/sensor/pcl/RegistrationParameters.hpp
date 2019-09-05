@@ -90,12 +90,19 @@ namespace slam3d
 		// point cloud outlier ratio
 		double outlier_ratio;
 
-		RegistrationParameters() : registration_algorithm(GICP), max_correspondence_distance(2.5),
-		                           maximum_iterations(50), transformation_epsilon(1e-5),
-		                           euclidean_fitness_epsilon(1.0), correspondence_randomness(20),
-		                           maximum_optimizer_iterations(20), rotation_epsilon(2e-3),
-		                           point_cloud_density(0.2), max_fitness_score(2.0),
-		                           outlier_ratio(0.35), step_size(0.05), resolution(1.0){};
+		RegistrationParameters() : registration_algorithm(GICP),
+		                           point_cloud_density(0.2),
+		                           max_fitness_score(2.0),
+		                           euclidean_fitness_epsilon(1.0),
+		                           transformation_epsilon(1e-5),
+		                           max_correspondence_distance(2.5),
+		                           maximum_iterations(50), 
+		                           rotation_epsilon(2e-3),
+		                           correspondence_randomness(20),
+		                           maximum_optimizer_iterations(20),
+		                           resolution(1.0),
+		                           step_size(0.05),
+		                           outlier_ratio(0.35){};
 	};
 }
 
