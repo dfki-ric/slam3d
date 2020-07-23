@@ -25,6 +25,6 @@
     <classifier>library</classifier>
   </classifiers>
 
-  <tag>stable</tag>
+  <tags>stable</tags>
 
 </package>
