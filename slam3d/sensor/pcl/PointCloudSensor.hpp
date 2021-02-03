@@ -119,29 +119,26 @@ namespace slam3d
 		                                         bool loop);
 		
 		/**
-		 * @brief Sets configuration for fine GICP algorithm.
-		 * @param c New configuration paramerters
+		 * @brief Sets parameters for the internal pointcloud registration.
+		 * The standard set is always used to calculate the final transformation.
+		 * A coarse set is used to initialize and verify loop-closures.
+		 * @param param new configuration paramerters
+		 * @param coarse whether to set coarse parameter set
 		 */
-		void setFineConfiguaration(const RegistrationParameters& c) { mFineConfiguration = c; }
-		
-		/**
-		 * @brief Sets configuration for coarse GICP algorithm.
-		 * @param c New configuration paramerters
-		 */
-		void setCoarseConfiguaration(const RegistrationParameters& c) { mCoarseConfiguration = c; }
+		void setRegistrationParameters(const RegistrationParameters& param, bool coarse);
 		
 		/**
 		 * @brief 
 		 * @param r
 		 */
-		void setMapResolution(double r) { mMapResolution = r; }
+		void setMapResolution(double r);
 		
 		/**
 		 * @brief 
 		 * @param r
 		 * @param n
 		 */
-		void setMapOutlierRemoval(double r, unsigned n) { mMapOutlierRadius = r; mMapOutlierNeighbors = n; }
+		void setMapOutlierRemoval(double r, unsigned n);
 		
 		/**
 		 * @brief Reduces the size of the source cloud by sampling with the given resolution.

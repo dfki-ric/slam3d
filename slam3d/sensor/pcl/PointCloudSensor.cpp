@@ -261,3 +261,39 @@ PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) con
 	PointCloud::Ptr cleaned = removeOutliers(accu, mMapOutlierRadius, mMapOutlierNeighbors);
 	return downsample(cleaned, mMapResolution);
 }
+
+void PointCloudSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
+{
+	if(coarse)
+	{
+		mLogger->message(INFO, " = RegistrationParameters (Coarse) =");
+		mCoarseConfiguration = conf;
+	}else
+	{
+		mLogger->message(INFO, " = RegistrationParameters (Fine) =");
+		mFineConfiguration = conf;
+	}
+	mLogger->message(INFO, (boost::format("correspondence_randomness:    %1%") % conf.correspondence_randomness).str());
+	mLogger->message(INFO, (boost::format("euclidean_fitness_epsilon:    %1%") % conf.euclidean_fitness_epsilon).str());
+	mLogger->message(INFO, (boost::format("max_correspondence_distance:  %1%") % conf.max_correspondence_distance).str());
+	mLogger->message(INFO, (boost::format("max_fitness_score:            %1%") % conf.max_fitness_score).str());
+	mLogger->message(INFO, (boost::format("maximum_iterations:           %1%") % conf.maximum_iterations).str());
+	mLogger->message(INFO, (boost::format("maximum_optimizer_iterations: %1%") % conf.maximum_optimizer_iterations).str());
+	mLogger->message(INFO, (boost::format("point_cloud_density:          %1%") % conf.point_cloud_density).str());
+	mLogger->message(INFO, (boost::format("rotation_epsilon:             %1%") % conf.rotation_epsilon).str());
+	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
+}
+
+void PointCloudSensor::setMapResolution(double r)
+{
+	mLogger->message(INFO, (boost::format("map_resolution:         %1%") % r).str());
+	mMapResolution = r;
+}
+
+void PointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
+{
+	mLogger->message(INFO, (boost::format("map_outlier_radius:     %1%") % r).str());
+	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());
+	mMapOutlierRadius = r;
+	mMapOutlierNeighbors = n;
+}

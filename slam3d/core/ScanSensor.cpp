@@ -240,3 +240,29 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 	}
 	return createCombinedMeasurement(v_objects, mMapper->getGraph()->getVertex(source).corrected_pose);
 }
+
+void ScanSensor::setNeighborRadius(float r, unsigned l)
+{
+	mLogger->message(INFO, (boost::format("neighbor_radius:        %1%") % r).str());
+	mLogger->message(INFO, (boost::format("max_neighbor_links:     %1%") % l).str());
+	mNeighborRadius = r;
+	mMaxNeighorLinks = l;
+}
+
+void ScanSensor::setMinLoopLength(unsigned l)
+{
+	mLogger->message(INFO, (boost::format("min_loop_length:        %1%") % l).str());
+	mMinLoopLength = l;
+}
+
+void ScanSensor::setLinkPrevious(bool l)
+{
+	mLogger->message(INFO, (boost::format("link_previous:          %1%") % l).str());
+	mLinkPrevious = l;
+}
+
+void ScanSensor::setPatchBuildingRange(unsigned r)
+{
+	mLogger->message(INFO, (boost::format("patch_building_range:   %1%") % r).str());
+	mPatchBuildingRange = r;
+}

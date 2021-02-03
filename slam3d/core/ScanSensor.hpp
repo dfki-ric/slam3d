@@ -55,7 +55,7 @@ namespace slam3d
 		 * by a maximum of r edges.
 		 * @param r 
 		 */
-		void setPatchBuildingRange(unsigned r) { mPatchBuildingRange = r; }
+		void setPatchBuildingRange(unsigned r);
 
 		/**
 		 * @brief Sets neighbor radius for scan matching
@@ -64,19 +64,19 @@ namespace slam3d
 		 * @param r radius within additional edges are created
 		 * @param l maximum number of neighbor links
 		 */
-		void setNeighborRadius(float r, unsigned l){ mNeighborRadius = r; mMaxNeighorLinks = l; }
+		void setNeighborRadius(float r, unsigned l);
 
 		/**
 		 * @brief Sets the minimum length of a loop.
 		 * @param l
 		 */
-		void setMinLoopLength(unsigned l) { mMinLoopLength = l; }
+		void setMinLoopLength(unsigned l);
 
 		/**
 		 * @brief Sets whether to link each scan to its predecessor.
 		 * @param l
 		 */
-		void setLinkPrevious(bool l) { mLinkPrevious = l; }
+		void setLinkPrevious(bool l);
 
 		/**
 		 * @brief Add a new measurement from this sensor.
