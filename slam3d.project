@@ -128,6 +128,7 @@
       <File Name="slam3d/core/GraphTest.hpp"/>
       <File Name="slam3d/core/ScanSensor.hpp"/>
       <File Name="slam3d/core/ScanSensor.cpp"/>
+      <File Name="slam3d/core/Sensor.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>

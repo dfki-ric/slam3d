@@ -104,7 +104,7 @@ namespace slam3d
 		 * @param t Minimum translation between nodes (in meter).
 		 * @param r Minimum rotation between nodes (in rad).
 		 */
-		void setMinPoseDistance(float t, float r){ mMinTranslation = t; mMinRotation = r; }
+		void setMinPoseDistance(float t, float r);
 		
 		/**
 		 * @brief Checks the given transformation using the previously set
@@ -112,15 +112,7 @@ namespace slam3d
 		 * @param t Relative motion since the last scan was added.
 		 * @return Whether a new scan should be added.
 		 */
-		bool checkMinDistance(const Transform &t)
-		{
-			ScalarType rot = Eigen::AngleAxis<ScalarType>(t.rotation()).angle();
-			ScalarType trans = t.translation().norm();
-			if(trans < mMinTranslation && std::abs(rot) < mMinRotation)
-				return false;
-			else
-				return true;
-		}
+		bool checkMinDistance(const Transform &t);
 		
 		/**
 		 * @brief Get the ID of the last vertex from this sensor.
