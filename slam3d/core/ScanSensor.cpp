@@ -143,6 +143,9 @@ void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess
 
 void ScanSensor::linkToNeighbors(IdType vertex)
 {
+	if(mMaxNeighorLinks == 0)
+		return;
+
 	mMapper->getGraph()->buildNeighborIndex(mName);
 	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
 	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
