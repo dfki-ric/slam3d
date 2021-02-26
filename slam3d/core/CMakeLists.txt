@@ -3,6 +3,7 @@ add_library(core
 	Graph.cpp
 	Sensor.cpp
 	ScanSensor.cpp
+	Types.cpp
 )
 
 target_include_directories(core

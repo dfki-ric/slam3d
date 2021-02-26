@@ -27,8 +27,8 @@
 #define SLAM_TYPES_HPP
 
 #include <sys/time.h>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/uuid/nil_generator.hpp>
 #include <Eigen/Geometry>
 
 #include <string>
@@ -92,17 +92,7 @@ namespace slam3d
 		
 	public:
 		Measurement(const std::string& r, const std::string& s,
-		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
-		{
-			mRobotName = r;
-			mSensorName = s;
-			mSensorPose = p;
-			mInverseSensorPose = p.inverse();
-			if(id.is_nil())
-				mUniqueId = boost::uuids::random_generator()();
-			else
-				mUniqueId = id;
-		}
+		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }

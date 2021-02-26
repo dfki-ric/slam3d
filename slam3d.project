@@ -129,6 +129,7 @@
       <File Name="slam3d/core/ScanSensor.hpp"/>
       <File Name="slam3d/core/ScanSensor.cpp"/>
       <File Name="slam3d/core/Sensor.cpp"/>
+      <File Name="slam3d/core/Types.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>
