@@ -1,7 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
-cmake_policy(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.0)
 
-project(SLAM3D VERSION "2.0.0")
+project(SLAM3D VERSION "2.1.0")
 enable_testing()
 
 # Find all dependencies
