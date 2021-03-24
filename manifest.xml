@@ -9,7 +9,7 @@
   <depend package="base/cmake" />
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
-  <depend package="cholmod" />
+  <depend package="suitesparse" />
   <depend package="flann" />
   
   <keywords>
