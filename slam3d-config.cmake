@@ -9,5 +9,9 @@ find_package(Boost REQUIRED COMPONENTS graph)
 find_package(PCL 1.7 REQUIRED COMPONENTS registration)
 find_package(g2o REQUIRED)
 find_package(OpenGL REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
+
 include("${CMAKE_CURRENT_LIST_DIR}/slam3d-targets.cmake")
 
