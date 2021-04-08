@@ -3,19 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(SLAM3D VERSION "2.1.0")
 enable_testing()
 
-# Find all dependencies
-find_package(PkgConfig REQUIRED)
-find_package(Eigen3 REQUIRED)
-if (NOT TARGET Eigen3::Eigen)
-	add_library(Eigen3::Eigen INTERFACE IMPORTED)
-	set_property(TARGET Eigen3::Eigen APPEND PROPERTY
-		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
-endif ()
-
-find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework)
-find_package(PCL 1.7 REQUIRED COMPONENTS registration)
-find_package(g2o REQUIRED)
-pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
+include(slam3d-dependencies.cmake)
 
 # Define a global property to hold all libraries. This can be
 # used to create a pkg-config file for all of SLAM3D.
@@ -46,6 +34,7 @@ write_basic_package_version_file("slam3d-version.cmake"
 install(
 	FILES
 		slam3d-config.cmake
+		slam3d-dependencies.cmake
 		${PROJECT_BINARY_DIR}/slam3d-version.cmake
 	DESTINATION
 		lib/cmake/slam3d
