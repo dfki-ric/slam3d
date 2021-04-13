@@ -8,6 +8,6 @@ if (NOT TARGET Eigen3::Eigen)
 endif ()
 
 find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework)
-find_package(PCL 1.7 REQUIRED COMPONENTS registration)
+find_package(PCL 1.7 REQUIRED COMPONENTS registration sample_consensus)
 find_package(g2o REQUIRED)
 pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)

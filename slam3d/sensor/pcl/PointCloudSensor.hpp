@@ -174,6 +174,17 @@ namespace slam3d
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
 		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
+		
+		/**
+		 * @brief Fill ground plane around center.
+		 * @details Estimates a ground plane within the given cloud using RANSAC 
+		 * and fills this plane with additional points within radius around the
+		 * origin. If no ground plane exists in the scan, the result is
+		 * undefined, e.g. RANSAC will just return any plane in the scan.
+		 * @param cloud
+		 * @param radius
+		 */
+		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
 	
 	protected:
 		Transform align(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,

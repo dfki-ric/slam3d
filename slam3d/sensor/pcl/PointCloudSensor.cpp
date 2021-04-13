@@ -32,8 +32,12 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/pcl_config.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
 
 #include <boost/format.hpp>
+
+#define PI 3.141592654
 
 using namespace slam3d;
 
@@ -296,4 +300,31 @@ void PointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
 	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());
 	mMapOutlierRadius = r;
 	mMapOutlierNeighbors = n;
+}
+
+void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
+{
+	pcl::SampleConsensusModelPlane<PointType>::Ptr
+		model(new pcl::SampleConsensusModelPlane<PointType>(cloud));
+	pcl::RandomSampleConsensus<PointType> ransac(model);
+	ransac.setDistanceThreshold (.01);
+	ransac.computeModel();
+
+	Eigen::VectorXf c;
+	ransac.getModelCoefficients(c);
+	Direction normal(c[0], c[1], c[2]);
+	Eigen::Hyperplane<ScalarType, 3> plane(normal, c[3]);
+	for(ScalarType r = mMapResolution; r <= radius; r += mMapResolution)
+	{
+		Position sample = plane.projection(Position(r,0,0));
+		for(ScalarType angle = 0; angle < 2*PI; angle += 0.1)
+		{
+			Position rot = Eigen::AngleAxis<ScalarType>(angle, normal).toRotationMatrix() * sample;
+			PointType p;
+			p.x = rot[0];
+			p.y = rot[1];
+			p.z = rot[2];
+			cloud->push_back(p);
+		}
+	}
 }

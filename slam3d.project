@@ -186,5 +186,6 @@
     <File Name="slam3d.pc.in"/>
     <File Name="README.md"/>
     <File Name="slam3d-config.cmake"/>
+    <File Name="slam3d-dependencies.cmake"/>
   </VirtualDirectory>
 </CodeLite_Project>
