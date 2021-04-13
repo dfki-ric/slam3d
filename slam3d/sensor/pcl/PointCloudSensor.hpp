@@ -108,10 +108,11 @@ namespace slam3d
 		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
 		
 		/**
-		 * @brief 
+		 * @brief Create an ICP constraint between two point clouds.
 		 * @param source
 		 * @param target
 		 * @param odometry
+		 * @param loop whether this is a loop closure (true) or sequential match (false)
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
@@ -128,13 +129,14 @@ namespace slam3d
 		void setRegistrationParameters(const RegistrationParameters& param, bool coarse);
 		
 		/**
-		 * @brief 
+		 * @brief Set density of points in accumulated map cloud.
 		 * @param r
 		 */
 		void setMapResolution(double r);
 		
 		/**
-		 * @brief 
+		 * @brief Set parameters for outlier removal.
+		 * @details An outlier is a point that has less then n neighbors within radius r.
 		 * @param r
 		 * @param n
 		 */
@@ -173,6 +175,10 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
+		/**
+		 * @brief Build an accumulated point cloud map from given vertices.
+		 * @param vertices
+		 */
 		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
 		
 		/**
