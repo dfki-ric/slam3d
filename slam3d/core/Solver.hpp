@@ -136,9 +136,12 @@ namespace slam3d
 			case POSITION:
 				addEdgePosition(source, boost::static_pointer_cast<PositionConstraint>(c));
 				break;
+			case DISTANCE:
+				addEdgeDistance(source, target, boost::static_pointer_cast<DistanceConstraint>(c));
+				break;
 			default:
 				std::ostringstream msg;
-				msg << "Edge with type " << c->getTypeName() << " is not known!";
+				msg << "Edge with type " << c->getTypeName() << " is not known to the Solver!";
 				throw std::runtime_error(msg.str().c_str());
 			}
 		}
@@ -147,7 +150,7 @@ namespace slam3d
 		 * @brief Adds a SE3 edge between two vertices in the graph.
 		 * @details The source and target vertices have to be added before the edge.
 		 * @param source id of the edge's from-vertex
-		 * @param target id if the edge's to-vertex
+		 * @param target id of the edge's to-vertex
 		 * @param se3 constraint describing a relative pose between two vertices
 		 */
 		virtual void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3) = 0;
@@ -166,6 +169,15 @@ namespace slam3d
 		 * @param pos constraint describing the measured position
 		 */
 		virtual void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos) = 0;
+		
+		/**
+		 * @brief Adds a distance edge between two vertices in the graph.
+		 * @details The source and target vertices have to be added before the edge.
+		 * @param source id of the edge's from-vertex
+		 * @param target id of the edge's to-vertex
+		 * @param dis constraint describing the distance between two vertices
+		 */
+		virtual void addEdgeDistance(IdType source, IdType target, DistanceConstraint::Ptr dis) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.

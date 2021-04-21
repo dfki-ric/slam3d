@@ -26,6 +26,7 @@
 #include "G2oSolver.hpp"
 #include "edge_direction_prior.h"
 #include "edge_position_prior.h"
+#include "edge_distance.h"
 
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
@@ -133,6 +134,17 @@ void G2oSolver::addEdgePosition(IdType vertex, PositionConstraint::Ptr pos)
 	
 	mInt->optimizer.addEdge(prior);
 	mInt->newEdges.insert(prior);
+}
+
+void G2oSolver::addEdgeDistance(IdType source, IdType target, DistanceConstraint::Ptr dis)
+{
+	g2o::EdgeDistance* edge = new g2o::EdgeDistance(dis->getDistance());
+	edge->vertices()[0] = mInt->optimizer.vertex(source);
+	edge->vertices()[1] = mInt->optimizer.vertex(target);
+	edge->setInformation(dis->getCovariance().inverse().cast<double>());
+
+	mInt->optimizer.addEdge(edge);
+	mInt->newEdges.insert(edge);
 }
 
 void G2oSolver::setFixed(IdType id)

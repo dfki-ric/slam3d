@@ -1,6 +1,7 @@
 add_library(solver-g2o
 	edge_direction_prior.cpp
 	edge_position_prior.cpp
+	edge_distance.cpp
 	G2oSolver.cpp
 )
 
