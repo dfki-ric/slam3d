@@ -36,7 +36,7 @@ namespace slam3d
 	{
 	public:
 		Mapper(Graph* graph, Logger* log);
-		~Mapper();
+		virtual ~Mapper();
 	
 		/**
 		 * @brief Access to the graph structure.
