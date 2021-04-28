@@ -26,13 +26,10 @@
 #ifndef SLAM_POSESENSOR_HPP
 #define SLAM_POSESENSOR_HPP
 
-#include "Types.hpp"
-#include "Logger.hpp"
+#include "Graph.hpp"
 
 namespace slam3d
-{
-	class Graph;
-	
+{	
 	class InvalidPose : public std::exception
 	{
 	public:

@@ -75,7 +75,6 @@ laser->addMeasurement(m);
  @endcode
  */
 
-#include "PoseSensor.hpp"
 #include "Solver.hpp"
 
 #include <flann/flann.hpp>
