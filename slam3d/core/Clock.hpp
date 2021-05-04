@@ -28,6 +28,19 @@ namespace slam3d
 			gettimeofday(&tv, 0);
 			return tv;
 		}
+
+		/**
+		 * @brief Returns time in seconds since t
+		 * @param t
+		 * @return time difference since t in seconds
+		 */		
+		double diff(struct timeval t)
+		{
+			timeval n = now();
+			double dn = (double)(n.tv_sec + (double)n.tv_usec/1000000);
+			double dt = (double)(t.tv_sec + (double)t.tv_usec/1000000);
+			return dn - dt;
+		}
 	};
 }
 
