@@ -84,9 +84,9 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 		try
 		{
 			ps->second->handleNewVertex(mLastIndex);
-		}catch(InvalidPose &e)
+		}catch(std::exception &e)
 		{
-			mLogger->message(ERROR, (boost::format("Could not get pose from '%1%': %2%") % ps->second->getName() % e.what()).str());
+			mLogger->message(ERROR, (boost::format("PoseSensor '%1%' failed: %2%") % ps->second->getName() % e.what()).str());
 		}
 	}
 	

@@ -204,7 +204,7 @@ bool G2oSolver::compute(unsigned iterations)
 		mLogger->message(ERROR, "Optimization failed!");
 		return false;
 	}
-	mLogger->message(DEBUG ,(boost::format("Optimization finished after %1% iterations.") % iter).str());
+	mLogger->message(INFO ,(boost::format("Optimization finished after %1% iterations.") % iter).str());
 
 	// Write the result so it can be used by the mapper
 	g2o::SparseOptimizer::VertexContainer vertices = mInt->optimizer.activeVertices();
