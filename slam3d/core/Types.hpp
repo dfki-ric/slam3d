@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/shared_ptr.hpp>
 #include <Eigen/Geometry>
 
 #include <string>
