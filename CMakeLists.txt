@@ -26,7 +26,7 @@ install(EXPORT slam3d-targets
 
 # Create and install the version file
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("slam3d-version.cmake"
+write_basic_package_version_file("slam3d-config-version.cmake"
 	VERSION ${SLAM3D_VERSION}
 	COMPATIBILITY SameMajorVersion
 )
