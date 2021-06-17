@@ -6,11 +6,12 @@ target_include_directories(sensor-pointmatcher
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
 		$<INSTALL_INTERFACE:include>
-		${LIBPOINTMATCHER_INCLUDE_DIRS}
 )
 
 target_link_libraries(sensor-pointmatcher
-	PUBLIC core ${LIBPOINTMATCHER_LIBRARIES}
+	PUBLIC
+		core
+		pointmatcher::libpointmatcher
 )
 
 # Install header files
