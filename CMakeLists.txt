@@ -35,7 +35,7 @@ install(
 	FILES
 		slam3d-config.cmake
 		slam3d-dependencies.cmake
-		${PROJECT_BINARY_DIR}/slam3d-version.cmake
+		${PROJECT_BINARY_DIR}/slam3d-config-version.cmake
 	DESTINATION
 		lib/cmake/slam3d
 )
