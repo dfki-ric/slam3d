@@ -11,7 +11,7 @@ target_include_directories(sensor-pointmatcher
 target_link_libraries(sensor-pointmatcher
 	PUBLIC
 		core
-		pointmatcher::libpointmatcher
+		libpointmatcher::libpointmatcher
 )
 
 # Install header files
