@@ -9,7 +9,7 @@
   <depend package="base/cmake" />
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
-  <depend package="slam/pointmatcher" />
+  <depend package="slam/pointmatcher" optional="1" />
   <depend package="suitesparse" />
   <depend package="flann" />
   
