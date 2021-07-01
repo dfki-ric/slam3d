@@ -314,10 +314,11 @@ void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
 	ransac.getModelCoefficients(c);
 	Direction normal(c[0], c[1], c[2]);
 	Eigen::Hyperplane<ScalarType, 3> plane(normal, c[3]);
+	double angle_inc = mMapResolution / radius;
 	for(ScalarType r = mMapResolution; r <= radius; r += mMapResolution)
 	{
 		Position sample = plane.projection(Position(r,0,0));
-		for(ScalarType angle = 0; angle < 2*PI; angle += 0.1)
+		for(ScalarType angle = 0; angle < 2*PI; angle += angle_inc)
 		{
 			Position rot = Eigen::AngleAxis<ScalarType>(angle, normal).toRotationMatrix() * sample;
 			PointType p;
