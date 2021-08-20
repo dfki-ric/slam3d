@@ -6,11 +6,10 @@ target_include_directories(sensor-pcl
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
 		$<INSTALL_INTERFACE:include>
-		${PCL_INCLUDE_DIRS}
 )
 
 target_link_libraries(sensor-pcl
-	PUBLIC core ${PCL_REGISTRATION_LIBRARIES} ${PCL_SAMPLE_CONCENSUS_LIBRARIES}
+	PUBLIC core pcl_registration pcl_sample_consensus
 )
 
 # Install header files
