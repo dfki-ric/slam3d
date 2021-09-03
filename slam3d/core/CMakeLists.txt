@@ -15,6 +15,7 @@ target_include_directories(core
 target_link_libraries(core
 	PUBLIC
 		Eigen3::Eigen
+		Boost::thread
 		PkgConfig::flann)
 
 target_compile_features(core PUBLIC cxx_alias_templates)
