@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: slam3d_solver_g2o
 Description: Graph optimization backend using Generalized-Graph-Optimization (g2o).
 Version: @SLAM3D_VERSION@
-Requires: slam3d_core
+Requires: slam3d_core g2o
 Libs: -L${libdir} -lslam3d_solver_g2o
 Cflags: -I${includedir}
