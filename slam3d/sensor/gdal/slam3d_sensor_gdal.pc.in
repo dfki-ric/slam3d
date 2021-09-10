@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: slam3d_sensor_gdal
 Description: Sensor module to handle gps data using gdal.
 Version: @SLAM3D_VERSION@
-Requires: slam3d_core
+Requires: slam3d_core gdal
 Libs: -L${libdir} -lslam3d_sensor_gdal
 Cflags: -I${includedir}
