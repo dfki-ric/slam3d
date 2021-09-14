@@ -7,5 +7,5 @@ Name: slam3d_core
 Description: Core components of the SLAM3D library.
 Version: @SLAM3D_VERSION@
 Requires: eigen3 flann
-Libs: -L${libdir} -lslam3d_core
+Libs: -L${libdir} -lslam3d_core -lboost_thread
 Cflags: -I${includedir}
