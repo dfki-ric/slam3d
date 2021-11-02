@@ -99,6 +99,14 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 			{
 				Constraint::Ptr c = createConstraint(source, m, odom_delta, false);
 				mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
+
+				// Calculate the new pose relative from last pose
+				SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
+				if(se3)
+				{
+					const Transform& lastPose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose;
+					mMapper->getGraph()->setCorrectedPose(newVertex, lastPose * se3->getRelativePose().transform);
+				}
 			}catch(std::exception &e)
 			{
 				mLogger->message(WARNING, (boost::format("Could not link Measurement to previous: %1%") % e.what()).str());
