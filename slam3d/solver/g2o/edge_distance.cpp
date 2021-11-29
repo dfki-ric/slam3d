@@ -16,7 +16,7 @@ namespace g2o {
     VertexPointXYZ *v1 = static_cast<VertexPointXYZ*>(_vertices[1]);
 
     Vector3 diff = v0->estimate().translation() - v1->estimate();
-    _error(0) = diff.norm();
+    _error(0) = diff.norm() - _measurement;
   }
   
   bool EdgeDistance::read(std::istream& is) {
