@@ -132,6 +132,7 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 		mSolver->addVertex(id, corrected);
 		if(mFixNext)
 		{
+			mLogger->message(INFO, (boost::format("Fixed position of vertex %1% in backend.") % id).str());
 			mSolver->setFixed(id);
 			mFixNext = false;
 		}
