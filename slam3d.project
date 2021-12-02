@@ -158,6 +158,12 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="sensor">
+      <VirtualDirectory Name="rtls_flares">
+        <File Name="slam3d/sensor/rtls_flares/slam3d_sensor_rtls_flares.pc.in"/>
+        <File Name="slam3d/sensor/rtls_flares/CMakeLists.txt"/>
+        <File Name="slam3d/sensor/rtls_flares/FlareSensor.hpp"/>
+        <File Name="slam3d/sensor/rtls_flares/FlareSensor.cpp"/>
+      </VirtualDirectory>
       <File Name="slam3d/sensor/CMakeLists.txt"/>
       <VirtualDirectory Name="pcl">
         <File Name="slam3d/sensor/pcl/CMakeLists.txt"/>

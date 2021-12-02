@@ -15,4 +15,4 @@ pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
 # Optional libraries
 find_package(libpointmatcher 1.3.1)
 find_package(GDAL)
-
+find_package(rtls_flares)
