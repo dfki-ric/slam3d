@@ -1,4 +1,5 @@
 add_library(sensor-rtls
+	Status.cpp
 	FlareSensor.cpp
 )
 
@@ -9,13 +10,14 @@ target_include_directories(sensor-rtls
 )
 
 target_link_libraries(sensor-rtls
-	PUBLIC core rtls_flares::rtls_flares
+	PUBLIC core jsoncpp_lib
 )
 
 # Install header files
 install(
 	FILES
 		FlareSensor.hpp
+		Status.hpp
 	DESTINATION include/slam3d/sensor/rtls_flares
 )
 

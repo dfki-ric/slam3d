@@ -1,7 +1,7 @@
 #pragma once
 
 #include <slam3d/core/PoseSensor.hpp>
-#include <rtls_flares/Status.hpp>
+#include <slam3d/sensor/rtls_flares/Status.hpp>
 
 namespace slam3d
 {	

@@ -159,6 +159,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="sensor">
       <VirtualDirectory Name="rtls_flares">
+        <File Name="slam3d/sensor/rtls_flares/Status.hpp"/>
+        <File Name="slam3d/sensor/rtls_flares/Status.cpp"/>
         <File Name="slam3d/sensor/rtls_flares/slam3d_sensor_rtls_flares.pc.in"/>
         <File Name="slam3d/sensor/rtls_flares/CMakeLists.txt"/>
         <File Name="slam3d/sensor/rtls_flares/FlareSensor.hpp"/>

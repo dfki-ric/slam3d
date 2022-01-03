@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: slam3d_sensor_rtls_flares
 Description: Sensor module to handle data from RTLS-Flares.
 Version: @SLAM3D_VERSION@
-Requires: slam3d_core rtls_flares
+Requires: slam3d_core jsoncpp
 Libs: -L${libdir} -lslam3d_sensor_rtls_flares
 Cflags: -I${includedir}
