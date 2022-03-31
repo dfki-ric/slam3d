@@ -66,6 +66,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 			{
 				Transform pose = mMapper->getCurrentPose() * mLastTransform;
 				mMapper->getGraph()->setCorrectedPose(newVertex, pose);
+				mLastTransform = Transform::Identity();
 			}
 			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 			mLastVertex = newVertex;
@@ -276,4 +277,9 @@ void ScanSensor::setPatchBuildingRange(unsigned r)
 {
 	mLogger->message(INFO, (boost::format("patch_building_range:   %1%") % r).str());
 	mPatchBuildingRange = r;
+}
+
+Transform ScanSensor::getCurrentPose() const
+{
+	return mMapper->getCurrentPose() * mLastTransform;
 }

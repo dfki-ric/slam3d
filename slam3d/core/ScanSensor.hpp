@@ -147,6 +147,11 @@ namespace slam3d
 		 */
 		void linkLastToNeighbors(bool mt = false);
 
+		/**
+		 * @brief Returns the current pose from sequential scan matching.
+		 */
+		Transform getCurrentPose() const;
+
 	private:
 		Solver* mPatchSolver;
 		std::mutex mPatchSolverMutex;
