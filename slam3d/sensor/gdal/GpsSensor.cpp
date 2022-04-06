@@ -64,11 +64,12 @@ void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
 	if(!mLastVertex)
 	{
 		mReference = m->getPosition();
+	}else
+	{
+		Position delta = m->getPosition() - mLastPosition;
+		if(delta.norm() < mMinTranslation)
+			return;
 	}
-
-	Position delta = m->getPosition() - mLastPosition;
-	if(delta.norm() < mMinTranslation)
-		return;
 
 	mLastVertex = mMapper->addMeasurement(m);
 	Position rel_pos = m->getPosition() - mReference;
