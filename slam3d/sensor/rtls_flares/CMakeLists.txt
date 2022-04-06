@@ -35,5 +35,9 @@ install(
 	DESTINATION lib/pkgconfig
 )
 
-set_target_properties(sensor-rtls PROPERTIES OUTPUT_NAME slam3d_sensor_rtls_flares)
+set_target_properties(sensor-rtls PROPERTIES
+	OUTPUT_NAME slam3d_sensor_rtls_flares
+	POSITION_INDEPENDENT_CODE ON
+)
+
 add_slam3d_library(slam3d_sensor_rtls_flares)

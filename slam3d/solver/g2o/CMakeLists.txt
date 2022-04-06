@@ -35,7 +35,11 @@ install(
 	DESTINATION lib/pkgconfig
 )
 
-set_target_properties(solver-g2o PROPERTIES OUTPUT_NAME slam3d_solver_g2o)
+set_target_properties(solver-g2o PROPERTIES
+	OUTPUT_NAME slam3d_solver_g2o
+	POSITION_INDEPENDENT_CODE ON
+)
+
 add_slam3d_library(slam3d_solver_g2o)
 
 # Build test
