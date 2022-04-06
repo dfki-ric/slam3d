@@ -20,7 +20,6 @@ namespace slam3d
 	protected:
 		rtls_flares::Status mStatus;
 		Clock mClock;
-		Transform mCurrentPose;
 		timeval mTimestamp;
 		bool mHasNewData;
 	};
