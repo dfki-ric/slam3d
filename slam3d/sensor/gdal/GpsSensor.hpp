@@ -28,8 +28,6 @@
 
 #include <slam3d/core/Sensor.hpp>
 
-class OGRCoordinateTransformation;
-
 namespace slam3d
 {
 	class GpsMeasurement : public Measurement
@@ -55,19 +53,12 @@ namespace slam3d
 	class GpsSensor : public Sensor
 	{
 	public:
-		GpsSensor(const std::string& n, Logger* l) : Sensor(n, l) {}
-		~GpsSensor() {}
+		GpsSensor(const std::string& n, Logger* l) : Sensor(n, l){}
+		~GpsSensor(){}
 		
-		void initCoordTransform(int utmZone = 32, bool utmNorth = true);
 		void addMeasurement(const GpsMeasurement::Ptr&m);
 		
-		Position toUTM(ScalarType lon, ScalarType lat, ScalarType alt);
-		
 	protected:
-		OGRCoordinateTransformation* mCoordTransform;
-	
-		int mUtmZone;
-		bool mUtmNorth;
 		Position mReference;
 		Position mLastPosition;
 	};

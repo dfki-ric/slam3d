@@ -181,6 +181,10 @@
         <File Name="slam3d/sensor/pointmatcher/Scan2DSensor.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="gdal">
+        <File Name="slam3d/sensor/gdal/CoordTransformer.cpp"/>
+        <File Name="slam3d/sensor/gdal/CoordTransformer.hpp"/>
+        <File Name="slam3d/sensor/gdal/GpsPoseSensor.cpp"/>
+        <File Name="slam3d/sensor/gdal/GpsPoseSensor.hpp"/>
         <File Name="slam3d/sensor/gdal/GpsSensor.hpp"/>
         <File Name="slam3d/sensor/gdal/CMakeLists.txt"/>
         <File Name="slam3d/sensor/gdal/GpsSensor.cpp"/>

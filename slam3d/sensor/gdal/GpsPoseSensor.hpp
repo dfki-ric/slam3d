@@ -23,29 +23,31 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "GpsSensor.hpp"
+#ifndef SLAM3D_GPSPOSESENSOR_HPP
+#define SLAM3D_GPSPOSESENSOR_HPP
 
-#include <slam3d/core/Mapper.hpp>
-#include <boost/format.hpp>
+#include <slam3d/core/PoseSensor.hpp>
 
-using namespace slam3d;
-
-void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
+namespace slam3d
 {
-	if(!mLastVertex)
+	class GpsPoseSensor : public PoseSensor
 	{
-		mReference = m->getPosition();
-	}else
-	{
-		Position delta = m->getPosition() - mLastPosition;
-		if(delta.norm() < mMinTranslation)
-			return;
-	}
+	public:
+		GpsPoseSensor(const std::string& n, Graph* g, Logger* l);
+		~GpsPoseSensor();
 
-	mLastVertex = mMapper->addMeasurement(m);
-	Position rel_pos = m->getPosition() - mReference;
-	mLogger->message(DEBUG, (boost::format("GPS: relative pose (%1%, %2%, %3%)") % rel_pos(0) % rel_pos(1) % rel_pos(2)).str());
-	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, m->getCovariance()));
-	mMapper->getGraph()->addConstraint(mLastVertex, 0, position);
-	mLastPosition = m->getPosition();
+		void handleNewVertex(IdType vertex);
+		Transform getPose(timeval stamp);
+		
+		void update(const timeval& t, const Position& p, const Covariance<3>& c);
+		
+	protected:
+		Clock mClock;
+		Position mPosition;
+		Covariance<3> mCovariance;
+		timeval mTimestamp;
+		bool mHasNewData;
+	};
 }
+
+#endif

@@ -23,29 +23,26 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "GpsSensor.hpp"
+#ifndef SLAM3D_COORDTRANSFORMER_HPP
+#define SLAM3D_COORDTRANSFORMER_HPP
 
-#include <slam3d/core/Mapper.hpp>
-#include <boost/format.hpp>
+#include <slam3d/core/Types.hpp>
 
-using namespace slam3d;
+class OGRCoordinateTransformation;
 
-void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
+namespace slam3d
 {
-	if(!mLastVertex)
+	class CoordTransformer
 	{
-		mReference = m->getPosition();
-	}else
-	{
-		Position delta = m->getPosition() - mLastPosition;
-		if(delta.norm() < mMinTranslation)
-			return;
-	}
+	public:
+		CoordTransformer():mCoordTransform(nullptr){}
+	
+		void init(int utmZone = 32, bool utmNorth = true);
+		Position toUTM(ScalarType lon, ScalarType lat, ScalarType alt);
 
-	mLastVertex = mMapper->addMeasurement(m);
-	Position rel_pos = m->getPosition() - mReference;
-	mLogger->message(DEBUG, (boost::format("GPS: relative pose (%1%, %2%, %3%)") % rel_pos(0) % rel_pos(1) % rel_pos(2)).str());
-	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, m->getCovariance()));
-	mMapper->getGraph()->addConstraint(mLastVertex, 0, position);
-	mLastPosition = m->getPosition();
+	protected:
+		OGRCoordinateTransformation* mCoordTransform;
+	};
 }
+
+#endif

@@ -1,5 +1,7 @@
 add_library(sensor-gdal
+	CoordTransformer.cpp
 	GpsSensor.cpp
+	GpsPoseSensor.cpp
 )
 
 target_include_directories(sensor-gdal
@@ -16,7 +18,9 @@ target_link_libraries(sensor-gdal
 # Install header files
 install(
 	FILES
+		CoordTransformer.hpp
 		GpsSensor.hpp
+		GpsPoseSensor.hpp
 	DESTINATION include/slam3d/sensor/gdal
 )
 
