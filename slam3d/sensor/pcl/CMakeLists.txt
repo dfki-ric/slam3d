@@ -35,5 +35,9 @@ install(
 	DESTINATION lib/pkgconfig
 )
 
-set_target_properties(sensor-pcl PROPERTIES OUTPUT_NAME slam3d_sensor_pcl)
+set_target_properties(sensor-pcl PROPERTIES
+	OUTPUT_NAME slam3d_sensor_pcl
+	POSITION_INDEPENDENT_CODE ON
+)
+
 add_slam3d_library(slam3d_sensor_pcl)

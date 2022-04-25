@@ -34,5 +34,9 @@ install(
 	DESTINATION lib/pkgconfig
 )
 
-set_target_properties(sensor-gdal PROPERTIES OUTPUT_NAME slam3d_sensor_gdal)
+set_target_properties(sensor-gdal PROPERTIES
+	OUTPUT_NAME slam3d_sensor_gdal
+	POSITION_INDEPENDENT_CODE ON
+)
+
 add_slam3d_library(slam3d_sensor_gdal)
