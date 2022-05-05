@@ -132,7 +132,7 @@ namespace slam3d
 		virtual const char* getTypeName() = 0;
 
 		timeval getTimestamp() const { return mStamp; }
-		std::string getSensorName() const { return mSensorName; }
+		const std::string& getSensorName() const { return mSensorName; }
 
 	protected:
 		timeval mStamp;
@@ -195,18 +195,23 @@ namespace slam3d
 	public:
 		typedef boost::shared_ptr<PositionConstraint> Ptr;
 		
-		PositionConstraint(const std::string& s, const Position& p, const Covariance<3>& c)
-		: Constraint(s), mPosition(p), mCovariance(c) {}
+		PositionConstraint(const std::string& s,
+		                   const Position& p,
+		                   const Covariance<3>& c,
+		                   const Transform& t)
+		: Constraint(s), mPosition(p), mCovariance(c), mSensorPose(t) {}
 		
 		ConstraintType getType() { return POSITION; }
 		const char* getTypeName() { return "Position"; }
 		
 		const Position& getPosition() const { return mPosition; }
 		const Covariance<3>& getCovariance() const { return mCovariance; }
+		const Transform& getSensorPose() const { return mSensorPose; }
 
 	protected:
 		Position mPosition;
 		Covariance<3> mCovariance;
+		Transform mSensorPose;
 	};
 	
 	/**

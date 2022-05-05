@@ -13,13 +13,14 @@ FlareSensor::~FlareSensor()
 {
 }
 
-void FlareSensor::setStatus(const std::string& json)
+void FlareSensor::setStatus(const std::string& json, const Transform& pose)
 {
 	rtls_flares::Status status(json);
 	if(status.mNumberOfUsedAnchors >= 4)
 	{
 		mStatus = status;
 		mTimestamp = mClock.now();
+		mSensorPose = pose;
 		mHasNewData = true;
 	}
 }
@@ -52,8 +53,8 @@ void FlareSensor::handleNewVertex(IdType vertex)
 	pos(0) = mStatus.mCurrentPosition.x;
 	pos(1) = mStatus.mCurrentPosition.y;
 	pos(2) = 0;
-	slam3d::PositionConstraint::Ptr position(
-		new slam3d::PositionConstraint(mName, pos, slam3d::Covariance<3>::Identity() * mCovarianceScale ));
+	slam3d::PositionConstraint::Ptr position(new slam3d::PositionConstraint(
+		mName, pos,	slam3d::Covariance<3>::Identity() * mCovarianceScale, mSensorPose));
 	mGraph->addConstraint(vertex, 0, position);
 	mHasNewData = false;
 }

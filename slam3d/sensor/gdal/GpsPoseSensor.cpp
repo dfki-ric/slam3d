@@ -5,7 +5,7 @@ using namespace slam3d;
 GpsPoseSensor::GpsPoseSensor(const std::string& n, Graph* g, Logger* l)
 : PoseSensor(n, g, l)
 {
-	
+	mHasNewData = false;
 }
 
 GpsPoseSensor::~GpsPoseSensor()
@@ -32,7 +32,7 @@ void GpsPoseSensor::handleNewVertex(IdType vertex)
 	}
 
 	slam3d::PositionConstraint::Ptr position(
-		new slam3d::PositionConstraint(mName, mPosition, mCovariance * mCovarianceScale));
+		new slam3d::PositionConstraint(mName, mPosition, mCovariance * mCovarianceScale, mSensorPose));
 	mGraph->addConstraint(vertex, 0, position);
 	mHasNewData = false;
 }
@@ -44,7 +44,8 @@ Transform GpsPoseSensor::getPose(timeval stamp)
 	return pose;
 }
 
-void GpsPoseSensor::update(const timeval& t, const Position& p, const Covariance<3>& c)
+void GpsPoseSensor::update(const timeval& t, const Position& p,
+                           const Covariance<3>& c, const Transform& sp)
 {
 //	if(timercmp(&t, &mTimestamp, <))
 //	{
@@ -54,5 +55,6 @@ void GpsPoseSensor::update(const timeval& t, const Position& p, const Covariance
 	mTimestamp = t;
 	mPosition = p;
 	mCovariance = c;
+	mSensorPose = sp;
 	mHasNewData = true;
 }

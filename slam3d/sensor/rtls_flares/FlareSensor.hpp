@@ -14,13 +14,15 @@ namespace slam3d
 		void handleNewVertex(IdType vertex);
 		
 		Transform getPose(timeval stamp);
+		Transform getSensorPose() { return mSensorPose; }
 		
-		void setStatus(const std::string& json);
+		void setStatus(const std::string& json, const Transform& pose);
 		
 	protected:
 		rtls_flares::Status mStatus;
 		Clock mClock;
 		timeval mTimestamp;
+		Transform mSensorPose;
 		bool mHasNewData;
 	};
 }

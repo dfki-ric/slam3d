@@ -39,12 +39,14 @@ namespace slam3d
 		void handleNewVertex(IdType vertex);
 		Transform getPose(timeval stamp);
 		
-		void update(const timeval& t, const Position& p, const Covariance<3>& c);
-		
+		void update(const timeval& t, const Position& p,
+		            const Covariance<3>& c, const Transform& sp);
+
 	protected:
 		Clock mClock;
 		Position mPosition;
 		Covariance<3> mCovariance;
+		Transform mSensorPose;
 		timeval mTimestamp;
 		bool mHasNewData;
 	};

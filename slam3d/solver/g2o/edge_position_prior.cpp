@@ -33,10 +33,11 @@
 namespace g2o {
   using namespace std;
 
-  EdgePositionPrior::EdgePositionPrior(const Vector3& m)
+  EdgePositionPrior::EdgePositionPrior(const Vector3& m, const Isometry3& s)
   : BaseUnaryEdge<3, Vector3, VertexSE3>() {
     _measurement = m;
     information().setIdentity();
+	_sensor_pose = s;
   }
 
   bool EdgePositionPrior::read(std::istream& is) {
@@ -75,7 +76,8 @@ namespace g2o {
 
   void EdgePositionPrior::computeError() {
     VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
-    Vector3 state = vertex->estimate().translation();
+    Isometry3 sensor_state = vertex->estimate() * _sensor_pose;
+    Vector3 state = sensor_state.translation();
     _error(0) = state(0) - _measurement(0);
     _error(1) = state(1) - _measurement(1);
 	_error(2) = state(2) - _measurement(2);

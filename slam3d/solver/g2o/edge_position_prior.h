@@ -36,7 +36,7 @@ namespace g2o {
   class G2O_TYPES_SLAM3D_API EdgePositionPrior : public BaseUnaryEdge<3, Vector3, VertexSE3> {
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    EdgePositionPrior(const Vector3& measurement);
+    EdgePositionPrior(const Vector3& measurement, const Isometry3& sensor_pose);
     virtual bool read(std::istream& is);
     virtual bool write(std::ostream& os) const;
 
@@ -46,6 +46,8 @@ namespace g2o {
     // jacobian
 //  virtual void linearizeOplus();
 
+  private:
+    Isometry3 _sensor_pose;
   };
 
 }
