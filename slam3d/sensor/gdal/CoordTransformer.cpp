@@ -9,10 +9,8 @@ void CoordTransformer::init(int utmZone, bool utmNorth)
 	OGRSpatialReference source;
 	OGRSpatialReference target;
 	
-	source.SetWellKnownGeogCS("EPSG:4326");
-	source.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
-
-	target.SetWellKnownGeogCS("EPSG:4326");
+	source.SetWellKnownGeogCS("WGS84");
+	target.SetWellKnownGeogCS("WGS84");
 	target.SetUTM(utmZone, utmNorth);
 	
 	mCoordTransform = OGRCreateCoordinateTransformation(&source, &target);
