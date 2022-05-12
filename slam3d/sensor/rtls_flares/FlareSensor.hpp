@@ -16,7 +16,7 @@ namespace slam3d
 		Transform getPose(timeval stamp);
 		Transform getSensorPose() { return mSensorPose; }
 		
-		void setStatus(const std::string& json, const Transform& pose);
+		void setStatus(const std::string& json, const Transform& pose = Transform::Identity());
 		
 	protected:
 		rtls_flares::Status mStatus;
