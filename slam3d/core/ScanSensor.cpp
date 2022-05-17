@@ -58,8 +58,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	{
 		Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
 		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
-		mLastTransform = se3->getRelativePose().transform;
-		if(!se3 || checkMinDistance(mLastTransform))
+		if(!se3 || checkMinDistance(mLastTransform = se3->getRelativePose().transform))
 		{
 			IdType newVertex = mMapper->addMeasurement(m);
 			if(se3)
