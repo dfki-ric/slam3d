@@ -35,7 +35,7 @@ namespace slam3d
 	class Mapper
 	{
 	public:
-		Mapper(Graph* graph, Logger* log);
+		Mapper(Graph* graph, Logger* log, const Transform& start = Transform::Identity());
 		virtual ~Mapper();
 	
 		/**
@@ -119,6 +119,7 @@ namespace slam3d
 		Logger* mLogger;
 		Graph* mGraph;
 		IdType mLastIndex;
+		Transform mStartPose;
 	};
 }
 

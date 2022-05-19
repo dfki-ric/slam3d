@@ -29,11 +29,12 @@
 
 using namespace slam3d;
 
-Mapper::Mapper(Graph* graph, Logger* log)
+Mapper::Mapper(Graph* graph, Logger* log, const Transform& start)
 {
 	mGraph = graph;
 	mLogger = log;
 	mLastIndex = 0;
+	mStartPose = start;
 }
 
 Mapper::~Mapper()
@@ -69,7 +70,7 @@ Transform Mapper::getCurrentPose()
 	if(mLastIndex > 0)
 		return mGraph->getVertex(mLastIndex).corrected_pose;
 	else
-		return Transform::Identity();
+		return mStartPose;
 }
 
 IdType Mapper::addMeasurement(Measurement::Ptr m)
