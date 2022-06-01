@@ -28,13 +28,13 @@ Position CoordTransformer::toUTM(ScalarType lon, ScalarType lat, ScalarType alt)
 		throw std::runtime_error("You must call CoordTransformer::init before using toUTM()!");
 	}
 
-	if(!mCoordTransform->Transform(1, &lat, &lon, &alt))
+	if(!mCoordTransform->Transform(1, &lon, &lat, &alt))
 	{
 		throw std::runtime_error("Transformation failed!");
 	}
 	Position utm;
 	utm(0) = lon;
-	utm(1) = -lat;
+	utm(1) = lat;
 	utm(2) = alt;
 	return utm - mReference;
 }
