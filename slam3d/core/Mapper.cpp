@@ -42,6 +42,14 @@ Mapper::~Mapper()
 	
 }
 
+void Mapper::setStartPose(const Transform& start)
+{
+	if(mLastIndex == 0)
+		mStartPose = start;
+	else
+		mLogger->message(ERROR, "Start pose must be set before the first node is added!");
+}
+
 void Mapper::registerPoseSensor(PoseSensor* s)
 {
 	std::pair<PoseSensorList::iterator, bool> result;
