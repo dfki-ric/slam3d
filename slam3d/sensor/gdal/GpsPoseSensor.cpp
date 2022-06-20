@@ -1,4 +1,5 @@
 #include "GpsPoseSensor.hpp"
+#include <boost/format.hpp>
 
 using namespace slam3d;
 
@@ -25,9 +26,10 @@ void GpsPoseSensor::handleNewVertex(IdType vertex)
 	timeval time_meas = mGraph->getVertex(vertex).measurement->getTimestamp();
 	timeval time_diff;
 	timersub(&time_meas, &mTimestamp, &time_diff);
-	if(time_diff.tv_sec >= 1)
+	mLogger->message(INFO, (boost::format("Time-Diff GPS/Scan: %1%.%2%")%time_diff.tv_sec%time_diff.tv_usec).str());
+	if(time_diff.tv_sec >= 1 || time_diff.tv_sec <= -1)
 	{
-		mLogger->message(WARNING, "GPS status is too old, not adding any edges.");
+		mLogger->message(WARNING, "GPS/Scan is too old, not adding any edges.");
 		return;
 	}
 

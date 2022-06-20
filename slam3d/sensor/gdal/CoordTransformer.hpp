@@ -35,13 +35,15 @@ namespace slam3d
 	class CoordTransformer
 	{
 	public:
-		CoordTransformer():mCoordTransform(nullptr){}
+		CoordTransformer():mCoordTransform(nullptr){ mReference = Position::Zero(); }
 	
 		void init(int utmZone = 32, bool utmNorth = true);
+		void setReference(ScalarType lon, ScalarType lat, ScalarType alt);
 		Position toUTM(ScalarType lon, ScalarType lat, ScalarType alt);
 
 	protected:
 		OGRCoordinateTransformation* mCoordTransform;
+		Position mReference;
 	};
 }
 

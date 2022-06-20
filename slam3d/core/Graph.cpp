@@ -47,17 +47,15 @@ Graph::Graph(Logger* log)
 	mFixNext = false;
 	mOptimized = false;
 	mConstraintsAdded = 0;
-	mOptimizationRate = 0;
 }
 
 Graph::~Graph()
 {
 }
 
-void Graph::setSolver(Solver* solver, unsigned rate)
+void Graph::setSolver(Solver* solver)
 {
 	mSolver = solver;
-	mOptimizationRate = rate;
 }
 
 void Graph::writeGraphToFile(const std::string &name)
@@ -79,6 +77,7 @@ bool Graph::optimize(unsigned iterations)
 		return false;
 	}
 	mOptimized = true;
+	mConstraintsAdded = 0;
 
 	// Retrieve results
 	IdPoseVector res = mSolver->getCorrections();
@@ -177,8 +176,6 @@ void Graph::addToSolver(const EdgeObject& eo)
 	if(mSolver)
 	{
 		mSolver->addEdge(eo.source, eo.target, eo.constraint);
-		if(mOptimizationRate > 0 && (mConstraintsAdded % mOptimizationRate) == 0)
-			optimize();
 	}
 }
 

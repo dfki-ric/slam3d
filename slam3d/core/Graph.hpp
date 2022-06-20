@@ -194,9 +194,8 @@ namespace slam3d
 		 * @details The mapper can be used without a backend,
 		 * but mapping results might be inconsistant.
 		 * @param solver backend to be used for optimization
-		 * @param rate call optimization backend after adding # constraints
 		 */
-		void setSolver(Solver* solver, unsigned rate = 10);
+		void setSolver(Solver* solver);
 
 		/**
 		 * @brief Add a given measurement at the given pose
@@ -265,6 +264,12 @@ namespace slam3d
 		 * @return true if optimization has been called
 		 */
 		bool optimized();
+
+		/**
+		 * @brief Get the number of newly added constraints since the last call to optimize().
+		 * @return number of new constraints
+		 */
+		unsigned getNumOfNewConstraints() { return mConstraintsAdded; }
 
 		/**
 		 * @brief Causes the next added vertex to be fixed in the solver.
@@ -457,7 +462,6 @@ namespace slam3d
 		// Parameters
 		bool mFixNext;
 		bool mOptimized;
-		unsigned mOptimizationRate;
 		unsigned mConstraintsAdded;
 	};
 }

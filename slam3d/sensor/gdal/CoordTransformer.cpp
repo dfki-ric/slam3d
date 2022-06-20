@@ -36,5 +36,10 @@ Position CoordTransformer::toUTM(ScalarType lon, ScalarType lat, ScalarType alt)
 	utm(0) = lon;
 	utm(1) = lat;
 	utm(2) = alt;
-	return utm;
+	return utm - mReference;
+}
+
+void CoordTransformer::setReference(ScalarType lon, ScalarType lat, ScalarType alt)
+{
+	mReference = toUTM(lon, lat, alt);
 }
