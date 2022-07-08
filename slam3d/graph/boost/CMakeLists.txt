@@ -46,5 +46,5 @@ add_slam3d_library(slam3d_graph_boost)
 # Build test
 add_executable(test_boost_graph BoostGraphTest.cpp)
 target_link_libraries(test_boost_graph Boost::unit_test_framework graph-boost)
-target_compile_definitions(test_boost_graph PRIVATE -DBOOST_TEST_DYN_LINK)
+target_compile_definitions(test_boost_graph PRIVATE BOOST_TEST_DYN_LINK)
 add_test(boost_graph test_boost_graph)
