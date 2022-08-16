@@ -35,9 +35,15 @@ namespace slam3d
 	class Mapper
 	{
 	public:
-		Mapper(Graph* graph, Logger* log);
+		Mapper(Graph* graph, Logger* log, const Transform& start = Transform::Identity());
 		virtual ~Mapper();
-	
+
+		/**
+		 * @brief Set the start pose. Must be called before the first node is added.
+		 * @param start
+		 */
+		void setStartPose(const Transform& start);
+
 		/**
 		 * @brief Access to the graph structure.
 		 * @return graph
@@ -119,6 +125,7 @@ namespace slam3d
 		Logger* mLogger;
 		Graph* mGraph;
 		IdType mLastIndex;
+		Transform mStartPose;
 	};
 }
 

@@ -29,16 +29,25 @@
 
 using namespace slam3d;
 
-Mapper::Mapper(Graph* graph, Logger* log)
+Mapper::Mapper(Graph* graph, Logger* log, const Transform& start)
 {
 	mGraph = graph;
 	mLogger = log;
 	mLastIndex = 0;
+	mStartPose = start;
 }
 
 Mapper::~Mapper()
 {
 	
+}
+
+void Mapper::setStartPose(const Transform& start)
+{
+	if(mLastIndex == 0)
+		mStartPose = start;
+	else
+		mLogger->message(ERROR, "Start pose must be set before the first node is added!");
 }
 
 void Mapper::registerPoseSensor(PoseSensor* s)
@@ -69,7 +78,7 @@ Transform Mapper::getCurrentPose()
 	if(mLastIndex > 0)
 		return mGraph->getVertex(mLastIndex).corrected_pose;
 	else
-		return Transform::Identity();
+		return mStartPose;
 }
 
 IdType Mapper::addMeasurement(Measurement::Ptr m)
