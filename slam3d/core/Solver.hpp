@@ -55,9 +55,11 @@ namespace slam3d
 			{
 				std::ostringstream msg;
 				msg << "Vertex with ID: " << vertex_id << " has already been defined!";
-				return msg.str().c_str();
+				message = msg.str();
+				return message.c_str();
 			}
-			
+
+			mutable std::string message;
 			IdType vertex_id;
 		};
 
@@ -73,9 +75,11 @@ namespace slam3d
 			{
 				std::ostringstream msg;
 				msg << "Vertex with ID: " << vertex_id << " does not exist!";
-				return msg.str().c_str();
+				message = msg.str();
+				return message.c_str();
 			}
-			
+
+			mutable std::string message;
 			IdType vertex_id;
 		};
 
@@ -91,9 +95,11 @@ namespace slam3d
 			{
 				std::ostringstream msg;
 				msg << "Failed to create edge from vertex " <<  source << " to " << target << "!";
-				return msg.str().c_str();
+				message = msg.str();
+				return message.c_str();
 			}
 			
+			mutable std::string message;
 			IdType source;
 			IdType target;
 		};
@@ -142,7 +148,7 @@ namespace slam3d
 			default:
 				std::ostringstream msg;
 				msg << "Edge with type " << c->getTypeName() << " is not known to the Solver!";
-				throw std::runtime_error(msg.str().c_str());
+				throw std::runtime_error(msg.str());
 			}
 		}
 		

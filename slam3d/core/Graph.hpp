@@ -97,9 +97,11 @@ namespace slam3d
 		{
 			std::ostringstream msg;
 			msg << "There is no vertex with ID " << index << " in the graph!";
-			return msg.str().c_str();
+			message = msg.str();
+			return message.c_str();
 		}
 
+		mutable std::string message;
 		IdType index;
 	};
 	
@@ -117,9 +119,11 @@ namespace slam3d
 		{
 			std::ostringstream msg;
 			msg << "No edge between " << source << " and " << target << "!";
-			return msg.str().c_str();
+			message = msg.str();
+			return message.c_str();
 		}
-		
+
+		mutable std::string message;
 		IdType source;
 		IdType target;
 	};
@@ -139,9 +143,11 @@ namespace slam3d
 		{
 			std::ostringstream msg;
 			msg << "Edge between " << source << " and " << target << " from sensor '" << sensor << "' already exists!";
-			return msg.str().c_str();
+			message = msg.str();
+			return message.c_str();
 		}
-		
+
+		mutable std::string message;
 		IdType source;
 		IdType target;
 		std::string sensor;
@@ -158,8 +164,11 @@ namespace slam3d
 		{
 			std::ostringstream msg;
 			msg << "Measurement already in graph!";
-			return msg.str().c_str();
+			message = msg.str();
+			return message.c_str();
 		}
+		
+		mutable std::string message;
 	};
 	/**
 	 * @class Graph
@@ -174,7 +183,7 @@ namespace slam3d
 	 * Spatial relations between measurements are represented as edges in the
 	 * graph. A registered Odometry will provide spatial constraints between any
 	 * kind of consecutive measurements. Each sensor can create constraints
-	 * between its own measurements by applying some kind of matching algoithm.
+	 * between its own measurements by applying some kind of matching algorithm.
 	 * This kind of 6 DoF spatial relation is stored as transform and covariance
 	 * within an EdgeObject.
 	 * 
@@ -192,7 +201,7 @@ namespace slam3d
 		/**
 		 * @brief Sets a specific Solver to be used as SLAM backend.
 		 * @details The mapper can be used without a backend,
-		 * but mapping results might be inconsistant.
+		 * but mapping results might be inconsistent.
 		 * @param solver backend to be used for optimization
 		 */
 		void setSolver(Solver* solver);
