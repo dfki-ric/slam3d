@@ -10,7 +10,7 @@ target_include_directories(sensor-pcl
 )
 
 target_link_libraries(sensor-pcl
-	PUBLIC core ${PCL_REGISTRATION_LIBRARIES} ${PCL_SAMPLE_CONCENSUS_LIBRARIES}
+	PUBLIC core pclomp::registration ${PCL_SAMPLE_CONCENSUS_LIBRARIES}
 )
 
 # Install header files
