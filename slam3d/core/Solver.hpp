@@ -136,6 +136,9 @@ namespace slam3d
 			case POSITION:
 				addEdgePosition(source, boost::static_pointer_cast<PositionConstraint>(c));
 				break;
+			case ORIENTATION:
+				addEdgeOrientation(source, boost::static_pointer_cast<OrientationConstraint>(c));
+				break;
 			case DISTANCE:
 				addEdgeDistance(source, target, boost::static_pointer_cast<DistanceConstraint>(c));
 				break;
@@ -169,6 +172,13 @@ namespace slam3d
 		 * @param pos constraint describing the measured position
 		 */
 		virtual void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos) = 0;
+		
+		/**
+		 * @brief Adds an orientation edge to a vertex in the graph.
+		 * @param vertex id of the vertex this edge connects to
+		 * @param ori constraint describing the measured orientation
+		 */
+		virtual void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr ori) = 0;
 		
 		/**
 		 * @brief Adds a distance edge between two vertices in the graph.

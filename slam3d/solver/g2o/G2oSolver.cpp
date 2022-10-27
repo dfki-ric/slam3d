@@ -26,6 +26,7 @@
 #include "G2oSolver.hpp"
 #include "edge_direction_prior.h"
 #include "edge_position_prior.h"
+#include "edge_orientation_prior.h"
 #include "edge_distance.h"
 
 #include <g2o/core/sparse_optimizer.h>
@@ -131,6 +132,17 @@ void G2oSolver::addEdgePosition(IdType vertex, PositionConstraint::Ptr pos)
 	g2o::EdgePositionPrior* prior = new g2o::EdgePositionPrior(pos->getPosition(), pos->getSensorPose());
 	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
 	prior->setInformation(pos->getCovariance().inverse().cast<double>());
+	
+	mInt->optimizer.addEdge(prior);
+	mInt->newEdges.insert(prior);
+}
+
+void G2oSolver::addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient)
+{
+	boost::unique_lock<boost::mutex> guard(mMutex);
+	g2o::EdgeOrientationPrior* prior = new g2o::EdgeOrientationPrior(orient->getOrientation(), orient->getSensorPose());
+	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
+	prior->setInformation(orient->getCovariance().inverse().cast<double>());
 	
 	mInt->optimizer.addEdge(prior);
 	mInt->newEdges.insert(prior);

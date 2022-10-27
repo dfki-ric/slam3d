@@ -134,6 +134,8 @@
     <VirtualDirectory Name="solver">
       <File Name="slam3d/solver/CMakeLists.txt"/>
       <VirtualDirectory Name="g2o">
+        <File Name="slam3d/solver/g2o/edge_orientation_prior.cpp"/>
+        <File Name="slam3d/solver/g2o/edge_orientation_prior.h"/>
         <File Name="slam3d/solver/g2o/CMakeLists.txt"/>
         <File Name="slam3d/solver/g2o/edge_direction_prior.cpp"/>
         <File Name="slam3d/solver/g2o/edge_direction_prior.h"/>

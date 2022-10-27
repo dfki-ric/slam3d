@@ -41,6 +41,7 @@ namespace slam3d
 	typedef double ScalarType;
 	typedef Eigen::Matrix<ScalarType,3,1> Position;
 	typedef Eigen::Matrix<ScalarType,3,1> Direction;
+	typedef Eigen::Quaternion<ScalarType> Quaternion;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	
@@ -112,7 +113,7 @@ namespace slam3d
 		Transform mInverseSensorPose;
 	};
 	
-	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, DISTANCE};
+	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION, DISTANCE};
 	
 	/**
 	 * @class Constraint
@@ -210,6 +211,34 @@ namespace slam3d
 
 	protected:
 		Position mPosition;
+		Covariance<3> mCovariance;
+		Transform mSensorPose;
+	};
+
+	/**
+	 * @class OrientationConstraint
+	 * @brief 
+	 */
+	class OrientationConstraint : public Constraint
+	{
+	public:
+		typedef boost::shared_ptr<OrientationConstraint> Ptr;
+		
+		OrientationConstraint(const std::string& s,
+		                      const Quaternion& q,
+		                      const Covariance<3>& c,
+		                      const Transform& t)
+		: Constraint(s), mOrientation(q), mCovariance(c), mSensorPose(t) {}
+		
+		ConstraintType getType() { return ORIENTATION; }
+		const char* getTypeName() { return "Orientation"; }
+		
+		const Quaternion& getOrientation() const { return mOrientation; }
+		const Covariance<3>& getCovariance() const { return mCovariance; }
+		const Transform& getSensorPose() const { return mSensorPose; }
+
+	protected:
+		Quaternion mOrientation;
 		Covariance<3> mCovariance;
 		Transform mSensorPose;
 	};
