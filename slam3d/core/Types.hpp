@@ -150,15 +150,20 @@ namespace slam3d
 		typedef boost::shared_ptr<SE3Constraint> Ptr;
 		
 		SE3Constraint(const std::string& s, const TransformWithCovariance& twc)
-		: Constraint(s), mRelativePose(twc) {}
+		: Constraint(s), mRelativePose(twc.transform), mInformation(twc.covariance.inverse()) {}
+
+		SE3Constraint(const std::string& s, const Transform& t, const Covariance<6>& i)
+		: Constraint(s), mRelativePose(t), mInformation(i) {}
 
 		ConstraintType getType() { return SE3; }
 		const char* getTypeName() { return "SE(3)"; }
 		
-		const TransformWithCovariance& getRelativePose() const { return mRelativePose; }
+		const Transform& getRelativePose() const { return mRelativePose; }
+		const Covariance<6>& getInformation() const { return mInformation; }
 		
 	protected:
-		TransformWithCovariance mRelativePose;
+		Transform mRelativePose;
+		Covariance<6> mInformation;
 		
 	};
 	

@@ -105,9 +105,8 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	const TransformWithCovariance& twc = se3->getRelativePose();
-	constraint->setMeasurement(twc.transform.cast<double>());            // slam3d::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(twc.covariance.inverse().cast<double>()); // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(se3->getRelativePose().cast<double>()); // slam3d::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(se3->getInformation().cast<double>());  // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mInt->optimizer.addEdge(constraint);
