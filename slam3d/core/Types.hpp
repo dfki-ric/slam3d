@@ -113,7 +113,7 @@ namespace slam3d
 		Transform mInverseSensorPose;
 	};
 	
-	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION, DISTANCE};
+	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION};
 	
 	/**
 	 * @class Constraint
@@ -241,29 +241,6 @@ namespace slam3d
 		Quaternion mOrientation;
 		Covariance<3> mCovariance;
 		Transform mSensorPose;
-	};
-	
-	/**
-	 * @class DistanceConstraint
-	 * @brief Constraint that defines the distance between two vertices
-	 */
-	class DistanceConstraint : public Constraint
-	{
-	public:
-		typedef boost::shared_ptr<DistanceConstraint> Ptr;
-		
-		DistanceConstraint(const std::string& s, ScalarType d, const Covariance<1>& c)
-		: Constraint(s), mDistance(d), mCovariance(c) {}
-		
-		ConstraintType getType() { return DISTANCE; }
-		const char* getTypeName() { return "Distance"; }
-		
-		ScalarType getDistance() const { return mDistance; }
-		const Covariance<1>& getCovariance() const { return mCovariance; }
-
-	protected:
-		ScalarType mDistance;
-		Covariance<1> mCovariance;
 	};
 	
 /**

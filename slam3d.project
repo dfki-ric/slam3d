@@ -145,8 +145,6 @@
         <File Name="slam3d/solver/g2o/G2oSolverTest.cpp"/>
         <File Name="slam3d/solver/g2o/edge_position_prior.h"/>
         <File Name="slam3d/solver/g2o/edge_position_prior.cpp"/>
-        <File Name="slam3d/solver/g2o/edge_distance.h"/>
-        <File Name="slam3d/solver/g2o/edge_distance.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="graph">

@@ -48,7 +48,6 @@ namespace slam3d
 		void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav);
 		void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos);
 		void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient);
-		void addEdgeDistance(IdType source, IdType target, DistanceConstraint::Ptr dis);
 		void setFixed(IdType id);
 		bool compute(unsigned iterations);
 		void clear();

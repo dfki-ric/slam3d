@@ -36,42 +36,16 @@ namespace g2o {
   EdgeDirectionPrior::EdgeDirectionPrior(const Vector3& m, const Vector3& r)
   : BaseUnaryEdge<2, Vector3, VertexSE3>() {
     _measurement = m / m.norm();
-	_reference = r / r.norm();
+    _reference = r / r.norm();
     information().setIdentity();
   }
 
   bool EdgeDirectionPrior::read(std::istream& is) {
-    int pid;
-    is >> pid;
-    if (!setParameterId(0, pid))
-      return false;
-    // measured keypoint
-    Vector3 meas;
-    for (int i=0; i<3; i++) is >> meas[i];
-    setMeasurement(meas);
-    // don't need this if we don't use it in error calculation (???)
-    // information matrix is the identity for features, could be changed to allow arbitrary covariances    
-    if (is.bad()) {
-      return false;
-    }
-    for ( int i=0; i<information().rows() && is.good(); i++)
-      for (int j=i; j<information().cols() && is.good(); j++){
-        is >> information()(i,j);
-        if (i!=j)
-          information()(j,i)=information()(i,j);
-      }
-    if (is.bad()) {
-      //  we overwrite the information matrix
-      information().setIdentity();
-    } 
-    return true;
+    return false;
   }
 
   bool EdgeDirectionPrior::write(std::ostream& os) const {
-    for (int i=0; i<3; i++)
-      os  << _measurement[i] << " ";
-    os << information()(0,0);
-    return os.good();
+    return false;
 }
 
   void EdgeDirectionPrior::computeError() {
