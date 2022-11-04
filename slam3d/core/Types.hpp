@@ -41,6 +41,7 @@ namespace slam3d
 	typedef double ScalarType;
 	typedef Eigen::Matrix<ScalarType,3,1> Position;
 	typedef Eigen::Matrix<ScalarType,3,1> Direction;
+	typedef Eigen::Quaternion<ScalarType> Quaternion;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	
@@ -112,7 +113,7 @@ namespace slam3d
 		Transform mInverseSensorPose;
 	};
 	
-	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, DISTANCE};
+	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION};
 	
 	/**
 	 * @class Constraint
@@ -149,15 +150,20 @@ namespace slam3d
 		typedef boost::shared_ptr<SE3Constraint> Ptr;
 		
 		SE3Constraint(const std::string& s, const TransformWithCovariance& twc)
-		: Constraint(s), mRelativePose(twc) {}
+		: Constraint(s), mRelativePose(twc.transform), mInformation(twc.covariance.inverse()) {}
+
+		SE3Constraint(const std::string& s, const Transform& t, const Covariance<6>& i)
+		: Constraint(s), mRelativePose(t), mInformation(i) {}
 
 		ConstraintType getType() { return SE3; }
 		const char* getTypeName() { return "SE(3)"; }
 		
-		const TransformWithCovariance& getRelativePose() const { return mRelativePose; }
+		const Transform& getRelativePose() const { return mRelativePose; }
+		const Covariance<6>& getInformation() const { return mInformation; }
 		
 	protected:
-		TransformWithCovariance mRelativePose;
+		Transform mRelativePose;
+		Covariance<6> mInformation;
 		
 	};
 	
@@ -213,28 +219,33 @@ namespace slam3d
 		Covariance<3> mCovariance;
 		Transform mSensorPose;
 	};
-	
+
 	/**
-	 * @class DistanceConstraint
-	 * @brief Constraint that defines the distance between two vertices
+	 * @class OrientationConstraint
+	 * @brief 
 	 */
-	class DistanceConstraint : public Constraint
+	class OrientationConstraint : public Constraint
 	{
 	public:
-		typedef boost::shared_ptr<DistanceConstraint> Ptr;
+		typedef boost::shared_ptr<OrientationConstraint> Ptr;
 		
-		DistanceConstraint(const std::string& s, ScalarType d, const Covariance<1>& c)
-		: Constraint(s), mDistance(d), mCovariance(c) {}
+		OrientationConstraint(const std::string& s,
+		                      const Quaternion& q,
+		                      const Covariance<3>& c,
+		                      const Transform& t)
+		: Constraint(s), mOrientation(q), mCovariance(c), mSensorPose(t) {}
 		
-		ConstraintType getType() { return DISTANCE; }
-		const char* getTypeName() { return "Distance"; }
+		ConstraintType getType() { return ORIENTATION; }
+		const char* getTypeName() { return "Orientation"; }
 		
-		ScalarType getDistance() const { return mDistance; }
-		const Covariance<1>& getCovariance() const { return mCovariance; }
+		const Quaternion& getOrientation() const { return mOrientation; }
+		const Covariance<3>& getCovariance() const { return mCovariance; }
+		const Transform& getSensorPose() const { return mSensorPose; }
 
 	protected:
-		ScalarType mDistance;
-		Covariance<1> mCovariance;
+		Quaternion mOrientation;
+		Covariance<3> mCovariance;
+		Transform mSensorPose;
 	};
 	
 /**

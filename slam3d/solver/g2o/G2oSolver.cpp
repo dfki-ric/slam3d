@@ -26,7 +26,7 @@
 #include "G2oSolver.hpp"
 #include "edge_direction_prior.h"
 #include "edge_position_prior.h"
-#include "edge_distance.h"
+#include "edge_orientation_prior.h"
 
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
@@ -105,9 +105,8 @@ void G2oSolver::addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3)
 	}
 	
 	// Set the measurement (odometry distance between vertices)
-	const TransformWithCovariance& twc = se3->getRelativePose();
-	constraint->setMeasurement(twc.transform.cast<double>());            // slam3d::Transform  aka Eigen::Isometry3d
-	constraint->setInformation(twc.covariance.inverse().cast<double>()); // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
+	constraint->setMeasurement(se3->getRelativePose().cast<double>()); // slam3d::Transform  aka Eigen::Isometry3d
+	constraint->setInformation(se3->getInformation().cast<double>());  // slam3d::Covariance<6> aka Eigen::Matrix<double,6,6>
 	
 	// Add the constraint to the optimizer
 	mInt->optimizer.addEdge(constraint);
@@ -136,15 +135,15 @@ void G2oSolver::addEdgePosition(IdType vertex, PositionConstraint::Ptr pos)
 	mInt->newEdges.insert(prior);
 }
 
-void G2oSolver::addEdgeDistance(IdType source, IdType target, DistanceConstraint::Ptr dis)
+void G2oSolver::addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient)
 {
-	g2o::EdgeDistance* edge = new g2o::EdgeDistance(dis->getDistance());
-	edge->vertices()[0] = mInt->optimizer.vertex(source);
-	edge->vertices()[1] = mInt->optimizer.vertex(target);
-	edge->setInformation(dis->getCovariance().inverse().cast<double>());
-
-	mInt->optimizer.addEdge(edge);
-	mInt->newEdges.insert(edge);
+	boost::unique_lock<boost::mutex> guard(mMutex);
+	g2o::EdgeOrientationPrior* prior = new g2o::EdgeOrientationPrior(orient->getOrientation(), orient->getSensorPose());
+	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
+	prior->setInformation(orient->getCovariance().inverse().cast<double>());
+	
+	mInt->optimizer.addEdge(prior);
+	mInt->newEdges.insert(prior);
 }
 
 void G2oSolver::setFixed(IdType id)
