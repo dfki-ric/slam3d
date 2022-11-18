@@ -29,16 +29,6 @@
 
 using namespace slam3d;
 
-// Re-orthogonalize the rotation-matrix
-Transform Graph::orthogonalize(const Transform& t)
-{
-	Eigen::Quaternion<ScalarType> q(t.linear());
-	q.normalize();
-	Transform res(t);
-	res.linear() = q.toRotationMatrix();
-	return res;
-}
-
 Graph::Graph(Logger* log)
  : mLogger(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {

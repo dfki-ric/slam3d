@@ -45,6 +45,13 @@ namespace slam3d
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	
 	/**
+	 * @brief Re-orthogonalize the rotation-matrix
+	 * @param t input tranform
+	 * @return the orthogonalized transform
+	 */
+	Transform orthogonalize(const Transform& t);
+
+	/**
 	 * @class TransformWithCovariance
 	 * @brief Transformation with corresponding covariance matrix.
 	 */

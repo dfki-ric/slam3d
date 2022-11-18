@@ -435,13 +435,6 @@ namespace slam3d
 		 */
 		virtual void addToSolver(const EdgeObject& eo);
 
-		/**
-		 * @brief Re-orthogonalize the rotation-matrix
-		 * @param t input tranform
-		 * @return the orthogonalized transform
-		 */
-		static Transform orthogonalize(const Transform& t);
-
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;

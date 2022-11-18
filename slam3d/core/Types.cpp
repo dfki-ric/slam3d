@@ -16,3 +16,13 @@ Measurement::Measurement(const std::string& r, const std::string& s,
 	else
 		mUniqueId = id;
 }
+
+// Re-orthogonalize the rotation-matrix
+Transform slam3d::orthogonalize(const Transform& t)
+{
+	Eigen::Quaternion<ScalarType> q(t.linear());
+	q.normalize();
+	Transform res(t);
+	res.linear() = q.toRotationMatrix();
+	return res;
+}
