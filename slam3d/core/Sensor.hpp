@@ -28,6 +28,8 @@
 
 #include "Types.hpp"
 
+#include <set>
+
 namespace slam3d
 {	
 	/**
@@ -126,6 +128,15 @@ namespace slam3d
 		 */
 		void setCovarianceScale(ScalarType s){ mCovarianceScale = s; }
 
+		/**
+		 * @brief Use measurements of this sensor for neighbor-linking.
+		 * @detail This sensor's measurements will also be used when
+		 * checking for loop-closing. This feature has to be implemented
+		 * by the specific sensor.
+		 * @param s Name of the other sensor
+		 */
+		void addLinkSensor(const std::string& s){ mLinkSensors.insert(s); }
+
 	protected:
 		Mapper* mMapper;
 		Logger* mLogger;
@@ -137,6 +148,7 @@ namespace slam3d
 		float mMinRotation;
 		
 		ScalarType mCovarianceScale;
+		std::set<std::string> mLinkSensors;
 	};
 	
 	typedef std::map<std::string, Sensor*> SensorList;

@@ -202,13 +202,18 @@ TransformWithCovariance Graph::getTransform(IdType source, IdType target) const
 	return twc;
 }
 
-void Graph::buildNeighborIndex(const std::string& sensor)
+void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 {
-	VertexObjectList vertices = getVerticesFromSensor(sensor);
+	VertexObjectList vertices;
+	for(auto sensor : sensors)
+	{
+		VertexObjectList v = getVerticesFromSensor(sensor);
+		vertices.insert(vertices.end(), v.begin(), v.end());
+	}
 	int numOfVertices = vertices.size();
 	if(numOfVertices == 0)
 	{
-		throw std::runtime_error((boost::format("Cannot build neighbor index, because there are no vertices from %1%.") % sensor).str());
+		throw std::runtime_error("Cannot build neighbor index, vertex list is empty.");
 	}
 	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
 

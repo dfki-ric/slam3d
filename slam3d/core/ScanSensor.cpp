@@ -39,6 +39,7 @@ ScanSensor::ScanSensor(const std::string& n, Logger* l)
 	mMinLoopLength = 10;
 	mLinkPrevious = true;
 	mLastTransform = Transform::Identity();
+	mLinkSensors.insert(n);
 }
 
 ScanSensor::~ScanSensor()
@@ -154,7 +155,7 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 	if(mMaxNeighorLinks == 0)
 		return;
 
-	mMapper->getGraph()->buildNeighborIndex(mName);
+	mMapper->getGraph()->buildNeighborIndex(mLinkSensors);
 	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
 	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
 	

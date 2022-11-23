@@ -79,6 +79,7 @@ laser->addMeasurement(m);
 
 #include <flann/flann.hpp>
 #include <map>
+#include <set>
 
 namespace slam3d
 {
@@ -285,9 +286,9 @@ namespace slam3d
 
 		/**
 		 * @brief Create the index for nearest neighbor search of nodes.
-		 * @param sensor index nodes of this sensor
+		 * @param sensors index nodes of these sensors
 		 */
-		void buildNeighborIndex(const std::string& sensor);
+		void buildNeighborIndex(const std::set<std::string>& sensors);
 
 		/**
 		 * @brief Search for nodes in the graph near the given pose.
