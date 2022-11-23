@@ -245,7 +245,7 @@ VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) con
 	// Find points nearby
 	std::vector< std::vector<int> > neighbors;
 	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
-	int found = mNeighborIndex.radiusSearch(query, neighbors, distances, radius*radius, mSearchParams);
+	int found = mNeighborIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
 	
 	// Write the result
 	VertexObjectList result;
