@@ -202,14 +202,13 @@ void BoostGraph::writeGraphToFile(const std::string& name)
 struct EdgeFilter
 {
 	EdgeFilter() {}
-	EdgeFilter(const AdjacencyGraph* g, std::string n) : graph(g), name(n) {}
+	EdgeFilter(const AdjacencyGraph* g) : graph(g) {}
 	bool operator()(const Edge& e) const
 	{
-		return (*graph)[e].constraint->getSensorName() == name;
+		return (*graph)[e].constraint->getType() == SE3;
 	}
 	
 	const AdjacencyGraph* graph;
-	std::string name;
 };
 
 typedef boost::filtered_graph<AdjacencyGraph, EdgeFilter> FilteredGraph;
@@ -248,8 +247,7 @@ VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range
 	MaxDepthVisitor vis(depth_map, range);
 	
 	// Do BFS on filtered graph
-	std::string sensor = mPoseGraph[source].measurement->getSensorName();
-	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph, sensor));
+	FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph));
 	try
 	{
 		boost::breadth_first_search(fg, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
@@ -274,7 +272,7 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 	std::vector<float> distance(num);
 	std::map<Edge, float> weight;
 	EdgeRange edges = boost::edges(mPoseGraph);
-	EdgeFilter filter(&mPoseGraph, getVertex(source_id).measurement->getSensorName());
+	EdgeFilter filter(&mPoseGraph);
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
 		if(filter(*it))
