@@ -24,36 +24,38 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <g2o/types/slam3d/edge_se3_prior.h>
-#include <g2o/types/slam3d/isometry3d_gradients.h>
-#include <iostream>
+//#include <g2o/types/slam3d/edge_se3_prior.h>
+//#include <g2o/types/slam3d/isometry3d_gradients.h>
+//#include <iostream>
 
-#include "edge_position_prior.h"
+#include "edge_orientation_prior.h"
 
 namespace g2o {
   using namespace std;
 
-  EdgePositionPrior::EdgePositionPrior(const Vector3& m, const Isometry3& s)
-  : BaseUnaryEdge<3, Vector3, VertexSE3>() {
+  EdgeOrientationPrior::EdgeOrientationPrior(const Quaternion& m, const Isometry3& s)
+  : BaseUnaryEdge<3, Quaternion, VertexSE3>() {
     _measurement = m;
     information().setIdentity();
-	_sensor_pose = s;
+    _sensor_pose = s;
   }
 
-  bool EdgePositionPrior::read(std::istream& is) {
-    return false;
-  }
-
-  bool EdgePositionPrior::write(std::ostream& os) const {
-    return false;
-}
-
-  void EdgePositionPrior::computeError() {
+  void EdgeOrientationPrior::computeError() {
     VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
-    Isometry3 sensor_state = vertex->estimate() * _sensor_pose;
-    Vector3 state = sensor_state.translation();
-    _error(0) = state(0) - _measurement(0);
-    _error(1) = state(1) - _measurement(1);
-	_error(2) = state(2) - _measurement(2);
+    Quaternion current_state(vertex->estimate().linear());
+    Isometry3 exp = _sensor_pose.inverse() * _measurement;
+    Quaternion expected_state(exp.linear());
+    Quaternion err = expected_state.inverse() * current_state;
+    _error(0) = err.x();
+    _error(1) = err.y();
+    _error(2) = err.z();
+  }
+
+  bool EdgeOrientationPrior::read(std::istream& is) {
+    return false;
+  }
+
+  bool EdgeOrientationPrior::write(std::ostream& os) const {
+    return false;
   }
 }

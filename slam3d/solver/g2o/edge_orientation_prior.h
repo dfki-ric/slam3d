@@ -24,36 +24,28 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <g2o/types/slam3d/edge_se3_prior.h>
-#include <g2o/types/slam3d/isometry3d_gradients.h>
-#include <iostream>
+#ifndef G2O_EDGE_ORIENTATION_PRIOR_H_
+#define G2O_EDGE_ORIENTATION_PRIOR_H_
 
-#include "edge_position_prior.h"
-
+#include <g2o/types/slam3d/vertex_se3.h>
+#include <g2o/core/base_unary_edge.h>
+//#include <g2o/types/slam3d/parameter_se3_offset.h>
+#include <g2o/types/slam3d/g2o_types_slam3d_api.h>
 namespace g2o {
-  using namespace std;
+	
+  class G2O_TYPES_SLAM3D_API EdgeOrientationPrior : public BaseUnaryEdge<3, Quaternion, VertexSE3> {
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EdgeOrientationPrior(const Quaternion& measurement, const Isometry3& sensor_pose);
+    virtual bool read(std::istream& is);
+    virtual bool write(std::ostream& os) const;
 
-  EdgePositionPrior::EdgePositionPrior(const Vector3& m, const Isometry3& s)
-  : BaseUnaryEdge<3, Vector3, VertexSE3>() {
-    _measurement = m;
-    information().setIdentity();
-	_sensor_pose = s;
-  }
+    // return the error estimate as a 3-vector
+    void computeError();
 
-  bool EdgePositionPrior::read(std::istream& is) {
-    return false;
-  }
+  private:
+    Isometry3 _sensor_pose;
+  };
 
-  bool EdgePositionPrior::write(std::ostream& os) const {
-    return false;
 }
-
-  void EdgePositionPrior::computeError() {
-    VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
-    Isometry3 sensor_state = vertex->estimate() * _sensor_pose;
-    Vector3 state = sensor_state.translation();
-    _error(0) = state(0) - _measurement(0);
-    _error(1) = state(1) - _measurement(1);
-	_error(2) = state(2) - _measurement(2);
-  }
-}
+#endif

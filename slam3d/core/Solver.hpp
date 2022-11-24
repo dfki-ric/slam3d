@@ -136,8 +136,8 @@ namespace slam3d
 			case POSITION:
 				addEdgePosition(source, boost::static_pointer_cast<PositionConstraint>(c));
 				break;
-			case DISTANCE:
-				addEdgeDistance(source, target, boost::static_pointer_cast<DistanceConstraint>(c));
+			case ORIENTATION:
+				addEdgeOrientation(source, boost::static_pointer_cast<OrientationConstraint>(c));
 				break;
 			default:
 				std::ostringstream msg;
@@ -171,13 +171,11 @@ namespace slam3d
 		virtual void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos) = 0;
 		
 		/**
-		 * @brief Adds a distance edge between two vertices in the graph.
-		 * @details The source and target vertices have to be added before the edge.
-		 * @param source id of the edge's from-vertex
-		 * @param target id of the edge's to-vertex
-		 * @param dis constraint describing the distance between two vertices
+		 * @brief Adds an orientation edge to a vertex in the graph.
+		 * @param vertex id of the vertex this edge connects to
+		 * @param ori constraint describing the measured orientation
 		 */
-		virtual void addEdgeDistance(IdType source, IdType target, DistanceConstraint::Ptr dis) = 0;
+		virtual void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr ori) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.
