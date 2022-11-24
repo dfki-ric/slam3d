@@ -144,7 +144,9 @@ void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess
 	}catch(NoMatch &e)
 	{
 		mLogger->message(WARNING, (boost::format("Failed to link vertex %1% and %2%, because %3%.") % source_id % target_id % e.what()).str());
+
 		// delete tentative constraint
+		mMapper->getGraph()->removeConstraint(source_id, target_id, mName);
 		return;
 	}
 	
