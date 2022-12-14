@@ -57,10 +57,13 @@ PointCloudSensor::~PointCloudSensor()
 PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double leaf_size) const
 {
 	PointCloud::Ptr out(new PointCloud);
-	pcl::VoxelGrid<PointType> grid;
-	grid.setLeafSize (leaf_size, leaf_size, leaf_size);
-	grid.setInputCloud(in);
-	grid.filter(*out);
+	if(in->size() > 0)
+	{
+		pcl::VoxelGrid<PointType> grid;
+		grid.setLeafSize (leaf_size, leaf_size, leaf_size);
+		grid.setInputCloud(in);
+		grid.filter(*out);
+	}
 	return out;
 }
 
