@@ -70,11 +70,14 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius, unsigned min_neighbors) const
 {
 	PointCloud::Ptr out(new PointCloud);
-	pcl::RadiusOutlierRemoval<PointType> out_removal;
-	out_removal.setInputCloud(in);
-	out_removal.setRadiusSearch(radius);
-	out_removal.setMinNeighborsInRadius(min_neighbors);
-	out_removal.filter(*out);
+	if(in->size() > 0)
+	{
+		pcl::RadiusOutlierRemoval<PointType> out_removal;
+		out_removal.setInputCloud(in);
+		out_removal.setRadiusSearch(radius);
+		out_removal.setMinNeighborsInRadius(min_neighbors);
+		out_removal.filter(*out);
+	}
 	return out;
 }
 
