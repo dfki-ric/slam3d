@@ -50,16 +50,18 @@ namespace slam3d
 		class DuplicateVertex: public std::exception
 		{
 		public:
-			DuplicateVertex(IdType id):vertex_id(id){}
-			virtual const char* what() const throw()
+			DuplicateVertex(IdType id):vertex_id(id)
 			{
 				std::ostringstream msg;
 				msg << "Vertex with ID: " << vertex_id << " has already been defined!";
 				message = msg.str();
+			}
+			virtual const char* what() const throw()
+			{
 				return message.c_str();
 			}
 
-			mutable std::string message;
+			std::string message;
 			IdType vertex_id;
 		};
 
@@ -70,16 +72,18 @@ namespace slam3d
 		class UnknownVertex: public std::exception
 		{
 		public:
-			UnknownVertex(IdType id):vertex_id(id){}
-			virtual const char* what() const throw()
+			UnknownVertex(IdType id):vertex_id(id)
 			{
 				std::ostringstream msg;
 				msg << "Vertex with ID: " << vertex_id << " does not exist!";
 				message = msg.str();
+			}
+			virtual const char* what() const throw()
+			{
 				return message.c_str();
 			}
 
-			mutable std::string message;
+			std::string message;
 			IdType vertex_id;
 		};
 
@@ -90,16 +94,18 @@ namespace slam3d
 		class BadEdge: public std::exception
 		{
 		public:
-			BadEdge(IdType s, IdType t):source(s),target(t){}
-			virtual const char* what() const throw()
+			BadEdge(IdType s, IdType t):source(s),target(t)
 			{
 				std::ostringstream msg;
 				msg << "Failed to create edge from vertex " <<  source << " to " << target << "!";
 				message = msg.str();
+			}
+			virtual const char* what() const throw()
+			{
 				return message.c_str();
 			}
 			
-			mutable std::string message;
+			std::string message;
 			IdType source;
 			IdType target;
 		};

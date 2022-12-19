@@ -92,17 +92,19 @@ namespace slam3d
 	class InvalidVertex : public std::exception
 	{
 	public:
-		InvalidVertex(IdType id) : index(id){}
-		
-		virtual const char* what() const throw()
+		InvalidVertex(IdType id) : index(id)
 		{
 			std::ostringstream msg;
 			msg << "There is no vertex with ID " << index << " in the graph!";
 			message = msg.str();
+		}
+		
+		virtual const char* what() const throw()
+		{
 			return message.c_str();
 		}
 
-		mutable std::string message;
+		std::string message;
 		IdType index;
 	};
 	
@@ -114,17 +116,19 @@ namespace slam3d
 	{
 	public:
 		InvalidEdge(IdType s, IdType t)
-		: source(s), target(t) {}
-		
-		virtual const char* what() const throw()
+		: source(s), target(t)
 		{
 			std::ostringstream msg;
 			msg << "No edge between " << source << " and " << target << "!";
 			message = msg.str();
+		}
+		
+		virtual const char* what() const throw()
+		{
 			return message.c_str();
 		}
 
-		mutable std::string message;
+		std::string message;
 		IdType source;
 		IdType target;
 	};
@@ -138,17 +142,19 @@ namespace slam3d
 	public:
 		DuplicateEdge(IdType s, IdType t, const std::string& name)
 		 : source(s), target(t), sensor(name) {}
-		~DuplicateEdge() throw() {}
-		
-		virtual const char* what() const throw()
+		~DuplicateEdge() throw()
 		{
 			std::ostringstream msg;
 			msg << "Edge between " << source << " and " << target << " from sensor '" << sensor << "' already exists!";
 			message = msg.str();
+		}
+		
+		virtual const char* what() const throw()
+		{
 			return message.c_str();
 		}
 
-		mutable std::string message;
+		std::string message;
 		IdType source;
 		IdType target;
 		std::string sensor;
@@ -163,13 +169,8 @@ namespace slam3d
 	public:
 		virtual const char* what() const throw()
 		{
-			std::ostringstream msg;
-			msg << "Measurement already in graph!";
-			message = msg.str();
-			return message.c_str();
+			return "Measurement already in graph!";
 		}
-		
-		mutable std::string message;
 	};
 	/**
 	 * @class Graph
