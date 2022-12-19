@@ -11,7 +11,11 @@ find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework)
 find_package(PCL 1.7 REQUIRED COMPONENTS registration sample_consensus)
 find_package(PCLOMP 1.0 REQUIRED)
 find_package(g2o REQUIRED)
-find_package(jsoncpp REQUIRED)
+find_package(jsoncpp)
+if (NOT jsoncpp_FOUND)
+  pkg_check_modules(jsoncpp REQUIRED IMPORTED_TARGET jsoncpp)
+  add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
+endif()
 
 pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
 
