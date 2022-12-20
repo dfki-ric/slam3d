@@ -41,8 +41,6 @@ set_target_properties(graph-boost PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
-add_slam3d_library(slam3d_graph_boost)
-
 # Build test
 add_executable(test_boost_graph BoostGraphTest.cpp)
 target_link_libraries(test_boost_graph Boost::unit_test_framework graph-boost)

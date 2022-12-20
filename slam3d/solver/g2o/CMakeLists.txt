@@ -41,8 +41,6 @@ set_target_properties(solver-g2o PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
-add_slam3d_library(slam3d_solver_g2o)
-
 # Build test
 add_executable(g2o_solver_test G2oSolverTest.cpp)
 

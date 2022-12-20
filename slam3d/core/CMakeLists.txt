@@ -44,5 +44,3 @@ set_target_properties(core PROPERTIES
 	OUTPUT_NAME slam3d_core
 	POSITION_INDEPENDENT_CODE ON
 )
-
-add_slam3d_library(slam3d_core)
