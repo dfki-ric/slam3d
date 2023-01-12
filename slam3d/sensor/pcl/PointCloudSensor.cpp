@@ -27,8 +27,8 @@
 
 #include <slam3d/core/Mapper.hpp>
 
-#include <gicp_omp.h>
-#include <ndt_omp.h>
+#include <pclomp/gicp_omp.h>
+#include <pclomp/ndt_omp.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/pcl_config.h>
