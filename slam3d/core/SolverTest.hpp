@@ -9,20 +9,20 @@ void test_optimization(Solver* solver)
 {	
 	Transform pose(Eigen::Translation<double, 3>(0,0,0));
 
-	TransformWithCovariance tf_1_2(Transform(Eigen::Translation<double, 3>(1,0,0)), Covariance<6>::Identity());
-	TransformWithCovariance tf_2_3(Transform(Eigen::Translation<double, 3>(0,1,0)), Covariance<6>::Identity());
-	TransformWithCovariance tf_3_1(Transform(Eigen::Translation<double, 3>(-0.8, -0.7, 0.1)), Covariance<6>::Identity());
-	TransformWithCovariance tf_3_4(Transform(Eigen::Translation<double, 3>(0, 1, 0)), Covariance<6>::Identity());
+	Transform tf_1_2(Eigen::Translation<double, 3>(1,0,0));
+	Transform tf_2_3(Eigen::Translation<double, 3>(0,1,0));
+	Transform tf_3_1(Eigen::Translation<double, 3>(-0.8, -0.7, 0.1));
+	Transform tf_3_4(Eigen::Translation<double, 3>(0, 1, 0));
 	
 	solver->addVertex(1, pose);
 	solver->addVertex(2, pose);
 	solver->addVertex(3, pose);
 	BOOST_CHECK_THROW(solver->addVertex(3, pose), Solver::DuplicateVertex);
 
-	SE3Constraint::Ptr c_1_2(new SE3Constraint("DummySensor", tf_1_2));
-	SE3Constraint::Ptr c_2_3(new SE3Constraint("DummySensor", tf_2_3));
-	SE3Constraint::Ptr c_3_1(new SE3Constraint("DummySensor", tf_3_1));
-	SE3Constraint::Ptr c_3_4(new SE3Constraint("DummySensor", tf_3_4));
+	SE3Constraint::Ptr c_1_2(new SE3Constraint("DummySensor", tf_1_2, Covariance<6>::Identity()));
+	SE3Constraint::Ptr c_2_3(new SE3Constraint("DummySensor", tf_2_3, Covariance<6>::Identity()));
+	SE3Constraint::Ptr c_3_1(new SE3Constraint("DummySensor", tf_3_1, Covariance<6>::Identity()));
+	SE3Constraint::Ptr c_3_4(new SE3Constraint("DummySensor", tf_3_4, Covariance<6>::Identity()));
 
 	solver->addEdge(1,2,c_1_2);
 	solver->addEdge(2,3,c_2_3);

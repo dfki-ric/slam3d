@@ -193,13 +193,9 @@ const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
 	return getVertex(mUuidIndex.at(id));
 }
 
-TransformWithCovariance Graph::getTransform(IdType source, IdType target) const
+Transform Graph::getTransform(IdType source, IdType target) const
 {
-	// This method is a stub:
-	// Replace with something more elaborate, that calculates the covariance as well.
-	TransformWithCovariance twc;
-	twc.transform = getVertex(source).corrected_pose.inverse() * getVertex(target).corrected_pose;
-	return twc;
+	return getVertex(source).corrected_pose.inverse() * getVertex(target).corrected_pose;
 }
 
 void Graph::buildNeighborIndex(const std::set<std::string>& sensors)

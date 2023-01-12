@@ -345,7 +345,7 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		TransformWithCovariance getTransform(IdType source, IdType target) const;
+		Transform getTransform(IdType source, IdType target) const;
 
 		/**
 		 * @brief Get the edge between source and traget from the given sensor.

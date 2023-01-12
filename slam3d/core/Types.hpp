@@ -51,27 +51,6 @@ namespace slam3d
 	 * @return the orthogonalized transform
 	 */
 	Transform orthogonalize(const Transform& t);
-
-	/**
-	 * @class TransformWithCovariance
-	 * @brief Transformation with corresponding covariance matrix.
-	 */
-	struct TransformWithCovariance
-	{
-		Transform transform;
-		Covariance<6> covariance;
-
-		TransformWithCovariance() : transform(Transform::Identity()), covariance(Covariance<6>::Identity()) {}
-		TransformWithCovariance(const Transform& t, const Covariance<6>& cov) : transform(t), covariance(cov) {}
-		static TransformWithCovariance Identity() {return TransformWithCovariance();}
-		
-		bool isValid()
-		{
-			if(std::fabs(transform.matrix().determinant() - 1.0) > 0.0001)
-				return false;
-			return true;
-		}
-	};
 	
 	/**
 	 * @class Indexer
@@ -156,9 +135,6 @@ namespace slam3d
 	public:
 		typedef boost::shared_ptr<SE3Constraint> Ptr;
 		
-		SE3Constraint(const std::string& s, const TransformWithCovariance& twc)
-		: Constraint(s), mRelativePose(twc.transform), mInformation(twc.covariance.inverse()) {}
-
 		SE3Constraint(const std::string& s, const Transform& t, const Covariance<6>& i)
 		: Constraint(s), mRelativePose(t), mInformation(i) {}
 

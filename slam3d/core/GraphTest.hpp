@@ -21,10 +21,10 @@ void test_graph_construction(slam3d::Graph* graph)
 	addVertexToGraph(graph, 2, "R1", "S1");
 	addVertexToGraph(graph, 3, "R1", "S2");
 
-	slam3d::SE3Constraint::Ptr c1(new slam3d::SE3Constraint("S1", slam3d::TransformWithCovariance::Identity()));
+	slam3d::SE3Constraint::Ptr c1(new slam3d::SE3Constraint("S1", slam3d::Transform::Identity(), slam3d::Covariance<6>::Identity()));
 	BOOST_CHECK_NO_THROW(graph->addConstraint(1, 2, c1));
 	
-	slam3d::SE3Constraint::Ptr c2(new slam3d::SE3Constraint("S2", slam3d::TransformWithCovariance::Identity()));
+	slam3d::SE3Constraint::Ptr c2(new slam3d::SE3Constraint("S2", slam3d::Transform::Identity(), slam3d::Covariance<6>::Identity()));
 	BOOST_CHECK_NO_THROW(graph->addConstraint(2, 3, c2));
 	
 	slam3d::EdgeObject query_res;

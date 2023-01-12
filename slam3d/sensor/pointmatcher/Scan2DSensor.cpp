@@ -89,11 +89,10 @@ Constraint::Ptr Scan2DSensor::createConstraint(const Measurement::Ptr& source,
 	Transform icp_result = guess * convert2Dto3D(tp);
 
 	// Transform back to robot frame
-	TransformWithCovariance twc;
-	twc.transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
-	twc.covariance = Covariance<6>::Identity() * mCovarianceScale;
+	Transform transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
+	Covariance<6> covariance = Covariance<6>::Identity() * mCovarianceScale;
 	
-	return Constraint::Ptr(new SE3Constraint(mName, twc));
+	return Constraint::Ptr(new SE3Constraint(mName, transform, covariance.inverse()));
 }
 
 Measurement::Ptr Scan2DSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const

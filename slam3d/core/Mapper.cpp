@@ -103,21 +103,23 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 	return mLastIndex;
 }
 
-void Mapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const TransformWithCovariance& twc, const std::string& sensor)
+void Mapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& transform,
+                                    const Covariance<6>& information, const std::string& sensor)
 {
 	if(mGraph->hasMeasurement(m->getUniqueId()))
 	{
 		throw DuplicateMeasurement();
 	}
 	
-	Transform pose = mGraph->getVertex(s).corrected_pose * twc.transform;
+	Transform pose = mGraph->getVertex(s).corrected_pose * transform;
 	IdType source = mGraph->getIndex(s);
 	IdType target = mGraph->addVertex(m, pose);
-	SE3Constraint::Ptr se3(new SE3Constraint(sensor, twc));
+	SE3Constraint::Ptr se3(new SE3Constraint(sensor, transform, information));
 	mGraph->addConstraint(source, target, se3);
 }
 
-void Mapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const TransformWithCovariance& twc, const std::string& sensor)
+void Mapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, const Transform& transform,
+                                   const Covariance<6>& information, const std::string& sensor)
 {
 	IdType source = mGraph->getIndex(s);
 	IdType target = mGraph->getIndex(t);
@@ -128,7 +130,7 @@ void Mapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, c
 		throw DuplicateEdge(source, target, sensor);
 	}catch(InvalidEdge &ie)
 	{
-		SE3Constraint::Ptr se3(new SE3Constraint(sensor, twc));
+		SE3Constraint::Ptr se3(new SE3Constraint(sensor, transform, information));
 		mGraph->addConstraint(source, target, se3);
 	}
 }

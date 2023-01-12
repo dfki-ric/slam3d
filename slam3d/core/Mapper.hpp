@@ -91,8 +91,9 @@ namespace slam3d
 		 */
 		virtual void addExternalMeasurement(Measurement::Ptr measurement,
 		                                    boost::uuids::uuid source_uuid,
-		                                    const TransformWithCovariance& twc,
-										    const std::string& sensor);
+		                                    const Transform& transform,
+		                                    const Covariance<6>& information,
+		                                    const std::string& sensor);
 
 		/**
 		 * @brief Add a constraint from another robot between two measurements.
@@ -103,7 +104,8 @@ namespace slam3d
 		 */
 		void addExternalConstraint(boost::uuids::uuid source,
 		                           boost::uuids::uuid target,
-		                           const TransformWithCovariance& twc,
+		                           const Transform& transform,
+		                           const Covariance<6>& information,
 		                           const std::string& sensor);
 		/**
 		 * @brief Get the current pose of the robot within the generated map.

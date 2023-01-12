@@ -123,7 +123,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 void ScanSensor::link(IdType source_id, IdType target_id)
 {
 	// We have no guess, so we use the current relative pose from the graph
-	Transform guess = mMapper->getGraph()->getTransform(source_id, target_id).transform;
+	Transform guess = mMapper->getGraph()->getTransform(source_id, target_id);
 	link(source_id, target_id, guess);
 }
 
