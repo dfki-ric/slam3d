@@ -12,8 +12,13 @@ target_include_directories(solver-g2o
 )
 
 target_link_libraries(solver-g2o
-	PUBLIC core
-	PRIVATE g2o::core g2o::stuff g2o::solver_cholmod g2o::types_slam3d
+	PUBLIC
+		core
+	PRIVATE
+		g2o::core
+		g2o::stuff
+		g2o::solver_cholmod
+		g2o::types_slam3d
 )
 
 # Install header files
