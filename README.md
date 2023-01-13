@@ -3,9 +3,6 @@
 ## Description
 The SLAM3D library is a standalone framework for multimodal graph based Simultaneous Localization and Mapping. It's main purpose is to hold arbitrary measurements from various sensors (and possibly various agents) in a graph structure. Maps can be created from specific sensor types (e.g. pointclouds with [PCL](http://pointclouds.org/)) using the readings within the graph. Global relaxation is done by an optimization backend, currently [g²o](https://github.com/RainerKuemmerle/g2o).
 
-The API documentation can be found at:
-http://bob.dfki.uni-bremen.de/apis/dfki-slam/slam3d/index.html
-
 ## Dependencies
 The following packages are required in order to build SLAM3D. Some of them are optional and the corresponing module will be excluded if not available.
 
