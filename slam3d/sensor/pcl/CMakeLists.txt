@@ -1,4 +1,4 @@
-add_library(sensor-pcl
+add_library(sensor-pcl SHARED
 	PointCloudSensor.cpp
 )
 
@@ -41,5 +41,4 @@ install(
 
 set_target_properties(sensor-pcl PROPERTIES
 	OUTPUT_NAME slam3d_sensor_pcl
-	POSITION_INDEPENDENT_CODE ON
 )

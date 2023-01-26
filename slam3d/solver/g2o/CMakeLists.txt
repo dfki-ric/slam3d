@@ -1,4 +1,4 @@
-add_library(solver-g2o
+add_library(solver-g2o SHARED
 	edge_direction_prior.cpp
 	edge_position_prior.cpp
 	edge_orientation_prior.cpp
@@ -43,7 +43,6 @@ install(
 
 set_target_properties(solver-g2o PROPERTIES
 	OUTPUT_NAME slam3d_solver_g2o
-	POSITION_INDEPENDENT_CODE ON
 )
 
 # Build test

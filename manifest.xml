@@ -6,7 +6,6 @@
   <maintainer>Sebastian Kasperski/sebastian.kasperski@dfki.de</maintainer>
   <license>New BSD</license>
 
-  <depend package="base/cmake" />
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
   <depend package="slam/pclomp" />

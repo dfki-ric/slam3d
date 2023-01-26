@@ -1,4 +1,4 @@
-add_library(core
+add_library(core SHARED
 	Mapper.cpp
 	Graph.cpp
 	Sensor.cpp
@@ -42,5 +42,4 @@ install(
 
 set_target_properties(core PROPERTIES
 	OUTPUT_NAME slam3d_core
-	POSITION_INDEPENDENT_CODE ON
 )

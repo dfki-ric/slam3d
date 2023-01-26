@@ -1,5 +1,5 @@
 # Define graph-boost library
-add_library(graph-boost
+add_library(graph-boost SHARED
 	BoostGraph.cpp
 )
 
@@ -38,7 +38,6 @@ install(
 
 set_target_properties(graph-boost PROPERTIES
 	OUTPUT_NAME slam3d_graph_boost
-	POSITION_INDEPENDENT_CODE ON
 )
 
 # Build test

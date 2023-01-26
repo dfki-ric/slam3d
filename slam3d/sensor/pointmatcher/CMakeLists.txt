@@ -1,4 +1,4 @@
-add_library(sensor-pointmatcher
+add_library(sensor-pointmatcher SHARED
 	Scan2DSensor.cpp
 )
 
@@ -37,5 +37,4 @@ install(
 
 set_target_properties(sensor-pointmatcher PROPERTIES
 	OUTPUT_NAME slam3d_sensor_pointmatcher
-	POSITION_INDEPENDENT_CODE ON
 )

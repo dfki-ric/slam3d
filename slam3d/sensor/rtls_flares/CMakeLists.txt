@@ -1,4 +1,4 @@
-add_library(sensor-rtls
+add_library(sensor-rtls SHARED
 	Status.cpp
 	FlareSensor.cpp
 )
@@ -37,5 +37,4 @@ install(
 
 set_target_properties(sensor-rtls PROPERTIES
 	OUTPUT_NAME slam3d_sensor_rtls_flares
-	POSITION_INDEPENDENT_CODE ON
 )

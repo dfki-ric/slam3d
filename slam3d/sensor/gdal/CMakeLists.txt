@@ -1,4 +1,4 @@
-add_library(sensor-gdal
+add_library(sensor-gdal SHARED
 	CoordTransformer.cpp
 	GpsSensor.cpp
 	GpsPoseSensor.cpp
@@ -40,5 +40,4 @@ install(
 
 set_target_properties(sensor-gdal PROPERTIES
 	OUTPUT_NAME slam3d_sensor_gdal
-	POSITION_INDEPENDENT_CODE ON
 )
