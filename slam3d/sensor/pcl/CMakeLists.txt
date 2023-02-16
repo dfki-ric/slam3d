@@ -13,6 +13,7 @@ target_link_libraries(sensor-pcl
 	PUBLIC
 		core
 	PRIVATE
+		${PCL_REGISTRATION_LIBRARIES}
 		${PCL_SAMPLE_CONCENSUS_LIBRARIES}
 )
 
