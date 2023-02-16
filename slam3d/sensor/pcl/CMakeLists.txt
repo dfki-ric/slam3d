@@ -13,7 +13,6 @@ target_link_libraries(sensor-pcl
 	PUBLIC
 		core
 	PRIVATE
-		pclomp::registration
 		${PCL_SAMPLE_CONCENSUS_LIBRARIES}
 )
 

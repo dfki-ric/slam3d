@@ -8,7 +8,6 @@
 
   <depend package="slam/pcl" />
   <depend package="slam/g2o" />
-  <depend package="slam/pclomp" />
   <depend package="slam/pointmatcher" optional="1" />
   <depend package="suitesparse" />
   <depend package="jsoncpp" />
