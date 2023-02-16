@@ -266,9 +266,15 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
 
 PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) const
 {
+	Clock c;
+	timeval start = c.now();
 	PointCloud::Ptr accu = getAccumulatedCloud(vertices);
 	PointCloud::Ptr cleaned = removeOutliers(accu, mMapOutlierRadius, mMapOutlierNeighbors);
-	return downsample(cleaned, mMapResolution);
+	PointCloud::Ptr downsampled = downsample(cleaned, mMapResolution);
+	timeval finish = c.now();
+	int duration = finish.tv_sec - start.tv_sec;
+	mLogger->message(INFO, (boost::format("Generated Pointcloud from %1% scans in %2% seconds.") % vertices.size() % duration).str());
+	return downsampled;
 }
 
 void PointCloudSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
