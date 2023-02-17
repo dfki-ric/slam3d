@@ -64,8 +64,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 			IdType newVertex = mMapper->addMeasurement(m);
 			if(se3)
 			{
-				Transform pose = mMapper->getCurrentPose() * mLastTransform;
-				mMapper->getGraph()->setCorrectedPose(newVertex, pose);
+				mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
 				mLastTransform = Transform::Identity();
 			}
 			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
@@ -89,8 +88,8 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	}
 	
 	// Add measurement if sufficient movement is reported by the odometry
-	Transform odom_delta = mLastOdometry.inverse() * odom;
-	if(checkMinDistance(odom_delta))
+	mLastTransform = mLastOdometry.inverse() * odom;
+	if(checkMinDistance(mLastTransform))
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
 		Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
@@ -98,16 +97,17 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 		{
 			try
 			{
-				Constraint::Ptr c = createConstraint(source, m, odom_delta, false);
+				Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
 				mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 
 				// Calculate the new pose relative from last pose
 				SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
 				if(se3)
 				{
-					const Transform& lastPose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose;
-					mMapper->getGraph()->setCorrectedPose(newVertex, lastPose * se3->getRelativePose());
+					mLastTransform = se3->getRelativePose();
 				}
+				Transform last_pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose;
+				mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
 			}catch(std::exception &e)
 			{
 				mLogger->message(WARNING, (boost::format("Could not link Measurement to previous: %1%") % e.what()).str());
@@ -115,6 +115,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 		}
 		mLastOdometry = odom;
 		mLastVertex = newVertex;
+		mLastTransform = Transform::Identity();
 		return true;
 	}
 	return false;
@@ -283,5 +284,5 @@ void ScanSensor::setPatchBuildingRange(unsigned r)
 
 Transform ScanSensor::getCurrentPose() const
 {
-	return mMapper->getCurrentPose() * mLastTransform;
+	return mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * mLastTransform;
 }
