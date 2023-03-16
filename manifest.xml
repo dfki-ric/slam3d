@@ -13,6 +13,9 @@
   <depend package="suitesparse" />
   <depend package="jsoncpp" />
   <depend package="flann" />
+
+  <depend package="restcpp" />
+  
   
   <keywords>
     <keyword>Mapping</keyword>

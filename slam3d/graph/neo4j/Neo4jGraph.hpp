@@ -1,49 +1,27 @@
-#ifndef SLAM3D_BOOSTGRAPH_HPP
-#define SLAM3D_BOOSTGRAPH_HPP
+#ifndef SLAM3D_Neo4jGRAPH_HPP
+#define SLAM3D_Neo4jGRAPH_HPP
+
 
 #include <slam3d/core/Graph.hpp>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <memory>
+
+
+namespace web{ namespace http{ namespace client{ class http_client;}}}
 
 namespace slam3d
 {
-	// Definitions of boost-graph related types
-	typedef boost::listS VRep;
-	typedef boost::vecS ERep;
-	typedef boost::directedS GType;
-	typedef boost::adjacency_list<VRep, ERep, GType, VertexObject, EdgeObject> AdjacencyGraph;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::vertex_descriptor Vertex;
-	typedef boost::graph_traits<AdjacencyGraph>::vertex_iterator VertexIterator;
-	typedef std::pair<VertexIterator, VertexIterator> VertexRange;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::edge_descriptor Edge;
-	typedef boost::graph_traits<AdjacencyGraph>::edge_iterator EdgeIterator;
-	typedef boost::graph_traits<AdjacencyGraph>::out_edge_iterator OutEdgeIterator;
-	typedef boost::graph_traits<AdjacencyGraph>::in_edge_iterator InEdgeIterator;
-	typedef std::pair<EdgeIterator, EdgeIterator> EdgeRange;
-	
-	typedef boost::graph_traits<AdjacencyGraph>::adjacency_iterator AdjacencyIterator;
-	typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyRange;
-	
-	// List types
-	typedef std::vector<Vertex> VertexList;
-	typedef std::vector<Edge> EdgeList;
 
-	// Index types
-	typedef std::map<IdType, Vertex> IndexMap;
-	
 	/**
-	 * @class BoostGraph
-	 * @brief Implementation of Graph using BoostGraphLibrary.
+	 * @class Neo4jGraph
+	 * @brief Implementation of Graph using Neo4jGraphGraphLibrary.
 	 */
-	class BoostGraph : public Graph
+	class Neo4jGraph : public Graph
 	{
 	public:
-		BoostGraph(Logger* log);
-		~BoostGraph();
+		Neo4jGraph(Logger* log);
+		~Neo4jGraph();
 
 		/**
 		 * @brief Start the backend optimization process.
@@ -148,23 +126,33 @@ namespace slam3d
 		 */
 		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor);
 		
-		/**
-		 * @brief 
-		 * @param source
-		 * @param target
-		 * @param sensor
-		 */
-		OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
+		// /**
+		//  * @brief 
+		//  * @param source
+		//  * @param target
+		//  * @param sensor
+		//  */
+		// OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
 
 	private:
+
+		std::string createQuery(const std::string& query, const std::vector<std::string>& params = std::vector<std::string>());
+
+		// neo4j_connection_t *connection;
 		// The boost graph object
-		AdjacencyGraph mPoseGraph;
+		// AdjacencyGraph mPoseGraph;
 		
 		// Mutex for graph access
 		mutable boost::shared_mutex mGraphMutex;
 		
 		// Index to map a vertex' id to its descriptor
-		IndexMap mIndexMap;
+		// IndexMap mIndexMap;
+
+		//todo remove this and pass shared_ptr
+		std::vector<VertexObject> vertexObjects;
+
+		std::shared_ptr<web::http::client::http_client> client;
+
 	};
 }
 

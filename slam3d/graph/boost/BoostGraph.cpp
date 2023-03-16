@@ -103,7 +103,7 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) co
 	return objectList;
 }
 
-const VertexObject& BoostGraph::getVertex(IdType id) const
+const VertexObject& BoostGraph::getVertex(IdType id)
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }

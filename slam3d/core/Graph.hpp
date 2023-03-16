@@ -310,7 +310,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+		VertexObjectList getNearbyVertices(const Transform &tf, float radius);
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -325,14 +325,14 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 * @return constant reference to a vertex
 		 */
-		virtual const VertexObject& getVertex(IdType id) const = 0;
+		virtual const VertexObject& getVertex(IdType id) = 0;
 
 		/**
 		 * @brief Gets a vertex by the uuid of the attached Measurement.
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		const VertexObject& getVertex(boost::uuids::uuid id) const;
+		const VertexObject& getVertex(boost::uuids::uuid id);
 
 		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
@@ -345,7 +345,7 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		Transform getTransform(IdType source, IdType target) const;
+		Transform getTransform(IdType source, IdType target);
 
 		/**
 		 * @brief Get the edge between source and traget from the given sensor.
