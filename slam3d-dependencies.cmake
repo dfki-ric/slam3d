@@ -18,6 +18,7 @@ if (NOT jsoncpp_FOUND)
 endif()
 
 pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
+pkg_check_modules(pqxx REQUIRED IMPORTED_TARGET libpqxx)
 
 # Optional libraries
 find_package(libpointmatcher 1.3.1)

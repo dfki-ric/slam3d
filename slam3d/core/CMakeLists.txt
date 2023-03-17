@@ -4,6 +4,7 @@ add_library(core SHARED
 	Sensor.cpp
 	ScanSensor.cpp
 	Types.cpp
+	DataStorage.cpp
 )
 
 target_include_directories(core
@@ -16,7 +17,10 @@ target_link_libraries(core
 	PUBLIC
 		Eigen3::Eigen
 		Boost::thread
-		PkgConfig::flann)
+		PkgConfig::flann
+	PRIVATE
+		PkgConfig::pqxx
+)
 
 target_compile_features(core PUBLIC cxx_alias_templates)
 
