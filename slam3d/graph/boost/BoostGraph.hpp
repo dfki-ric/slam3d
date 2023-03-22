@@ -65,7 +65,7 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const;
+		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
 		
 		/**
 		 * @brief Get all outgoing edges from given source.

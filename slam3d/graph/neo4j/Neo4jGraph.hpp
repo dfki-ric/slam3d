@@ -24,6 +24,13 @@ namespace slam3d
 		~Neo4jGraph();
 
 		/**
+		 * @brief delete the database contents
+		 * @details deletes all Nodes and edges from the graph
+		 * @return true if deletion was successful
+		 */
+		bool deleteDatabase();
+
+		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
 		 * @param iterations maximum number of iteration steps
@@ -43,7 +50,7 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const;
+		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
 		
 		/**
 		 * @brief Get all outgoing edges from given source.

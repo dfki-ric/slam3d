@@ -40,9 +40,23 @@ Neo4jGraph::~Neo4jGraph()
     // neo4j_client_cleanup();
 }
 
+bool Neo4jGraph::deleteDatabase() {
+    std::string command = createQuery("match (n) detach delete n");
+    web::http::http_response response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", command, "application/json;charset=utf-8").get();
+    // Check the status code.
+    if (response.status_code() == 200) {
+        return true;
+    }
+    return false;
+}
+
 EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor) const
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	EdgeObjectList objectList;
+
+    //TODO
+
 	// EdgeRange edges = boost::edges(mPoseGraph);
 	// for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	// {
@@ -65,12 +79,12 @@ bool Neo4jGraph::optimize(unsigned iterations)
 
 void Neo4jGraph::addVertex(const VertexObject& v)
 {
-    std::string label = v.label;
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 
     std::vector<std::string> props;
     props.push_back("\"props\": {");
-    props.push_back("\"label\": \""+label+"\",");
-    props.push_back("\"index\": \""+std::to_string(v.index)+"\"");
+    props.push_back("\"label\": \""+v.label+"\",");
+    props.push_back("\"index\": "+std::to_string(v.index));
     props.push_back("}");
     std::string command = createQuery("CREATE (n:Vertex $props)", props);
 
@@ -88,11 +102,64 @@ void Neo4jGraph::addVertex(const VertexObject& v)
 
 void Neo4jGraph::addEdge(const EdgeObject& e)
 {
-	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+	// boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 
     // CREATE (c1left:Sensor)-[:SE3]->(m1:Vertex)
 
-    std::string command = createQuery("CREATE ("+std::to_string(e.source)+")-["+e.label+"]->("+std::to_string(e.target)+")");
+    // MATCH (a:Vertex), (b:Vertex) WHERE a.index="1" AND b.index="2" CREATE (a)-[r:EDGE {label: "test"}]->(b) RETURN type(r)
+
+
+		// virtual const char* getTypeName() = 0;time_t tv_sec;		/* Seconds.  */
+  __suseconds_t tv_usec;	/* Microseconds.  */
+
+		// timeval getTimestamp() const { return mStamp; }
+
+    std::string constrainttypename = e.constraint->getTypeName();
+    std::replace(constrainttypename.begin(), constrainttypename.end(), '(', '_');
+    std::replace(constrainttypename.begin(), constrainttypename.end(), ')', '_');
+
+    std::cout << constrainttypename << std::endl;
+
+    std::vector<std::string> props;
+    props.push_back("\"props\": {");
+    props.push_back("\"label\": \""+e.label+"\",");
+    props.push_back("\"sensor\": \""+ e.constraint->getSensorName() + "\",");
+    props.push_back("\"timestamp_tv_sec\": "+std::to_string(e.constraint->getTimestamp().tv_sec)+",");
+    props.push_back("\"timestamp_tv_usec\": "+std::to_string(e.constraint->getTimestamp().tv_usec));
+    props.push_back("}");
+
+    std::string command = createQuery( \
+        "MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.source)+" AND b.index="+std::to_string(e.target) \
+        + " CREATE (a)-[r:" +constrainttypename + " $props]->(b) RETURN type(r)", props);
+        // + " {" \
+        // + " label: \""+ e.label + "\"," \
+        // + " timestamp_tv_sec: "+std::to_string(e.constraint->getTimestamp().tv_sec)+"," \
+        // + " timestamp_tv_usec: "+std::to_string(e.constraint->getTimestamp().tv_usec)+"," \
+        // + " sensor: \""+ e.constraint->getSensorName() + "\"" \
+        // + " }
+        // ]->(b) RETURN type(r)");
+
+    printf("%s:%i: %s\n", __PRETTY_FUNCTION__, __LINE__, command.c_str());
+
+    web::http::http_response response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", command, "application/json;charset=utf-8").get();
+
+    std::cout << response.to_string() << std::endl;
+
+    // Check the status code.
+    if (response.status_code() != 200) {
+        std::cout << "ERROR " << response.to_string() << std::endl;
+        throw std::runtime_error("Returned " + std::to_string(response.status_code()));
+    }
+}
+
+void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sensor) {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+	// boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
+
+	// MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
+
+    std::string command = createQuery("MATCH ("+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
 
     web::http::http_response response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", command, "application/json;charset=utf-8").get();
 
@@ -103,13 +170,9 @@ void Neo4jGraph::addEdge(const EdgeObject& e)
     }
 }
 
-void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sensor)
-{
-	// boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
-}
-
 VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) const
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	VertexObjectList objectList;
 	// VertexRange vertices = boost::vertices(mPoseGraph);
 	// for(VertexIterator it = vertices.first; it != vertices.second; ++it)
@@ -124,6 +187,7 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) co
 
 const VertexObject& Neo4jGraph::getVertex(IdType id)
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     return getVertexInternal(id);
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // vertexObjects.resize(id+1);
@@ -145,7 +209,7 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
 
     //query and fill
     //MATCH (n:Vertex) WHERE n.index = "2" RETURN n AS node
-    std::string command = createQuery("MATCH (n:Vertex) WHERE n.index = '"+std::to_string(id)+"' RETURN n.label AS label");
+    std::string command = createQuery("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n.label AS label");
 
     std::cout << command << std::endl;
 
@@ -164,16 +228,59 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
 	return vertexobj;
 }
 
-const EdgeObject& Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
+const EdgeObject& Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor)
 {
-	// OutEdgeIterator it = getEdgeIterator(source, target, sensor);
-	// return mPoseGraph[*it];
+    return getEdgeInternal(source, target, sensor);
 }
 
 EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor)
 {
-	// OutEdgeIterator it = getEdgeIterator(source, target, sensor);
-	// return mPoseGraph[*it];
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+
+    // TODO: danger! returning reference to this, not threadsafe! NOT save for calling multiple times before receiving
+    static EdgeObject returnval;
+
+	// MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index=1 AND b.index=2 AND r.sensor="S1" RETURN r
+
+    // std::string command = createQuery("MATCH ("+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
+    std::string command = createQuery("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");
+
+    std::cout  << command << std::endl;
+
+    web::http::http_response response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", command, "application/json;charset=utf-8").get();
+
+    // Check the status code.
+    if (response.status_code() != 200) {
+        std::cout << "ERROR " << response.to_string() << std::endl;
+        throw std::runtime_error("Returned " + std::to_string(response.status_code()));
+    }
+
+    web::json::value reply = response.extract_json().get();
+
+    std::cout << "reply: " << reply.serialize() << std::endl << std::endl;
+    
+
+    	// 	std::string label;
+		// IdType source;
+		// IdType target;
+		// Constraint::Ptr constraint;
+    // todo check success // multiple replies
+    returnval.source = source;
+    returnval.target = target;
+
+    // std::string sensorname = reply["results"][0]["data"][0]["row"][0]["sensor"].as_string();
+
+    //TODO: Serialize/recreate all contstraints with content
+    slam3d::Transform t;
+    slam3d::Covariance<6> i;
+    returnval.constraint = slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensor,t,i));
+
+    
+    
+
+    exit(0);
+
+	return returnval;
 }
 
 // OutEdgeIterator Neo4jGraph::getEdgeIterator(IdType source, IdType target, const std::string& sensor) const
@@ -200,19 +307,21 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
 
 EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
 {
-	// OutEdgeIterator it, it_end;
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+	//OutEdgeIterator it, it_end;
 	// boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
-	// EdgeObjectList edges;
+	EdgeObjectList edges;
 	// while(it != it_end)
 	// {
 	// 	edges.push_back(mPoseGraph[*it]);
 	// 	++it;
 	// }
-	// return edges;
+	return edges;
 }
 
 EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	// std::set<int> v_ids;
 	// for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
 	// {
@@ -290,6 +399,7 @@ void Neo4jGraph::writeGraphToFile(const std::string& name)
 
 VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	// Create required data structures
 	// Vertex source = mIndexMap.at(source_id);
 	// DepthMap depth_map;
@@ -317,6 +427,7 @@ VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range
 
 float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	// boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	// int num = boost::num_vertices(mPoseGraph);
 	// std::vector<Vertex> parent(num);
@@ -345,13 +456,15 @@ float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 std::string Neo4jGraph::createQuery(const std::string& query, const std::vector<std::string>& params) {
     std::string json = "{ \"statements\": [{\"statement\": \""+query+"\"";
 
+    json += ", \"parameters\": {";
     if (params.size()) {
-        json += ", \"parameters\": {";
+        
         for (const auto &param : params) {
         json += param;
         }
-        json += "}";
     }
+    json += "}";
+
     json += "}]}";
     return json;
 

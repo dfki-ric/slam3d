@@ -354,7 +354,7 @@ namespace slam3d
 		 * @param sensor
 		 * @throw InvalidVertex, InvalidEdge
 		 */
-		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
+		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) = 0;
 
 		/**
 		 * @brief Get all outgoing edges from given source.

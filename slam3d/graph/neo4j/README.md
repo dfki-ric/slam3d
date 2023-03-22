@@ -8,3 +8,12 @@ https://neo4j.com/docs/http-api/current/actions/begin-and-commit-a-transaction-i
 
 
 https://neo4j.com/docs/cypher-manual/current/clauses/create/
+
+
+
+http://localhost:7474/browser/
+
+display: match (n) return n as node
+delete all: match (n) detach delete n
+
+    
