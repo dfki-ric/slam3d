@@ -27,6 +27,8 @@
 #define SLAM_DATA_STORAGE_HPP
 
 #include "Logger.hpp"
+#include "Types.hpp"
+
 
 namespace slam3d
 {
@@ -37,6 +39,8 @@ namespace slam3d
 	public:
 		DataStorage(Logger* l, const std::string& host, const std::string& schema);
 		~DataStorage();
+
+		void writeMeasurement(Measurement::Ptr m);
 
 	protected:
 		std::string mHost;
