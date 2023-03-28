@@ -5,7 +5,7 @@
 
 #include "Neo4jGraph.hpp"
 
-#include <boost/format.hpp>
+// #include <boost/format.hpp>
 #include <slam3d/core/Solver.hpp>
 
 #include <fstream>
@@ -13,7 +13,7 @@
 // #include <cpprest/uri.h>
 
 #include <cpprest/http_client.h>
-#include <cpprest/json.h>
+
 
 
 using namespace slam3d;
@@ -28,9 +28,9 @@ Neo4jGraph::Neo4jGraph(Logger* log) : Graph(log)
 {
     web::http::client::http_client_config clientconf;
     clientconf.set_validate_certificates(false);
-    web::credentials clientcred(U("neo4j"), U("neo4j"));
+    web::credentials clientcred(_XPLATSTR("neo4j"), _XPLATSTR("neo4j"));
     clientconf.set_credentials(clientcred);
-    client = std::make_shared<web::http::client::http_client>(U("http://localhost:7474"), clientconf);
+    client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://localhost:7474"), clientconf);
 
 }
 
@@ -73,7 +73,7 @@ EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor) const
 
 bool Neo4jGraph::optimize(unsigned iterations)
 {
-	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
+	// boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	return Graph::optimize(iterations);
 }
 
@@ -81,12 +81,20 @@ void Neo4jGraph::addVertex(const VertexObject& v)
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 
-    std::vector<std::string> props;
-    props.push_back("\"props\": {");
-    props.push_back("\"label\": \""+v.label+"\",");
-    props.push_back("\"index\": "+std::to_string(v.index));
-    props.push_back("}");
-    std::string command = createQuery("CREATE (n:Vertex $props)", props);
+    // std::vector<std::string> props;
+    // props.push_back("\"props\": {");
+    // props.push_back("\"label\": \""+v.label+"\",");
+    // props.push_back("\"index\": "+std::to_string(v.index));
+    // props.push_back("}");
+
+    web::json::value json;
+    web::json::value props;
+    props["label"] = web::json::value(v.label);
+    props["index"] = web::json::value(v.index);
+    json["props"] = props;
+
+
+    std::string command = createQuery("CREATE (n:Vertex $props)", json);
 
     std::cout << command  << std::endl;
 
@@ -121,17 +129,30 @@ void Neo4jGraph::addEdge(const EdgeObject& e)
 
     std::cout << constrainttypename << std::endl;
 
-    std::vector<std::string> props;
-    props.push_back("\"props\": {");
-    props.push_back("\"label\": \""+e.label+"\",");
-    props.push_back("\"sensor\": \""+ e.constraint->getSensorName() + "\",");
-    props.push_back("\"timestamp_tv_sec\": "+std::to_string(e.constraint->getTimestamp().tv_sec)+",");
-    props.push_back("\"timestamp_tv_usec\": "+std::to_string(e.constraint->getTimestamp().tv_usec));
-    props.push_back("}");
+    web::json::value json;
+    web::json::value props;
+    props["label"] = web::json::value(e.label);
+    props["sensor"] = web::json::value(e.constraint->getSensorName());
+    props["timestamp_tv_sec"] = web::json::value(e.constraint->getTimestamp().tv_sec);
+    props["timestamp_tv_usec"] = web::json::value(e.constraint->getTimestamp().tv_usec);
+    constraintToJSON(e.constraint, &props);
+    json["props"] = props;
+
+    // std::vector<std::string> props;
+    // props.push_back("\"props\": {");
+    // props.push_back("\"label\": \""+e.label+"\",");
+    // props.push_back("\"sensor\": \""+ e.constraint->getSensorName() + "\",");
+    // props.push_back("\"timestamp_tv_sec\": "+std::to_string(e.constraint->getTimestamp().tv_sec)+",");
+    // props.push_back("\"timestamp_tv_usec\": "+std::to_string(e.constraint->getTimestamp().tv_usec));
+    // props.push_back("}");
+
+    
+
+    // constraintToProps(e.constraint, &props);
 
     std::string command = createQuery( \
         "MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.source)+" AND b.index="+std::to_string(e.target) \
-        + " CREATE (a)-[r:" +constrainttypename + " $props]->(b) RETURN type(r)", props);
+        + " CREATE (a)-[r:" +constrainttypename + " $props]->(b) RETURN type(r)", json);
         // + " {" \
         // + " label: \""+ e.label + "\"," \
         // + " timestamp_tv_sec: "+std::to_string(e.constraint->getTimestamp().tv_sec)+"," \
@@ -273,10 +294,11 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
     //TODO: Serialize/recreate all contstraints with content
     slam3d::Transform t;
     slam3d::Covariance<6> i;
-    returnval.constraint = slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensor,t,i));
 
-    
-    
+    t = slam3dTransformFromString(reply["results"][0]["data"][0]["row"][0]["mRelativePose"].as_string());
+
+    returnval.constraint = slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensor, t, i));
+
 
     exit(0);
 
@@ -453,19 +475,36 @@ float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 }
 
 
-std::string Neo4jGraph::createQuery(const std::string& query, const std::vector<std::string>& params) {
+std::string Neo4jGraph::createQuery(const std::string& query, const web::json::value& params) {
     std::string json = "{ \"statements\": [{\"statement\": \""+query+"\"";
 
-    json += ", \"parameters\": {";
-    if (params.size()) {
-        
-        for (const auto &param : params) {
-        json += param;
-        }
-    }
-    json += "}";
+    json += ", \"parameters\": ";
+    // if (!params.is_null()) {
+        json += params.serialize();
+    // }
+    // json += "}";
 
     json += "}]}";
     return json;
 
+}
+
+
+void Neo4jGraph::constraintToJSON(slam3d::Constraint::Ptr constraint, web::json::value* json) {
+    web::json::value& data = *json;
+    switch (constraint->getType()) {
+        case slam3d::TENTATIVE : break;
+        case slam3d::SE3 : {
+            slam3d::SE3Constraint* se3 = dynamic_cast<slam3d::SE3Constraint*>(constraint.get());
+            // web::json::value val = 
+            // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+            // std::cout << val  << std::endl;
+            data["mRelativePose"] = web::json::value(eigenMatrixToString(se3->getRelativePose().matrix()));
+            data["mInformation"] = web::json::value(eigenMatrixToString(se3->getInformation().matrix()));
+            break;
+        }
+        case slam3d::GRAVITY : break;
+        case slam3d::POSITION : break;
+        case slam3d::ORIENTATION : break;
+    }
 }
