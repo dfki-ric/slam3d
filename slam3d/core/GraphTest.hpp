@@ -1,7 +1,7 @@
 #include <slam3d/core/Graph.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include <boost/test/unit_test.hpp>
+
 
 void addVertexToGraph(slam3d::Graph* g, slam3d::IdType exp_id, const std::string& robot, const std::string& sensor)
 {

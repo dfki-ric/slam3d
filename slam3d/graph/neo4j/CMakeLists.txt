@@ -17,6 +17,7 @@
 			# Boost::graph
 			# Boost::thread
 			cpprest
+			crypto
 			core
 	)
 

@@ -13,11 +13,12 @@
 // dont defiene the U macro in the http client, it conflicts with the eigen U macro use _XPLATSTR() instead
 #define _TURN_OFF_PLATFORM_STRING
 #include <cpprest/json.h>
+#include <cpprest/http_client.h>
 
-namespace web{ 
-    namespace http{ namespace client{ class http_client;}}
-    namespace json{ class value;}
-}
+// namespace web{ 
+//     namespace http{ namespace client{ class http_client;}}
+//     namespace json{ class value;}
+// }
 
 namespace slam3d {
     /**
@@ -27,27 +28,56 @@ namespace slam3d {
 class Neo4jGraph : public Graph {
     public:
 
-        // class Query : public web::json::value {
-        //     Query() {
-        //         (*this)["statements"] = web::json::array();
+        class Query {
+         public:
+            Query(std::shared_ptr<web::http::client::http_client> client):client(client) {
+                // query = web::json::value::object(true); sorted
+                query["statements"] = web::json::value::array(1);
+                query["statements"][0]["parameters"] = web::json::value();
+                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
+            }
 
-        //     };
+            void setStatement(const std::string& statement) {
+                query["statements"][0]["statement"] = web::json::value(statement);
+                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
+            }
 
-        // void add:
+            void addParameterSet(const std::string& setname) {
+                query["statements"][0]["parameters"][setname] = web::json::value();
+                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
+            }
 
-    // std::string json = "{ \"statements\": [{\"statement\": \""+query+"\"";
+            template <class VALUE> void addParameterToSet(const std::string& setname, const std::string& paramname, const VALUE& value) {
+                query["statements"][0]["parameters"][setname][paramname] = web::json::value(value);
+            }
 
-    // json += ", \"parameters\": ";
-    // // if (!params.is_null()) {
-    //     json += params.serialize();
-    // // }
-    // // json += "}";
+            web::json::value* getParameterSet(const std::string& setname) {
+                if (query["statements"][0]["parameters"][setname].is_null()) {
+                    addParameterSet(setname);
+                }
+                return &(query["statements"][0]["parameters"][setname]);
+            }
 
-    // json += "}]}";
-    // return json;
+            bool sendQuery() {
+                response = web::http::http_response();
+                printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
+                response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", query.serialize(), "application/json;charset=utf-8").get();
+                if (response.status_code() != 200) {
+                    std::cout << "ERROR " << response.to_string() << std::endl;
+                    return false;
+                }
+                return true;
+            }
 
+            web::http::http_response& getResponse() {
+                return response;
+            }
 
-        // };
+         private:
+            std::shared_ptr<web::http::client::http_client> client;
+            web::json::value query;
+            web::http::http_response response;
+        };
 
         explicit Neo4jGraph(Logger* log);
         ~Neo4jGraph();
@@ -105,7 +135,7 @@ class Neo4jGraph : public Graph {
          * @brief Gets a list of all edges from given sensor.
          * @param sensor
          */
-        EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
+        EdgeObjectList getEdgesFromSensor(const std::string& sensor);
 
         /**
          * @brief Get all connecting edges between given vertices.
@@ -174,10 +204,13 @@ class Neo4jGraph : public Graph {
         std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
 
 
-        void constraintToJSON(slam3d::Constraint::Ptr constraint, web::json::value* json);
+        void constraintToJson(slam3d::Constraint::Ptr constraint, web::json::value* json);
+        slam3d::Constraint::Ptr jsonToConstraint(web::json::value& json);
 
         std::string eigenMatrixToString(const Eigen::MatrixXd& mat);
         Eigen::MatrixXd eigenMatrixFromString(const std::string & string);
+
+        slam3d::EdgeObject edgeObjectFromJson(web::json::value& json);
 
         // neo4j_connection_t *connection;
         // The boost graph object

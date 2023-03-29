@@ -27,7 +27,7 @@ BoostGraph::~BoostGraph()
 {
 }
 
-EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
+EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor)
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);

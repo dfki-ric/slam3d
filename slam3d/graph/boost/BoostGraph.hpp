@@ -91,7 +91,7 @@ namespace slam3d
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
+		EdgeObjectList getEdgesFromSensor(const std::string& sensor);
 		
 		/**
 		 * @brief Get all connecting edges between given vertices.
