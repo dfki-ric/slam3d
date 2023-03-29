@@ -295,7 +295,15 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
     slam3d::Transform t;
     slam3d::Covariance<6> i;
 
-    t = slam3dTransformFromString(reply["results"][0]["data"][0]["row"][0]["mRelativePose"].as_string());
+    std::string transformString = reply["results"][0]["data"][0]["row"][0]["mRelativePose"].as_string();
+    t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(transformString)));
+    std::cout << t.matrix() << std::endl;
+
+    std::string covString = reply["results"][0]["data"][0]["row"][0]["mInformation"].as_string();
+    i = slam3d::Covariance<6>(eigenMatrixFromString(covString));
+
+    std::cout << i.matrix() << std::endl;
+    
 
     returnval.constraint = slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensor, t, i));
 
@@ -507,4 +515,22 @@ void Neo4jGraph::constraintToJSON(slam3d::Constraint::Ptr constraint, web::json:
         case slam3d::POSITION : break;
         case slam3d::ORIENTATION : break;
     }
+}
+
+std::string Neo4jGraph::eigenMatrixToString(const Eigen::MatrixXd& mat) {
+    std::stringstream ss;
+    Eigen::IOFormat jsonfmt(Eigen::FullPrecision, 0, ", ", ", ", "[", "]", "[", "]");
+    ss << mat.format(jsonfmt);
+    return ss.str();
+}
+
+Eigen::MatrixXd Neo4jGraph::eigenMatrixFromString(const std::string & string) {
+    web::json::value val = web::json::value::parse(string);
+    Eigen::MatrixXd mat(val.size(), val[0].size());
+    for (size_t y = 0; y < val.size(); ++y) {
+        for (size_t x = 0; x < val.size(); ++x) {
+            mat(x, y) = val[x][y].as_double();
+        }
+    }
+    return mat;
 }

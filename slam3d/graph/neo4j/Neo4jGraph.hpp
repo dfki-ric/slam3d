@@ -176,30 +176,8 @@ class Neo4jGraph : public Graph {
 
         void constraintToJSON(slam3d::Constraint::Ptr constraint, web::json::value* json);
 
-        static std::string eigenMatrixToString(const Eigen::MatrixXd& mat) {
-            std::stringstream ss;
-            Eigen::IOFormat jsonfmt(Eigen::FullPrecision, 0, ", ", ", ", "[", "]", "[", "]");
-            ss << mat.format(jsonfmt);
-            return ss.str();
-        }
-
-        static slam3d::Transform slam3dTransformFromString(const std::string & string) {
-            
-            printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-            std::cout << string << std::endl;
-            web::json::value val = web::json::value::parse(string);
-            printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-            std::cout << val << std::endl;
-
-            Eigen::Matrix4d mat;
-
-            mat << val[0][0].as_double(), val[0][1].as_double(), val[0][2].as_double(), val[0][3].as_double(), \
-                   val[1][0].as_double(), val[1][1].as_double(), val[1][2].as_double(), val[1][3].as_double(), \
-                   val[2][0].as_double(), val[2][1].as_double(), val[2][2].as_double(), val[2][3].as_double(), \
-                   val[3][0].as_double(), val[3][1].as_double(), val[3][2].as_double(), val[3][3].as_double();
-            std::cout << mat << std::endl;
-            return slam3d::Transform(mat);
-        }
+        std::string eigenMatrixToString(const Eigen::MatrixXd& mat);
+        Eigen::MatrixXd eigenMatrixFromString(const std::string & string);
 
         // neo4j_connection_t *connection;
         // The boost graph object
