@@ -49,7 +49,6 @@ bool Neo4jGraph::deleteDatabase() {
 
 EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
 {
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     EdgeObjectList objectList;
 
     Query query(client);
@@ -131,36 +130,19 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) co
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     VertexObjectList objectList;
-    // VertexRange vertices = boost::vertices(mPoseGraph);
-    // for(VertexIterator it = vertices.first; it != vertices.second; ++it)
-    // {
-    // 	if(mPoseGraph[*it].measurement->getSensorName() == sensor)
-    // 	{
-    // 		objectList.push_back(mPoseGraph[*it]);
-    // 	}
-    // }
+    
+    // TODO:
+
     return objectList;
 }
 
 const VertexObject& Neo4jGraph::getVertex(IdType id)
 {
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     return getVertexInternal(id);
-    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // vertexObjects.resize(id+1);
-    // VertexObject& vertexobj = vertexObjects[id];
-
-    //query and fill
-
-    // std::string command = "CREATE ("+std::to_string(e.source)+")-["+e.label+"]->("+std::to_string(e.target)+")";
-
-    // web::http::http_response response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", command, "application/json;charset=utf-8").get();
-
 }
 
 VertexObject& Neo4jGraph::getVertexInternal(IdType id)
 {
-    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     vertexObjects.resize(id+1);
     VertexObject& vertexobj = vertexObjects[id];
 
@@ -213,7 +195,6 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
     }
 
     web::json::value reply = query.getResponse().extract_json().get();
-    std::cout << "reply: " << reply.serialize() << std::endl << std::endl;
     
     if (reply["results"][0]["data"].size() == 0) {
         throw InvalidEdge(source, target);
@@ -265,6 +246,9 @@ EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
 EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+
+    // TODO:
+
     // std::set<int> v_ids;
     // for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
     // {
@@ -343,6 +327,9 @@ void Neo4jGraph::writeGraphToFile(const std::string& name)
 VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+
+    // TODO:
+
     // Create required data structures
     // Vertex source = mIndexMap.at(source_id);
     // DepthMap depth_map;
@@ -434,16 +421,18 @@ void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json:
 
 slam3d::Constraint::Ptr Neo4jGraph::jsonToConstraint(web::json::value& json) {
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    std::cout << json.serialize() << std::endl;
+    // std::cout << json.serialize() << std::endl;
 
     std::string sensorname = json["sensor"].as_string();
+
+
     // TODO: Serialize/recreate all contstraints with content
+
     slam3d::Transform t;
     slam3d::Covariance<6> i;
 
     std::string transformString = json["mRelativePose"].as_string();
     t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(transformString)));
-    std::cout << t.matrix() << std::endl;
 
     std::string covString = json["mInformation"].as_string();
     i = slam3d::Covariance<6>(eigenMatrixFromString(covString));

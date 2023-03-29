@@ -60,7 +60,7 @@ class Neo4jGraph : public Graph {
 
             bool sendQuery() {
                 response = web::http::http_response();
-                printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
+                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
                 response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", query.serialize(), "application/json;charset=utf-8").get();
                 if (response.status_code() != 200) {
                     std::cout << "ERROR " << response.to_string() << std::endl;
