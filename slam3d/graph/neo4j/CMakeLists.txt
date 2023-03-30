@@ -1,7 +1,5 @@
 # Define graph-neo4j library
 
-set(CMAKE_BUILD_TYPE Debug)
-
 	add_library(graph-neo4j SHARED
 		Neo4jGraph.cpp
 	)

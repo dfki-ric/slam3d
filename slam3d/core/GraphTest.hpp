@@ -52,6 +52,7 @@ void test_graph_construction(slam3d::Graph* graph)
 
 
 	slam3d::VertexObjectList list = graph->getVerticesFromSensor("S1");
+	BOOST_CHECK_EQUAL(list.size(), 2);
 
 
 	slam3d::GravityConstraint::Ptr c3(new slam3d::GravityConstraint("S3", slam3d::Direction::Identity(), slam3d::Direction::Identity(), slam3d::Covariance<2>::Identity()));

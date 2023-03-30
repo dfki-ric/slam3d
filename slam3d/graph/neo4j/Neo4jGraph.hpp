@@ -168,7 +168,10 @@ class Neo4jGraph : public Graph {
          * @brief Add the given EdgeObject to the internal graph.
          * @param e
          */
+        // version to overload graph interface
         virtual void addEdge(const EdgeObject& e);
+        //internal version
+        virtual void addEdge(const EdgeObject& e, bool addInverse);
 
         /**
          * @brief 

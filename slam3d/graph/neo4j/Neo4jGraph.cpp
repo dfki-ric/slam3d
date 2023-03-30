@@ -61,7 +61,7 @@ EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
     web::json::value result = query.getResponse().extract_json().get();
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
         objectList.push_back(edgeObjectFromJson(jsonEdge["row"][0]));
-    }
+    }   
 
     return objectList;
 }
@@ -85,9 +85,20 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     if (!vertexQuery.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
     }
+
+    EdgeObject e;
+    e.constraint = slam3d::Constraint::Ptr(new TentativeConstraint(v.measurement->getSensorName()));
+    e.label = "Sensor";
+    e.source = v.index;
+    e.target = v.index;
+    addEdge(e, false);
 }
 
 void Neo4jGraph::addEdge(const EdgeObject& e) {
+    addEdge(e, true);
+}
+
+void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
     std::string constrainttypename = e.constraint->getTypeName();
     std::replace(constrainttypename.begin(), constrainttypename.end(), '(', '_');
     std::replace(constrainttypename.begin(), constrainttypename.end(), ')', '_');
@@ -110,15 +121,17 @@ void Neo4jGraph::addEdge(const EdgeObject& e) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
-    // reverse edge TODO: need inverse transform/identification?
-    query.setStatement("MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.target)+" AND b.index="+std::to_string(e.source) \
-        + " CREATE (a)-[r:" + constrainttypename + " $props]->(b) RETURN type(r)");
-    query.addParameterToSet("props", "inverted", true);
-    query.addParameterToSet("props", "source", e.target);
-    query.addParameterToSet("props", "target", e.source);
+    if (addInverse) {
+        // reverse edge TODO: need inverse transform/identification?
+        query.setStatement("MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.target)+" AND b.index="+std::to_string(e.source) \
+            + " CREATE (a)-[r:" + constrainttypename + " $props]->(b) RETURN type(r)");
+        query.addParameterToSet("props", "inverted", true);
+        query.addParameterToSet("props", "source", e.target);
+        query.addParameterToSet("props", "target", e.source);
 
-    if (!query.sendQuery()) {
-        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+        if (!query.sendQuery()) {
+            throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+        }
     }
 }
 
@@ -145,9 +158,10 @@ slam3d::VertexObject Neo4jGraph::vertexObjectFromJson(web::json::value& json) {
 VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     VertexObjectList objectList;
 
+    printf("%s:%i: %s\n", __PRETTY_FUNCTION__, __LINE__, sensor.c_str());
 
     Query query(client);
-    query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false RETURN a AS source, b AS target");
+    query.setStatement("MATCH (a:Vertex)-[r:Tentative]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false RETURN a AS source, b AS target");
 
     if (!query.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
