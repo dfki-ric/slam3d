@@ -2,6 +2,13 @@
 #include <boost/test/unit_test.hpp>
 
 
+template <class CONSTRAINT> boost::shared_ptr<CONSTRAINT> addAndGetConstraint(slam3d::Graph* graph, boost::shared_ptr<CONSTRAINT> constraint, slam3d::IdType from, slam3d::IdType to, const std::string& sensor){
+	BOOST_CHECK_NO_THROW(graph->addConstraint(from, to, constraint));
+	slam3d::EdgeObject query_res;
+	BOOST_CHECK_NO_THROW(query_res = graph->getEdge(from, to, sensor));
+	return boost::dynamic_pointer_cast<CONSTRAINT>(query_res.constraint);
+}
+
 
 void addVertexToGraph(slam3d::Graph* g, slam3d::IdType exp_id, const std::string& robot, const std::string& sensor)
 {
@@ -41,4 +48,24 @@ void test_graph_construction(slam3d::Graph* graph)
 	BOOST_CHECK_EQUAL(s1_edges.size(), 1);
 	BOOST_CHECK_EQUAL(s1_edges.at(0).source, 1);
 	BOOST_CHECK_EQUAL(s1_edges.at(0).target, 2);
+
+
+	slam3d::GravityConstraint::Ptr c3(new slam3d::GravityConstraint("S3", slam3d::Direction::Identity(), slam3d::Direction::Identity(), slam3d::Covariance<2>::Identity()));
+	slam3d::GravityConstraint::Ptr c3_res = addAndGetConstraint(graph, c3, 1, 2, "S3");
+	BOOST_CHECK_EQUAL(c3->getCovariance().matrix(), c3_res->getCovariance().matrix());
+	BOOST_CHECK_EQUAL(c3->getDirection().matrix(), c3_res->getDirection().matrix());
+	BOOST_CHECK_EQUAL(c3->getReference().matrix(), c3_res->getReference().matrix());
+
+	slam3d::PositionConstraint::Ptr c4(new slam3d::PositionConstraint("S4", slam3d::Position::Identity(), slam3d::Covariance<3>::Identity(), slam3d::Transform::Identity()));
+	slam3d::PositionConstraint::Ptr c4_res = addAndGetConstraint(graph, c4, 1, 2, "S4");
+	BOOST_CHECK_EQUAL(c4->getCovariance().matrix(), c4_res->getCovariance().matrix());
+	BOOST_CHECK_EQUAL(c4->getPosition().matrix(), c4_res->getPosition().matrix());
+	BOOST_CHECK_EQUAL(c4->getSensorPose().matrix(), c4_res->getSensorPose().matrix());
+
+	slam3d::OrientationConstraint::Ptr c5(new slam3d::OrientationConstraint("S5", slam3d::Quaternion::Identity(), slam3d::Covariance<3>::Identity(), slam3d::Transform::Identity()));
+	slam3d::OrientationConstraint::Ptr c5_res = addAndGetConstraint(graph, c5, 1, 2, "S5");
+	BOOST_CHECK_EQUAL(c5->getCovariance().matrix(), c5_res->getCovariance().matrix());
+	BOOST_CHECK_EQUAL(c5->getOrientation().matrix(), c5_res->getOrientation().matrix());
+	BOOST_CHECK_EQUAL(c5->getSensorPose().matrix(), c5_res->getSensorPose().matrix());
+
 }

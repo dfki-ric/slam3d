@@ -101,6 +101,7 @@ void Neo4jGraph::addEdge(const EdgeObject& e) {
     query.addParameterToSet("props", "timestamp_tv_sec", e.constraint->getTimestamp().tv_sec);
     query.addParameterToSet("props", "timestamp_tv_usec", e.constraint->getTimestamp().tv_usec);
     query.addParameterToSet("props", "inverted", false);
+    query.addParameterToSet("props", "constraint_type", e.constraint->getType());
     constraintToJson(e.constraint, query.getParameterSet("props"));
 
     if (!query.sendQuery()) {
@@ -406,38 +407,65 @@ void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json:
         case slam3d::TENTATIVE : break;
         case slam3d::SE3 : {
             slam3d::SE3Constraint* se3 = dynamic_cast<slam3d::SE3Constraint*>(constraint.get());
-            // web::json::value val = 
-            // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-            // std::cout << val  << std::endl;
             data["mRelativePose"] = web::json::value(eigenMatrixToString(se3->getRelativePose().matrix()));
             data["mInformation"] = web::json::value(eigenMatrixToString(se3->getInformation().matrix()));
             break;
         }
-        case slam3d::GRAVITY : break;
-        case slam3d::POSITION : break;
-        case slam3d::ORIENTATION : break;
+        case slam3d::GRAVITY : {
+            slam3d::GravityConstraint* grav = dynamic_cast<slam3d::GravityConstraint*>(constraint.get());
+            data["mDirection"] = web::json::value(eigenMatrixToString(grav->getDirection().matrix()));
+            data["mReference"] = web::json::value(eigenMatrixToString(grav->getReference().matrix()));
+            data["mCovariance"] = web::json::value(eigenMatrixToString(grav->getCovariance().matrix()));
+            break;
+        }
+        case slam3d::POSITION : {
+            slam3d::PositionConstraint* grav = dynamic_cast<slam3d::PositionConstraint*>(constraint.get());
+            data["mPosition"] = web::json::value(eigenMatrixToString(grav->getPosition().matrix()));
+            data["mSensorPose"] = web::json::value(eigenMatrixToString(grav->getSensorPose().matrix()));
+            data["mCovariance"] = web::json::value(eigenMatrixToString(grav->getCovariance().matrix()));
+            break;
+        }
+        case slam3d::ORIENTATION : {
+            slam3d::OrientationConstraint* grav = dynamic_cast<slam3d::OrientationConstraint*>(constraint.get());
+            data["mOrientation"] = web::json::value(eigenMatrixToString(grav->getOrientation().matrix()));
+            data["mSensorPose"] = web::json::value(eigenMatrixToString(grav->getSensorPose().matrix()));
+            data["mCovariance"] = web::json::value(eigenMatrixToString(grav->getCovariance().matrix()));
+            break;
+        }
     }
 }
 
 slam3d::Constraint::Ptr Neo4jGraph::jsonToConstraint(web::json::value& json) {
-    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // std::cout << json.serialize() << std::endl;
-
     std::string sensorname = json["sensor"].as_string();
 
-
-    // TODO: Serialize/recreate all contstraints with content
-
-    slam3d::Transform t;
-    slam3d::Covariance<6> i;
-
-    std::string transformString = json["mRelativePose"].as_string();
-    t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(transformString)));
-
-    std::string covString = json["mInformation"].as_string();
-    i = slam3d::Covariance<6>(eigenMatrixFromString(covString));
-
-    return slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensorname, t, i));
+    switch (json["constraint_type"].as_integer()) {
+        case slam3d::TENTATIVE : return slam3d::Constraint::Ptr(new slam3d::TentativeConstraint(sensorname));
+        case slam3d::SE3 : {
+            slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(json["mRelativePose"].as_string())));
+            slam3d::Covariance<6> i = slam3d::Covariance<6>(eigenMatrixFromString(json["mInformation"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensorname, t, i));
+        }
+        case slam3d::GRAVITY : {
+            slam3d::Direction d = slam3d::Direction(eigenMatrixFromString(json["mDirection"].as_string()));
+            slam3d::Direction r = slam3d::Direction(eigenMatrixFromString(json["mReference"].as_string()));
+            slam3d::Covariance<2> c = slam3d::Covariance<2>(eigenMatrixFromString(json["mCovariance"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::GravityConstraint(sensorname, d, r, c));
+        }
+        case slam3d::POSITION : {
+            slam3d::Position p = slam3d::Position(eigenMatrixFromString(json["mPosition"].as_string()));
+            slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(json["mSensorPose"].as_string())));
+            slam3d::Covariance<3> c = slam3d::Covariance<3>(eigenMatrixFromString(json["mCovariance"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::PositionConstraint(sensorname, p, c, t));
+        }
+        case slam3d::ORIENTATION : {
+            slam3d::Quaternion q = slam3d::Quaternion(Eigen::Matrix3d(eigenMatrixFromString(json["mOrientation"].as_string())));
+            slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(json["mSensorPose"].as_string())));
+            slam3d::Covariance<3> c = slam3d::Covariance<3>(eigenMatrixFromString(json["mCovariance"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::OrientationConstraint(sensorname, q, c, t));
+        }
+    }
+    // should never be here
+    return slam3d::Constraint::Ptr();
 }
 
 
