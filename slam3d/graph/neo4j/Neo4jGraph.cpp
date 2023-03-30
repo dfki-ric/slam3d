@@ -7,6 +7,7 @@
 
 // #include <boost/format.hpp>
 #include <slam3d/core/Solver.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <fstream>
 
@@ -80,7 +81,9 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
     vertexQuery.addParameterToSet("props", "mRelativePose", eigenMatrixToString(Transform::Identity().matrix()));
-    vertexQuery.addParameterToSet("props", "measurement", "uuid?");
+    std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
+    vertexQuery.addParameterToSet("props", "measurement", uuid);
+    measurements[uuid] = v.measurement;
 
     if (!vertexQuery.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
@@ -149,8 +152,7 @@ slam3d::VertexObject Neo4jGraph::vertexObjectFromJson(web::json::value& json) {
     returnval.index = json["index"].as_integer();
     returnval.label = json["label"].as_string();
     returnval.corrected_pose = Eigen::Matrix4d(eigenMatrixFromString(json["mRelativePose"].as_string()));
-    //TODO: fill with data
-    returnval.measurement = slam3d::Measurement::Ptr();
+    returnval.measurement = measurements[json["measurement"].as_string()];
 
     return returnval;
 }
@@ -199,6 +201,7 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
     web::json::value reply = query.getResponse().extract_json().get();
 
     vertexobj = vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
+
     return vertexobj;
 }
 

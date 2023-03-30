@@ -230,6 +230,10 @@ class Neo4jGraph : public Graph {
         std::vector<VertexObject> vertexObjects;
 
         std::shared_ptr<web::http::client::http_client> client;
+
+
+        // todo replace with databae (value store)
+        std::map<std::string, Measurement::Ptr> measurements;
 };
 }
 
