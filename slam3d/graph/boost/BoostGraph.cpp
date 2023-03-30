@@ -89,7 +89,7 @@ void BoostGraph::removeEdge(IdType source, IdType target, const std::string& sen
 	boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
 }
 
-VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
+VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor)
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);

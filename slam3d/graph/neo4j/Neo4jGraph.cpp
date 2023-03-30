@@ -79,6 +79,8 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterSet("props");
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
+    vertexQuery.addParameterToSet("props", "mRelativePose", eigenMatrixToString(Transform::Identity().matrix()));
+    vertexQuery.addParameterToSet("props", "measurement", "uuid?");
 
     if (!vertexQuery.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
@@ -112,6 +114,8 @@ void Neo4jGraph::addEdge(const EdgeObject& e) {
     query.setStatement("MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.target)+" AND b.index="+std::to_string(e.source) \
         + " CREATE (a)-[r:" + constrainttypename + " $props]->(b) RETURN type(r)");
     query.addParameterToSet("props", "inverted", true);
+    query.addParameterToSet("props", "source", e.target);
+    query.addParameterToSet("props", "target", e.source);
 
     if (!query.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
@@ -127,13 +131,36 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
     }
 }
 
-VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) const
-{
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    VertexObjectList objectList;
-    
-    // TODO:
+slam3d::VertexObject Neo4jGraph::vertexObjectFromJson(web::json::value& json) {
+    slam3d::VertexObject returnval;
+    returnval.index = json["index"].as_integer();
+    returnval.label = json["label"].as_string();
+    returnval.corrected_pose = Eigen::Matrix4d(eigenMatrixFromString(json["mRelativePose"].as_string()));
+    //TODO: fill with data
+    returnval.measurement = slam3d::Measurement::Ptr();
 
+    return returnval;
+}
+
+VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
+    VertexObjectList objectList;
+
+
+    Query query(client);
+    query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false RETURN a AS source, b AS target");
+
+    if (!query.sendQuery()) {
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
+    }
+    web::json::value result = query.getResponse().extract_json().get();
+
+    for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
+        if (objectList.empty()) {
+            // on the first result, also ass source, only target elsewise
+            objectList.push_back(vertexObjectFromJson(jsonEdge["row"][0]));
+        }
+        objectList.push_back(vertexObjectFromJson(jsonEdge["row"][1]));
+    }
     return objectList;
 }
 
@@ -151,19 +178,13 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
     //MATCH (n:Vertex) WHERE n.index = "2" RETURN n AS node
     Query query(client);
     // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
-    query.setStatement("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n.label AS label");
+    query.setStatement("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n AS node");
     if (!query.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
     web::json::value reply = query.getResponse().extract_json().get();
 
-
-    // todo check success // multiple replies
-    vertexobj.index = id;
-    vertexobj.label = reply["results"][0]["data"][0]["row"][0].as_string();
-
-    // std::cout << vertexobj.label << std::endl;
-    
+    vertexobj = vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
     return vertexobj;
 }
 
@@ -173,11 +194,14 @@ const EdgeObject& Neo4jGraph::getEdge(IdType source, IdType target, const std::s
 }
 
 slam3d::EdgeObject Neo4jGraph::edgeObjectFromJson(web::json::value& json) {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     slam3d::EdgeObject returnval;
     if (json["inverted"].as_bool()) {
+        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
         returnval.source = json["target"].as_integer();
         returnval.target = json["source"].as_integer();
     } else {
+        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
         returnval.source = json["source"].as_integer();
         returnval.target = json["target"].as_integer();
     }
@@ -186,8 +210,7 @@ slam3d::EdgeObject Neo4jGraph::edgeObjectFromJson(web::json::value& json) {
     return returnval;
 }
 
-EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor)
-{
+EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor) {
     Query query(client);
     // MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index=1 AND b.index=2 AND r.sensor="S1" RETURN r
     query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");
@@ -196,14 +219,14 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
     }
 
     web::json::value reply = query.getResponse().extract_json().get();
-    
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     if (reply["results"][0]["data"].size() == 0) {
         throw InvalidEdge(source, target);
     }
 
     // TODO: danger! returning reference to this, not threadsafe! NOT save for calling multiple times before receiving
-    static EdgeObject returnval = edgeObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
-
+    static EdgeObject returnval;
+    returnval = edgeObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
 
     return returnval;
 }
@@ -403,6 +426,7 @@ std::string Neo4jGraph::createQuery(const std::string& query, const web::json::v
 
 void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json::value* json) {
     web::json::value& data = *json;
+
     switch (constraint->getType()) {
         case slam3d::TENTATIVE : break;
         case slam3d::SE3 : {
@@ -412,6 +436,8 @@ void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json:
             break;
         }
         case slam3d::GRAVITY : {
+            printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+            std::cout << constraint->getType() << std::endl;
             slam3d::GravityConstraint* grav = dynamic_cast<slam3d::GravityConstraint*>(constraint.get());
             data["mDirection"] = web::json::value(eigenMatrixToString(grav->getDirection().matrix()));
             data["mReference"] = web::json::value(eigenMatrixToString(grav->getReference().matrix()));
@@ -436,32 +462,38 @@ void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json:
 }
 
 slam3d::Constraint::Ptr Neo4jGraph::jsonToConstraint(web::json::value& json) {
-    std::string sensorname = json["sensor"].as_string();
+    
+
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+    std::cout << json["constraint_type"].as_integer() << std::endl;
+    std::cout << json << std::endl;
 
     switch (json["constraint_type"].as_integer()) {
-        case slam3d::TENTATIVE : return slam3d::Constraint::Ptr(new slam3d::TentativeConstraint(sensorname));
+        case slam3d::TENTATIVE : return slam3d::Constraint::Ptr(new slam3d::TentativeConstraint(json["sensor"].as_string()));
         case slam3d::SE3 : {
             slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(json["mRelativePose"].as_string())));
             slam3d::Covariance<6> i = slam3d::Covariance<6>(eigenMatrixFromString(json["mInformation"].as_string()));
-            return slam3d::Constraint::Ptr(new slam3d::SE3Constraint(sensorname, t, i));
+            return slam3d::Constraint::Ptr(new slam3d::SE3Constraint(json["sensor"].as_string(), t, i));
         }
         case slam3d::GRAVITY : {
+            printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+            std::cout << json << std::endl;
             slam3d::Direction d = slam3d::Direction(eigenMatrixFromString(json["mDirection"].as_string()));
             slam3d::Direction r = slam3d::Direction(eigenMatrixFromString(json["mReference"].as_string()));
             slam3d::Covariance<2> c = slam3d::Covariance<2>(eigenMatrixFromString(json["mCovariance"].as_string()));
-            return slam3d::Constraint::Ptr(new slam3d::GravityConstraint(sensorname, d, r, c));
+            return slam3d::Constraint::Ptr(new slam3d::GravityConstraint(json["sensor"].as_string(), d, r, c));
         }
         case slam3d::POSITION : {
             slam3d::Position p = slam3d::Position(eigenMatrixFromString(json["mPosition"].as_string()));
             slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(json["mSensorPose"].as_string())));
             slam3d::Covariance<3> c = slam3d::Covariance<3>(eigenMatrixFromString(json["mCovariance"].as_string()));
-            return slam3d::Constraint::Ptr(new slam3d::PositionConstraint(sensorname, p, c, t));
+            return slam3d::Constraint::Ptr(new slam3d::PositionConstraint(json["sensor"].as_string(), p, c, t));
         }
         case slam3d::ORIENTATION : {
             slam3d::Quaternion q = slam3d::Quaternion(Eigen::Matrix3d(eigenMatrixFromString(json["mOrientation"].as_string())));
             slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(json["mSensorPose"].as_string())));
             slam3d::Covariance<3> c = slam3d::Covariance<3>(eigenMatrixFromString(json["mCovariance"].as_string()));
-            return slam3d::Constraint::Ptr(new slam3d::OrientationConstraint(sensorname, q, c, t));
+            return slam3d::Constraint::Ptr(new slam3d::OrientationConstraint(json["sensor"].as_string(), q, c, t));
         }
     }
     // should never be here
@@ -480,7 +512,7 @@ std::string Neo4jGraph::eigenMatrixToString(const Eigen::MatrixXd& mat) {
 Eigen::MatrixXd Neo4jGraph::eigenMatrixFromString(const std::string & string) {
     web::json::value val = web::json::value::parse(string);
     Eigen::MatrixXd mat(val.size(), val[0].size());
-    for (size_t y = 0; y < val.size(); ++y) {
+    for (size_t y = 0; y < val[0].size(); ++y) {
         for (size_t x = 0; x < val.size(); ++x) {
             mat(x, y) = val[x][y].as_double();
         }

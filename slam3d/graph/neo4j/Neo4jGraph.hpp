@@ -122,7 +122,7 @@ class Neo4jGraph : public Graph {
          * @brief Gets a list of all vertices from given sensor.
          * @param sensor
          */
-        VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+        VertexObjectList getVerticesFromSensor(const std::string& sensor);
 
         /**
          * @brief Serch for nodes by using breadth-first-search
@@ -211,6 +211,7 @@ class Neo4jGraph : public Graph {
         Eigen::MatrixXd eigenMatrixFromString(const std::string & string);
 
         slam3d::EdgeObject edgeObjectFromJson(web::json::value& json);
+        slam3d::VertexObject vertexObjectFromJson(web::json::value& json);
 
         // neo4j_connection_t *connection;
         // The boost graph object

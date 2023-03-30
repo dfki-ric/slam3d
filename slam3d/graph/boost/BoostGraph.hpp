@@ -78,7 +78,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+		VertexObjectList getVerticesFromSensor(const std::string& sensor);
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search

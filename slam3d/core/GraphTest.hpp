@@ -5,7 +5,11 @@
 template <class CONSTRAINT> boost::shared_ptr<CONSTRAINT> addAndGetConstraint(slam3d::Graph* graph, boost::shared_ptr<CONSTRAINT> constraint, slam3d::IdType from, slam3d::IdType to, const std::string& sensor){
 	BOOST_CHECK_NO_THROW(graph->addConstraint(from, to, constraint));
 	slam3d::EdgeObject query_res;
+	printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	BOOST_CHECK_NO_THROW(query_res = graph->getEdge(from, to, sensor));
+	printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+	BOOST_CHECK_EQUAL(constraint->getType(), query_res.constraint->getType());
+	printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	return boost::dynamic_pointer_cast<CONSTRAINT>(query_res.constraint);
 }
 
@@ -50,7 +54,11 @@ void test_graph_construction(slam3d::Graph* graph)
 	BOOST_CHECK_EQUAL(s1_edges.at(0).target, 2);
 
 
+	slam3d::VertexObjectList list = graph->getVerticesFromSensor("S1");
+
+
 	slam3d::GravityConstraint::Ptr c3(new slam3d::GravityConstraint("S3", slam3d::Direction::Identity(), slam3d::Direction::Identity(), slam3d::Covariance<2>::Identity()));
+	printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	slam3d::GravityConstraint::Ptr c3_res = addAndGetConstraint(graph, c3, 1, 2, "S3");
 	BOOST_CHECK_EQUAL(c3->getCovariance().matrix(), c3_res->getCovariance().matrix());
 	BOOST_CHECK_EQUAL(c3->getDirection().matrix(), c3_res->getDirection().matrix());
