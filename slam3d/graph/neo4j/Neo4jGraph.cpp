@@ -194,14 +194,11 @@ const EdgeObject& Neo4jGraph::getEdge(IdType source, IdType target, const std::s
 }
 
 slam3d::EdgeObject Neo4jGraph::edgeObjectFromJson(web::json::value& json) {
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     slam3d::EdgeObject returnval;
     if (json["inverted"].as_bool()) {
-        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
         returnval.source = json["target"].as_integer();
         returnval.target = json["source"].as_integer();
     } else {
-        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
         returnval.source = json["source"].as_integer();
         returnval.target = json["target"].as_integer();
     }
@@ -219,7 +216,6 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
     }
 
     web::json::value reply = query.getResponse().extract_json().get();
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     if (reply["results"][0]["data"].size() == 0) {
         throw InvalidEdge(source, target);
     }
@@ -436,8 +432,6 @@ void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json:
             break;
         }
         case slam3d::GRAVITY : {
-            printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-            std::cout << constraint->getType() << std::endl;
             slam3d::GravityConstraint* grav = dynamic_cast<slam3d::GravityConstraint*>(constraint.get());
             data["mDirection"] = web::json::value(eigenMatrixToString(grav->getDirection().matrix()));
             data["mReference"] = web::json::value(eigenMatrixToString(grav->getReference().matrix()));
@@ -462,12 +456,6 @@ void Neo4jGraph::constraintToJson(slam3d::Constraint::Ptr constraint, web::json:
 }
 
 slam3d::Constraint::Ptr Neo4jGraph::jsonToConstraint(web::json::value& json) {
-    
-
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    std::cout << json["constraint_type"].as_integer() << std::endl;
-    std::cout << json << std::endl;
-
     switch (json["constraint_type"].as_integer()) {
         case slam3d::TENTATIVE : return slam3d::Constraint::Ptr(new slam3d::TentativeConstraint(json["sensor"].as_string()));
         case slam3d::SE3 : {
@@ -476,8 +464,6 @@ slam3d::Constraint::Ptr Neo4jGraph::jsonToConstraint(web::json::value& json) {
             return slam3d::Constraint::Ptr(new slam3d::SE3Constraint(json["sensor"].as_string(), t, i));
         }
         case slam3d::GRAVITY : {
-            printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-            std::cout << json << std::endl;
             slam3d::Direction d = slam3d::Direction(eigenMatrixFromString(json["mDirection"].as_string()));
             slam3d::Direction r = slam3d::Direction(eigenMatrixFromString(json["mReference"].as_string()));
             slam3d::Covariance<2> c = slam3d::Covariance<2>(eigenMatrixFromString(json["mCovariance"].as_string()));
