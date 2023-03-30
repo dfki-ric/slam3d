@@ -13,7 +13,8 @@ https://neo4j.com/docs/cypher-manual/current/clauses/create/
 
 http://localhost:7474/browser/
 
-display: match (n) return n as node
-delete all: match (n) detach delete n
+display: `match (n) return n as node`
+delete all: `match (n) detach delete n`
+select all nodes from a single sensor: `match (n:Vertex)-[r:Tentative]->(m:Vertex) where r.sensor="c1.coyote3_cam_right_TOF"  return n AS node`
 
-    
+
