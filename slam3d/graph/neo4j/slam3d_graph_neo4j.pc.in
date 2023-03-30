@@ -3,9 +3,9 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: slam3d_graph_boost
-Description: Graph representation using the Boost-Graph-Library (BGL).
+Name: slam3d_graph_neo4j
+Description: Graph representation using the neo4j graph database.
 Version: @SLAM3D_VERSION@
 Requires: slam3d_core
-Libs: -L${libdir} -lslam3d_graph_boost
+Libs: -L${libdir} -lslam3d_graph_neo4j
 Cflags: -I${includedir}
