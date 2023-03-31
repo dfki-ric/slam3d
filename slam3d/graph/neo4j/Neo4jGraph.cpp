@@ -53,7 +53,7 @@ EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
     EdgeObjectList objectList;
 
     Query query(client);
-    query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false RETURN r");
+    query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false AND r.source <> r.target RETURN r");
     // query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' RETURN r");
 
     if (!query.sendQuery()) {
@@ -62,7 +62,7 @@ EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
     web::json::value result = query.getResponse().extract_json().get();
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
         objectList.push_back(edgeObjectFromJson(jsonEdge["row"][0]));
-    }   
+    }
 
     return objectList;
 }
@@ -80,7 +80,8 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterSet("props");
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
-    vertexQuery.addParameterToSet("props", "mRelativePose", eigenMatrixToString(Transform::Identity().matrix()));
+    vertexQuery.addParameterToSet("props", "corrected_pose", eigenMatrixToString(v.corrected_pose.matrix()));
+    vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
     std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
     vertexQuery.addParameterToSet("props", "measurement", uuid);
     measurements[uuid] = v.measurement;
@@ -88,13 +89,6 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     if (!vertexQuery.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
     }
-
-    EdgeObject e;
-    e.constraint = slam3d::Constraint::Ptr(new TentativeConstraint(v.measurement->getSensorName()));
-    e.label = "Sensor";
-    e.source = v.index;
-    e.target = v.index;
-    addEdge(e, false);
 }
 
 void Neo4jGraph::addEdge(const EdgeObject& e) {
@@ -149,9 +143,10 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
 
 slam3d::VertexObject Neo4jGraph::vertexObjectFromJson(web::json::value& json) {
     slam3d::VertexObject returnval;
+
     returnval.index = json["index"].as_integer();
     returnval.label = json["label"].as_string();
-    returnval.corrected_pose = Eigen::Matrix4d(eigenMatrixFromString(json["mRelativePose"].as_string()));
+    returnval.corrected_pose = Eigen::Matrix4d(eigenMatrixFromString(json["corrected_pose"].as_string()));
     returnval.measurement = measurements[json["measurement"].as_string()];
 
     return returnval;
@@ -160,10 +155,8 @@ slam3d::VertexObject Neo4jGraph::vertexObjectFromJson(web::json::value& json) {
 VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     VertexObjectList objectList;
 
-    printf("%s:%i: %s\n", __PRETTY_FUNCTION__, __LINE__, sensor.c_str());
-
     Query query(client);
-    query.setStatement("MATCH (a:Vertex)-[r:Tentative]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false RETURN a AS source, b AS target");
+    query.setStatement("MATCH (a:Vertex) WHERE a.sensor='"+sensor+"' RETURN a");
 
     if (!query.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
@@ -171,11 +164,7 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     web::json::value result = query.getResponse().extract_json().get();
 
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
-        if (objectList.empty()) {
-            // on the first result, also ass source, only target elsewise
-            objectList.push_back(vertexObjectFromJson(jsonEdge["row"][0]));
-        }
-        objectList.push_back(vertexObjectFromJson(jsonEdge["row"][1]));
+        objectList.push_back(vertexObjectFromJson(jsonEdge["row"][0]));
     }
     return objectList;
 }
@@ -212,6 +201,7 @@ const EdgeObject& Neo4jGraph::getEdge(IdType source, IdType target, const std::s
 
 slam3d::EdgeObject Neo4jGraph::edgeObjectFromJson(web::json::value& json) {
     slam3d::EdgeObject returnval;
+
     if (json["inverted"].as_bool()) {
         returnval.source = json["target"].as_integer();
         returnval.target = json["source"].as_integer();
@@ -219,7 +209,6 @@ slam3d::EdgeObject Neo4jGraph::edgeObjectFromJson(web::json::value& json) {
         returnval.source = json["source"].as_integer();
         returnval.target = json["target"].as_integer();
     }
-    //TODO: Serialize/recreate all contstraints with content
     returnval.constraint = jsonToConstraint(json);
     return returnval;
 }
@@ -243,28 +232,6 @@ EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std:
 
     return returnval;
 }
-
-// OutEdgeIterator Neo4jGraph::getEdgeIterator(IdType source, IdType target, const std::string& sensor) const
-// {
-// 	// OutEdgeIterator it, it_end;
-// 	// try
-// 	// {
-// 	// 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
-// 	// }catch(std::out_of_range &e)
-// 	// {
-// 	// 	throw InvalidVertex(source);
-// 	// }
-// 	// while(it != it_end)
-// 	// {
-// 	// 	const VertexObject& tObject = mPoseGraph[boost::target(*it, mPoseGraph)];
-// 	// 	if(tObject.index == target && mPoseGraph[*it].constraint->getSensorName() == sensor)
-// 	// 	{
-// 	// 		return it;
-// 	// 	}
-// 	// 	++it;
-// 	// }
-// 	// throw InvalidEdge(source, target);
-// }
 
 EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
 {
@@ -304,6 +271,7 @@ EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
 
 void Neo4jGraph::writeGraphToFile(const std::string& name)
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
     // std::string file = name + ".dot";
     // mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
@@ -392,31 +360,19 @@ VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range
     return vertices;
 }
 
-float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id)
-{
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
-    // int num = boost::num_vertices(mPoseGraph);
-    // std::vector<Vertex> parent(num);
-    // std::vector<float> distance(num);
-    // std::map<Edge, float> weight;
-    // EdgeRange edges = boost::edges(mPoseGraph);
-    // EdgeFilter filter(&mPoseGraph);
-    // for(EdgeIterator it = edges.first; it != edges.second; ++it)
-    // {
-    // 	if(filter(*it))
-    // 		weight[*it] = 1.0;
-    // 	else
-    // 		weight[*it] = 10000;
-    // }
-    
-    // boost::dijkstra_shortest_paths(mPoseGraph, mIndexMap.at(source_id),
-    // 	boost::distance_map(boost::make_iterator_property_map(distance.begin(), boost::get(boost::vertex_index, mPoseGraph)))
-    // 	.predecessor_map(boost::make_iterator_property_map(parent.begin(), boost::get(boost::vertex_index, mPoseGraph)))
-    // 	.weight_map(boost::make_assoc_property_map(weight)) );
+float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) {
+    Query query(client);
+    // MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]-(b)) WHERE a.index = 1 AND b.index = 28 return p
+    query.setStatement("MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN RELATIONSHIPS(p)");
 
-    // return distance[mIndexMap.at(target_id)];
-    return 0;
+    if (!query.sendQuery()) {
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    }
+
+    web::json::value result = query.getResponse().extract_json().get();
+    web::json::array &path = result["results"][0]["data"][0]["row"][0].as_array();
+
+    return path.size();
 }
 
 
@@ -429,7 +385,6 @@ std::string Neo4jGraph::createQuery(const std::string& query, const web::json::v
     } else {
         json += "{}";
     }
-
 
     json += "}]}";
     return json;

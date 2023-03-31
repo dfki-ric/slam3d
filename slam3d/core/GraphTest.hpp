@@ -73,4 +73,7 @@ void test_graph_construction(slam3d::Graph* graph)
 	BOOST_CHECK_EQUAL(c5->getOrientation().matrix(), c5_res->getOrientation().matrix());
 	BOOST_CHECK_EQUAL(c5->getSensorPose().matrix(), c5_res->getSensorPose().matrix());
 
+	int hops = graph->calculateGraphDistance(1,3);
+	BOOST_CHECK_EQUAL(hops, 2);
+
 }
