@@ -19,10 +19,10 @@ target_link_libraries(core
 		Boost::thread
 		PkgConfig::flann
 	PRIVATE
-		PkgConfig::pqxx
+		libpqxx::pqxx
 )
 
-target_compile_features(core PUBLIC cxx_alias_templates)
+target_compile_features(core PUBLIC cxx_std_17)
 
 # Install header files
 install(DIRECTORY ./

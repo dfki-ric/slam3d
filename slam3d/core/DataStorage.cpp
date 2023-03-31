@@ -3,6 +3,7 @@
 
 #include <boost/format.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/string_generator.hpp>
 #include <pqxx/pqxx>
 //#include <libpq-fe.h>
 
@@ -14,18 +15,46 @@ struct slam3d::DataStorageInternal
 	
 	void initialize(const std::string& schema)
 	{
-		pqxx::work w(mConnection);
-		w.exec0("CREATE SCHEMA IF NOT EXISTS " + schema);
-		w.exec0("SET search_path TO " + schema + ",public");
+		pqxx::work w1(mConnection);
 
+		// Check if a schema with the given name exists
+		pqxx::result res = w1.exec("SELECT schema_owner FROM information_schema.schemata WHERE schema_name = '" + schema + "';");
+		if(res.size() > 0)
+		{
+			if(strcmp(res[0][0].c_str(), "slam3d") == 0)
+				return;
+			else
+				throw std::runtime_error("Schema '" + schema + "' already exists, but is owned by user '" + res[0][0].c_str() + "'!");
+		}
+
+		w1.exec0("CREATE SCHEMA IF NOT EXISTS " + schema);
+		w1.exec0("SET search_path TO " + schema + ",public");
+
+		std::string create_quat("CREATE TYPE quat AS (");
+		create_quat += "x double precision, ";
+		create_quat += "y double precision, ";
+		create_quat += "z double precision, ";
+		create_quat += "w double precision);";
+		w1.exec0(create_quat);
+
+		std::string create_pos("CREATE TYPE pos AS (");
+		create_pos += "x double precision, ";
+		create_pos += "y double precision, ";
+		create_pos += "z double precision);";
+		w1.exec0(create_pos);
+		w1.commit();
+
+		pqxx::work w2(mConnection);
 		std::string query("CREATE TABLE IF NOT EXISTS measurement(");
-		query += "id       uuid PRIMARY KEY, ";
-		query += "time     timestamp, ",
-		query += "robot    text, ";
-		query += "sensor   text, ";
-		query += "data     bytea)";
-		w.exec0(query);
-		w.commit();
+		query += "id              uuid PRIMARY KEY, ";
+		query += "time            timestamp, ",
+		query += "robot_name      text, ";
+		query += "sensor_name     text, ";
+		query += "sensor_position pos, ";
+		query += "sensor_rotation quat, ";
+		query += "data            bytea)";
+		w2.exec0(query);
+		w2.commit();
 	}
 
 	Logger* mLogger;
@@ -48,17 +77,42 @@ DataStorage::~DataStorage()
 void DataStorage::writeMeasurement(Measurement::Ptr m)
 {
 	pqxx::work w(mInternal->mConnection);
-	char data[3];
-	data[0] = 'a';
-	data[1] = 'b';
-	data[2] = 'c';
-	boost::format ins("INSERT INTO measurement VALUES ('%s', TIMESTAMP 'epoch' + %u.%06u * interval '1 second', '%s', '%s', '%s');");
-	
-	w.exec0((ins
-		% m->getUniqueId()
+	std::stringstream data;
+	m->toStream(data);
+
+	Position pos = m->getSensorPose().translation();
+	Quaternion quat(m->getSensorPose().linear());
+
+	boost::format ins("INSERT INTO measurement VALUES ('%s', TIMESTAMP 'epoch' + %u.%06u * INTERVAL '1 second', '%s', '%s', ('%d', '%d', '%d'), ('%d', '%d', '%d', '%d'), '%s');");
+	ins	% m->getUniqueId()
 		% m->getTimestamp().tv_sec % m->getTimestamp().tv_usec
 		% m->getRobotName()
 		% m->getSensorName()
-		% pqxx::to_string(data)).str());
+		% pos.x() % pos.y() % pos.z()
+		% quat.x() % quat.y() % quat.z() % quat.w()
+		% pqxx::to_string(data);
+
+	w.exec0(ins.str());
+	w.commit();
+}
+
+void DataStorage::readMeasurement()
+{
+	pqxx::work w(mInternal->mConnection);
+	pqxx::result res{w.exec("SELECT id, EXTRACT(EPOCH FROM time), robot_name, sensor_name, sensor_position, sensor_rotation, data FROM measurement;")};
+
+	for (auto row : res)
+	{
+		boost::uuids::string_generator gen;
+		boost::uuids::uuid id = gen(row[0].c_str());
+		double tx, ty, tz, qx, qy, qz, qw;
+		row[4].composite_to(tx,ty,tz);
+		row[5].composite_to(qx, qy, qz, qw);
+		Transform pose(Quaternion(qw, qx, qy, qz));
+		pose.translation() = Position(tx, ty, tz);
+
+		Measurement::Ptr m(new Measurement(row[2].c_str(), row[3].c_str(), pose, id));
+	}
+	
 	w.commit();
 }

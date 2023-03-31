@@ -76,6 +76,8 @@ namespace slam3d
 		 */
 		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
 		
+		void toStream(std::ostream& stream) const;
+		
 	protected:
 		PointCloud::Ptr mPointCloud;
 	};

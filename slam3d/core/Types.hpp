@@ -82,6 +82,8 @@ namespace slam3d
 		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
 		virtual ~Measurement(){}
 		
+		virtual void toStream(std::ostream& stream) const {};
+		
 		timeval getTimestamp() const { return mStamp; }
 		std::string getRobotName() const { return mRobotName; }
 		std::string getSensorName() const { return mSensorName; }

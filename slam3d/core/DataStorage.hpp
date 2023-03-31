@@ -41,6 +41,7 @@ namespace slam3d
 		~DataStorage();
 
 		void writeMeasurement(Measurement::Ptr m);
+		void readMeasurement();
 
 	protected:
 		std::string mHost;

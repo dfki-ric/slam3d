@@ -16,9 +16,9 @@ if (NOT jsoncpp_FOUND)
   pkg_check_modules(jsoncpp REQUIRED IMPORTED_TARGET jsoncpp)
   add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
 endif()
+find_package(libpqxx REQUIRED)
 
 pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
-pkg_check_modules(pqxx REQUIRED IMPORTED_TARGET libpqxx)
 
 # Optional libraries
 find_package(libpointmatcher 1.3.1)

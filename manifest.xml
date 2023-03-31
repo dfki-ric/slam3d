@@ -13,6 +13,7 @@
   <depend package="suitesparse" />
   <depend package="jsoncpp" />
   <depend package="flann" />
+  <depend package="external/libpqxx" />
   
   <keywords>
     <keyword>Mapping</keyword>
