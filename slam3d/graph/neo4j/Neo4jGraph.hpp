@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Neo4jQuery.hpp"
+#include "Neo4jConversion.hpp"
 // #include <boost/thread/shared_mutex.hpp>
 
 #include "../../core/Graph.hpp"
@@ -151,14 +152,6 @@ class Neo4jGraph : public Graph {
         std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
 
 
-        void constraintToJson(slam3d::Constraint::Ptr constraint, web::json::value* json);
-        slam3d::Constraint::Ptr jsonToConstraint(web::json::value& json);
-
-        std::string eigenMatrixToString(const Eigen::MatrixXd& mat);
-        Eigen::MatrixXd eigenMatrixFromString(const std::string & string);
-
-        slam3d::EdgeObject edgeObjectFromJson(web::json::value& json);
-        slam3d::VertexObject vertexObjectFromJson(web::json::value& json);
 
         // neo4j_connection_t *connection;
         // The boost graph object

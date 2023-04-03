@@ -7,6 +7,7 @@
 #define protected public
 
 #include "Neo4jGraph.hpp"
+#include "Neo4jConversion.hpp"
 
 
 using namespace slam3d;
@@ -38,8 +39,8 @@ BOOST_AUTO_TEST_CASE(matrix_conversion) {
             t(r, c) = r+c*t.matrix().rows();
         }
     }
-    std::string ts = neo4jgraph->eigenMatrixToString(t.matrix());
-    slam3d::Transform tr(Eigen::Matrix4d(neo4jgraph->eigenMatrixFromString(ts)));
+    std::string ts = Neo4jConversion::eigenMatrixToString(t.matrix());
+    slam3d::Transform tr(Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(ts)));
     BOOST_CHECK_EQUAL(t.matrix(), tr.matrix());
     
 }

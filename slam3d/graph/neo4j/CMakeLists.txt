@@ -3,6 +3,7 @@
 	add_library(graph-neo4j SHARED
 		Neo4jGraph.cpp
 		Neo4jQuery.cpp
+		Neo4jConversion.cpp
 	)
 
 	target_include_directories(graph-neo4j
@@ -22,7 +23,7 @@
 
 	# Install header files
 	install(
-		FILES Neo4jGraph.hpp Neo4jQuery.hpp
+		FILES Neo4jGraph.hpp Neo4jQuery.hpp Neo4jConversion.hpp
 		DESTINATION include/slam3d/graph/neo4j/
 	)
 
