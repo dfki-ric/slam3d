@@ -288,3 +288,8 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 
 	return distance[mIndexMap.at(target_id)];
 }
+
+void BoostGraph::setCorrectedPose(IdType id, const Transform& pose)
+{
+	getVertexInternal(id).corrected_pose = pose;
+}

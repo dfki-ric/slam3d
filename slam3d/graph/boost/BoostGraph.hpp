@@ -113,6 +113,8 @@ namespace slam3d
 		 */
 		void writeGraphToFile(const std::string &name);
 
+		void setCorrectedPose(IdType id, const Transform& pose);
+
 	protected:
 		/**
 		 * @brief Add the given VertexObject to the internal graph.

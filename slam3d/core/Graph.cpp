@@ -257,7 +257,5 @@ VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius)
 	return result;
 }
 
-void Graph::setCorrectedPose(IdType id, const Transform& pose)
-{
-	getVertexInternal(id).corrected_pose = pose;
-}
+
+

@@ -42,6 +42,9 @@ slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& jso
     returnval.index = json["index"].as_integer();
     returnval.label = json["label"].as_string();
     returnval.corrected_pose = Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(json["corrected_pose"].as_string()));
+    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+    // std::cout << returnval.corrected_pose.matrix() << std::endl;
+    // std::cout << returnval.corrected_pose.translation() << std::endl;
     returnval.measurement = measurements[json["measurement"].as_string()];
 
     return returnval;

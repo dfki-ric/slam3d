@@ -31,6 +31,8 @@ class Neo4jQuery {
 
     web::http::http_response& getResponse();
 
+    bool printQuery();
+
  private:
     std::shared_ptr<web::http::client::http_client> client;
     web::json::value query;

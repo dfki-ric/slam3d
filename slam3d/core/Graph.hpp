@@ -260,7 +260,7 @@ namespace slam3d
 		 * @param id vertex to be changed
 		 * @param pose new corrected pose to be set
 		 */
-		void setCorrectedPose(IdType id, const Transform& pose);
+		virtual void setCorrectedPose(IdType id, const Transform& pose) = 0;
 
 		/**
 		 * @brief Start the backend optimization process.

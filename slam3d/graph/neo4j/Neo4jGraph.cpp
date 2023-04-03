@@ -80,6 +80,8 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterSet("props");
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+    std::cout << v.corrected_pose.matrix() << std::endl;
     vertexQuery.addParameterToSet("props", "corrected_pose", Neo4jConversion::eigenMatrixToString(v.corrected_pose.matrix()));
     vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
     std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
@@ -87,11 +89,11 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     measurements[uuid] = v.measurement;
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
-    // vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
-    //                         +   "x: " + std::to_string(v.corrected_pose.translation().x())
-    //                         + ", y: " + std::to_string(v.corrected_pose.translation().y())
-    //                         + ", z: " + std::to_string(v.corrected_pose.translation().z())
-    //                         + "})");
+    vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
+                            +   "x: " + std::to_string(v.corrected_pose.translation().x())
+                            + ", y: " + std::to_string(v.corrected_pose.translation().y())
+                            + ", z: " + std::to_string(v.corrected_pose.translation().z())
+                            + "})");
 
 
 
@@ -141,6 +143,8 @@ void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
+    query.printQuery();
+
     if (addInverse) {
         // reverse edge TODO: need inverse transform/identification?
         query.setStatement(0, "MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.target)+" AND b.index="+std::to_string(e.source) \
@@ -179,7 +183,14 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     web::json::value result = query.getResponse().extract_json().get();
 
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
-        objectList.push_back(Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], measurements));
+        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], measurements);
+        objectList.push_back(vertex);
+
+        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+        std::cout << vertex.corrected_pose.matrix() << std::endl;
+        std::cout << vertex.corrected_pose.translation() << std::endl;
+        std::cout << vertex.corrected_pose.rotation() << std::endl;
+
     }
     return objectList;
 }
@@ -380,18 +391,21 @@ float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) {
 }
 
 
-std::string Neo4jGraph::createQuery(const std::string& query, const web::json::value& params) {
-    std::string json = "{ \"statements\": [{\"statement\": \""+query+"\"";
+void Neo4jGraph::setCorrectedPose(IdType id, const Transform& pose)
+{
+	Neo4jQuery query(client);
+    // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
+    query.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(id)+" SET n.location = point({"
+                            +   "x: " + std::to_string(pose.translation().x())
+                            + ", y: " + std::to_string(pose.translation().y())
+                            + ", z: " + std::to_string(pose.translation().z())
+                            + "}) ,"
+                            + " n.corrected_pose = \"" + Neo4jConversion::eigenMatrixToString(pose.matrix()) + "\"");
 
-    json += ", \"parameters\": ";
-    if (!params.is_null()) {
-        json += params.serialize();
-    } else {
-        json += "{}";
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
-
-    json += "}]}";
-    return json;
 
 }
 
