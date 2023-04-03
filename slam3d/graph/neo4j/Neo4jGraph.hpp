@@ -5,15 +5,10 @@
 #include <string>
 #include <vector>
 
+#include "Neo4jQuery.hpp"
 // #include <boost/thread/shared_mutex.hpp>
 
 #include "../../core/Graph.hpp"
-
-
-// dont defiene the U macro in the http client, it conflicts with the eigen U macro use _XPLATSTR() instead
-#define _TURN_OFF_PLATFORM_STRING
-#include <cpprest/json.h>
-#include <cpprest/http_client.h>
 
 // namespace web{ 
 //     namespace http{ namespace client{ class http_client;}}
@@ -27,57 +22,6 @@ namespace slam3d {
      */
 class Neo4jGraph : public Graph {
     public:
-
-        class Query {
-         public:
-            Query(std::shared_ptr<web::http::client::http_client> client):client(client) {
-                // query = web::json::value::object(true); sorted
-                query["statements"] = web::json::value::array(1);
-                query["statements"][0]["parameters"] = web::json::value();
-                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
-            }
-
-            void setStatement(const std::string& statement) {
-                query["statements"][0]["statement"] = web::json::value(statement);
-                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
-            }
-
-            void addParameterSet(const std::string& setname) {
-                query["statements"][0]["parameters"][setname] = web::json::value();
-                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
-            }
-
-            template <class VALUE> void addParameterToSet(const std::string& setname, const std::string& paramname, const VALUE& value) {
-                query["statements"][0]["parameters"][setname][paramname] = web::json::value(value);
-            }
-
-            web::json::value* getParameterSet(const std::string& setname) {
-                if (query["statements"][0]["parameters"][setname].is_null()) {
-                    addParameterSet(setname);
-                }
-                return &(query["statements"][0]["parameters"][setname]);
-            }
-
-            bool sendQuery() {
-                response = web::http::http_response();
-                // printf("%s:%i \n\t%s\n", __PRETTY_FUNCTION__, __LINE__, query.serialize().c_str());
-                response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", query.serialize(), "application/json;charset=utf-8").get();
-                if (response.status_code() != 200) {
-                    std::cout << "ERROR " << response.to_string() << std::endl;
-                    return false;
-                }
-                return true;
-            }
-
-            web::http::http_response& getResponse() {
-                return response;
-            }
-
-         private:
-            std::shared_ptr<web::http::client::http_client> client;
-            web::json::value query;
-            web::http::http_response response;
-        };
 
         explicit Neo4jGraph(Logger* log);
         ~Neo4jGraph();
@@ -234,6 +178,9 @@ class Neo4jGraph : public Graph {
 
         // todo replace with databae (value store)
         std::map<std::string, Measurement::Ptr> measurements;
+
+        slam3d::Logger* logger;
+
 };
 }
 

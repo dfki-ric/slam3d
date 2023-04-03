@@ -1,18 +1,50 @@
 #define BOOST_TEST_MODULE "Neo4jGraphTest"
 
-#include "Neo4jGraph.hpp"
-
 #include <slam3d/core/FileLogger.hpp>
 #include <slam3d/core/GraphTest.hpp>
 
+#define private public
+#define protected public
+
+#include "Neo4jGraph.hpp"
+
+
 using namespace slam3d;
 
-BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {
-    Clock clock;
-    FileLogger logger(clock, "neo4j_graph.log");
-    logger.setLogLevel(DEBUG);
-    Neo4jGraph* neograph = new Neo4jGraph(&logger);
-    neograph->deleteDatabase();
-    test_graph_construction(neograph);
-    delete neograph;
+std::unique_ptr<Neo4jGraph> neo4jgraph;
+Clock neo4jclock;
+FileLogger neo4jlogger(neo4jclock, "neo4j_graph.log");
+
+void initDB() {
+    static bool initialized = false;
+    if (!initialized) {
+        neo4jlogger.setLogLevel(DEBUG);
+        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger);
+        neo4jgraph->deleteDatabase();
+        initialized = true;
+    }
 }
+
+BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {
+    initDB();
+    test_graph_construction(neo4jgraph.get());
+}
+
+BOOST_AUTO_TEST_CASE(matrix_conversion) {
+    initDB();
+    slam3d::Transform t;
+    for (size_t c = 0; c < t.matrix().cols(); ++c) {
+        for (size_t r = 0; r < t.matrix().rows(); ++r) {
+            t(r, c) = r+c*t.matrix().rows();
+        }
+    }
+    std::string ts = neo4jgraph->eigenMatrixToString(t.matrix());
+    slam3d::Transform tr(Eigen::Matrix4d(neo4jgraph->eigenMatrixFromString(ts)));
+    BOOST_CHECK_EQUAL(t.matrix(), tr.matrix());
+    
+}
+
+// BOOST_AUTO_TEST_CASE(contraint_conversion) {
+    
+//     // neo4jgraph->co
+// }

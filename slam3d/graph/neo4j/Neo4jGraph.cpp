@@ -20,7 +20,7 @@ using namespace utility;
 using status_codes = web::http::status_codes;
 // using Client = web::http::client::http_client;
 
-Neo4jGraph::Neo4jGraph(Logger* log) : Graph(log)
+Neo4jGraph::Neo4jGraph(Logger* log) : Graph(log), logger(log)
 {
     web::http::client::http_client_config clientconf;
     clientconf.set_validate_certificates(false);
@@ -38,8 +38,8 @@ Neo4jGraph::~Neo4jGraph()
 
 bool Neo4jGraph::deleteDatabase() {
 
-    Query vertexQuery(client);
-    vertexQuery.setStatement("match (n) detach delete n");
+    Neo4jQuery vertexQuery(client);
+    vertexQuery.addStatement("match (n) detach delete n");
 
     if (vertexQuery.sendQuery()) {
         return true;
@@ -52,9 +52,9 @@ EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
 {
     EdgeObjectList objectList;
 
-    Query query(client);
-    query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false AND r.source <> r.target RETURN r");
-    // query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' RETURN r");
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false AND r.source <> r.target RETURN r");
+    // query.addStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' RETURN r");
 
     if (!query.sendQuery()) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
@@ -75,8 +75,8 @@ bool Neo4jGraph::optimize(unsigned iterations)
 
 void Neo4jGraph::addVertex(const VertexObject& v)
 {
-    Query vertexQuery(client);
-    vertexQuery.setStatement("CREATE (n:Vertex $props)");
+    Neo4jQuery vertexQuery(client);
+    vertexQuery.addStatement("CREATE (n:Vertex $props)");
     vertexQuery.addParameterSet("props");
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
@@ -86,9 +86,31 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterToSet("props", "measurement", uuid);
     measurements[uuid] = v.measurement;
 
+    // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
+    // vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
+    //                         +   "x: " + std::to_string(v.corrected_pose.translation().x())
+    //                         + ", y: " + std::to_string(v.corrected_pose.translation().y())
+    //                         + ", z: " + std::to_string(v.corrected_pose.translation().z())
+    //                         + "})");
+
+
+
+// PROFILE
+// MATCH (person:Person)
+// WHERE point.withinBBox(person.location, point({x: 1.2, y: 5.4}), point({x: 1.3, y: 5.5}))
+// RETURN person.firstname
+
+    // vertexQuery.addParameterToSet("props", "location",
+    //                                 "point({x: " + std::to_string(v.corrected_pose.translation().x())
+    //                                     +", y: " + std::to_string(v.corrected_pose.translation().y())
+    //                                     +", z: " + std::to_string(v.corrected_pose.translation().z())
+    //                                     +"})");
+
     if (!vertexQuery.sendQuery()) {
+        logger->message(ERROR, vertexQuery.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
     }
+
 }
 
 void Neo4jGraph::addEdge(const EdgeObject& e) {
@@ -100,8 +122,8 @@ void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
     std::replace(constrainttypename.begin(), constrainttypename.end(), '(', '_');
     std::replace(constrainttypename.begin(), constrainttypename.end(), ')', '_');
 
-    Query query(client);
-    query.setStatement("MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.source)+" AND b.index="+std::to_string(e.target) \
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.source)+" AND b.index="+std::to_string(e.target) \
         + " CREATE (a)-[r:" + constrainttypename + " $props]->(b) RETURN type(r)");
     query.addParameterSet("props");
     query.addParameterToSet("props", "label", e.label);
@@ -115,28 +137,31 @@ void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
     constraintToJson(e.constraint, query.getParameterSet("props"));
 
     if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
     if (addInverse) {
         // reverse edge TODO: need inverse transform/identification?
-        query.setStatement("MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.target)+" AND b.index="+std::to_string(e.source) \
+        query.setStatement(0, "MATCH (a:Vertex), (b:Vertex) WHERE a.index="+std::to_string(e.target)+" AND b.index="+std::to_string(e.source) \
             + " CREATE (a)-[r:" + constrainttypename + " $props]->(b) RETURN type(r)");
         query.addParameterToSet("props", "inverted", true);
         query.addParameterToSet("props", "source", e.target);
         query.addParameterToSet("props", "target", e.source);
 
         if (!query.sendQuery()) {
+            logger->message(ERROR, query.getResponse().extract_string().get());
             throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
         }
     }
 }
 
 void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sensor) {
-    Query query(client);
+    Neo4jQuery query(client);
     // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
-    query.setStatement("MATCH ("+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
+    query.addStatement("MATCH ("+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
     if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 }
@@ -155,10 +180,11 @@ slam3d::VertexObject Neo4jGraph::vertexObjectFromJson(web::json::value& json) {
 VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     VertexObjectList objectList;
 
-    Query query(client);
-    query.setStatement("MATCH (a:Vertex) WHERE a.sensor='"+sensor+"' RETURN a");
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (a:Vertex) WHERE a.sensor='"+sensor+"' RETURN a");
 
     if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
     }
     web::json::value result = query.getResponse().extract_json().get();
@@ -181,10 +207,11 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
 
     //query and fill
     //MATCH (n:Vertex) WHERE n.index = "2" RETURN n AS node
-    Query query(client);
+    Neo4jQuery query(client);
     // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
-    query.setStatement("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n AS node");
+    query.addStatement("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n AS node");
     if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
     web::json::value reply = query.getResponse().extract_json().get();
@@ -214,10 +241,11 @@ slam3d::EdgeObject Neo4jGraph::edgeObjectFromJson(web::json::value& json) {
 }
 
 EdgeObject& Neo4jGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor) {
-    Query query(client);
+    Neo4jQuery query(client);
     // MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index=1 AND b.index=2 AND r.sensor="S1" RETURN r
-    query.setStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");
+    query.addStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");
     if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
@@ -361,11 +389,12 @@ VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range
 }
 
 float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) {
-    Query query(client);
+    Neo4jQuery query(client);
     // MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]-(b)) WHERE a.index = 1 AND b.index = 28 return p
-    query.setStatement("MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN RELATIONSHIPS(p)");
+    query.addStatement("MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN RELATIONSHIPS(p)");
 
     if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
