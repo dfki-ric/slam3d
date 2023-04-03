@@ -80,8 +80,6 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterSet("props");
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    std::cout << v.corrected_pose.matrix() << std::endl;
     vertexQuery.addParameterToSet("props", "corrected_pose", Neo4jConversion::eigenMatrixToString(v.corrected_pose.matrix()));
     vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
     std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
@@ -143,7 +141,7 @@ void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
-    query.printQuery();
+    // query.printQuery();
 
     if (addInverse) {
         // reverse edge TODO: need inverse transform/identification?
@@ -185,12 +183,6 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
         slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], measurements);
         objectList.push_back(vertex);
-
-        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-        std::cout << vertex.corrected_pose.matrix() << std::endl;
-        std::cout << vertex.corrected_pose.translation() << std::endl;
-        std::cout << vertex.corrected_pose.rotation() << std::endl;
-
     }
     return objectList;
 }
