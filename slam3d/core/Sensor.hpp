@@ -137,6 +137,22 @@ namespace slam3d
 		 */
 		void addLinkSensor(const std::string& s){ mLinkSensors.insert(s); }
 
+		/**
+		 * @brief 
+		 * @param r
+		 * @param s
+		 * @param p
+		 * @param id
+		 * @param stream
+		 * @return 
+		 */
+		virtual Measurement::Ptr createFromStream(const std::string& r, const std::string& s,
+			const Transform& p, const boost::uuids::uuid id, std::istream& stream)
+		{
+			throw std::runtime_error("createFromStream() not implemented for " + mName);
+		}
+		
+
 	protected:
 		Mapper* mMapper;
 		Logger* mLogger;

@@ -40,8 +40,8 @@ namespace slam3d
 		DataStorage(Logger* l, const std::string& host, const std::string& schema);
 		~DataStorage();
 
-		void writeMeasurement(Measurement::Ptr m);
-		void readMeasurement();
+		void writeMeasurement(const VertexObject& vo);
+		VertexObjectList readMeasurement();
 
 	protected:
 		std::string mHost;
