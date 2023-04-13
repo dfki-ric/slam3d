@@ -9,6 +9,11 @@
 #include "Neo4jGraph.hpp"
 #include "Neo4jConversion.hpp"
 
+#include "../../sensor/pcl/PointCloudSensor.hpp"
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <sstream>
 
 using namespace slam3d;
 
@@ -59,4 +64,63 @@ BOOST_AUTO_TEST_CASE(matrix_conversion) {
 BOOST_AUTO_TEST_CASE(contraint_conversion) {
     
     // neo4jgraph->co
+}
+
+
+BOOST_AUTO_TEST_CASE(measurement_serialization) {
+     PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
+     slam3d::Measurement::Ptr m(new slam3d::PointCloudMeasurement(cloud, "robot", "sensor", slam3d::Transform::Identity()));
+
+
+        std::stringstream sin;
+        boost::archive::text_oarchive oa(sin);
+        // TODO, need to check for sub-type? https://theboostcpplibraries.com/boost.serialization-class-hierarchies
+        oa << *m;
+        std::string data = sin.str();
+
+        std::stringstream sout(data);
+        boost::archive::text_iarchive ia(sout);
+        Measurement::Ptr m_res = Measurement::Ptr(new Measurement("", "", slam3d::Transform()));
+        ia >> *(m_res.get());
+
+        BOOST_CHECK_EQUAL(m->getRobotName(), m_res->getRobotName());
+        BOOST_CHECK_EQUAL(m->getTimestamp().tv_sec, m_res->getTimestamp().tv_sec);
+        BOOST_CHECK_EQUAL(m->getTimestamp().tv_usec, m_res->getTimestamp().tv_usec);
+        BOOST_CHECK_EQUAL(m->getSensorName(), m_res->getSensorName());
+        BOOST_CHECK(m->getUniqueId() == m_res->getUniqueId());
+        BOOST_CHECK(m->getSensorPose().isApprox(m_res->getSensorPose()));
+        BOOST_CHECK(m->getInverseSensorPose().isApprox(m_res->getInverseSensorPose()));
+}
+
+
+BOOST_AUTO_TEST_CASE(measurement_storage) {
+    initDB();
+
+    MeasurementRegistry::registerMeasurementType<slam3d::PointCloudMeasurement>();
+
+    PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
+
+    cloud->push_back(slam3d::PointType(1,2,3));
+
+    slam3d::Graph* g = dynamic_cast<slam3d::Graph*>(neo4jgraph.get());
+
+    //todo add data to cloud
+
+	slam3d::Measurement::Ptr m(new slam3d::PointCloudMeasurement(cloud, "robot", "sensor", slam3d::Transform::Identity()));
+
+	slam3d::Transform tf = slam3d::Transform::Identity();
+	slam3d::IdType id = g->addVertex(m, tf);
+	//BOOST_CHECK_EQUAL(id, exp_id);
+
+	slam3d::VertexObject query_res;
+	BOOST_CHECK_NO_THROW(query_res = g->getVertex(id));
+	// BOOST_CHECK_EQUAL(query_res.index, exp_id);
+
+    BOOST_CHECK_EQUAL(m->getRobotName(), query_res.measurement->getRobotName()); 
+
+    slam3d::PointCloudMeasurement::Ptr m_res = boost::dynamic_pointer_cast<slam3d::PointCloudMeasurement>(query_res.measurement);
+    BOOST_CHECK_NE(m_res.get(), nullptr);
+
+    BOOST_CHECK_EQUAL(m_res->getPointCloud()->size(), cloud->size());
+
 }

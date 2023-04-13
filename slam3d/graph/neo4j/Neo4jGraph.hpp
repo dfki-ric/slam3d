@@ -5,11 +5,13 @@
 #include <string>
 #include <vector>
 
+#include "../../core/Graph.hpp"
+
 #include "Neo4jQuery.hpp"
 #include "Neo4jConversion.hpp"
+#include "RedisMap.hpp"
 // #include <boost/thread/shared_mutex.hpp>
 
-#include "../../core/Graph.hpp"
 
 // namespace web{ 
 //     namespace http{ namespace client{ class http_client;}}
@@ -173,7 +175,10 @@ class Neo4jGraph : public Graph {
 
 
         // todo replace with databae (value store)
-        std::map<std::string, Measurement::Ptr> measurements;
+        // std::map<std::string, Measurement::Ptr> measurements;
+
+        RedisMap measurements;
+
 
         slam3d::Logger* logger;
 

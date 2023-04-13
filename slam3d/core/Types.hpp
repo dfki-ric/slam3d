@@ -29,11 +29,20 @@
 #include <sys/time.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/uuid/nil_generator.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/split_free.hpp>
+
+#include <boost/uuid/uuid_io.hpp>
 #include <Eigen/Geometry>
 
 #include <string>
 #include <vector>
 #include <map>
+
+
+#include <iostream>
+
 
 namespace slam3d
 {
@@ -44,7 +53,39 @@ namespace slam3d
 	typedef Eigen::Quaternion<ScalarType> Quaternion;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
-	
+}
+
+namespace boost {
+namespace serialization {
+	template<class Archive> void save(Archive & ar, const boost::uuids::uuid &uuid, const unsigned int version) {
+		std::stringstream ss;
+		ss << uuid;
+		ar & ss.str();
+	}
+	template<class Archive> void load(Archive & ar, boost::uuids::uuid &uuid, const unsigned int version) {
+		std::string in;
+		ar & in;
+		std::stringstream ss(in);
+		ss >> uuid;
+	}
+
+	template<class Archive> void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version) {
+		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
+	}
+	template<class Archive> void load(Archive & ar, slam3d::Transform &tf, const unsigned int version) {
+		tf.setIdentity(); // init whole matrix
+		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
+	}
+
+
+} // namespace serialization
+} // namespace boost
+BOOST_SERIALIZATION_SPLIT_FREE(boost::uuids::uuid)
+BOOST_SERIALIZATION_SPLIT_FREE(slam3d::Transform)
+
+namespace slam3d
+{
+
 	/**
 	 * @brief Re-orthogonalize the rotation-matrix
 	 * @param t input tranform
@@ -88,6 +129,13 @@ namespace slam3d
 		boost::uuids::uuid getUniqueId() const { return mUniqueId; }
 		Transform getSensorPose() const { return mSensorPose; }
 		Transform getInverseSensorPose() const { return mInverseSensorPose; }
+
+		void setRegistryIndex(int new_registry_index){
+			registry_index = new_registry_index;
+		}
+		int getRegistryIndex(){
+			return registry_index;
+		}
 		
 	protected:
 		timeval mStamp;
@@ -97,6 +145,25 @@ namespace slam3d
 		
 		Transform mSensorPose;
 		Transform mInverseSensorPose;
+
+	private:
+		friend class boost::serialization::access;
+		int registry_index;
+
+		template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
+			 ar & mStamp.tv_sec;
+			 ar & mStamp.tv_usec;
+			 ar & mRobotName;
+			 ar & mSensorName;
+			 ar & mUniqueId;
+			 ar & mSensorPose;
+			 ar & mInverseSensorPose;
+			//  std::cout << mSensorPose.matrix() << std::endl;
+			//  ar & boost::serialization::make_array(mSensorPose.matrix().data(), mSensorPose.rows() * mSensorPose.cols());
+			//  std::cout << mSensorPose.matrix() << std::endl;
+			//  ar & boost::serialization::make_array(mInverseSensorPose.matrix().data(), mSensorPose.rows() * mSensorPose.cols());
+		}
+
 	};
 	
 	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION};

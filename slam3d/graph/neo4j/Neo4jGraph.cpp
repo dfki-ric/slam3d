@@ -84,7 +84,14 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
     std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
     vertexQuery.addParameterToSet("props", "measurement", uuid);
-    measurements[uuid] = v.measurement;
+
+
+    // TODO add MesurementTypeRegisty?
+
+
+
+    measurements.set(uuid, v.measurement);
+
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
@@ -203,7 +210,9 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
     // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
     query.addStatement("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n AS node");
     if (!query.sendQuery()) {
-        logger->message(ERROR, query.getResponse().extract_string().get());
+        std::string msg = query.getResponse().extract_string().get();
+        logger->message(ERROR, msg);
+        std::cout << msg << std::endl;
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
     web::json::value reply = query.getResponse().extract_json().get();

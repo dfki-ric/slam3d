@@ -35,6 +35,9 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
+#include "pcl_serialization.hpp"
+#include <boost/serialization/export.hpp>
+
 namespace slam3d
 {
 	typedef pcl::PointXYZ PointType;
@@ -70,6 +73,10 @@ namespace slam3d
 			mStamp.tv_usec = cloud->header.stamp % 1000000;
 		}
 		
+		PointCloudMeasurement():Measurement("","", slam3d::Transform()) {
+
+		}
+
 		/**
 		 * @brief Gets the point cloud contained within this measurement.
 		 * @return Constant shared pointer to the point cloud
@@ -78,6 +85,23 @@ namespace slam3d
 		
 	protected:
 		PointCloud::Ptr mPointCloud;
+	private:
+		friend class boost::serialization::access;
+
+		// template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
+		// 	ar & *(mPointCloud.get());
+		// }
+
+		template <typename Archive> void save(Archive &ar, const unsigned int version) {
+			ar & boost::serialization::base_object<Measurement>(*this);
+			ar & *(mPointCloud.get());
+		}
+		template <typename Archive> void load(Archive &ar, const unsigned int version) {
+			PointCloud c;
+			ar & boost::serialization::base_object<Measurement>(*this);
+			ar & c;
+			mPointCloud = PointCloud::Ptr(new PointCloud(c));
+		}
 	};
 
 	/**
@@ -211,5 +235,11 @@ namespace slam3d
 		unsigned mMapOutlierNeighbors;
 	};
 }
+
+
+
+
+// BOOST_CLASS_EXPORT(slam3d::PointCloudMeasurement)
+
 
 #endif

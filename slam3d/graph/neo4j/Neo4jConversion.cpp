@@ -1,7 +1,8 @@
 #include "Neo4jConversion.hpp"
 
-namespace slam3d {
+#include "RedisMap.hpp"
 
+namespace slam3d {
 
 std::string Neo4jConversion::eigenMatrixToString(const Eigen::MatrixXd& mat) {
     std::stringstream ss;
@@ -36,7 +37,7 @@ slam3d::EdgeObject Neo4jConversion::edgeObjectFromJson(web::json::value& json) {
     return returnval;
 }
 
-slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& json, std::map<std::string, Measurement::Ptr> &measurements) {
+slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& json, RedisMap &measurements) {
     slam3d::VertexObject returnval;
 
     returnval.index = json["index"].as_integer();
@@ -45,7 +46,7 @@ slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& jso
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // std::cout << returnval.corrected_pose.matrix() << std::endl;
     // std::cout << returnval.corrected_pose.translation() << std::endl;
-    returnval.measurement = measurements[json["measurement"].as_string()];
+    returnval.measurement = measurements.get(json["measurement"].as_string());
 
     return returnval;
 }

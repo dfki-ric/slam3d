@@ -1,6 +1,12 @@
 The cpp interface used only supports neo4jv 3.x
 
+sudo apt install libhiredis-dev
 docker run --rm --name neo4j --env=NEO4J_AUTH=none --publish=7474:7474 --publish=7687:7687 neo4j:community
+
+
+Instead of using the databases in docker, you can also install netively.
+
+To use redis-cli for debugging docker, you'll have to install redis anyways: sudo apt install redis
 
 
 

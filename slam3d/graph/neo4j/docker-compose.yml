@@ -1,0 +1,27 @@
+version: '3.2'
+
+services:
+  neo4j:
+    image: neo4j:community
+    container_name: neo4j
+    environment:
+      - NEO4J_AUTH=none
+    # depends_on:
+    #   - db
+    # command:
+    #   - run
+    ports:
+       - "7474:7474"
+       - "7687:7687"
+    expose:
+      - "7474"
+      - "7687"
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
+  
