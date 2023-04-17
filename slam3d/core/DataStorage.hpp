@@ -26,8 +26,7 @@
 #ifndef SLAM_DATA_STORAGE_HPP
 #define SLAM_DATA_STORAGE_HPP
 
-#include "Logger.hpp"
-#include "Types.hpp"
+#include "Sensor.hpp"
 
 
 namespace slam3d
@@ -40,12 +39,20 @@ namespace slam3d
 		DataStorage(Logger* l, const std::string& host, const std::string& schema);
 		~DataStorage();
 
+		void addSensor(const std::string& name, Sensor* sensor)
+		{
+			mSensorList[name] = sensor;
+		}
+
 		void writeMeasurement(const VertexObject& vo);
 		VertexObjectList readMeasurement();
 
 	protected:
 		std::string mHost;
 		std::string mSchema;
+		
+		Logger* mLogger;
+		SensorList mSensorList;
 		
 		DataStorageInternal* mInternal;
 	};

@@ -1,5 +1,6 @@
 #include "DataStorage.hpp"
 #include "Types.hpp"
+#include "Logger.hpp"
 
 #include <boost/format.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -63,7 +64,7 @@ struct slam3d::DataStorageInternal
 };
 
 DataStorage::DataStorage(Logger* l, const std::string& host, const std::string& schema)
-: mHost(host), mSchema(schema)
+: mLogger(l), mHost(host), mSchema(schema)
 {
 	boost::format conn("postgresql://slam3d:dfki-slam@%1%");
 	mInternal = new DataStorageInternal(l, (conn % mHost).str());
@@ -78,6 +79,8 @@ DataStorage::~DataStorage()
 void DataStorage::writeMeasurement(const VertexObject& vo)
 {
 	pqxx::work w(mInternal->mConnection);
+	w.exec0("SET search_path TO " + mSchema + ",public");
+
 	std::stringstream data;
 	vo.measurement->toStream(data);
 
@@ -114,13 +117,20 @@ void DataStorage::writeMeasurement(const VertexObject& vo)
 VertexObjectList DataStorage::readMeasurement()
 {
 	pqxx::work w(mInternal->mConnection);
-	pqxx::result res{w.exec("SELECT id, EXTRACT(EPOCH FROM time), robot_name, sensor_name, sensor_position, sensor_rotation, data FROM measurement;")};
+	w.exec0("SET search_path TO " + mSchema + ",public");
+
+	pqxx::result res{w.exec("SELECT id, EXTRACT(EPOCH FROM time), robot_name, sensor_name,"
+		" sensor_pose_t, sensor_pose_r, "
+		"robot_pose_t, robot_pose_r, data FROM measurement;")};
 
 	VertexObjectList result;
 	for (auto row : res)
 	{
 		boost::uuids::string_generator gen;
 		boost::uuids::uuid id = gen(row[0].c_str());
+		std::string robot_name(row[2].c_str());
+		std::string sensor_name(row[3].c_str());
+		
 		double tx, ty, tz, qx, qy, qz, qw;
 
 		row[4].composite_to(tx,ty,tz);
@@ -134,16 +144,20 @@ VertexObjectList DataStorage::readMeasurement()
 		r_pose.translation() = Position(tx, ty, tz);
 		
 		std::stringstream data(row[8].c_str());
-		PointCloud::Ptr cloud(new PointCloud());
 
-		Sensor* s;
-
-		VertexObject v;
-		v.corrected_pose = r_pose;
-		v.measurement = s->createFromStream(row[2].c_str(), row[3].c_str(), s_pose, id, data);
-		result.push_back(v);
+		try
+		{
+			VertexObject v;
+			v.corrected_pose = r_pose;
+			Sensor* s = mSensorList.at(sensor_name);
+			v.measurement = s->createFromStream(robot_name, sensor_name, s_pose, id, data);
+			result.push_back(v);
+		}catch(std::exception &e)
+		{
+			mLogger->message(ERROR, e.what());
+			continue;
+		}
 	}
-	
 	w.commit();
 	return result;
 }
