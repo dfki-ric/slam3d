@@ -18,6 +18,10 @@ namespace slam3d
 		
 		void setStatus(const std::string& json, const Transform& pose = Transform::Identity());
 		
+		virtual const std::string getMeasurementTypeName() {
+			return "slam3d::FlareSensor";
+		}
+
 	protected:
 		rtls_flares::Status mStatus;
 		Clock mClock;

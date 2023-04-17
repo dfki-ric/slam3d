@@ -130,12 +130,9 @@ namespace slam3d
 		Transform getSensorPose() const { return mSensorPose; }
 		Transform getInverseSensorPose() const { return mInverseSensorPose; }
 
-		void setRegistryIndex(int new_registry_index){
-			registry_index = new_registry_index;
-		}
-		int getRegistryIndex(){
-			return registry_index;
-		}
+		virtual const std::string getMeasurementTypeName() {
+			return "slam3d::Measurement";
+		};
 		
 	protected:
 		timeval mStamp;
@@ -148,7 +145,6 @@ namespace slam3d
 
 	private:
 		friend class boost::serialization::access;
-		int registry_index;
 
 		template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
 			 ar & mStamp.tv_sec;

@@ -1,8 +1,12 @@
 # pragma once
 
 #include <string>
-#include <vector>
+#include <map>
 #include <memory>
+
+// #include <typeinfo>
+// #include <cxxabi.h>
+
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -17,13 +21,15 @@ class MeasurementToStringBase {
     virtual std::string serialize(Measurement::Ptr ptr) = 0;
     virtual Measurement::Ptr deserialize(const std::string &data) = 0;
     virtual bool isSameType(Measurement::Ptr ptr) = 0;
-
+    virtual const std::string& getTypeName() = 0;
 
 };
 
 template <class MEASUREMENT_TYPE> class MeasurementToString : public MeasurementToStringBase {
  public:
-    MeasurementToString(int registry_index) : registry_index(registry_index) {}
+    MeasurementToString(const std::string& typeName){
+        measurementTypeName = typeName;
+    }
     virtual ~MeasurementToString() {}
 
     virtual bool isSameType(Measurement::Ptr ptr) {
@@ -36,7 +42,7 @@ template <class MEASUREMENT_TYPE> class MeasurementToString : public Measurement
 
     virtual std::string serialize(Measurement::Ptr ptr) {
         boost::shared_ptr<MEASUREMENT_TYPE> newptr = boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(ptr);
-        ptr->setRegistryIndex(registry_index);
+        //ptr->setRegistryIndex(registry_index);
         printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 
         std::stringstream ss;
@@ -53,30 +59,32 @@ template <class MEASUREMENT_TYPE> class MeasurementToString : public Measurement
         return m;
     }
 
+    virtual const std::string& getTypeName() {
+        return measurementTypeName;
+    }
+
  private:
-    int registry_index;
+    std::string measurementTypeName;
 };
 
 
 class MeasurementRegistry {
  public:
-    template <class TYPE> static void registerMeasurementType() {
-        std::shared_ptr<MeasurementToStringBase> conv = std::make_shared<MeasurementToString<TYPE>>(converters.size());
-        converters.push_back(conv);
+
+    /**
+     * @brief register a (de-)serializer fo a given type
+     * 
+     * @tparam TYPE The measuremetn type that should be (de-)serialized
+     * @param measurementTypeName the type name that is returned when TYPE.getMeasurementTypeName() is called. This si used to match the fitting serializer
+     */
+    template <class TYPE> static void registerMeasurementType(const std::string& measurementTypeName) {
+        std::shared_ptr<MeasurementToStringBase> conv = std::make_shared< MeasurementToString<TYPE> >(measurementTypeName);
+        converters[measurementTypeName] = conv;
     }
 
-    static size_t getIdOf(Measurement::Ptr ptr) {
-        for (int i = 0; i < converters.size(); ++i) {
-            if (converters[i]->isSameType(ptr)) {
-                printf("converter type %i\n", i);
-                return i;
-            }
-        }
-        return -1;
-    }
 
     static std::string serialize(Measurement::Ptr ptr) {
-        return converters[getIdOf(ptr)]->serialize(ptr);
+        return converters[ptr->getMeasurementTypeName()]->serialize(ptr);
     }
 
     static Measurement::Ptr deserialize(const std::string &data) {
@@ -87,11 +95,11 @@ class MeasurementRegistry {
         boost::archive::text_iarchive ia(ss);
         ia >> m;
         //deserialize full
-        return converters[m.getRegistryIndex()]->deserialize(data);
+        return converters[m.getMeasurementTypeName()]->deserialize(data);
     }
 
  private:
-    static std::vector< std::shared_ptr<MeasurementToStringBase> > converters;
+    static std::map<std::string, std::shared_ptr<MeasurementToStringBase> > converters;
 };
 
 }  // namespace slam3d

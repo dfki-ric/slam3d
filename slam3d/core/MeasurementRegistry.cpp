@@ -2,7 +2,7 @@
 
 namespace slam3d {
 
-std::vector< std::shared_ptr<MeasurementToStringBase> > MeasurementRegistry::converters;
+std::map< std::string, std::shared_ptr<MeasurementToStringBase> > MeasurementRegistry::converters;
 
 
 }  // namespace slam3d

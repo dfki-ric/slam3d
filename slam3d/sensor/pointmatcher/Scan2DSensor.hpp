@@ -51,6 +51,10 @@ namespace slam3d
 
 		const PM::DataPoints& getDataPoints() { return mDataPoints; }
 
+		virtual const std::string getMeasurementTypeName() {
+			return "slam3d::Scan2DMeasurement";
+		}
+
 	protected:
 		PM::DataPoints mDataPoints;
 	};

@@ -82,6 +82,10 @@ namespace slam3d
 		 * @return Constant shared pointer to the point cloud
 		 */
 		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
+
+		virtual const std::string getMeasurementTypeName() {
+			return "slam3d::PointCloudMeasurement";
+		}
 		
 	protected:
 		PointCloud::Ptr mPointCloud;

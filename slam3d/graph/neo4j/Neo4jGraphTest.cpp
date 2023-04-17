@@ -15,6 +15,8 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <sstream>
 
+
+
 using namespace slam3d;
 
 std::unique_ptr<Neo4jGraph> neo4jgraph;
@@ -96,7 +98,7 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
 BOOST_AUTO_TEST_CASE(measurement_storage) {
     initDB();
 
-    MeasurementRegistry::registerMeasurementType<slam3d::PointCloudMeasurement>();
+    MeasurementRegistry::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
 
     PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
 
