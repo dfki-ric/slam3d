@@ -57,7 +57,7 @@ namespace slam3d
 		 * @brief 
 		 * @param id
 		 */
-		const VertexObject& getVertex(IdType id);
+		const VertexObject getVertex(IdType id);
 		
 		/**
 		 * @brief 
@@ -65,7 +65,7 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
+		const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor);
 		
 		/**
 		 * @brief Get all outgoing edges from given source.
@@ -157,6 +157,15 @@ namespace slam3d
 		 * @param sensor
 		 */
 		OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
+
+		/**
+		 * @brief 
+		 * 
+		 * @param source_id 
+		 * @param target_id 
+		 * @param c 
+		 */
+		void replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c);
 
 	private:
 		// The boost graph object

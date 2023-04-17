@@ -103,7 +103,7 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor)
 	return objectList;
 }
 
-const VertexObject& BoostGraph::getVertex(IdType id)
+const VertexObject BoostGraph::getVertex(IdType id)
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }
@@ -113,7 +113,7 @@ VertexObject& BoostGraph::getVertexInternal(IdType id)
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor)
+const EdgeObject BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor)
 {
 	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
 	return mPoseGraph[*it];
@@ -176,6 +176,14 @@ EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
 			objectList.push_back(ed);
 	}
 	return objectList;
+}
+
+void BoostGraph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
+{
+	//TODO: should replace on graph
+	EdgeObject& eo = getEdgeInternal(source_id, target_id, c->getSensorName());
+	eo.constraint = c;
+	addToSolver(eo);
 }
 
 void BoostGraph::writeGraphToFile(const std::string& name)

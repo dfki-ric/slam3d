@@ -119,7 +119,7 @@ namespace slam3d
 		 * @details This will not return external vertices from other robots.
 		 * @return last added vertex
 		 */
-		virtual const VertexObject& getLastVertex() const;
+		virtual const VertexObject getLastVertex() const;
 
 	protected:
 		SensorList mSensors;

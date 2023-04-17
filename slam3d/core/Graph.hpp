@@ -244,7 +244,7 @@ namespace slam3d
 		 */
 		virtual void replaceConstraint(IdType source,
 		                               IdType target,
-		                               Constraint::Ptr constraint);
+		                               Constraint::Ptr constraint) = 0;
 
 		virtual void removeConstraint(IdType source,
 		                              IdType target,
@@ -271,7 +271,7 @@ namespace slam3d
 		virtual bool optimize(unsigned iterations = 100);
 		
 		/**
-		 * @brief Returns whether optimize() has been called since the last call to this.
+		 * @brief Returns whether optimize() has been called since the last call to this.addVertex
 		 * @return true if optimization has been called
 		 */
 		bool optimized();
@@ -325,14 +325,14 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 * @return constant reference to a vertex
 		 */
-		virtual const VertexObject& getVertex(IdType id) = 0;
+		virtual const VertexObject getVertex(IdType id) = 0;
 
 		/**
 		 * @brief Gets a vertex by the uuid of the attached Measurement.
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		const VertexObject& getVertex(boost::uuids::uuid id);
+		const VertexObject getVertex(boost::uuids::uuid id);
 
 		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
@@ -354,7 +354,7 @@ namespace slam3d
 		 * @param sensor
 		 * @throw InvalidVertex, InvalidEdge
 		 */
-		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) = 0;
+		virtual const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) = 0;
 
 		/**
 		 * @brief Get all outgoing edges from given source.

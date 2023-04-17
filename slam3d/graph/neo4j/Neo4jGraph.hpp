@@ -48,7 +48,7 @@ class Neo4jGraph : public Graph {
          * @brief 
          * @param id
          */
-        const VertexObject& getVertex(IdType id);
+        const VertexObject getVertex(IdType id);
 
         /**
          * @brief 
@@ -56,7 +56,7 @@ class Neo4jGraph : public Graph {
          * @param target
          * @param sensor
          */
-        const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor);
+        const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor);
 
         /**
          * @brief Get all outgoing edges from given source.
@@ -152,6 +152,15 @@ class Neo4jGraph : public Graph {
         //  * @param sensor
         //  */
         // OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
+
+		/**
+		 * @brief 
+		 * 
+		 * @param source_id 
+		 * @param target_id 
+		 * @param c 
+		 */
+		void replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c);
 
     private:
         std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
