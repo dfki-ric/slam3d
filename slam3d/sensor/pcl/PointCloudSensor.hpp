@@ -70,11 +70,21 @@ namespace slam3d
 			mStamp.tv_usec = cloud->header.stamp % 1000000;
 		}
 		
+		PointCloudMeasurement(const std::string& r, const std::string& s,
+		                      const Transform& p, const boost::uuids::uuid id, std::istream& stream)
+		: Measurement(r, s, p, id)
+		{
+			fromStream(stream);
+		}
+
 		/**
 		 * @brief Gets the point cloud contained within this measurement.
 		 * @return Constant shared pointer to the point cloud
 		 */
 		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
+		
+		void toStream(std::ostream& stream) const;
+		void fromStream(std::istream& stream);
 		
 	protected:
 		PointCloud::Ptr mPointCloud;
@@ -191,7 +201,10 @@ namespace slam3d
 		 * @param radius
 		 */
 		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
-	
+		
+		virtual Measurement::Ptr createFromStream(const std::string& r, const std::string& s,
+			const Transform& p, const boost::uuids::uuid id, std::istream& stream);
+
 	protected:
 		Transform align(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,
 		                const Transform& guess, const RegistrationParameters& config);
