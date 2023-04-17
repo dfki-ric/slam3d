@@ -44,7 +44,7 @@ web::http::http_response& Neo4jQuery::getResponse() {
 }
 
 
-bool Neo4jQuery::printQuery() {
+void Neo4jQuery::printQuery() {
     std::cout << query << std::endl;
 }
 
