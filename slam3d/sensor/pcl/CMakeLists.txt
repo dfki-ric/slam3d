@@ -22,6 +22,7 @@ install(
 	FILES
 		PointCloudSensor.hpp
 		RegistrationParameters.hpp
+		pcl_serialization.hpp
 	DESTINATION include/slam3d/sensor/pcl
 )
 

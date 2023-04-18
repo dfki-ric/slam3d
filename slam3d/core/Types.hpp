@@ -34,6 +34,7 @@
 #include <boost/serialization/split_free.hpp>
 
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <Eigen/Geometry>
 
 #include <string>
@@ -57,17 +58,17 @@ namespace slam3d
 
 namespace boost {
 namespace serialization {
-	template<class Archive> void save(Archive & ar, const boost::uuids::uuid &uuid, const unsigned int version) {
-		std::stringstream ss;
-		ss << uuid;
-		ar & ss.str();
-	}
-	template<class Archive> void load(Archive & ar, boost::uuids::uuid &uuid, const unsigned int version) {
-		std::string in;
-		ar & in;
-		std::stringstream ss(in);
-		ss >> uuid;
-	}
+	// template<class Archive> void save(Archive & ar, const boost::uuids::uuid &uuid, const unsigned int version) {
+	// 	std::stringstream ss;
+	// 	ss << uuid;
+	// 	ar & ss.str();
+	// }
+	// template<class Archive> void load(Archive & ar, boost::uuids::uuid &uuid, const unsigned int version) {
+	// 	std::string in;
+	// 	ar & in;
+	// 	std::stringstream ss(in);
+	// 	ss >> uuid;
+	// }
 
 	template<class Archive> void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version) {
 		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
@@ -80,7 +81,7 @@ namespace serialization {
 
 } // namespace serialization
 } // namespace boost
-BOOST_SERIALIZATION_SPLIT_FREE(boost::uuids::uuid)
+// BOOST_SERIALIZATION_SPLIT_FREE(boost::uuids::uuid)
 BOOST_SERIALIZATION_SPLIT_FREE(slam3d::Transform)
 
 namespace slam3d

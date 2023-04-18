@@ -26,8 +26,6 @@
 #ifndef SLAM_POINTCLOUDSENSOR_HPP
 #define SLAM_POINTCLOUDSENSOR_HPP
 
-#include <slam3d/sensor/pcl/RegistrationParameters.hpp>
-
 #include <slam3d/core/Graph.hpp>
 #include <slam3d/core/ScanSensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
@@ -35,8 +33,9 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
-#include "pcl_serialization.hpp"
 #include <boost/serialization/export.hpp>
+
+#include "RegistrationParameters.hpp"
 
 namespace slam3d
 {
