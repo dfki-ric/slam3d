@@ -217,6 +217,9 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
     }
     web::json::value reply = query.getResponse().extract_json().get();
 
+    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+    // std::cout << reply["results"][0]["data"][0]["row"][0].serialize() << std::endl;
+
     vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0], measurements);
 
     return vertexobj;
@@ -287,11 +290,13 @@ EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
 void Neo4jGraph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+    // here, we replace the whole edge as a first version
+    EdgeObject eo = getEdgeInternal(source_id, target_id, c->getSensorName());
+    removeEdge(source_id, target_id, c->getSensorName());
+    eo.constraint = c;
+    addEdge(eo, false);
+    addToSolver(eo);
 
-	//TODO: should replace on graph
-	// EdgeObject& eo = getEdgeInternal(source_id, target_id, c->getSensorName());
-	// eo.constraint = c;
-	// addToSolver(eo);
 }
 
 void Neo4jGraph::writeGraphToFile(const std::string& name)

@@ -30,7 +30,8 @@ web::json::value* Neo4jQuery::getParameterSet(const std::string& setname, size_t
 }
 
 bool Neo4jQuery::sendQuery() {
-    response = web::http::http_response();
+    // response = web::http::http_response();
+    // std::cout << query.serialize() << std::endl;
     response = client->request(web::http::methods::POST, "/db/neo4j/tx/commit", query.serialize(), "application/json;charset=utf-8").get();
     if (response.status_code() != 200) {
         std::cout << "ERROR " << response.to_string() << std::endl;
