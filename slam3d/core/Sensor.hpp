@@ -138,13 +138,13 @@ namespace slam3d
 		void addLinkSensor(const std::string& s){ mLinkSensors.insert(s); }
 
 		/**
-		 * @brief 
-		 * @param r
-		 * @param s
-		 * @param p
-		 * @param id
-		 * @param stream
-		 * @return 
+		 * @brief Create a specific measurement from metadata and serialized payload data
+		 * @param r robot name
+		 * @param s sensor name
+		 * @param p sensor pose
+		 * @param id uuid of measurement
+		 * @param stream serialized payload data
+		 * @return pointer to new measurement
 		 */
 		virtual Measurement::Ptr createFromStream(const std::string& r, const std::string& s,
 			const Transform& p, const boost::uuids::uuid id, std::istream& stream)
