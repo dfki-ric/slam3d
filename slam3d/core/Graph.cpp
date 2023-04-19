@@ -149,13 +149,6 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	addToSolver(eo);
 }
 
-void Graph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
-{
-	EdgeObject& eo = getEdgeInternal(source_id, target_id, c->getSensorName());
-	eo.constraint = c;
-	addToSolver(eo);
-}
-
 void Graph::addToSolver(const EdgeObject& eo)
 {
 	mConstraintsAdded++;
@@ -188,7 +181,7 @@ bool Graph::hasMeasurement(boost::uuids::uuid id) const
 	return mUuidIndex.find(id) != mUuidIndex.end();
 }
 
-const VertexObject& Graph::getVertex(boost::uuids::uuid id) const
+VertexObject Graph::getVertex(boost::uuids::uuid id) const
 {
 	return getVertex(mUuidIndex.at(id));
 }
@@ -259,5 +252,7 @@ VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) con
 
 void Graph::setCorrectedPose(IdType id, const Transform& pose)
 {
-	getVertexInternal(id).corrected_pose = pose;
+	VertexObject vo = getVertex(id);
+	vo.corrected_pose = pose;
+	setVertex(id, vo);
 }

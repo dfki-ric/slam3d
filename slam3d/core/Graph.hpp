@@ -236,16 +236,6 @@ namespace slam3d
 		                           IdType target,
 		                           Constraint::Ptr constraint);
 
-		/**
-		 * @brief Replace the constraint of the same sensor for the specified edge.
-		 * @param source
-		 * @param target
-		 * @param constraint
-		 */
-		virtual void replaceConstraint(IdType source,
-		                               IdType target,
-		                               Constraint::Ptr constraint);
-
 		virtual void removeConstraint(IdType source,
 		                              IdType target,
 		                              const std::string& sensor);
@@ -325,14 +315,14 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 * @return constant reference to a vertex
 		 */
-		virtual const VertexObject& getVertex(IdType id) const = 0;
+		virtual VertexObject getVertex(IdType id) const = 0;
 
 		/**
 		 * @brief Gets a vertex by the uuid of the attached Measurement.
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		const VertexObject& getVertex(boost::uuids::uuid id) const;
+		VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
@@ -354,7 +344,7 @@ namespace slam3d
 		 * @param sensor
 		 * @throw InvalidVertex, InvalidEdge
 		 */
-		virtual const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
+		virtual EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all outgoing edges from given source.
@@ -409,6 +399,15 @@ namespace slam3d
 		virtual void addVertex(const VertexObject& v) = 0;
 
 		/**
+		 * @brief Set a new vertex for the given id.
+		 * @details The Vertex with the given id must already exist in the graph.
+		 * @param id identifier for a vertex
+		 * @param v VertexObject to be stored in the graph
+		 * @return constant reference to a vertex
+		 */
+		virtual void setVertex(IdType id, const VertexObject& v) = 0;
+
+		/**
 		 * @brief Add the given EdgeObject to the actual graph.
 		 * @details This method has to be implemented by the specification class.
 		 * It should not be used directly, but is used internally.
@@ -423,21 +422,6 @@ namespace slam3d
 		 * @param sensor
 		 */
 		virtual void removeEdge(IdType source, IdType target, const std::string& sensor) = 0;
-
-		/**
-		 * @brief Get a writable reference to a VertexObject.
-		 * @param id
-		 * @throw InvalidVertex
-		 */
-		virtual VertexObject& getVertexInternal(IdType id) = 0;
-
-		/**
-		 * @brief Get a writable reference to an EdgeObject.
-		 * @param source
-		 * @param target
-		 * @param sensor
-		 */
-		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor) = 0;
 
 	protected:
 		/**

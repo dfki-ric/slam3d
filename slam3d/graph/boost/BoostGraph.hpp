@@ -57,7 +57,7 @@ namespace slam3d
 		 * @brief 
 		 * @param id
 		 */
-		const VertexObject& getVertex(IdType id) const;
+		VertexObject getVertex(IdType id) const;
 		
 		/**
 		 * @brief 
@@ -65,7 +65,7 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		const EdgeObject& getEdge(IdType source, IdType target, const std::string& sensor) const;
+		EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
 		
 		/**
 		 * @brief Get all outgoing edges from given source.
@@ -121,6 +121,13 @@ namespace slam3d
 		void addVertex(const VertexObject& v);
 		
 		/**
+		 * @brief Set the given VertexObject to the internal graph.
+		 * @param id
+		 * @param v
+		 */
+		void setVertex(IdType id, const VertexObject& v);
+		
+		/**
 		 * @brief Add the given EdgeObject to the internal graph.
 		 * @param e
 		 */
@@ -134,19 +141,6 @@ namespace slam3d
 		 */
 		virtual void removeEdge(IdType source, IdType target, const std::string& sensor);
 
-		/**
-		 * @brief Get a writable reference to a VertexObject.
-		 * @param id
-		 */
-		virtual VertexObject& getVertexInternal(IdType id);
-		
-		/**
-		 * @brief Get a writable reference to an EdgeObject.
-		 * @param source
-		 * @param target
-		 * @param sensor
-		 */
-		virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor);
 		
 		/**
 		 * @brief 
