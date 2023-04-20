@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <sstream>
+#include <map>
 #include <boost/archive/text_oarchive.hpp>
 
 #include "../../core/Types.hpp"
@@ -10,32 +10,30 @@
 
 namespace slam3d {
 
-
+// uncomment this to enable serialization
+//#define SERIALIZE
 
 class RedisMap {
  public:
     template <class MEASUREMENT_TYPE> void set(const std::string& key, const MEASUREMENT_TYPE &measurement) {
-        measurements[key] = MeasurementRegistry::serialize(measurement);
-        typenames[key] = measurement->getMeasurementTypeName();
-        //measurements[key] = measurement;
+        #ifdef SERIALIZE
+            measurements[key] = MeasurementRegistry::serialize(measurement);
+            typenames[key] = measurement->getMeasurementTypeName();
+        #else
+            measurements[key] = measurement;
+        #endif
     }
 
     Measurement::Ptr get(const std::string& key);
 
-    const std::string& getType(const std::string& key) {
-        return typenames[key];
-    }
-
-    // template <class MEASUREMENT_TYPE> boost::shared_ptr<MEASUREMENT_TYPE> getAs(const std::string& key) {
-    //     return boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(get(key));
-    // }
 
  private:
-
-    // fakedb
-    //std::map<std::string, Measurement::Ptr> measurements;
-    std::map<std::string, std::string> typenames;
-    std::map<std::string, std::string> measurements;
+    #ifdef SERIALIZE
+        std::map<std::string, std::string> typenames;
+        std::map<std::string, std::string> measurements;
+    #else
+        std::map<std::string, Measurement::Ptr> measurements;
+    #endif
 
 };
 

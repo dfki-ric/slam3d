@@ -203,7 +203,7 @@ VertexObject& Neo4jGraph::getVertexInternal(IdType id)
 {
 
     std::lock_guard<std::mutex> lock (queryMutex);
-    
+
     vertexObjects.resize(id+1);
     VertexObject& vertexobj = vertexObjects[id];
 
@@ -293,12 +293,12 @@ EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
 void Neo4jGraph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // here, we replace the whole edge as a first version
-    EdgeObject eo = getEdgeInternal(source_id, target_id, c->getSensorName());
-    removeEdge(source_id, target_id, c->getSensorName());
-    eo.constraint = c;
-    addEdge(eo, false);
-    addToSolver(eo);
+    // // here, we replace the whole edge as a first version
+    // EdgeObject eo = getEdgeInternal(source_id, target_id, c->getSensorName());
+    // removeEdge(source_id, target_id, c->getSensorName());
+    // eo.constraint = c;
+    // addEdge(eo, false);
+    // addToSolver(eo);
 
 }
 
@@ -404,9 +404,14 @@ float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) {
     }
 
     web::json::value result = query.getResponse().extract_json().get();
-    web::json::array &path = result["results"][0]["data"][0]["row"][0].as_array();
-
-    return path.size();
+    try {
+        web::json::array &path = result["results"][0]["data"][0]["row"][0].as_array();
+        return path.size();
+    } catch (const web::json::json_exception &e) {
+        std::cout << "error on calculateGraphDistance : " << source_id << " -- " << target_id << e.what() << std::endl;
+        std::cout << result << std::endl;
+    }
+    return 0;
 }
 
 

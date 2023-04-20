@@ -2,20 +2,17 @@
 
 #include "RedisMap.hpp"
 
-
 #include <boost/archive/text_iarchive.hpp>
 
 
 namespace slam3d {
 
-// Measurement::Ptr& RedisMap::operator[](const std::string& key) {
-//     return measurements[key];
-// }
-
-
     Measurement::Ptr RedisMap::get(const std::string& key) {
-        return MeasurementRegistry::deserialize(measurements[key], typenames[key]);
-        //return measurements[key];
+        #ifdef SERIALIZE
+            return MeasurementRegistry::deserialize(measurements[key], typenames[key]);;
+        #else
+            return measurements[key];
+        #endif
     }
 
 }  // namespace slam3d

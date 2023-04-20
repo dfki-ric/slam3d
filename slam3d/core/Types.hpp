@@ -58,18 +58,6 @@ namespace slam3d
 
 namespace boost {
 namespace serialization {
-	// template<class Archive> void save(Archive & ar, const boost::uuids::uuid &uuid, const unsigned int version) {
-	// 	std::stringstream ss;
-	// 	ss << uuid;
-	// 	ar & ss.str();
-	// }
-	// template<class Archive> void load(Archive & ar, boost::uuids::uuid &uuid, const unsigned int version) {
-	// 	std::string in;
-	// 	ar & in;
-	// 	std::stringstream ss(in);
-	// 	ss >> uuid;
-	// }
-
 	template<class Archive> void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version) {
 		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
 	}
@@ -77,8 +65,6 @@ namespace serialization {
 		tf.setIdentity(); // init whole matrix
 		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
 	}
-
-
 } // namespace serialization
 } // namespace boost
 // BOOST_SERIALIZATION_SPLIT_FREE(boost::uuids::uuid)
@@ -156,7 +142,7 @@ namespace slam3d
 			 ar & mUniqueId;
 			 ar & mSensorPose;
 			 ar & mInverseSensorPose;
-			//  std::cout << mSensorPose.matrix() << std::endl;
+			// std::cout << mSensorPose.matrix() << std::endl;
 			//  ar & boost::serialization::make_array(mSensorPose.matrix().data(), mSensorPose.rows() * mSensorPose.cols());
 			//  std::cout << mSensorPose.matrix() << std::endl;
 			//  ar & boost::serialization::make_array(mInverseSensorPose.matrix().data(), mSensorPose.rows() * mSensorPose.cols());
