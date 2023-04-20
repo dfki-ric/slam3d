@@ -201,6 +201,9 @@ const VertexObject Neo4jGraph::getVertex(IdType id)
 
 VertexObject& Neo4jGraph::getVertexInternal(IdType id)
 {
+
+    std::lock_guard<std::mutex> lock (queryMutex);
+    
     vertexObjects.resize(id+1);
     VertexObject& vertexobj = vertexObjects[id];
 

@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include "../../core/Graph.hpp"
 
@@ -190,6 +191,8 @@ class Neo4jGraph : public Graph {
 
 
         slam3d::Logger* logger;
+
+        std::mutex queryMutex;
 
 };
 }

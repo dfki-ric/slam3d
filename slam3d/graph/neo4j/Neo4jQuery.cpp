@@ -3,9 +3,8 @@
 namespace slam3d {
 
 Neo4jQuery::Neo4jQuery(std::shared_ptr<web::http::client::http_client> client) : client(client), next_statement_index(0) {
-    // query = web::json::value::object(true); sorted
-    query["statements"] = web::json::value::array(0);
-    // query["statements"][0]["parameters"] = web::json::value();
+    // mostly we'll use a single statement
+    query["statements"] = web::json::value::array(1);
 }
 
 int Neo4jQuery::addStatement(const std::string& statement) {
