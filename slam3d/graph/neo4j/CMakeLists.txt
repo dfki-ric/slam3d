@@ -53,6 +53,6 @@
 	# Build test
 	add_executable(test_neo4j_graph Neo4jGraphTest.cpp)
 	add_dependencies(test_neo4j_graph sensor-pcl)
-	target_link_libraries(test_neo4j_graph Boost::unit_test_framework graph-neo4j sensor-pcl ${PCL_LIBRARIES})
+	target_link_libraries(test_neo4j_graph Boost::unit_test_framework graph-neo4j sensor-pcl)
 	target_compile_definitions(test_boost_graph PRIVATE BOOST_TEST_DYN_LINK)
 	add_test(neo4j_graph test_neo4j_graph)
