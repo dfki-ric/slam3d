@@ -7,5 +7,5 @@ Name: slam3d_sensor_pcl
 Description: Sensor module to handle pointclouds using PCL.
 Version: @SLAM3D_VERSION@
 Requires: slam3d_core pcl_registration-@PCL_VERSION_MAJOR@.@PCL_VERSION_MINOR@
-Libs: -L${libdir} -lslam3d_sensor_pcl
+Libs: -L${libdir} -lslam3d_sensor_pcl @PCL_LIBRARIES@
 Cflags: -I${includedir}

@@ -15,6 +15,7 @@ target_link_libraries(sensor-pcl
 	PRIVATE
 		pclomp::registration
 		${PCL_SAMPLE_CONCENSUS_LIBRARIES}
+		${PCL_LIBRARIES}
 )
 
 # Install header files

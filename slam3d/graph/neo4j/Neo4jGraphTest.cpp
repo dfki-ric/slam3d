@@ -15,8 +15,6 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <sstream>
 
-
-
 using namespace slam3d;
 
 std::unique_ptr<Neo4jGraph> neo4jgraph;
@@ -49,8 +47,14 @@ void initDB() {
     }
 }
 
+void initRegistry() {
+    MeasurementRegistry::registerMeasurementType<slam3d::Measurement>("slam3d::Measurement");
+    MeasurementRegistry::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+}
+
 BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {
     initDB();
+    initRegistry();
     test_graph_construction(neo4jgraph.get());
 }
 
@@ -70,39 +74,46 @@ BOOST_AUTO_TEST_CASE(contraint_conversion) {
 
 
 BOOST_AUTO_TEST_CASE(measurement_serialization) {
-     PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
-     slam3d::Measurement::Ptr m(new slam3d::PointCloudMeasurement(cloud, "robot", "sensor", slam3d::Transform::Identity()));
 
+    PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
 
-        std::stringstream sin;
-        boost::archive::text_oarchive oa(sin);
-        // TODO, need to check for sub-type? https://theboostcpplibraries.com/boost.serialization-class-hierarchies
-        oa << *m;
-        std::string data = sin.str();
+    cloud->push_back(slam3d::PointType(1, 2, 3));
+    slam3d::PointCloudMeasurement::Ptr m(new slam3d::PointCloudMeasurement(cloud, "robot", "sensor", slam3d::Transform::Identity()));
 
-        std::stringstream sout(data);
-        boost::archive::text_iarchive ia(sout);
-        Measurement::Ptr m_res = Measurement::Ptr(new Measurement("", "", slam3d::Transform()));
-        ia >> *(m_res.get());
+    std::stringstream sin;
+    boost::archive::text_oarchive oa(sin);
+    // TODO, need to check for sub-type? https://theboostcpplibraries.com/boost.serialization-class-hierarchies
+    oa << *(m.get());
+    std::string data = sin.str();
 
-        BOOST_CHECK_EQUAL(m->getRobotName(), m_res->getRobotName());
-        BOOST_CHECK_EQUAL(m->getTimestamp().tv_sec, m_res->getTimestamp().tv_sec);
-        BOOST_CHECK_EQUAL(m->getTimestamp().tv_usec, m_res->getTimestamp().tv_usec);
-        BOOST_CHECK_EQUAL(m->getSensorName(), m_res->getSensorName());
-        BOOST_CHECK(m->getUniqueId() == m_res->getUniqueId());
-        BOOST_CHECK(m->getSensorPose().isApprox(m_res->getSensorPose()));
-        BOOST_CHECK(m->getInverseSensorPose().isApprox(m_res->getInverseSensorPose()));
+    std::stringstream sout(data);
+    boost::archive::text_iarchive ia(sout);
+    PointCloudMeasurement::Ptr m_res = PointCloudMeasurement::Ptr(new PointCloudMeasurement());
+    ia >> *(m_res.get());
+
+    BOOST_CHECK_NE(m_res.get(), nullptr);
+    BOOST_CHECK_EQUAL(m->getRobotName(), m_res->getRobotName());
+    BOOST_CHECK_EQUAL(m->getTimestamp().tv_sec, m_res->getTimestamp().tv_sec);
+    BOOST_CHECK_EQUAL(m->getTimestamp().tv_usec, m_res->getTimestamp().tv_usec);
+    BOOST_CHECK_EQUAL(m->getSensorName(), m_res->getSensorName());
+    BOOST_CHECK(m->getUniqueId() == m_res->getUniqueId());
+    BOOST_CHECK(m->getSensorPose().isApprox(m_res->getSensorPose()));
+    BOOST_CHECK(m->getInverseSensorPose().isApprox(m_res->getInverseSensorPose()));
+
+    BOOST_CHECK_EQUAL(m_res->getMeasurementTypeName(), "slam3d::PointCloudMeasurement");
+
+    BOOST_CHECK_NE(m_res->getPointCloud(), nullptr);
+    BOOST_CHECK_EQUAL(m_res->getPointCloud()->size(), cloud->size());
 }
 
 
 BOOST_AUTO_TEST_CASE(measurement_storage) {
     initDB();
-
-    MeasurementRegistry::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+    initRegistry();
 
     PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
 
-    cloud->push_back(slam3d::PointType(1,2,3));
+    cloud->push_back(slam3d::PointType(1, 2, 3));
 
     slam3d::Graph* g = dynamic_cast<slam3d::Graph*>(neo4jgraph.get());
 
@@ -121,6 +132,7 @@ BOOST_AUTO_TEST_CASE(measurement_storage) {
     BOOST_CHECK_EQUAL(m->getRobotName(), query_res.measurement->getRobotName()); 
 
     slam3d::PointCloudMeasurement::Ptr m_res = boost::dynamic_pointer_cast<slam3d::PointCloudMeasurement>(query_res.measurement);
+
     BOOST_CHECK_NE(m_res.get(), nullptr);
 
     BOOST_CHECK_EQUAL(m_res->getPointCloud()->size(), cloud->size());

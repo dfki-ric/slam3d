@@ -14,8 +14,8 @@ namespace slam3d {
 
 
     Measurement::Ptr RedisMap::get(const std::string& key) {
-        //return MeasurementRegistry::deserialize(measurements[key]);
-        return measurements[key];
+        return MeasurementRegistry::deserialize(measurements[key], typenames[key]);
+        //return measurements[key];
     }
 
 }  // namespace slam3d

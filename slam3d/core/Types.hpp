@@ -122,6 +122,7 @@ namespace slam3d
 	public:
 		Measurement(const std::string& r, const std::string& s,
 		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
+		Measurement(){};  // <- needed for de-serilaization
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
@@ -131,7 +132,7 @@ namespace slam3d
 		Transform getSensorPose() const { return mSensorPose; }
 		Transform getInverseSensorPose() const { return mInverseSensorPose; }
 
-		virtual const std::string getMeasurementTypeName() {
+		virtual std::string getMeasurementTypeName() {
 			return "slam3d::Measurement";
 		};
 		

@@ -37,8 +37,6 @@
 
 #include <boost/format.hpp>
 
-#include "pcl_serialization.hpp"
-
 #define PI 3.141592654
 
 using namespace slam3d;

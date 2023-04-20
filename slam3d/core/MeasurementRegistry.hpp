@@ -22,12 +22,11 @@ class MeasurementToStringBase {
     virtual Measurement::Ptr deserialize(const std::string &data) = 0;
     virtual bool isSameType(Measurement::Ptr ptr) = 0;
     virtual const std::string& getTypeName() = 0;
-
 };
 
 template <class MEASUREMENT_TYPE> class MeasurementToString : public MeasurementToStringBase {
  public:
-    MeasurementToString(const std::string& typeName){
+    explicit MeasurementToString(const std::string& typeName) {
         measurementTypeName = typeName;
     }
     virtual ~MeasurementToString() {}
@@ -42,9 +41,6 @@ template <class MEASUREMENT_TYPE> class MeasurementToString : public Measurement
 
     virtual std::string serialize(Measurement::Ptr ptr) {
         boost::shared_ptr<MEASUREMENT_TYPE> newptr = boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(ptr);
-        //ptr->setRegistryIndex(registry_index);
-        printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-
         std::stringstream ss;
         boost::archive::text_oarchive oa(ss);
         oa << *(newptr.get());
@@ -70,7 +66,6 @@ template <class MEASUREMENT_TYPE> class MeasurementToString : public Measurement
 
 class MeasurementRegistry {
  public:
-
     /**
      * @brief register a (de-)serializer fo a given type
      * 
@@ -84,18 +79,28 @@ class MeasurementRegistry {
 
 
     static std::string serialize(Measurement::Ptr ptr) {
-        return converters[ptr->getMeasurementTypeName()]->serialize(ptr);
+        if (ptr.get()) {
+            std::shared_ptr<MeasurementToStringBase> conv = converters[ptr->getMeasurementTypeName()];
+            if (conv.get()) {
+                return conv->serialize(ptr);
+            } else {
+                printf("no registered converter for %s\n", ptr->getMeasurementTypeName().c_str());
+            }
+        }
+        return "";
     }
 
-    static Measurement::Ptr deserialize(const std::string &data) {
-
-        //deserialize base
-        Measurement m("","", slam3d::Transform());
-        std::stringstream ss(data);
-        boost::archive::text_iarchive ia(ss);
-        ia >> m;
-        //deserialize full
-        return converters[m.getMeasurementTypeName()]->deserialize(data);
+    static Measurement::Ptr deserialize(const std::string &data, const std::string& key) {
+        if (data.size()) {
+            std::shared_ptr<MeasurementToStringBase> conv = converters[key];
+            if (conv.get()) {
+                return converters[key]->deserialize(data);
+            } else {
+                printf("no registered converter for %s\n", key.c_str());
+            }
+            return Measurement::Ptr();
+        }
+        return Measurement::Ptr();
     }
 
  private:

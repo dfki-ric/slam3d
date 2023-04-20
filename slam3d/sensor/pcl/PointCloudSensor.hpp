@@ -34,13 +34,12 @@
 #include <pcl/point_cloud.h>
 
 #include <boost/serialization/export.hpp>
+#include "pcl_serialization.hpp"
 
 #include "RegistrationParameters.hpp"
 
 namespace slam3d
 {
-	typedef pcl::PointXYZ PointType;
-	typedef pcl::PointCloud<PointType> PointCloud;
 	
 	/**
 	 * @class PointCloudMeasurement
@@ -82,28 +81,23 @@ namespace slam3d
 		 */
 		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
 
-		virtual const std::string getMeasurementTypeName() {
+		virtual std::string getMeasurementTypeName() {
 			return "slam3d::PointCloudMeasurement";
 		}
 		
 	protected:
+		
 		PointCloud::Ptr mPointCloud;
+
 	private:
 		friend class boost::serialization::access;
-
-		// template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
-		// 	ar & *(mPointCloud.get());
-		// }
-
-		template <typename Archive> void save(Archive &ar, const unsigned int version) {
-			ar & boost::serialization::base_object<Measurement>(*this);
-			ar & *(mPointCloud.get());
-		}
-		template <typename Archive> void load(Archive &ar, const unsigned int version) {
-			PointCloud c;
-			ar & boost::serialization::base_object<Measurement>(*this);
-			ar & c;
-			mPointCloud = PointCloud::Ptr(new PointCloud(c));
+		template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
+			if (mPointCloud.get() == nullptr) {
+				// create empty cloud to have something to work on (not a nullptr)
+				mPointCloud = boost::make_shared<PointCloud>();
+			}
+			ar & boost::serialization::base_object<slam3d::Measurement>(*this);
+			ar & *mPointCloud;
 		}
 	};
 
