@@ -67,7 +67,6 @@ namespace serialization {
 	}
 } // namespace serialization
 } // namespace boost
-// BOOST_SERIALIZATION_SPLIT_FREE(boost::uuids::uuid)
 BOOST_SERIALIZATION_SPLIT_FREE(slam3d::Transform)
 
 namespace slam3d
@@ -142,10 +141,6 @@ namespace slam3d
 			 ar & mUniqueId;
 			 ar & mSensorPose;
 			 ar & mInverseSensorPose;
-			// std::cout << mSensorPose.matrix() << std::endl;
-			//  ar & boost::serialization::make_array(mSensorPose.matrix().data(), mSensorPose.rows() * mSensorPose.cols());
-			//  std::cout << mSensorPose.matrix() << std::endl;
-			//  ar & boost::serialization::make_array(mInverseSensorPose.matrix().data(), mSensorPose.rows() * mSensorPose.cols());
 		}
 
 	};
