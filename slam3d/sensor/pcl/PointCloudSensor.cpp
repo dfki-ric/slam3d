@@ -93,9 +93,9 @@ void PointCloudMeasurement::toStream(std::ostream& stream) const
 void PointCloudMeasurement::fromStream(std::istream &stream)
 {
 	pcl::PCLPointCloud2 blob;
-//	stream.read (reinterpret_cast<char*> (&value), sizeof(value));
 	boost::archive::text_iarchive ia(stream);
 	ia >> blob;
+	mPointCloud.reset(new PointCloud());
 	pcl::fromPCLPointCloud2(blob, *mPointCloud);
 }
 
@@ -402,5 +402,5 @@ void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
 Measurement::Ptr PointCloudSensor::createFromStream(const std::string& r, const std::string& s,
 	const Transform& p, const boost::uuids::uuid id, std::istream& stream)
 {
-	return Measurement::Ptr(new PointCloudMeasurement(r, s, p, id, stream));
+	return boost::make_shared<PointCloudMeasurement>(r, s, p, id, stream);
 }
