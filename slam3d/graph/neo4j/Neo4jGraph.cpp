@@ -199,13 +199,9 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
 //     return getVertexInternal(id);
 // }
 
-VertexObject Neo4jGraph::getVertex(IdType id)
-{
-
+VertexObject Neo4jGraph::getVertex(IdType id) {
     std::lock_guard<std::mutex> lock (queryMutex);
-
-    vertexObjects.resize(id+1);
-    VertexObject& vertexobj = vertexObjects[id];
+    VertexObject vertexobj;
 
     //query and fill
     //MATCH (n:Vertex) WHERE n.index = "2" RETURN n AS node
@@ -228,12 +224,21 @@ VertexObject Neo4jGraph::getVertex(IdType id)
     return vertexobj;
 }
 
+void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
+    std::lock_guard<std::mutex> lock (queryMutex);
+
+    printf("%s:%i inpmlemented\n",__PRETTY_FUNCTION__, __LINE__);
+
+
+
+}
+
 // const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor)
 // {
 //     return getEdgeInternal(source, target, sensor);
 // }
 
-EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) {
+EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) const {
     Neo4jQuery query(client);
     // MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index=1 AND b.index=2 AND r.sensor="S1" RETURN r
     query.addStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");

@@ -181,7 +181,7 @@ bool Graph::hasMeasurement(boost::uuids::uuid id) const
 	return mUuidIndex.find(id) != mUuidIndex.end();
 }
 
-VertexObject Graph::getVertex(boost::uuids::uuid id) const
+VertexObject Graph::getVertex(boost::uuids::uuid id)
 {
 	return getVertex(mUuidIndex.at(id));
 }
@@ -248,11 +248,4 @@ VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius)
 	
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
 	return result;
-}
-
-void Graph::setCorrectedPose(IdType id, const Transform& pose)
-{
-	VertexObject vo = getVertex(id);
-	vo.corrected_pose = pose;
-	setVertex(id, vo);
 }

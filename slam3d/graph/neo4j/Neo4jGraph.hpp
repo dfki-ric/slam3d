@@ -51,13 +51,15 @@ class Neo4jGraph : public Graph {
          */
         VertexObject getVertex(IdType id);
 
+        virtual void setVertex(IdType id, const VertexObject& v);
+
         /**
          * @brief 
          * @param source
          * @param target
          * @param sensor
          */
-        EdgeObject getEdge(IdType source, IdType target, const std::string& sensor);
+        EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
 
         /**
          * @brief Get all outgoing edges from given source.
