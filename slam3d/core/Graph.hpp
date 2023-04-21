@@ -261,7 +261,7 @@ namespace slam3d
 		virtual bool optimize(unsigned iterations = 100);
 		
 		/**
-		 * @brief Returns whether optimize() has been called since the last call to this.addVertex
+		 * @brief Returns whether optimize() has been called since the last call to this.
 		 * @return true if optimization has been called
 		 */
 		bool optimized();

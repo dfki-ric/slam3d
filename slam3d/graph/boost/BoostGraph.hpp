@@ -152,15 +152,6 @@ namespace slam3d
 		 */
 		OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
 
-		/**
-		 * @brief 
-		 * 
-		 * @param source_id 
-		 * @param target_id 
-		 * @param c 
-		 */
-		void replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c);
-
 	private:
 		// The boost graph object
 		AdjacencyGraph mPoseGraph;

@@ -2,7 +2,6 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 
-
 using namespace slam3d;
 
 Measurement::Measurement(const std::string& r, const std::string& s,
