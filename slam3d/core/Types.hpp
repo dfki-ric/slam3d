@@ -29,11 +29,21 @@
 #include <sys/time.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/uuid/nil_generator.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/split_free.hpp>
+
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <Eigen/Geometry>
 
 #include <string>
 #include <vector>
 #include <map>
+
+
+#include <iostream>
+
 
 namespace slam3d
 {
@@ -44,7 +54,24 @@ namespace slam3d
 	typedef Eigen::Quaternion<ScalarType> Quaternion;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
-	
+}
+
+namespace boost {
+namespace serialization {
+	template<class Archive> void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version) {
+		ar & boost::serialization::make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
+	}
+	template<class Archive> void load(Archive & ar, slam3d::Transform &tf, const unsigned int version) {
+		tf.setIdentity(); // init whole matrix
+		ar & boost::serialization::make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
+	}
+} // namespace serialization
+} // namespace boost
+BOOST_SERIALIZATION_SPLIT_FREE(slam3d::Transform)
+
+namespace slam3d
+{
+
 	/**
 	 * @brief Re-orthogonalize the rotation-matrix
 	 * @param t input tranform
@@ -80,6 +107,7 @@ namespace slam3d
 	public:
 		Measurement(const std::string& r, const std::string& s,
 		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
+		Measurement(){};  // <- needed for de-serilaization
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
@@ -88,6 +116,10 @@ namespace slam3d
 		boost::uuids::uuid getUniqueId() const { return mUniqueId; }
 		Transform getSensorPose() const { return mSensorPose; }
 		Transform getInverseSensorPose() const { return mInverseSensorPose; }
+
+		virtual std::string getMeasurementTypeName() {
+			return "slam3d::Measurement";
+		};
 		
 	protected:
 		timeval mStamp;
@@ -97,6 +129,20 @@ namespace slam3d
 		
 		Transform mSensorPose;
 		Transform mInverseSensorPose;
+
+	private:
+		friend class boost::serialization::access;
+
+		template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
+			 ar & mStamp.tv_sec;
+			 ar & mStamp.tv_usec;
+			 ar & mRobotName;
+			 ar & mSensorName;
+			 ar & mUniqueId;
+			 ar & mSensorPose;
+			 ar & mInverseSensorPose;
+		}
+
 	};
 	
 	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION};

@@ -29,7 +29,7 @@ BoostGraph::~BoostGraph()
 {
 }
 
-EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
+const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor)
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -96,7 +96,7 @@ void BoostGraph::removeEdge(IdType source, IdType target, const std::string& sen
 	boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
 }
 
-VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
+const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor)
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -110,12 +110,12 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) co
 	return objectList;
 }
 
-VertexObject BoostGraph::getVertex(IdType id) const
+const VertexObject BoostGraph::getVertex(IdType id)
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-EdgeObject BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
+const EdgeObject BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
 	return mPoseGraph[*it];
@@ -143,7 +143,7 @@ OutEdgeIterator BoostGraph::getEdgeIterator(IdType source, IdType target, const 
 	throw InvalidEdge(source, target);
 }
 
-EdgeObjectList BoostGraph::getOutEdges(IdType source) const
+const EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 {
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
@@ -156,7 +156,7 @@ EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 	return edges;
 }
 
-EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
+const EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
 {
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
@@ -233,7 +233,7 @@ private:
 	unsigned max_depth;
 };
 
-VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
+const VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
 	// Create required data structures
 	Vertex source = mIndexMap.at(source_id);
@@ -283,4 +283,9 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 		.weight_map(boost::make_assoc_property_map(weight)) );
 
 	return distance[mIndexMap.at(target_id)];
+}
+
+void BoostGraph::setCorrectedPose(IdType id, const Transform& pose)
+{
+	mPoseGraph[mIndexMap.at(id)].corrected_pose = pose;
 }

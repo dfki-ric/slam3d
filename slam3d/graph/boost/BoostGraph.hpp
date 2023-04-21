@@ -57,7 +57,7 @@ namespace slam3d
 		 * @brief 
 		 * @param id
 		 */
-		VertexObject getVertex(IdType id) const;
+		const VertexObject getVertex(IdType id);
 		
 		/**
 		 * @brief 
@@ -65,39 +65,39 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
+		const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
 		
 		/**
 		 * @brief Get all outgoing edges from given source.
 		 * @param source
 		 * @throw std::out_of_range
 		 */
-		EdgeObjectList getOutEdges(IdType source) const;
+		const EdgeObjectList getOutEdges(IdType source) const;
 		
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+		const VertexObjectList getVerticesFromSensor(const std::string& sensor);
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
 		 * @param range maximum number of steps to search from source
 		 */
-		VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
+		const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
+		const EdgeObjectList getEdgesFromSensor(const std::string& sensor);
 		
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		EdgeObjectList getEdges(const VertexObjectList& vertices) const;
+		const EdgeObjectList getEdges(const VertexObjectList& vertices) const;
 
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
@@ -112,6 +112,8 @@ namespace slam3d
 		 * @param name filename without type ending
 		 */
 		void writeGraphToFile(const std::string &name);
+
+		void setCorrectedPose(IdType id, const Transform& pose);
 
 	protected:
 		/**

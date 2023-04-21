@@ -1,9 +1,12 @@
+find_package(Boost REQUIRED serialization)
+
 add_library(core SHARED
 	Mapper.cpp
 	Graph.cpp
 	Sensor.cpp
 	ScanSensor.cpp
 	Types.cpp
+	MeasurementRegistry.cpp
 )
 
 target_include_directories(core
@@ -16,6 +19,7 @@ target_link_libraries(core
 	PUBLIC
 		Eigen3::Eigen
 		Boost::thread
+		Boost::serialization
 		PkgConfig::flann)
 
 target_compile_features(core PUBLIC cxx_alias_templates)
