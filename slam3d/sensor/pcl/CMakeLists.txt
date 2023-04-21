@@ -14,6 +14,7 @@ target_link_libraries(sensor-pcl
 		core
 	PRIVATE
 		pclomp::registration
+		Boost::serialization
 		${PCL_SAMPLE_CONCENSUS_LIBRARIES}
 		${PCL_LIBRARIES}
 )
@@ -23,7 +24,6 @@ install(
 	FILES
 		PointCloudSensor.hpp
 		RegistrationParameters.hpp
-		pcl_serialization.hpp
 	DESTINATION include/slam3d/sensor/pcl
 )
 
@@ -44,3 +44,15 @@ install(
 set_target_properties(sensor-pcl PROPERTIES
 	OUTPUT_NAME slam3d_sensor_pcl
 )
+
+# Build test
+add_executable(pcl_sensor_test PointCloudSensorTest.cpp)
+
+target_link_libraries(pcl_sensor_test
+	Boost::unit_test_framework
+	Boost::system
+	${PCL_IO_LIBRARIES}
+	sensor-pcl)
+
+target_compile_definitions(pcl_sensor_test PRIVATE -DBOOST_TEST_DYN_LINK)
+add_test(pcl_sensor pcl_sensor_test)

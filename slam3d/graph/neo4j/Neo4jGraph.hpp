@@ -49,7 +49,7 @@ class Neo4jGraph : public Graph {
          * @brief 
          * @param id
          */
-        const VertexObject getVertex(IdType id);
+        VertexObject getVertex(IdType id);
 
         /**
          * @brief 
@@ -57,7 +57,7 @@ class Neo4jGraph : public Graph {
          * @param target
          * @param sensor
          */
-        const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor);
+        EdgeObject getEdge(IdType source, IdType target, const std::string& sensor);
 
         /**
          * @brief Get all outgoing edges from given source.
@@ -132,21 +132,21 @@ class Neo4jGraph : public Graph {
          */
         virtual void removeEdge(IdType source, IdType target, const std::string& sensor);
 
-        /**
-         * @brief Get a writable reference to a VertexObject.
-         * @param id
-         */
-        virtual VertexObject& getVertexInternal(IdType id);
-
-        /**
-         * @brief Get a writable reference to an EdgeObject.
-         * @param source
-         * @param target
-         * @param sensor
-         */
-        virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor);
+        // /**
+        //  * @brief Get a writable reference to a VertexObject.
+        //  * @param id
+        //  */
+        // virtual VertexObject& getVertexInternal(IdType id);
 
         // /**
+        //  * @brief Get a writable reference to an EdgeObject.
+        //  * @param source
+        //  * @param target
+        //  * @param sensor
+        //  */
+        // virtual EdgeObject& getEdgeInternal(IdType source, IdType target, const std::string& sensor);
+
+        // // /**
         //  * @brief
         //  * @param source
         //  * @param target

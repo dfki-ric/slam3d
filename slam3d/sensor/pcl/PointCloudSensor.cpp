@@ -34,8 +34,12 @@
 #include <pcl/pcl_config.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
+#include <pcl/conversions.h>
 
 #include <boost/format.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
 
 #define PI 3.141592654
 

@@ -21,6 +21,8 @@ using namespace slam3d;
 BoostGraph::BoostGraph(Logger* log)
  : Graph(log)
 {
+	// insert a dummy node as a source of unary edges
+	mIndexMap.insert(IndexMap::value_type(0, 0));
 }
 
 BoostGraph::~BoostGraph()
@@ -62,14 +64,19 @@ void BoostGraph::addVertex(const VertexObject& v)
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
+void BoostGraph::setVertex(IdType id, const VertexObject& v)
+{
+	mPoseGraph[mIndexMap.at(id)] = v;
+}
+
 void BoostGraph::addEdge(const EdgeObject& e)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	Edge forward_edge, inverse_edge;
 	bool inserted_forward, inserted_inverse;
 	
-	Vertex source = mIndexMap[e.source];
-	Vertex target = mIndexMap[e.target];
+	Vertex source = mIndexMap.at(e.source);
+	Vertex target = mIndexMap.at(e.target);
 	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
 	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
 
@@ -103,23 +110,12 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor)
 	return objectList;
 }
 
-const VertexObject BoostGraph::getVertex(IdType id)
+VertexObject BoostGraph::getVertex(IdType id) const
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-VertexObject& BoostGraph::getVertexInternal(IdType id)
-{
-	return mPoseGraph[mIndexMap.at(id)];
-}
-
-const EdgeObject BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor)
-{
-	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
-	return mPoseGraph[*it];
-}
-
-EdgeObject& BoostGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor)
+EdgeObject BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
 	return mPoseGraph[*it];
@@ -176,14 +172,6 @@ EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
 			objectList.push_back(ed);
 	}
 	return objectList;
-}
-
-void BoostGraph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
-{
-	//TODO: should replace on graph
-	EdgeObject& eo = getEdgeInternal(source_id, target_id, c->getSensorName());
-	eo.constraint = c;
-	addToSolver(eo);
 }
 
 void BoostGraph::writeGraphToFile(const std::string& name)
@@ -299,5 +287,5 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 
 void BoostGraph::setCorrectedPose(IdType id, const Transform& pose)
 {
-	getVertexInternal(id).corrected_pose = pose;
+	mPoseGraph[mIndexMap.at(id)].corrected_pose = pose;
 }

@@ -115,11 +115,11 @@ namespace slam3d
 		virtual Transform getCurrentPose();
 
 		/**
-		 * @brief Get the last vertex, that was locally added to the graph.
+		 * @brief Get the id of the last vertex that was locally added to the graph.
 		 * @details This will not return external vertices from other robots.
-		 * @return last added vertex
+		 * @return vertex id
 		 */
-		virtual const VertexObject getLastVertex() const;
+		virtual IdType getLastIndex() const { return mLastIndex; }
 
 	protected:
 		SensorList mSensors;

@@ -137,6 +137,22 @@ namespace slam3d
 		 */
 		void addLinkSensor(const std::string& s){ mLinkSensors.insert(s); }
 
+		/**
+		 * @brief Create a specific measurement from metadata and serialized payload data
+		 * @param r robot name
+		 * @param s sensor name
+		 * @param p sensor pose
+		 * @param id uuid of measurement
+		 * @param stream serialized payload data
+		 * @return pointer to new measurement
+		 */
+		virtual Measurement::Ptr createFromStream(const std::string& r, const std::string& s,
+			const Transform& p, const boost::uuids::uuid id, std::istream& stream)
+		{
+			throw std::runtime_error("createFromStream() not implemented for " + mName);
+		}
+		
+
 	protected:
 		Mapper* mMapper;
 		Logger* mLogger;

@@ -33,14 +33,80 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
-#include <boost/serialization/export.hpp>
-#include "pcl_serialization.hpp"
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "RegistrationParameters.hpp"
 
+
+namespace slam3d {
+	typedef pcl::PointXYZ PointType;
+    typedef pcl::PointCloud<PointType> PointCloud;
+}
+
+
+namespace boost {
+namespace serialization {
+
+template<class Archive>
+void serialize(Archive & ar, pcl::PCLPointField & f, const unsigned int version)
+{
+	ar & f.count;
+	ar & f.datatype;
+	ar & f.name;
+	ar & f.offset;
+}
+
+template<class Archive>
+void serialize(Archive & ar, pcl::PCLHeader & h, const unsigned int version)
+{
+	ar & h.frame_id;
+	ar & h.seq;
+	ar & h.stamp;
+}
+
+template<class Archive> void serialize(Archive & ar, Eigen::Vector4f &point, const unsigned int version)
+{
+    ar & point[0];
+    ar & point[1];
+    ar & point[2];
+    ar & point[3];
+}
+
+template<class Archive> void serialize(Archive & ar, Eigen::Quaternionf &point, const unsigned int version)
+{
+    ar & point.x();
+    ar & point.y();
+    ar & point.z();
+    ar & point.w();
+}
+
+template<class Archive> void serialize(Archive & ar, slam3d::PointType &point, const unsigned int version)
+{
+    ar & point.x;
+    ar & point.y;
+    ar & point.z;
+}
+
+template<class Archive> void serialize(Archive & ar, slam3d::PointCloud &cloud, const unsigned int version)
+{
+    ar & cloud.header;
+    ar & cloud.points;
+    ar & cloud.width;
+    ar & cloud.height;
+    ar & cloud.is_dense;
+    ar & cloud.sensor_origin_;
+    ar & cloud.sensor_orientation_;
+}
+
+
+} // namespace serialization
+} // namespace boost
+
+// BOOST_CLASS_EXPORT(slam3d::PointCloudMeasurement)
+
 namespace slam3d
 {
-	
 	/**
 	 * @class PointCloudMeasurement
 	 * @brief Specific Measurement of the PointCloudSensor. 
@@ -70,7 +136,7 @@ namespace slam3d
 			mStamp.tv_sec  = cloud->header.stamp / 1000000;
 			mStamp.tv_usec = cloud->header.stamp % 1000000;
 		}
-		
+
 		PointCloudMeasurement():Measurement("","", slam3d::Transform()) {
 
 		}
@@ -84,7 +150,7 @@ namespace slam3d
 		virtual std::string getMeasurementTypeName() {
 			return "slam3d::PointCloudMeasurement";
 		}
-		
+
 	protected:
 		
 		PointCloud::Ptr mPointCloud;
@@ -212,7 +278,7 @@ namespace slam3d
 		 * @param radius
 		 */
 		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
-	
+
 	protected:
 		Transform align(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,
 		                const Transform& guess, const RegistrationParameters& config);
@@ -232,11 +298,5 @@ namespace slam3d
 		unsigned mMapOutlierNeighbors;
 	};
 }
-
-
-
-
-// BOOST_CLASS_EXPORT(slam3d::PointCloudMeasurement)
-
 
 #endif

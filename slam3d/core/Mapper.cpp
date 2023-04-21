@@ -134,8 +134,3 @@ void Mapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, c
 		mGraph->addConstraint(source, target, se3);
 	}
 }
-
-const VertexObject Mapper::getLastVertex() const
-{
-	return mGraph->getVertex(mLastIndex);
-}
