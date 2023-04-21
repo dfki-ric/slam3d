@@ -344,9 +344,3 @@ void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
 		}
 	}
 }
-
-Measurement::Ptr PointCloudSensor::createFromStream(const std::string& r, const std::string& s,
-	const Transform& p, const boost::uuids::uuid id, std::istream& stream)
-{
-	return boost::make_shared<PointCloudMeasurement>(r, s, p, id, stream);
-}
