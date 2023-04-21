@@ -225,10 +225,30 @@ VertexObject Neo4jGraph::getVertex(IdType id) {
 }
 
 void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
-    std::lock_guard<std::mutex> lock (queryMutex);
+    // std::lock_guard<std::mutex> lock (queryMutex);
 
-    printf("%s:%i inpmlemented\n",__PRETTY_FUNCTION__, __LINE__);
+    Neo4jQuery vertexQuery(client);
 
+    // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
+    vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n = $props");
+    
+    vertexQuery.addParameterSet("props");
+    vertexQuery.addParameterToSet("props", "label", v.label);
+    vertexQuery.addParameterToSet("props", "index", v.index);
+    vertexQuery.addParameterToSet("props", "corrected_pose", Neo4jConversion::eigenMatrixToString(v.corrected_pose.matrix()));
+    vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
+    std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
+    vertexQuery.addParameterToSet("props", "measurement", uuid);
+
+    // replace measurement in reg
+    if (v.measurement.get() != nullptr) {
+        measurements.set(uuid, v.measurement);
+    }
+
+    if (!vertexQuery.sendQuery()) {
+        logger->message(ERROR, vertexQuery.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
+    }
 
 
 }
