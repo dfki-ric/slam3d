@@ -9,7 +9,7 @@
 #include "Neo4jGraph.hpp"
 #include "Neo4jConversion.hpp"
 
-#include "../../sensor/pcl/PointCloudSensor.hpp"
+#include <slam3d/sensor/pcl/PointCloudSensor.hpp>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>

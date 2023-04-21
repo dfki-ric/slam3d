@@ -6,7 +6,7 @@
 #include <vector>
 #include <mutex>
 
-#include "../../core/Graph.hpp"
+#include <slam3d/core/Graph.hpp>
 
 #include "Neo4jQuery.hpp"
 #include "Neo4jConversion.hpp"

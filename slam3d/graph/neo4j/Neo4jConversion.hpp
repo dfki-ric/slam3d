@@ -5,7 +5,7 @@
 // dont define the U macro in the http client, it conflicts with the eigen U macro use _XPLATSTR() instead
 #define _TURN_OFF_PLATFORM_STRING
 #include <cpprest/json.h>
-#include "../../core/Types.hpp"
+#include <slam3d/core/Types.hpp>
 
 namespace slam3d {
 
