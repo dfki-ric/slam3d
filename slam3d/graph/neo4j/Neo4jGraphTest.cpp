@@ -21,7 +21,7 @@ std::unique_ptr<Neo4jGraph> neo4jgraph;
 Clock neo4jclock;
 FileLogger neo4jlogger(neo4jclock, "neo4j_graph.log");
 
-void initTransform(slam3d::Transform* mat) {
+void initEigenTransform(slam3d::Transform* mat) {
     for (size_t c = 0; c < mat->matrix().cols(); ++c) {
         for (size_t r = 0; r < mat->matrix().rows(); ++r) {
             (*mat)(r, c) = r+c*mat->matrix().rows();
@@ -35,6 +35,21 @@ void initEigenMatrix(Eigen::MatrixXd* mat) {
             (*mat)(r, c) = r+c*mat->matrix().rows();
         }
     }
+}
+
+void initEigenVector(Eigen::Vector4f* mat) {
+    // for (size_t c = 0; c < mat->matrix().cols(); ++c) {
+        for (size_t r = 0; r < mat->matrix().rows(); ++r) {
+            (*mat)(r) = r;
+        }
+    // }
+}
+
+void initEigenQuaternion(Eigen::Quaternionf* q) {
+    q->x() = 1;
+    q->y() = 2;
+    q->z() = 3;
+    q->w() = 4;
 }
 
 void initDB() {
@@ -61,14 +76,13 @@ BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {
 BOOST_AUTO_TEST_CASE(matrix_conversion) {
     initDB();
     slam3d::Transform t;
-    initTransform(&t);
+    initEigenTransform(&t);
     std::string ts = Neo4jConversion::eigenMatrixToString(t.matrix());
     slam3d::Transform tr(Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(ts)));
     BOOST_CHECK_EQUAL(t.matrix(), tr.matrix());
 }
 
 BOOST_AUTO_TEST_CASE(contraint_conversion) {
-    
     // neo4jgraph->co
 }
 
@@ -78,7 +92,14 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
     PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
 
     cloud->push_back(slam3d::PointType(1, 2, 3));
-    slam3d::PointCloudMeasurement::Ptr m(new slam3d::PointCloudMeasurement(cloud, "robot", "sensor", slam3d::Transform::Identity()));
+
+    slam3d::Transform tf;
+    // fill some comparable vlaues (identity will be same in initialized but not serialized)
+    initEigenVector(&(cloud->sensor_origin_));
+    initEigenQuaternion(&cloud->sensor_orientation_);
+    initEigenTransform(&tf);
+
+    slam3d::PointCloudMeasurement::Ptr m(new slam3d::PointCloudMeasurement(cloud, "robot", "sensor", tf));
 
     std::stringstream sin;
     boost::archive::text_oarchive oa(sin);
@@ -91,6 +112,7 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
     PointCloudMeasurement::Ptr m_res = PointCloudMeasurement::Ptr(new PointCloudMeasurement());
     ia >> *(m_res.get());
 
+    // ceck values of base slam3d::Measurement 
     BOOST_CHECK_NE(m_res.get(), nullptr);
     BOOST_CHECK_EQUAL(m->getRobotName(), m_res->getRobotName());
     BOOST_CHECK_EQUAL(m->getTimestamp().tv_sec, m_res->getTimestamp().tv_sec);
@@ -99,11 +121,23 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
     BOOST_CHECK(m->getUniqueId() == m_res->getUniqueId());
     BOOST_CHECK(m->getSensorPose().isApprox(m_res->getSensorPose()));
     BOOST_CHECK(m->getInverseSensorPose().isApprox(m_res->getInverseSensorPose()));
-
+    
+    // check values of subtype slam3d::PointCloudMeasurement
     BOOST_CHECK_EQUAL(m_res->getMeasurementTypeName(), "slam3d::PointCloudMeasurement");
-
     BOOST_CHECK_NE(m_res->getPointCloud(), nullptr);
     BOOST_CHECK_EQUAL(m_res->getPointCloud()->size(), cloud->size());
+
+    BOOST_CHECK(m->getPointCloud()->sensor_origin_.isApprox(m_res->getPointCloud()->sensor_origin_));
+    BOOST_CHECK(m->getPointCloud()->sensor_orientation_.isApprox(m_res->getPointCloud()->sensor_orientation_));
+
+    // debug out (run with --log_level=message)
+    BOOST_TEST_MESSAGE( m->getSensorPose().matrix() );
+    BOOST_TEST_MESSAGE( m_res->getSensorPose().matrix() );
+    BOOST_TEST_MESSAGE( m->getPointCloud()->sensor_origin_.matrix() );
+    BOOST_TEST_MESSAGE( m_res->getPointCloud()->sensor_origin_.matrix() );
+    
+
+
 }
 
 

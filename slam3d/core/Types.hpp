@@ -59,11 +59,11 @@ namespace slam3d
 namespace boost {
 namespace serialization {
 	template<class Archive> void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version) {
-		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
+		ar & boost::serialization::make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
 	}
 	template<class Archive> void load(Archive & ar, slam3d::Transform &tf, const unsigned int version) {
 		tf.setIdentity(); // init whole matrix
-		ar & boost::serialization::make_array(tf.data(), tf.rows() * tf.cols());
+		ar & boost::serialization::make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
 	}
 } // namespace serialization
 } // namespace boost
