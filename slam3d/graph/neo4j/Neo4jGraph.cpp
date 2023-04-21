@@ -48,7 +48,7 @@ bool Neo4jGraph::deleteDatabase() {
 
 }
 
-EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
+const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
 {
     EdgeObjectList objectList;
 
@@ -175,7 +175,7 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
     }
 }
 
-VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
+const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
@@ -199,7 +199,7 @@ VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
 //     return getVertexInternal(id);
 // }
 
-VertexObject Neo4jGraph::getVertex(IdType id) {
+const VertexObject Neo4jGraph::getVertex(IdType id) {
     std::lock_guard<std::mutex> lock (queryMutex);
     VertexObject vertexobj;
 
@@ -258,7 +258,7 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
 //     return getEdgeInternal(source, target, sensor);
 // }
 
-EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) const {
+const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) const {
     Neo4jQuery query(client);
     // MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index=1 AND b.index=2 AND r.sensor="S1" RETURN r
     query.addStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");
@@ -279,7 +279,7 @@ EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& 
     return returnval;
 }
 
-EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
+const EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     //OutEdgeIterator it, it_end;
@@ -293,7 +293,7 @@ EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
     return edges;
 }
 
-EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
+const EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 
@@ -387,7 +387,7 @@ void Neo4jGraph::writeGraphToFile(const std::string& name)
 // 	unsigned max_depth;
 // };
 
-VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
+const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 
