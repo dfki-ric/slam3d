@@ -9,7 +9,7 @@ namespace slam3d {
 
     Measurement::Ptr RedisMap::get(const std::string& key) {
         #ifdef SERIALIZE
-            return MeasurementRegistry::deserialize(measurements[key], typenames[key]);;
+            return MeasurementRegistry::deserialize(measurements[key], typenames[key]);
         #else
             return measurements[key];
         #endif

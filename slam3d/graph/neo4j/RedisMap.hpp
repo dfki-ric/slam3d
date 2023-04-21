@@ -11,7 +11,7 @@
 namespace slam3d {
 
 // uncomment this to enable serialization
-//#define SERIALIZE
+#define SERIALIZE
 
 class RedisMap {
  public:
