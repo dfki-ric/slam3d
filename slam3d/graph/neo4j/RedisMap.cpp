@@ -20,29 +20,24 @@ namespace slam3d {
             }
         }
 
+        redisCommand(context.get(), "flushdb");
+
     }
 
     void RedisMap::store(const std::string& key, const std::string &type, const std::string& serializedData) {
-        printf("HSET %s type %s, data %s\n", key.c_str(), type.c_str(), "data");
+        // printf("HSET %s type %s, data %s\n", key.c_str(), type.c_str(), "data");
         void* reply = redisCommand(context.get(), "HSET %s type %s data %s", key.c_str(), type.c_str(), serializedData.c_str());
         if (!reply) {
             printf("coud not store measurement: %s\n", context->errstr);
             // TODO: recreate context
             return;
         }
-        redisReply* redisrep = (redisReply*)reply;
-        printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
+        // redisReply* redisrep = (redisReply*)reply;
+        // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
         freeReplyObject(reply);
     }
 
     Measurement::Ptr RedisMap::get(const std::string& key) {
-        // #ifdef SERIALIZE
-        //     return MeasurementRegistry::deserialize(measurements[key], typenames[key]);
-        // #else
-        //     return measurements[key];
-        // #endif
-        // redisReader *reader = redisReaderCreate();
-
         void* reply = redisCommand(context.get(), "HMGET %s type data", key.c_str());
         if (!reply) {
             printf("coud not load measurement: %s\n", context->errstr);
@@ -51,9 +46,9 @@ namespace slam3d {
             return Measurement::Ptr();
         }
         redisReply* redisrep = (redisReply*)reply;
-        printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
+        // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
 
-        printf("got %s\n", redisrep->element[0]->str);
+        // printf("got %s\n", redisrep->element[0]->str);
 
         Measurement::Ptr measurement = MeasurementRegistry::deserialize(redisrep->element[1]->str, redisrep->element[0]->str);
         //todo: create from 
