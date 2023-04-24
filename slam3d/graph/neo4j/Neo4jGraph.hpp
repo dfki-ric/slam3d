@@ -27,7 +27,13 @@ namespace slam3d {
 class Neo4jGraph : public Graph {
     public:
 
-        explicit Neo4jGraph(Logger* log);
+        struct Server {
+            Server(const std::string& host, const int &port):host(host),port(port){}
+            const std::string& host;
+            const int &port;
+        };
+
+        Neo4jGraph(Logger* log, const Server &graphserver = Neo4jGraph::Server("localhost",7474), const Server &measuerementserver = Neo4jGraph::Server("localhost",6379));
         ~Neo4jGraph();
 
         /**

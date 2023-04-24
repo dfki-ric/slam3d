@@ -20,15 +20,18 @@ using namespace utility;
 using status_codes = web::http::status_codes;
 // using Client = web::http::client::http_client;
 
-Neo4jGraph::Neo4jGraph(Logger* log) : Graph(log), logger(log)
+Neo4jGraph::Neo4jGraph(Logger* log, const Server &graphserver, const Server &measuerementserver) : Graph(log), logger(log)
 {
     web::http::client::http_client_config clientconf;
     clientconf.set_validate_certificates(false);
     web::credentials clientcred(_XPLATSTR("neo4j"), _XPLATSTR("neo4j"));
     clientconf.set_credentials(clientcred);
-    client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://localhost:7474"), clientconf);
 
-    measurements = std::make_shared<RedisMap>("localhost", 6379);
+    //client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://localhost:7474"), clientconf);
+    client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)), clientconf);
+
+    // measurements = std::make_shared<RedisMap>("localhost", 6379);
+    measurements = std::make_shared<RedisMap>(measuerementserver.host.c_str(), measuerementserver.port);
 
 }
 
