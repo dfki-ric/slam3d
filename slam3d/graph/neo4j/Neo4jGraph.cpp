@@ -28,6 +28,8 @@ Neo4jGraph::Neo4jGraph(Logger* log) : Graph(log), logger(log)
     clientconf.set_credentials(clientcred);
     client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://localhost:7474"), clientconf);
 
+    measurements = std::make_shared<RedisMap>("localhost", 6379);
+
 }
 
 Neo4jGraph::~Neo4jGraph()
@@ -90,7 +92,7 @@ void Neo4jGraph::addVertex(const VertexObject& v)
 
 
 
-    measurements.set(uuid, v.measurement);
+    measurements->set(uuid, v.measurement);
 
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
@@ -188,7 +190,7 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
     web::json::value result = query.getResponse().extract_json().get();
 
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
-        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], measurements);
+        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], *measurements);
         objectList.push_back(vertex);
     }
     return objectList;
@@ -219,7 +221,7 @@ const VertexObject Neo4jGraph::getVertex(IdType id) {
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // std::cout << reply["results"][0]["data"][0]["row"][0].serialize() << std::endl;
 
-    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0], measurements);
+    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0], *measurements);
 
     return vertexobj;
 }
@@ -242,7 +244,7 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
 
     // replace measurement in reg
     if (v.measurement.get() != nullptr) {
-        measurements.set(uuid, v.measurement);
+        measurements->set(uuid, v.measurement);
     }
 
     if (!vertexQuery.sendQuery()) {

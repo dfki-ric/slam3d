@@ -189,7 +189,7 @@ class Neo4jGraph : public Graph {
         // todo replace with databae (value store)
         // std::map<std::string, Measurement::Ptr> measurements;
 
-        RedisMap measurements;
+        std::shared_ptr<RedisMap> measurements;
 
 
         slam3d::Logger* logger;
