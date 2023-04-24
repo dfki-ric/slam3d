@@ -134,7 +134,6 @@ namespace slam3d
 		Transform mInverseSensorPose;
 
 	private:
-		Measurement(){};  // <- needed for de-serialization
 		friend class boost::serialization::access;
 
 		template <typename Archive>
