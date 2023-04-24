@@ -17,10 +17,6 @@ namespace slam3d
 		Transform getSensorPose() { return mSensorPose; }
 		
 		void setStatus(const std::string& json, const Transform& pose = Transform::Identity());
-		
-		virtual std::string getMeasurementTypeName() {
-			return "slam3d::FlareSensor";
-		}
 
 	protected:
 		rtls_flares::Status mStatus;

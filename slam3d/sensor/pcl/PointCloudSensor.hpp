@@ -39,71 +39,72 @@
 #include "RegistrationParameters.hpp"
 
 
-namespace slam3d {
+namespace slam3d
+{
 	typedef pcl::PointXYZ PointType;
-    typedef pcl::PointCloud<PointType> PointCloud;
+	typedef pcl::PointCloud<PointType> PointCloud;
 }
 
-
-namespace boost {
-namespace serialization {
-
-template<class Archive>
-void serialize(Archive & ar, pcl::PCLPointField & f, const unsigned int version)
+namespace boost
 {
-	ar & f.count;
-	ar & f.datatype;
-	ar & f.name;
-	ar & f.offset;
-}
+	namespace serialization
+	{
+		template<class Archive>
+		void serialize(Archive & ar, pcl::PCLPointField & f, const unsigned int version)
+		{
+			ar & f.count;
+			ar & f.datatype;
+			ar & f.name;
+			ar & f.offset;
+		}
 
-template<class Archive>
-void serialize(Archive & ar, pcl::PCLHeader & h, const unsigned int version)
-{
-	ar & h.frame_id;
-	ar & h.seq;
-	ar & h.stamp;
-}
+		template<class Archive>
+		void serialize(Archive & ar, pcl::PCLHeader & h, const unsigned int version)
+		{
+			ar & h.frame_id;
+			ar & h.seq;
+			ar & h.stamp;
+		}
 
-template<class Archive> void serialize(Archive & ar, Eigen::Vector4f &point, const unsigned int version)
-{
-    ar & point[0];
-    ar & point[1];
-    ar & point[2];
-    ar & point[3];
-}
+		template<class Archive>
+		void serialize(Archive & ar, Eigen::Vector4f &point, const unsigned int version)
+		{
+			ar & point[0];
+			ar & point[1];
+			ar & point[2];
+			ar & point[3];
+		}
 
-template<class Archive> void serialize(Archive & ar, Eigen::Quaternionf &point, const unsigned int version)
-{
-    ar & point.x();
-    ar & point.y();
-    ar & point.z();
-    ar & point.w();
-}
+		template<class Archive>
+		void serialize(Archive & ar, Eigen::Quaternionf &point, const unsigned int version)
+		{
+			ar & point.x();
+			ar & point.y();
+			ar & point.z();
+			ar & point.w();
+		}
 
-template<class Archive> void serialize(Archive & ar, slam3d::PointType &point, const unsigned int version)
-{
-    ar & point.x;
-    ar & point.y;
-    ar & point.z;
-}
+		template<class Archive>
+		void serialize(Archive & ar, slam3d::PointType &point, const unsigned int version)
+		{
+			ar & point.x;
+			ar & point.y;
+			ar & point.z;
+		}
 
-template<class Archive> void serialize(Archive & ar, slam3d::PointCloud &cloud, const unsigned int version)
-{
-    ar & cloud.header;
-    ar & cloud.points;
-    ar & cloud.width;
-    ar & cloud.height;
-    ar & cloud.is_dense;
-    ar & cloud.sensor_origin_;
-    ar & cloud.sensor_orientation_;
-}
-
-
-} // namespace serialization
+		template<class Archive>
+		void serialize(Archive & ar, slam3d::PointCloud &cloud, const unsigned int version)
+		{
+			ar & cloud.header;
+			ar & cloud.points;
+			ar & cloud.width;
+			ar & cloud.height;
+			ar & cloud.is_dense;
+			ar & cloud.sensor_origin_;
+			ar & cloud.sensor_orientation_;
+		}
+	} // namespace serialization
 } // namespace boost
-
-// BOOST_CLASS_EXPORT(slam3d::PointCloudMeasurement)
 
 namespace slam3d
 {
@@ -147,9 +148,7 @@ namespace slam3d
 		 */
 		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
 
-		virtual std::string getMeasurementTypeName() {
-			return "slam3d::PointCloudMeasurement";
-		}
+		virtual const char* getTypeName() const { return "slam3d::PointCloudMeasurement"; }
 
 	protected:
 		
