@@ -21,7 +21,7 @@ namespace slam3d
 		virtual const std::string& getTypeName() = 0;
 	};
 
-	template <class MEASUREMENT_TYPE>
+	template <class TYPE>
 	class MeasurementToString : public MeasurementToStringBase
 	{
 		public:
@@ -33,7 +33,7 @@ namespace slam3d
 
 		virtual bool isSameType(Measurement::Ptr ptr)
 		{
-			boost::shared_ptr<MEASUREMENT_TYPE> newptr = boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(ptr);
+			boost::shared_ptr<TYPE> newptr = boost::dynamic_pointer_cast<TYPE>(ptr);
 			if (newptr.get())
 			{
 				return true;
@@ -43,7 +43,7 @@ namespace slam3d
 
 		virtual std::string serialize(Measurement::Ptr ptr)
 		{
-			boost::shared_ptr<MEASUREMENT_TYPE> newptr = boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(ptr);
+			boost::shared_ptr<TYPE> newptr = boost::dynamic_pointer_cast<TYPE>(ptr);
 			std::stringstream ss;
 			boost::archive::text_oarchive oa(ss);
 			oa << *(newptr.get());
@@ -52,7 +52,7 @@ namespace slam3d
 
 		virtual Measurement::Ptr deserialize(const std::string &data)
 		{
-			boost::shared_ptr<MEASUREMENT_TYPE> m = boost::make_shared<MEASUREMENT_TYPE>();
+			boost::shared_ptr<TYPE> m = boost::make_shared<TYPE>();
 			std::stringstream ss(data);
 			boost::archive::text_iarchive ia(ss);
 			ia >> *(m.get());
