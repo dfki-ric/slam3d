@@ -24,12 +24,12 @@ namespace slam3d
 	template <class TYPE>
 	class MeasurementToString : public MeasurementToStringBase
 	{
-		public:
-			explicit MeasurementToString(const std::string& typeName)
-			{
-				measurementTypeName = typeName;
-			}
-			virtual ~MeasurementToString() {}
+	public:
+		explicit MeasurementToString(const std::string& typeName)
+		{
+			mTypeName = typeName;
+		}
+		virtual ~MeasurementToString() {}
 
 		virtual bool isSameType(Measurement::Ptr ptr)
 		{
@@ -61,11 +61,11 @@ namespace slam3d
 
 		virtual const std::string& getTypeName()
 		{
-			return measurementTypeName;
+			return mTypeName;
 		}
 
 		private:
-			std::string measurementTypeName;
+			std::string mTypeName;
 	};
 
 	class MeasurementRegistry
