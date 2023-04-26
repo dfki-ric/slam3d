@@ -11,6 +11,12 @@
 
 namespace slam3d
 {
+	/**
+	 * @class MeasurementToStringBase
+	 * @brief Abstract base class for a measurement serializer
+	 * @details Use serialize and deserialize to read/write a
+	 * slam3d::Measurement to/from an std::string.
+	 */
 	class MeasurementToStringBase
 	{
 	public:
@@ -21,6 +27,13 @@ namespace slam3d
 		virtual const std::string& getTypeName() = 0;
 	};
 
+	/**
+	 * @class MeasurementToString
+	 * @brief Implementation of a generic measurement serializer
+	 * @details To use serialization, a specific Measurement must implement
+	 * the serialize() method as defined in boost::serialization and be
+	 * registered with the MeasurementRegistry.
+	 */
 	template <class TYPE>
 	class MeasurementToString : public MeasurementToStringBase
 	{
@@ -68,13 +81,17 @@ namespace slam3d
 			std::string mTypeName;
 	};
 
+	/**
+	 * @class MeasurementRegistry
+	 * @brief Registers (de-)serializer's for slam3d::Measurement's by their TypeName.
+	 */
 	class MeasurementRegistry
 	{
 	public:
 		/**
 		* @brief register a (de-)serializer fo a given type
 		* @tparam TYPE The measuremetn type that should be (de-)serialized
-		* @param measurementTypeName the type name that is returned when TYPE.getMeasurementTypeName() is called. This si used to match the fitting serializer
+		* @param measurementTypeName the type name that is returned when TYPE.getTypeName() is called. This is used to match the fitting serializer
 		*/
 		template <class TYPE>
 		static void registerMeasurementType(const std::string& measurementTypeName)
