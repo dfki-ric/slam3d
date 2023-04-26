@@ -6,6 +6,7 @@
 #define private public
 #define protected public
 
+#include "RedisMap.hpp"
 #include "Neo4jGraph.hpp"
 #include "Neo4jConversion.hpp"
 
@@ -20,6 +21,8 @@ using namespace slam3d;
 std::unique_ptr<Neo4jGraph> neo4jgraph;
 Clock neo4jclock;
 FileLogger neo4jlogger(neo4jclock, "neo4j_graph.log");
+
+
 
 void initEigenTransform(slam3d::Transform* mat) {
     for (size_t c = 0; c < mat->matrix().cols(); ++c) {
@@ -55,16 +58,20 @@ void initEigenQuaternion(Eigen::Quaternionf* q) {
 void initDB() {
     static bool initialized = false;
     if (!initialized) {
+        std::shared_ptr<slam3d::Measurements> measurements = std::make_shared<slam3d::RedisMap>("localhost", 6379);
         neo4jlogger.setLogLevel(DEBUG);
-        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger);
+        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger, measurements);
         neo4jgraph->deleteDatabase();
         initialized = true;
     }
 }
 
 void initRegistry() {
-    MeasurementRegistry::registerMeasurementType<slam3d::Measurement>("slam3d::Measurement");
-    MeasurementRegistry::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+    MeasurementSerialization::registerMeasurementType<slam3d::Measurement>("slam3d::Measurement");
+    MeasurementSerialization::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+
+
+
 }
 
 BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {

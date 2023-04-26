@@ -9,7 +9,7 @@
 
 namespace slam3d {
 
-class RedisMap;
+class Measurements;
 
 class Neo4jConversion {
  public:
@@ -20,7 +20,7 @@ class Neo4jConversion {
     static slam3d::Constraint::Ptr jsonToConstraint(web::json::value& json);
 
     static slam3d::EdgeObject edgeObjectFromJson(web::json::value& json);
-    static slam3d::VertexObject vertexObjectFromJson(web::json::value& json, RedisMap &measurements);
+    static slam3d::VertexObject vertexObjectFromJson(web::json::value& json, std::shared_ptr<Measurements> measurements);
 
 
 };

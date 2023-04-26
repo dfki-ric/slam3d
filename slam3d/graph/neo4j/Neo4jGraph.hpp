@@ -7,10 +7,11 @@
 #include <mutex>
 
 #include <slam3d/core/Graph.hpp>
+#include <slam3d/core/Measurements.hpp>
 
 #include "Neo4jQuery.hpp"
 #include "Neo4jConversion.hpp"
-#include "RedisMap.hpp"
+// #include "RedisMap.hpp"
 // #include <boost/thread/shared_mutex.hpp>
 
 
@@ -33,7 +34,7 @@ class Neo4jGraph : public Graph {
             const int &port;
         };
 
-        Neo4jGraph(Logger* log, const Server &graphserver = Neo4jGraph::Server("localhost",7474), const Server &measuerementserver = Neo4jGraph::Server("localhost",6379));
+        Neo4jGraph(Logger* log, std::shared_ptr<Measurements> measurements, const Server &graphserver = Neo4jGraph::Server("localhost",7474));
         ~Neo4jGraph();
 
         /**
@@ -195,7 +196,8 @@ class Neo4jGraph : public Graph {
         // todo replace with databae (value store)
         // std::map<std::string, Measurement::Ptr> measurements;
 
-        std::shared_ptr<RedisMap> measurements;
+        // std::shared_ptr<RedisMap> measurements;
+        std::shared_ptr<Measurements> measurements;
 
 
         slam3d::Logger* logger;

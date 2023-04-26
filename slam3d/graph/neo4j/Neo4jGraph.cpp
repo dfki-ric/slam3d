@@ -20,7 +20,7 @@ using namespace utility;
 using status_codes = web::http::status_codes;
 // using Client = web::http::client::http_client;
 
-Neo4jGraph::Neo4jGraph(Logger* log, const Server &graphserver, const Server &measuerementserver) : Graph(log), logger(log)
+Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<Measurements> measurements, const Server &graphserver) : Graph(log), logger(log), measurements(measurements)
 {
     web::http::client::http_client_config clientconf;
     clientconf.set_validate_certificates(false);
@@ -31,7 +31,7 @@ Neo4jGraph::Neo4jGraph(Logger* log, const Server &graphserver, const Server &mea
     client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)), clientconf);
 
     // measurements = std::make_shared<RedisMap>("localhost", 6379);
-    measurements = std::make_shared<RedisMap>(measuerementserver.host.c_str(), measuerementserver.port);
+    // measurements = std::make_shared<RedisMap>(measuerementserver.host.c_str(), measuerementserver.port);
 
 }
 
@@ -193,7 +193,7 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
     web::json::value result = query.getResponse().extract_json().get();
 
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
-        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], *measurements);
+        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], measurements);
         objectList.push_back(vertex);
     }
     return objectList;
@@ -224,7 +224,7 @@ const VertexObject Neo4jGraph::getVertex(IdType id) {
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // std::cout << reply["results"][0]["data"][0]["row"][0].serialize() << std::endl;
 
-    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0], *measurements);
+    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0], measurements);
 
     return vertexobj;
 }

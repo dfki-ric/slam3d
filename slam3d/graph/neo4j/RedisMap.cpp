@@ -8,7 +8,7 @@
 namespace slam3d {
 
 
-    RedisMap::RedisMap(const char *ip, int port) {
+    RedisMap::RedisMap(const char *ip, int port):Measurements() {
         context = std::shared_ptr<redisContext>(redisConnect(ip, port));
 
         if (context.get() == nullptr || context->err) {
@@ -50,7 +50,7 @@ namespace slam3d {
 
         // printf("got %s\n", redisrep->element[0]->str);
 
-        Measurement::Ptr measurement = MeasurementRegistry::deserialize(redisrep->element[1]->str, redisrep->element[0]->str);
+        Measurement::Ptr measurement = MeasurementSerialization::deserialize(redisrep->element[1]->str, redisrep->element[0]->str);
         //todo: create from 
 
         // redisReaderFree(reader);

@@ -4,26 +4,30 @@
 #include <map>
 #include <boost/archive/text_oarchive.hpp>
 
-#include "../../core/Types.hpp"
-#include "../../core/MeasurementRegistry.hpp"
+#include <slam3d/core/Types.hpp>
+#include <slam3d/core/MeasurementSerialization.hpp>
+#include <slam3d/core/Measurements.hpp>
 
 class redisContext;
 
 namespace slam3d {
 
 // uncomment this to enable serialization
-// #define SERIALIZE
 
-class RedisMap {
+class RedisMap: public Measurements {
  public:
 
     RedisMap(const char *ip, int port);
 
-    template <class MEASUREMENT_TYPE> void set(const std::string& key, const MEASUREMENT_TYPE &measurement) {
-        store(key, measurement->getMeasurementTypeName(), MeasurementRegistry::serialize(measurement));
+    virtual void set(const std::string& key, Measurement::Ptr measurement) {
+        store(key, measurement->getMeasurementTypeName(), MeasurementSerialization::serialize(measurement));
     }
 
-    Measurement::Ptr get(const std::string& key);
+    // template <class MEASUREMENT_TYPE> void set(const std::string& key, const MEASUREMENT_TYPE &measurement) {
+    //     
+    // }
+
+    virtual Measurement::Ptr get(const std::string& key);
 
 
  private:
