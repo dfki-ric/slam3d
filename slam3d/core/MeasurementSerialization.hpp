@@ -64,8 +64,9 @@ template <class MEASUREMENT_TYPE> class MeasurementToString : public Measurement
 };
 
 
-class MeasurementRegistry {
+class MeasurementSerialization {
  public:
+
     /**
      * @brief register a (de-)serializer fo a given type
      * 
@@ -76,6 +77,8 @@ class MeasurementRegistry {
         std::shared_ptr<MeasurementToStringBase> conv = std::make_shared< MeasurementToString<TYPE> >(measurementTypeName);
         converters[measurementTypeName] = conv;
     }
+
+
 
 
     static std::string serialize(Measurement::Ptr ptr) {
@@ -90,13 +93,13 @@ class MeasurementRegistry {
         return "";
     }
 
-    static Measurement::Ptr deserialize(const std::string &data, const std::string& key) {
+    static Measurement::Ptr deserialize(const std::string &data, const std::string& measurementTypeName) {
         if (data.size()) {
-            std::shared_ptr<MeasurementToStringBase> conv = converters[key];
+            std::shared_ptr<MeasurementToStringBase> conv = converters[measurementTypeName];
             if (conv.get()) {
-                return converters[key]->deserialize(data);
+                return conv->deserialize(data);
             } else {
-                printf("no registered converter for %s\n", key.c_str());
+                printf("no registered converter for %s\n", measurementTypeName.c_str());
             }
             return Measurement::Ptr();
         }
@@ -104,6 +107,7 @@ class MeasurementRegistry {
     }
 
  private:
+    MeasurementSerialization() {}
     static std::map<std::string, std::shared_ptr<MeasurementToStringBase> > converters;
 };
 
