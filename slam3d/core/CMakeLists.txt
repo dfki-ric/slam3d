@@ -7,6 +7,7 @@ add_library(core SHARED
 	ScanSensor.cpp
 	Types.cpp
 	MeasurementSerialization.cpp
+	Measurements.cpp
 )
 
 target_include_directories(core
