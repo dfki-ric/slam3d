@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
     BOOST_CHECK(m->getInverseSensorPose().isApprox(m_res->getInverseSensorPose()));
     
     // check values of subtype slam3d::PointCloudMeasurement
-    BOOST_CHECK_EQUAL(m_res->getMeasurementTypeName(), "slam3d::PointCloudMeasurement");
+    BOOST_CHECK_EQUAL(m_res->getTypeName(), "slam3d::PointCloudMeasurement");
     BOOST_CHECK_NE(m_res->getPointCloud(), nullptr);
     BOOST_CHECK_EQUAL(m_res->getPointCloud()->size(), cloud->size());
 

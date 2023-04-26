@@ -20,7 +20,7 @@ class RedisMap: public Measurements {
     RedisMap(const char *ip, int port);
 
     virtual void set(const std::string& key, Measurement::Ptr measurement) {
-        store(key, measurement->getMeasurementTypeName(), MeasurementSerialization::serialize(measurement));
+        store(key, measurement->getTypeName(), MeasurementSerialization::serialize(measurement));
     }
 
     // template <class MEASUREMENT_TYPE> void set(const std::string& key, const MEASUREMENT_TYPE &measurement) {
