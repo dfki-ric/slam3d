@@ -45,15 +45,13 @@ namespace slam3d
 		typedef boost::shared_ptr<Scan2DMeasurement> Ptr;
 
 		Scan2DMeasurement(const PM::DataPoints& points, timeval t,
-	                    const std::string& r, const std::string& s,
-	                    const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		                  const std::string& r, const std::string& s,
+		                  const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
 		: Measurement(r, s, p, id), mDataPoints(points) { mStamp = t; }
 
 		const PM::DataPoints& getDataPoints() { return mDataPoints; }
 
-		virtual std::string getMeasurementTypeName() {
-			return "slam3d::Scan2DMeasurement";
-		}
+		virtual const char* getTypeName() const { return "slam3d::Scan2DMeasurement"; }
 
 	protected:
 		PM::DataPoints mDataPoints;
