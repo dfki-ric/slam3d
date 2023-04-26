@@ -1,5 +1,3 @@
-find_package(Boost REQUIRED serialization)
-
 add_library(core SHARED
 	Mapper.cpp
 	Graph.cpp

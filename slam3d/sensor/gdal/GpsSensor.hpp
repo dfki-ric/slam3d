@@ -45,9 +45,7 @@ namespace slam3d
 		const Position& getPosition() const { return mPosition; }
 		const Covariance<3>& getCovariance() const { return mCovariance; }
 
-		virtual std::string getMeasurementTypeName() {
-			return "slam3d::GpsMeasurement";
-		}
+		virtual const char* getTypeName() const { return "slam3d::GpsMeasurement"; }
 		
 	protected:
 		Position mPosition;

@@ -15,12 +15,11 @@
 
 using namespace slam3d;
 
-void initEigenTransform(slam3d::Transform* mat) {
-    for (size_t c = 0; c < mat->matrix().cols(); ++c) {
-        for (size_t r = 0; r < mat->matrix().rows(); ++r) {
-            (*mat)(r, c) = r+c*mat->matrix().rows();
-        }
-    }
+void initEigenTransform(slam3d::Transform* mat)
+{
+	for (size_t c = 0; c < mat->matrix().cols(); ++c)
+		for (size_t r = 0; r < mat->matrix().rows(); ++r)
+			(*mat)(r, c) = r+c*mat->matrix().rows();
 }
 
 BOOST_AUTO_TEST_CASE(pcl_serialization)
@@ -38,12 +37,12 @@ BOOST_AUTO_TEST_CASE(pcl_serialization)
 	if(result >= 0)
 	{
 		slam3d::Transform tf;
-    	initEigenTransform(&tf);
+		initEigenTransform(&tf);
 		PointCloudMeasurement m(pcl_cloud, ROBOT_NAME, SENSOR_NAME, tf);
 		
 		std::stringstream buffer;
 		boost::archive::text_oarchive oa(buffer);
-    	oa << m;
+		oa << m;
 		//create data string with the binary data
 		std::string data = buffer.str();
 
@@ -69,7 +68,7 @@ BOOST_AUTO_TEST_CASE(pcl_serialization)
 		BOOST_CHECK(m.getInverseSensorPose().isApprox(m2->getInverseSensorPose()));
 		
 		// check values of subtype slam3d::PointCloudMeasurement
-		BOOST_CHECK_EQUAL(m2->getMeasurementTypeName(), "slam3d::PointCloudMeasurement");
+		BOOST_CHECK_EQUAL(m2->getTypeName(), "slam3d::PointCloudMeasurement");
 		BOOST_CHECK_NE(m2->getPointCloud(), nullptr);
 		BOOST_CHECK_EQUAL(m2->getPointCloud()->size(), pcl_cloud->size());
 
