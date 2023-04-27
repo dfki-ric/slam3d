@@ -1,5 +1,6 @@
 # pragma once
 
+#include <stdexcept>
 #include <string>
 #include <map>
 #include <memory>
@@ -93,10 +94,10 @@ namespace slam3d
 					return conv->serialize(ptr);
 				}else
 				{
-					printf("no registered converter for %s\n", ptr->getTypeName());
+					throw std::runtime_error("no registered serializer for Measurement::Ptr type");
 				}
 			}
-			return "";
+			throw std::runtime_error("invalid Measurement::Ptr");
 		}
 
 		static Measurement::Ptr deserialize(const std::string &data, const std::string& key)
@@ -107,13 +108,10 @@ namespace slam3d
 				if (conv.get())
 				{
 					return mConverterMap[key]->deserialize(data);
-				} else
-				{
-					printf("no registered converter for %s\n", key.c_str());
 				}
-				return Measurement::Ptr();
+				throw std::runtime_error("no registered deserializer for Measurement::Ptr type");
 			}
-			return Measurement::Ptr();
+			throw std::runtime_error("no data for deserialisation");
 		}
 
 	private:
