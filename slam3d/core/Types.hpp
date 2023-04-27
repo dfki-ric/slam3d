@@ -113,7 +113,6 @@ namespace slam3d
 	public:
 		Measurement(const std::string& r, const std::string& s,
 		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
-		Measurement(){};  // <- needed public for de-serialization
 		virtual ~Measurement(){}
 		
 		timeval getTimestamp() const { return mStamp; }
