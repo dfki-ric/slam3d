@@ -181,7 +181,7 @@ bool Graph::hasMeasurement(boost::uuids::uuid id) const
 	return mUuidIndex.find(id) != mUuidIndex.end();
 }
 
-const VertexObject Graph::getVertex(boost::uuids::uuid id)
+const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 {
 	return getVertex(mUuidIndex.at(id));
 }
