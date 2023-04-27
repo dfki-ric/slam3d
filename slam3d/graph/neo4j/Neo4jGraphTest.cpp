@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE "Neo4jGraphTest"
 
 #include <slam3d/core/FileLogger.hpp>
-#include <slam3d/core/GraphTest.hpp>
+#include <slam3d/core/test_templates/GraphTest.hpp>
 
 #define private public
 #define protected public
