@@ -1,14 +1,13 @@
 #include <hiredis/hiredis.h>
 
-#include "RedisMap.hpp"
+#include "RedisMeasurements.hpp"
 
 #include <boost/archive/text_iarchive.hpp>
 
 
 namespace slam3d {
 
-
-    RedisMap::RedisMap(const char *ip, int port):Measurements() {
+    RedisMeasurements::RedisMeasurements(const char *ip, int port):Measurements() {
         context = std::shared_ptr<redisContext>(redisConnect(ip, port));
 
         if (context.get() == nullptr || context->err) {
@@ -19,12 +18,10 @@ namespace slam3d {
                 printf("Can't allocate redis context\n");
             }
         }
-
         redisCommand(context.get(), "flushdb");
-
     }
 
-    void RedisMap::store(const std::string& key, const std::string &type, const std::string& serializedData) {
+    void RedisMeasurements::store(const std::string& key, const std::string &type, const std::string& serializedData) {
         // printf("HSET %s type %s, data %s\n", key.c_str(), type.c_str(), "data");
         void* reply = redisCommand(context.get(), "HSET %s type %s data %s", key.c_str(), type.c_str(), serializedData.c_str());
         if (!reply) {
@@ -37,7 +34,7 @@ namespace slam3d {
         freeReplyObject(reply);
     }
 
-    Measurement::Ptr RedisMap::get(const std::string& key) {
+    Measurement::Ptr RedisMeasurements::get(const std::string& key) {
         void* reply = redisCommand(context.get(), "HMGET %s type data", key.c_str());
         if (!reply) {
             printf("coud not load measurement: %s\n", context->errstr);

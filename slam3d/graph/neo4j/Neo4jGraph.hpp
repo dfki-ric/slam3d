@@ -56,7 +56,7 @@ class Neo4jGraph : public Graph {
          * @brief 
          * @param id
          */
-        const VertexObject getVertex(IdType id);
+        const VertexObject getVertex(IdType id) const;
 
         virtual void setVertex(IdType id, const VertexObject& v);
 
@@ -202,9 +202,8 @@ class Neo4jGraph : public Graph {
 
         slam3d::Logger* logger;
 
-        std::mutex queryMutex;
-
+        mutable std::mutex queryMutex;
 };
-}
+}  // namespace slam3d
 
 #endif

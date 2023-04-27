@@ -4,7 +4,6 @@
 		Neo4jGraph.cpp
 		Neo4jQuery.cpp
 		Neo4jConversion.cpp
-		RedisMap.cpp
 	)
 
 	target_include_directories(graph-neo4j
@@ -20,7 +19,6 @@
 			cpprest
 			crypto
 			core
-			hiredis
 	)
 
 	# Install header files
@@ -28,7 +26,6 @@
 		FILES 	Neo4jGraph.hpp 
 				Neo4jQuery.hpp
 				Neo4jConversion.hpp
-				RedisMap.hpp
 		DESTINATION include/slam3d/graph/neo4j/
 	)
 
@@ -52,7 +49,7 @@
 
 	# Build test
 	add_executable(test_neo4j_graph Neo4jGraphTest.cpp)
-	add_dependencies(test_neo4j_graph sensor-pcl)
-	target_link_libraries(test_neo4j_graph Boost::unit_test_framework graph-neo4j sensor-pcl)
+	add_dependencies(test_neo4j_graph sensor-pcl measurements-redis)
+	target_link_libraries(test_neo4j_graph Boost::unit_test_framework graph-neo4j sensor-pcl measurements-redis)
 	target_compile_definitions(test_boost_graph PRIVATE BOOST_TEST_DYN_LINK)
 	add_test(neo4j_graph test_neo4j_graph)

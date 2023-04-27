@@ -204,7 +204,7 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
 //     return getVertexInternal(id);
 // }
 
-const VertexObject Neo4jGraph::getVertex(IdType id) {
+const VertexObject Neo4jGraph::getVertex(IdType id)  const{
     std::lock_guard<std::mutex> lock (queryMutex);
     VertexObject vertexobj;
 

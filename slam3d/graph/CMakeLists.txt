@@ -1,3 +1,8 @@
 add_subdirectory(boost)
-add_subdirectory(neo4j)
+
+find_package(cpprestsdk)
+if (${cpprestsdk_FOUND})
+    add_subdirectory(neo4j)
+endif()
+
 
