@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <pcl/io/ply_io.h>
 #include <slam3d/core/FileLogger.hpp>
-#include <slam3d/core/MeasurementRegistry.hpp>
+#include <slam3d/core/MeasurementSerialization.hpp>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(pcl_serialization)
 	int result = ply_reader.read("../../../../test/test.ply", *pcl_cloud);
 	BOOST_CHECK_GE(result, 0);
 
-	MeasurementRegistry registry;
+	MeasurementSerialization registry;
 	registry.registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
 
 	if(result >= 0)

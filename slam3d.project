@@ -111,8 +111,10 @@
   <VirtualDirectory Name="slam3d">
     <File Name="slam3d/CMakeLists.txt"/>
     <VirtualDirectory Name="core">
-      <File Name="slam3d/core/MeasurementRegistry.hpp"/>
-      <File Name="slam3d/core/MeasurementRegistry.cpp"/>
+      <File Name="slam3d/core/MeasurementSerialization.hpp"/>
+      <File Name="slam3d/core/MeasurementSerialization.cpp"/>
+      <File Name="slam3d/core/Measurements.hpp"/>
+      <File Name="slam3d/core/Measurements.cpp"/>
       <File Name="slam3d/core/Clock.hpp"/>
       <File Name="slam3d/core/CMakeLists.txt"/>
       <File Name="slam3d/core/FileLogger.hpp"/>

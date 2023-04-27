@@ -82,10 +82,10 @@ namespace slam3d
 	};
 
 	/**
-	 * @class MeasurementRegistry
+	 * @class MeasurementSerialization
 	 * @brief Registers (de-)serializer's for slam3d::Measurement's by their TypeName.
 	 */
-	class MeasurementRegistry
+	class MeasurementSerialization
 	{
 	public:
 		/**
