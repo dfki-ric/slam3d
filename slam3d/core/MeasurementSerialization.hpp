@@ -102,35 +102,15 @@ namespace slam3d
 
 		static std::string serialize(Measurement::Ptr ptr)
 		{
-			if (ptr.get())
-			{
-				std::shared_ptr<MeasurementToStringBase> conv = mConverterMap[ptr->getTypeName()];
-				if (conv.get())
-				{
-					return conv->serialize(ptr);
-				}else
-				{
-					printf("no registered converter for %s\n", ptr->getTypeName());
-				}
-			}
-			return "";
+			if (!ptr.get())
+				throw std::runtime_error("Empty pointer given to serialize().");
+
+			return mConverterMap.at(ptr->getTypeName())->serialize(ptr);
 		}
 
 		static Measurement::Ptr deserialize(const std::string &data, const std::string& key)
 		{
-			if (data.size())
-			{
-				std::shared_ptr<MeasurementToStringBase> conv = mConverterMap[key];
-				if (conv.get())
-				{
-					return mConverterMap[key]->deserialize(data);
-				} else
-				{
-					printf("no registered converter for %s\n", key.c_str());
-				}
-				return Measurement::Ptr();
-			}
-			return Measurement::Ptr();
+			return mConverterMap.at(key)->deserialize(data);
 		}
 
 	private:

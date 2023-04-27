@@ -23,13 +23,8 @@ void initEigenTransform(slam3d::Transform* mat)
 			(*mat)(r, c) = r+c*mat->matrix().rows();
 }
 
-BOOST_AUTO_TEST_CASE(pcl_serialization)
+BOOST_AUTO_TEST_CASE(serialization)
 {
-	Clock clock;
-	FileLogger logger(clock, "pcl_sensor.log");
-	logger.setLogLevel(DEBUG);
-	PointCloudSensor sensor("pcl-test-sensor", &logger);
-
 	PointCloud::Ptr pcl_cloud(new PointCloud());
 	pcl::PLYReader ply_reader;
 	int result = ply_reader.read("../../../../test/test.ply", *pcl_cloud);
@@ -45,6 +40,7 @@ BOOST_AUTO_TEST_CASE(pcl_serialization)
 		Measurement::Ptr m1(new PointCloudMeasurement(pcl_cloud, ROBOT_NAME, SENSOR_NAME, tf));
 		
 		std::string buffer = registry.serialize(m1);
+		
 		Measurement::Ptr m2 = registry.deserialize(buffer, "slam3d::PointCloudMeasurement");
 
 		PointCloudMeasurement::Ptr pcl1 = boost::dynamic_pointer_cast<slam3d::PointCloudMeasurement>(m1);
@@ -73,7 +69,20 @@ BOOST_AUTO_TEST_CASE(pcl_serialization)
 		BOOST_CHECK(pcl1->getPointCloud()->sensor_origin_.isApprox(pcl2->getPointCloud()->sensor_origin_));
 		BOOST_CHECK(pcl1->getPointCloud()->sensor_orientation_.isApprox(pcl2->getPointCloud()->sensor_orientation_));
 
+		// check unregistered measurement type
+		BOOST_CHECK_THROW(registry.deserialize(buffer, "UnknownMeasurementType"), std::out_of_range);
+
 		// debug out (run with --log_level=message)
 		BOOST_TEST_MESSAGE( buffer );
 	}
+}
+
+BOOST_AUTO_TEST_CASE(empty_inputs)
+{
+	MeasurementSerialization registry;
+	registry.registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+
+	Measurement::Ptr ptr;
+	BOOST_CHECK_THROW(registry.serialize(ptr), std::runtime_error);
+	BOOST_CHECK_THROW(ptr = registry.deserialize("", "slam3d::PointCloudMeasurement"), boost::archive::archive_exception);
 }
