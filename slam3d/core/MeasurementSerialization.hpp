@@ -109,9 +109,9 @@ namespace slam3d
 			return mConverterMap.at(ptr->getTypeName())->serialize(ptr);
 		}
 
-		static Measurement::Ptr deserialize(const std::string &data, const std::string& key)
+		static Measurement::Ptr deserialize(const std::string &data, const std::string& measurementTypeName)
 		{
-			return mConverterMap.at(key)->deserialize(data);
+			return mConverterMap.at(measurementTypeName)->deserialize(data);
 		}
 
 	private:

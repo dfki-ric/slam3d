@@ -67,11 +67,7 @@ void initDB() {
 }
 
 void initRegistry() {
-    MeasurementSerialization::registerMeasurementType<slam3d::Measurement>("slam3d::Measurement");
     MeasurementSerialization::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
-
-
-
 }
 
 BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {
