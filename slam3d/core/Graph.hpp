@@ -315,14 +315,14 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 * @return constant reference to a vertex
 		 */
-		virtual const VertexObject getVertex(IdType id) = 0;
+		virtual const VertexObject getVertex(IdType id) const = 0;
 
 		/**
 		 * @brief Gets a vertex by the uuid of the attached Measurement.
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		const VertexObject getVertex(boost::uuids::uuid id);
+		const VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Check if the measurement with this id is stored in the graph.

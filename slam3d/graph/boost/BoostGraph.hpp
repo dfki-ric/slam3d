@@ -57,7 +57,7 @@ namespace slam3d
 		 * @brief 
 		 * @param id
 		 */
-		const VertexObject getVertex(IdType id);
+		const VertexObject getVertex(IdType id) const;
 		
 		/**
 		 * @brief 
