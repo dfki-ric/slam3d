@@ -36,8 +36,6 @@ class Measurements {
 
  private:
     std::map<std::string, Measurement::Ptr> measurements;
-
-
 };
 
 
