@@ -17,10 +17,10 @@
 
 namespace slam3d {
 
-class Measurements {
+class MeasurementStorage {
  public:
-    Measurements() {}
-    virtual ~Measurements() {}
+    MeasurementStorage() {}
+    virtual ~MeasurementStorage() {}
 
     virtual void set(const boost::uuids::uuid& key, Measurement::Ptr measurement);
     virtual Measurement::Ptr get(const boost::uuids::uuid& key);
