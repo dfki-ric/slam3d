@@ -156,8 +156,12 @@ namespace slam3d
 
 	private:
 		friend class boost::serialization::access;
-		template <typename Archive> void serialize(Archive &ar, const unsigned int version) {
-			if (mPointCloud.get() == nullptr) {
+
+		template <typename Archive>
+		void serialize(Archive &ar, const unsigned int version)
+		{
+			if (mPointCloud.get() == nullptr)
+			{
 				// create empty cloud to have something to work on (not a nullptr)
 				mPointCloud = boost::make_shared<PointCloud>();
 			}

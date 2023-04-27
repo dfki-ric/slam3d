@@ -3,6 +3,28 @@
 #include <boost/test/unit_test.hpp>
 
 
+slam3d::Measurement::Ptr test_serialization(slam3d::Measurement::Ptr m) {
+
+		//create data string with the binary data
+		std::string data = slam3d::MeasurementSerialization::serialize(m);
+		BOOST_CHECK_GE(data.size(), 0);
+		// anonymous deserialisation
+		slam3d::Measurement::Ptr m2 = slam3d::MeasurementSerialization::deserialize(data, m->getTypeName());
+		BOOST_ASSERT(m2);
+
+        BOOST_CHECK_EQUAL(m->getTypeName(), m2->getTypeName());
+        BOOST_CHECK_EQUAL(m->getRobotName(), m2->getRobotName());
+		BOOST_CHECK_EQUAL(m->getTimestamp().tv_sec, m2->getTimestamp().tv_sec);
+		BOOST_CHECK_EQUAL(m->getTimestamp().tv_usec, m2->getTimestamp().tv_usec);
+		BOOST_CHECK_EQUAL(m->getSensorName(), m2->getSensorName());
+		BOOST_CHECK(m->getUniqueId() == m2->getUniqueId());
+		BOOST_CHECK(m->getSensorPose().isApprox(m2->getSensorPose()));
+		BOOST_CHECK(m->getInverseSensorPose().isApprox(m2->getInverseSensorPose()));
+
+        return m2;
+}
+
+
 /**
  * @brief test basic measurement storage (and serialization if the implementation of the Measurements class uses serialization
  * 
@@ -11,7 +33,7 @@
  * @param storage 
  * @param m 
  */
-void test_measurement_storage(std::shared_ptr<Measurements> storage, slam3d::Measurement::Ptr m) {
+void test_measurement_storage(std::shared_ptr<slam3d::Measurements> storage, slam3d::Measurement::Ptr m) {
     storage->set(m->getUniqueId(), m);
 
     slam3d::Measurement::Ptr m_res = storage->get(m->getUniqueId());
@@ -29,6 +51,4 @@ void test_measurement_storage(std::shared_ptr<Measurements> storage, slam3d::Mea
     // debug out (run with --log_level=message)
     BOOST_TEST_MESSAGE(m->getSensorPose().matrix());
     BOOST_TEST_MESSAGE(m_res->getSensorPose().matrix());
-    BOOST_TEST_MESSAGE(m->getPointCloud()->sensor_origin_.matrix());
-    BOOST_TEST_MESSAGE(m_res->getPointCloud()->sensor_origin_.matrix());
 }
