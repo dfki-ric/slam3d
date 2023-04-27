@@ -1,4 +1,4 @@
-#include <slam3d/core/Measurements.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 #include <slam3d/core/MeasurementSerialization.hpp>
 #include <boost/test/unit_test.hpp>
 
@@ -33,7 +33,7 @@ slam3d::Measurement::Ptr test_serialization(slam3d::Measurement::Ptr m) {
  * @param storage 
  * @param m 
  */
-void test_measurement_storage(std::shared_ptr<slam3d::Measurements> storage, slam3d::Measurement::Ptr m) {
+void test_measurement_storage(std::shared_ptr<slam3d::MeasurementStorage> storage, slam3d::Measurement::Ptr m) {
     storage->set(m->getUniqueId(), m);
 
     slam3d::Measurement::Ptr m_res = storage->get(m->getUniqueId());
