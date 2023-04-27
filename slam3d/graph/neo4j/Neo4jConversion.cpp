@@ -1,6 +1,6 @@
 #include "Neo4jConversion.hpp"
 
-#include <slam3d/core/Measurements.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 namespace slam3d {
 
@@ -37,7 +37,7 @@ slam3d::EdgeObject Neo4jConversion::edgeObjectFromJson(web::json::value& json) {
     return returnval;
 }
 
-slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& json, std::shared_ptr<Measurements> measurements) {
+slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& json, std::shared_ptr<MeasurementStorage> measurements) {
     slam3d::VertexObject returnval;
 
     returnval.index = json["index"].as_integer();

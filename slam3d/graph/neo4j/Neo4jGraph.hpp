@@ -7,7 +7,7 @@
 #include <mutex>
 
 #include <slam3d/core/Graph.hpp>
-#include <slam3d/core/Measurements.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 #include "Neo4jQuery.hpp"
 #include "Neo4jConversion.hpp"
@@ -34,7 +34,7 @@ class Neo4jGraph : public Graph {
             const int &port;
         };
 
-        Neo4jGraph(Logger* log, std::shared_ptr<Measurements> measurements, const Server &graphserver = Neo4jGraph::Server("localhost",7474));
+        Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements, const Server &graphserver = Neo4jGraph::Server("localhost",7474));
         ~Neo4jGraph();
 
         /**
@@ -197,7 +197,7 @@ class Neo4jGraph : public Graph {
         // std::map<std::string, Measurement::Ptr> measurements;
 
         // std::shared_ptr<RedisMap> measurements;
-        std::shared_ptr<Measurements> measurements;
+        std::shared_ptr<MeasurementStorage> measurements;
 
 
         slam3d::Logger* logger;

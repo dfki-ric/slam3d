@@ -6,7 +6,7 @@
 
 #include <slam3d/core/Types.hpp>
 #include <slam3d/core/MeasurementSerialization.hpp>
-#include <slam3d/core/Measurements.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 class redisContext;
 
@@ -14,10 +14,10 @@ namespace slam3d {
 
 // uncomment this to enable serialization
 
-class RedisMeasurements: public Measurements {
+class RedisMeasurementStorage: public MeasurementStorage {
  public:
 
-    RedisMeasurements(const char *ip, int port);
+    RedisMeasurementStorage(const char *ip, int port);
 
     virtual void set(const std::string& key, Measurement::Ptr measurement) {
         store(key, measurement->getTypeName(), MeasurementSerialization::serialize(measurement));

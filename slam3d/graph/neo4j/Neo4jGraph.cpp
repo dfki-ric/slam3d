@@ -20,7 +20,7 @@ using namespace utility;
 using status_codes = web::http::status_codes;
 // using Client = web::http::client::http_client;
 
-Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<Measurements> measurements, const Server &graphserver) : Graph(log), logger(log), measurements(measurements)
+Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements, const Server &graphserver) : Graph(log), logger(log), measurements(measurements)
 {
     web::http::client::http_client_config clientconf;
     clientconf.set_validate_certificates(false);

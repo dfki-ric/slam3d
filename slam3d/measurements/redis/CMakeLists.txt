@@ -1,7 +1,7 @@
 # Define graph-neo4j library
 
 	add_library(measurements-redis SHARED
-		RedisMeasurements.cpp
+		RedisMeasurementStorage.cpp
 	)
 
 	target_include_directories(measurements-redis
@@ -18,7 +18,7 @@
 
 	# Install header files
 	install(
-		FILES RedisMeasurements.hpp
+		FILES RedisMeasurementStorage.hpp
 		DESTINATION include/slam3d/measurements/redis/
 	)
 
