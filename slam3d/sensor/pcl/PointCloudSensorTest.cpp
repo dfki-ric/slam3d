@@ -24,10 +24,10 @@ void initEigenTransform(slam3d::Transform* mat)
 			(*mat)(r, c) = r+c*mat->matrix().rows();
 }
 
-BOOST_AUTO_TEST_CASE(pcl_serialization)
+BOOST_AUTO_TEST_CASE(serialization)
 {
 	// register serialization handler for slam3d::PointCloudMeasurement
-	slam3d::MeasurementSerialization::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+	MeasurementSerialization::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
 
 	Clock clock;
 	FileLogger logger(clock, "pcl_sensor.log");
@@ -43,31 +43,39 @@ BOOST_AUTO_TEST_CASE(pcl_serialization)
 	{
 		slam3d::Transform tf;
 		initEigenTransform(&tf);
-		PointCloudMeasurement::Ptr m = boost::make_shared<PointCloudMeasurement>(pcl_cloud, ROBOT_NAME, SENSOR_NAME, tf);
+		PointCloudMeasurement::Ptr pcl1 = boost::make_shared<PointCloudMeasurement>(pcl_cloud, ROBOT_NAME, SENSOR_NAME, tf);
 
-		Measurement::Ptr m2_base = test_serialization(m);
+		Measurement::Ptr pcl2_base = test_serialization(pcl1);
 
-		PointCloudMeasurement::Ptr m2 = boost::dynamic_pointer_cast<PointCloudMeasurement>(m2_base);
-		BOOST_ASSERT(m2);
-		if(m2)
+		PointCloudMeasurement::Ptr pcl2 = boost::dynamic_pointer_cast<PointCloudMeasurement>(pcl2_base);
+		BOOST_ASSERT(pcl2);
+		if(pcl2)
 		{
-			BOOST_CHECK_EQUAL(m->getPointCloud()->size(), m2->getPointCloud()->size());
+			BOOST_CHECK_EQUAL(pcl1->getPointCloud()->size(), pcl2->getPointCloud()->size());
 		}
 
 		// check values of subtype slam3d::PointCloudMeasurement
-		BOOST_CHECK_EQUAL(m2->getTypeName(), "slam3d::PointCloudMeasurement");
-		BOOST_CHECK_NE(m2->getPointCloud(), nullptr);
-		BOOST_CHECK_EQUAL(m2->getPointCloud()->size(), pcl_cloud->size());
+		BOOST_CHECK_EQUAL(pcl2->getTypeName(), "slam3d::PointCloudMeasurement");
 
-		BOOST_CHECK(m->getPointCloud()->sensor_origin_.isApprox(m2->getPointCloud()->sensor_origin_));
-		BOOST_CHECK(m->getPointCloud()->sensor_orientation_.isApprox(m2->getPointCloud()->sensor_orientation_));
+		BOOST_CHECK(pcl1->getPointCloud()->sensor_origin_.isApprox(pcl2->getPointCloud()->sensor_origin_));
+		BOOST_CHECK(pcl1->getPointCloud()->sensor_orientation_.isApprox(pcl2->getPointCloud()->sensor_orientation_));
+
+		// check unregistered measurement type
+		std::string buffer;
+		BOOST_CHECK_THROW(MeasurementSerialization::deserialize(buffer, "UnknownMeasurementType"), std::out_of_range);
 
 		// debug out (run with --log_level=message)
-		BOOST_TEST_MESSAGE( m->getSensorPose().matrix() );
-		BOOST_TEST_MESSAGE( m2->getSensorPose().matrix() );
-		BOOST_TEST_MESSAGE( m->getPointCloud()->sensor_origin_.matrix() );
-		BOOST_TEST_MESSAGE( m2->getPointCloud()->sensor_origin_.matrix() );
-
-
+		
+		BOOST_TEST_MESSAGE( buffer );
 	}
+}
+
+BOOST_AUTO_TEST_CASE(empty_inputs)
+{
+	MeasurementSerialization registry;
+	registry.registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
+
+	Measurement::Ptr ptr;
+	BOOST_CHECK_THROW(registry.serialize(ptr), std::runtime_error);
+	BOOST_CHECK_THROW(ptr = registry.deserialize("", "slam3d::PointCloudMeasurement"), boost::archive::archive_exception);
 }

@@ -1,6 +1,5 @@
 # pragma once
 
-#include <stdexcept>
 #include <string>
 #include <map>
 #include <memory>
@@ -12,6 +11,12 @@
 
 namespace slam3d
 {
+	/**
+	 * @class MeasurementToStringBase
+	 * @brief Abstract base class for a measurement serializer
+	 * @details Use serialize and deserialize to read/write a
+	 * slam3d::Measurement to/from an std::string.
+	 */
 	class MeasurementToStringBase
 	{
 	public:
@@ -22,19 +27,26 @@ namespace slam3d
 		virtual const std::string& getTypeName() = 0;
 	};
 
-	template <class MEASUREMENT_TYPE>
+	/**
+	 * @class MeasurementToString
+	 * @brief Implementation of a generic measurement serializer
+	 * @details To use serialization, a specific Measurement must implement
+	 * the serialize() method as defined in boost::serialization and be
+	 * registered with the MeasurementRegistry.
+	 */
+	template <class TYPE>
 	class MeasurementToString : public MeasurementToStringBase
 	{
-		public:
-			explicit MeasurementToString(const std::string& typeName)
-			{
-				measurementTypeName = typeName;
-			}
-			virtual ~MeasurementToString() {}
+	public:
+		explicit MeasurementToString(const std::string& typeName)
+		{
+			mTypeName = typeName;
+		}
+		virtual ~MeasurementToString() {}
 
 		virtual bool isSameType(Measurement::Ptr ptr)
 		{
-			boost::shared_ptr<MEASUREMENT_TYPE> newptr = boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(ptr);
+			boost::shared_ptr<TYPE> newptr = boost::dynamic_pointer_cast<TYPE>(ptr);
 			if (newptr.get())
 			{
 				return true;
@@ -44,7 +56,7 @@ namespace slam3d
 
 		virtual std::string serialize(Measurement::Ptr ptr)
 		{
-			boost::shared_ptr<MEASUREMENT_TYPE> newptr = boost::dynamic_pointer_cast<MEASUREMENT_TYPE>(ptr);
+			boost::shared_ptr<TYPE> newptr = boost::dynamic_pointer_cast<TYPE>(ptr);
 			std::stringstream ss;
 			boost::archive::text_oarchive oa(ss);
 			oa << *(newptr.get());
@@ -53,7 +65,7 @@ namespace slam3d
 
 		virtual Measurement::Ptr deserialize(const std::string &data)
 		{
-			boost::shared_ptr<MEASUREMENT_TYPE> m = boost::make_shared<MEASUREMENT_TYPE>();
+			boost::shared_ptr<TYPE> m = boost::make_shared<TYPE>();
 			std::stringstream ss(data);
 			boost::archive::text_iarchive ia(ss);
 			ia >> *(m.get());
@@ -62,20 +74,24 @@ namespace slam3d
 
 		virtual const std::string& getTypeName()
 		{
-			return measurementTypeName;
+			return mTypeName;
 		}
 
 		private:
-			std::string measurementTypeName;
+			std::string mTypeName;
 	};
 
+	/**
+	 * @class MeasurementSerialization
+	 * @brief Registers (de-)serializer's for slam3d::Measurement's by their TypeName.
+	 */
 	class MeasurementSerialization
 	{
 	public:
 		/**
 		* @brief register a (de-)serializer fo a given type
 		* @tparam TYPE The measuremetn type that should be (de-)serialized
-		* @param measurementTypeName the type name that is returned when TYPE.getMeasurementTypeName() is called. This si used to match the fitting serializer
+		* @param measurementTypeName the type name that is returned when TYPE.getTypeName() is called. This is used to match the fitting serializer
 		*/
 		template <class TYPE>
 		static void registerMeasurementType(const std::string& measurementTypeName)
@@ -86,32 +102,15 @@ namespace slam3d
 
 		static std::string serialize(Measurement::Ptr ptr)
 		{
-			if (ptr.get())
-			{
-				std::shared_ptr<MeasurementToStringBase> conv = mConverterMap[ptr->getTypeName()];
-				if (conv.get())
-				{
-					return conv->serialize(ptr);
-				}else
-				{
-					throw std::runtime_error("no registered serializer for Measurement::Ptr type");
-				}
-			}
-			throw std::runtime_error("invalid Measurement::Ptr");
+			if (!ptr.get())
+				throw std::runtime_error("Empty pointer given to serialize().");
+
+			return mConverterMap.at(ptr->getTypeName())->serialize(ptr);
 		}
 
 		static Measurement::Ptr deserialize(const std::string &data, const std::string& key)
 		{
-			if (data.size())
-			{
-				std::shared_ptr<MeasurementToStringBase> conv = mConverterMap[key];
-				if (conv.get())
-				{
-					return mConverterMap[key]->deserialize(data);
-				}
-				throw std::runtime_error("no registered deserializer for Measurement::Ptr type");
-			}
-			throw std::runtime_error("no data for deserialisation");
+			return mConverterMap.at(key)->deserialize(data);
 		}
 
 	private:
