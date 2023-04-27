@@ -16,8 +16,9 @@
 namespace slam3d {
 
 class Measurements {
- public:    
-    Measurements() {};
+ public:
+    Measurements() {}
+    virtual ~Measurements() {}
 
     virtual void set(const std::string& key, Measurement::Ptr measurement);
 
