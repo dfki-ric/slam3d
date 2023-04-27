@@ -13,6 +13,7 @@
 
 #include "Types.hpp"
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace slam3d {
 
@@ -21,21 +22,19 @@ class Measurements {
     Measurements() {}
     virtual ~Measurements() {}
 
-    void set(const boost::uuids::uuid& uuid, Measurement::Ptr measurement) {
-        set(boost::uuids::to_string(uuid), measurement);
+    virtual void set(const boost::uuids::uuid& key, Measurement::Ptr measurement);
+    virtual Measurement::Ptr get(const boost::uuids::uuid& key);
+
+    void set(const std::string& key, Measurement::Ptr measurement) {
+        set(boost::lexical_cast<boost::uuids::uuid>(key), measurement);
     }
 
-    virtual void set(const std::string& key, Measurement::Ptr measurement);
-
-    Measurement::Ptr get(const boost::uuids::uuid& uuid) {
-        return get(boost::uuids::to_string(uuid));
+    Measurement::Ptr get(const std::string& key) {
+        return get( boost::lexical_cast<boost::uuids::uuid>(key));
     }
-
-    virtual Measurement::Ptr get(const std::string& key);
-
 
  private:
-    std::map<std::string, Measurement::Ptr> measurements;
+    std::map<boost::uuids::uuid, Measurement::Ptr> measurements;
 };
 
 
