@@ -79,7 +79,7 @@ class Neo4jGraph : public Graph {
          * @brief Gets a list of all vertices from given sensor.
          * @param sensor
          */
-        const VertexObjectList getVerticesFromSensor(const std::string& sensor);
+        const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
 
         /**
          * @brief Serch for nodes by using breadth-first-search
@@ -92,7 +92,7 @@ class Neo4jGraph : public Graph {
          * @brief Gets a list of all edges from given sensor.
          * @param sensor
          */
-        const EdgeObjectList getEdgesFromSensor(const std::string& sensor);
+        const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
 
         /**
          * @brief Get all connecting edges between given vertices.
@@ -105,7 +105,7 @@ class Neo4jGraph : public Graph {
          * @param source
          * @param target
          */
-        float calculateGraphDistance(IdType source, IdType target);
+        float calculateGraphDistance(IdType source, IdType target) const;
 
         /**
          * @brief Write the current graph to a file (currently dot).

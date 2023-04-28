@@ -47,7 +47,7 @@ bool Neo4jGraph::deleteDatabase()
 
 }
 
-const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)
+const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)  const
 {
     EdgeObjectList objectList;
 
@@ -155,7 +155,7 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
     }
 }
 
-const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor) {
+const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor)  const{
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
@@ -321,7 +321,7 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
     return vertices;
 }
 
-float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) {
+float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) const {
     Neo4jQuery query(client);
     // MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]-(b)) WHERE a.index = 1 AND b.index = 28 return p
     query.addStatement("MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN RELATIONSHIPS(p)");
