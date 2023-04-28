@@ -96,7 +96,7 @@ namespace slam3d
 		template <class TYPE>
 		static void registerMeasurementType(const std::string& measurementTypeName)
 		{
-			std::shared_ptr<MeasurementToStringBase> conv = std::make_shared< MeasurementToString<TYPE> >(measurementTypeName);
+			boost::shared_ptr<MeasurementToStringBase> conv = boost::make_shared< MeasurementToString<TYPE> >(measurementTypeName);
 			mConverterMap[measurementTypeName] = conv;
 		}
 
@@ -114,7 +114,7 @@ namespace slam3d
 		}
 
 	private:
-		static std::map<std::string, std::shared_ptr<MeasurementToStringBase> > mConverterMap;
+		static std::map<std::string, boost::shared_ptr<MeasurementToStringBase> > mConverterMap;
 	};
 
 }  // namespace slam3d
