@@ -1,41 +1,47 @@
 # pragma once
 
-#include <string>
-#include <map>
-#include <memory>
-
-// #include <typeinfo>
-// #include <cxxabi.h>
-
-
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-
 #include "Types.hpp"
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
 
-namespace slam3d {
+namespace slam3d
+{
+	/**
+	 * @class MeasurementStorage
+	 * @brief 
+	 */
+	class MeasurementStorage
+	{
+	public:
+		/**
+		 * @brief Set the measurement for a given UUID
+		 * @param key 
+		 * @param measurement 
+		 */
+		virtual void set(const boost::uuids::uuid& key, Measurement::Ptr measurement);
 
-class MeasurementStorage {
- public:
-    MeasurementStorage() {}
-    virtual ~MeasurementStorage() {}
+		/**
+		 * @brief Get the measurement for a given UUID
+		 * @param key
+		 * @throws std::out_of_range if no measurement exists for that UUID
+		 */
+		virtual Measurement::Ptr get(const boost::uuids::uuid& key);
 
-    virtual void set(const boost::uuids::uuid& key, Measurement::Ptr measurement);
-    virtual Measurement::Ptr get(const boost::uuids::uuid& key);
+		/**
+		 * @brief Set the measurement for a given UUID
+		 * @param key
+		 * @param measurement
+		 * @throws boost::bad_lexical_cast if the given string is no valid UUID
+		 */
+		void set(const std::string& key, Measurement::Ptr measurement);
 
-    void set(const std::string& key, Measurement::Ptr measurement) {
-        set(boost::lexical_cast<boost::uuids::uuid>(key), measurement);
-    }
+		/**
+		 * @brief Get the measurement for a given UUID
+		 * @param key
+		 * @throws std::out_of_range if no measurement exists for that UUID
+		 * @throws boost::bad_lexical_cast if the given string is no valid UUID
+		 */
+		Measurement::Ptr get(const std::string& key);
 
-    Measurement::Ptr get(const std::string& key) {
-        return get( boost::lexical_cast<boost::uuids::uuid>(key));
-    }
-
- private:
-    std::map<boost::uuids::uuid, Measurement::Ptr> measurements;
-};
-
-
+	private:
+		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
+	};
 }  // namespace slam3d
