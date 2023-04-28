@@ -78,7 +78,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		const VertexObjectList getVerticesFromSensor(const std::string& sensor);
+		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
@@ -91,7 +91,7 @@ namespace slam3d
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		const EdgeObjectList getEdgesFromSensor(const std::string& sensor);
+		const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
 		
 		/**
 		 * @brief Get all connecting edges between given vertices.
@@ -104,7 +104,7 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		float calculateGraphDistance(IdType source, IdType target);
+		float calculateGraphDistance(IdType source, IdType target) const;
 		
 		/**
 		 * @brief Write the current graph to a file (currently dot).
@@ -113,6 +113,16 @@ namespace slam3d
 		 */
 		void writeGraphToFile(const std::string &name);
 
+		/**
+		 * @brief Set the corrected pose for the vertex with the given ID.
+		 * @details This method is designed to be used by Sensor and PoseSensor
+		 * implementations in order to position newly added measurements.
+		 * This allows to quickly set the pose of a vertex according to available
+		 * odometry or scan matching results, before it is correctly estimated by
+		 * executing the optimization backend.
+		 * @param id vertex to be changed
+		 * @param pose new corrected pose to be set
+		 */
 		void setCorrectedPose(IdType id, const Transform& pose);
 
 	protected:

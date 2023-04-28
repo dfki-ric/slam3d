@@ -300,7 +300,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		const VertexObjectList getNearbyVertices(const Transform &tf, float radius);
+		const VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -335,7 +335,7 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		const Transform getTransform(IdType source, IdType target);
+		const Transform getTransform(IdType source, IdType target) const;
 
 		/**
 		 * @brief Get the edge between source and traget from the given sensor.
@@ -357,7 +357,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) = 0;
+		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
@@ -371,7 +371,7 @@ namespace slam3d
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		virtual const EdgeObjectList getEdgesFromSensor(const std::string& sensor) = 0;
+		virtual const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all connecting edges between given vertices.
@@ -386,7 +386,7 @@ namespace slam3d
 		 * @param target
 		 * @throw InvalidVertex
 		 */
-		virtual float calculateGraphDistance(IdType source, IdType target) = 0;
+		virtual float calculateGraphDistance(IdType source, IdType target) const = 0;
 
 	protected:
 		// Graph access

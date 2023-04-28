@@ -78,8 +78,8 @@ namespace slam3d
 			return mTypeName;
 		}
 
-		private:
-			std::string mTypeName;
+	private:
+		std::string mTypeName;
 	};
 
 	/**

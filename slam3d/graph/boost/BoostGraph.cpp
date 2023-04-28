@@ -29,7 +29,7 @@ BoostGraph::~BoostGraph()
 {
 }
 
-const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor)
+const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -96,7 +96,7 @@ void BoostGraph::removeEdge(IdType source, IdType target, const std::string& sen
 	boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
 }
 
-const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor)
+const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -260,7 +260,7 @@ const VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned
 	return vertices;
 }
 
-float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
+float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) const
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	int num = boost::num_vertices(mPoseGraph);
