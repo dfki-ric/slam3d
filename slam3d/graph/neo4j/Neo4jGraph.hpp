@@ -163,15 +163,6 @@ class Neo4jGraph : public Graph {
         //  */
         // OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
 
-		/**
-		 * @brief 
-		 * 
-		 * @param source_id 
-		 * @param target_id 
-		 * @param c 
-		 */
-		void replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c);
-
     private:
         std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
 

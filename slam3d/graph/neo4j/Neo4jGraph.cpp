@@ -27,22 +27,16 @@ Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurem
     web::credentials clientcred(_XPLATSTR("neo4j"), _XPLATSTR("neo4j"));
     clientconf.set_credentials(clientcred);
 
-    //client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://localhost:7474"), clientconf);
     client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)), clientconf);
-
-    // measurements = std::make_shared<RedisMap>("localhost", 6379);
-    // measurements = std::make_shared<RedisMap>(measuerementserver.host.c_str(), measuerementserver.port);
 
 }
 
 Neo4jGraph::~Neo4jGraph()
 {
-    // neo4j_close(connection);
-    // neo4j_client_cleanup();
 }
 
-bool Neo4jGraph::deleteDatabase() {
-
+bool Neo4jGraph::deleteDatabase()
+{
     Neo4jQuery vertexQuery(client);
     vertexQuery.addStatement("match (n) detach delete n");
 
@@ -90,13 +84,7 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
     vertexQuery.addParameterToSet("props", "measurement", uuid);
 
-
-    // TODO add MesurementTypeRegisty?
-
-
-
     measurements->set(uuid, v.measurement);
-
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
@@ -104,19 +92,6 @@ void Neo4jGraph::addVertex(const VertexObject& v)
                             + ", y: " + std::to_string(v.corrected_pose.translation().y())
                             + ", z: " + std::to_string(v.corrected_pose.translation().z())
                             + "})");
-
-
-
-// PROFILE
-// MATCH (person:Person)
-// WHERE point.withinBBox(person.location, point({x: 1.2, y: 5.4}), point({x: 1.3, y: 5.5}))
-// RETURN person.firstname
-
-    // vertexQuery.addParameterToSet("props", "location",
-    //                                 "point({x: " + std::to_string(v.corrected_pose.translation().x())
-    //                                     +", y: " + std::to_string(v.corrected_pose.translation().y())
-    //                                     +", z: " + std::to_string(v.corrected_pose.translation().z())
-    //                                     +"})");
 
     if (!vertexQuery.sendQuery()) {
         logger->message(ERROR, vertexQuery.getResponse().extract_string().get());
@@ -199,11 +174,6 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
     return objectList;
 }
 
-// const VertexObject Neo4jGraph::getVertex(IdType id)
-// {
-//     return getVertexInternal(id);
-// }
-
 const VertexObject Neo4jGraph::getVertex(IdType id)  const{
     std::lock_guard<std::mutex> lock (queryMutex);
     VertexObject vertexobj;
@@ -254,14 +224,7 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
         logger->message(ERROR, vertexQuery.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(vertexQuery.getResponse().status_code()));
     }
-
-
 }
-
-// const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor)
-// {
-//     return getEdgeInternal(source, target, sensor);
-// }
 
 const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) const {
     Neo4jQuery query(client);
@@ -320,77 +283,10 @@ const EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) cons
     return objectList;
 }
 
-void Neo4jGraph::replaceConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
-{
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // // here, we replace the whole edge as a first version
-    // EdgeObject eo = getEdgeInternal(source_id, target_id, c->getSensorName());
-    // removeEdge(source_id, target_id, c->getSensorName());
-    // eo.constraint = c;
-    // addEdge(eo, false);
-    // addToSolver(eo);
-
-}
-
 void Neo4jGraph::writeGraphToFile(const std::string& name)
 {
     printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
-    // std::string file = name + ".dot";
-    // mLogger->message(INFO, (boost::format("Writing graph to file '%1%'.") % file).str());
-    // std::ofstream ofs;
-    // ofs.open(file.c_str());
-    // boost::write_graphviz(
-    // 		ofs,
-    // 		mPoseGraph,
-    // 		boost::make_label_writer(boost::get(&VertexObject::label, mPoseGraph)),
-    // 		boost::make_label_writer(boost::get(&EdgeObject::label, mPoseGraph)),
-    // 		boost::default_writer(),
-    // 		boost::get(&VertexObject::index, mPoseGraph));
-    // ofs.close();
 }
-
-// ================================================================
-// BFS search for vertices with a maximum distance to a source node
-// ================================================================
-
-// struct EdgeFilter
-// {
-// 	EdgeFilter() {}
-// 	EdgeFilter(const AdjacencyGraph* g) : graph(g) {}
-// 	bool operator()(const Edge& e) const
-// 	{
-// 		return (*graph)[e].constraint->getType() == SE3;
-// 	}
-    
-// 	const AdjacencyGraph* graph;
-// };
-
-// typedef boost::filtered_graph<AdjacencyGraph, EdgeFilter> FilteredGraph;
-// typedef std::map<FilteredGraph::vertex_descriptor, boost::default_color_type> ColorMap;
-// typedef std::map<FilteredGraph::vertex_descriptor, unsigned> DepthMap;
-
-// /**
-//  * @class MaxDepthVisitor
-//  * @brief BFS-Visitor to find nearby nodes in the graph.
-//  */
-// class MaxDepthVisitor : public boost::default_bfs_visitor
-// {
-// public:
-// 	MaxDepthVisitor(DepthMap& map, unsigned d) : depth_map(map), max_depth(d) {}
-
-// 	void tree_edge(FilteredGraph::edge_descriptor e, const FilteredGraph& g)
-// 	{
-// 		FilteredGraph::vertex_descriptor u = source(e, g);
-// 		FilteredGraph::vertex_descriptor v = target(e, g);
-// 		if(depth_map[u] >= max_depth)
-// 			throw 0;
-// 		depth_map[v] = depth_map[u] + 1;
-// 	}
-// private:
-// 	DepthMap& depth_map;
-// 	unsigned max_depth;
-// };
 
 const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
@@ -398,21 +294,23 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
 
     // TODO:
 
-    // Create required data structures
-    // Vertex source = mIndexMap.at(source_id);
-    // DepthMap depth_map;
-    // depth_map[source] = 0;
-    // ColorMap c_map;
-    // MaxDepthVisitor vis(depth_map, range);
-    
-    // // Do BFS on filtered graph
-    // FilteredGraph fg(mPoseGraph, EdgeFilter(&mPoseGraph));
-    // try
-    // {
-    // 	boost::breadth_first_search(fg, source, boost::visitor(vis).color_map(boost::associative_property_map<ColorMap>(c_map)));
-    // }catch(int e)
-    // {
-    // }
+    Neo4jQuery query(client);
+
+    query.addStatement("match (v1:Vertex), (v2:Vertex) where v1.index="+std::to_string(source_id)+" AND point.distance(v1.location, v2.location) <= "+std::to_string(range)+" return v2");
+
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    }
+
+    web::json::value result = query.getResponse().extract_json().get();
+    try {
+        web::json::array &nodes = result["results"][0]["data"][0]["row"][0].as_array();
+        
+    } catch (const web::json::json_exception &e) {
+        std::cout << "error on getVerticesInRange : " << source_id << " -- " << e.what() << std::endl;
+        std::cout << result << std::endl;
+    }
 
     // Write the result
     VertexObjectList vertices;
@@ -447,7 +345,7 @@ float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) {
 
 void Neo4jGraph::setCorrectedPose(IdType id, const Transform& pose)
 {
-	Neo4jQuery query(client);
+    Neo4jQuery query(client);
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     query.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(id)+" SET n.location = point({"
                             +   "x: " + std::to_string(pose.translation().x())
