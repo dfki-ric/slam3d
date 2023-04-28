@@ -35,6 +35,7 @@
 
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 
 #include "RegistrationParameters.hpp"
 
@@ -160,13 +161,8 @@ namespace slam3d
 		template <typename Archive>
 		void serialize(Archive &ar, const unsigned int version)
 		{
-			if (mPointCloud.get() == nullptr)
-			{
-				// create empty cloud to have something to work on (not a nullptr)
-				mPointCloud = boost::make_shared<PointCloud>();
-			}
 			ar & boost::serialization::base_object<slam3d::Measurement>(*this);
-			ar & *mPointCloud;
+			ar & mPointCloud;
 		}
 	};
 
