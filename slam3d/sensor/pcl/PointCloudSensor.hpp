@@ -157,7 +157,12 @@ namespace slam3d
 		template <typename Archive>
 		void serialize(Archive &ar, const unsigned int version)
 		{
-			// empty, everything done in save_/load_construct_data
+			// Tell boost::serialization that this is derived from Measurement.
+			// It is required because we don't explicitely call Measurement::serialize()
+			// from within PointCloudMeasurement::serialize().
+			boost::serialization::void_cast_register<PointCloudMeasurement, Measurement>(
+				static_cast<PointCloudMeasurement *>(NULL),
+				static_cast<Measurement *>(NULL));
 		}
 	};
 
@@ -328,5 +333,7 @@ namespace boost
 		}
 	}
 }
+
+BOOST_CLASS_EXPORT_KEY(slam3d::PointCloudMeasurement)
 
 #endif

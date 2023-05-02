@@ -39,9 +39,10 @@
 #include <boost/format.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
 
 #define PI 3.141592654
+
+BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 using namespace slam3d;
 

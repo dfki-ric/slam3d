@@ -35,6 +35,7 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/split_free.hpp>
+#include <boost/serialization/export.hpp>
 
 #include <Eigen/Geometry>
 
@@ -141,11 +142,6 @@ namespace slam3d
 		{
 			 ar & mStamp.tv_sec;
 			 ar & mStamp.tv_usec;
-			 ar & mRobotName;
-			 ar & mSensorName;
-			 ar & mUniqueId;
-			 ar & mSensorPose;
-			 ar & mInverseSensorPose;
 		}
 
 	};
@@ -327,5 +323,40 @@ namespace slam3d
 	typedef std::vector<VertexObject> VertexObjectList;
 	typedef std::vector<EdgeObject> EdgeObjectList;
 }
+
+namespace boost
+{
+	namespace serialization
+	{
+		template<class Archive>
+		inline void save_construct_data(Archive & ar, const slam3d::Measurement * m, const unsigned int file_version)
+		{
+			// save data required to construct instance
+			ar << m->getRobotName();
+			ar << m->getSensorName();
+			ar << m->getSensorPose();
+			ar << m->getUniqueId();
+		}
+
+		template<class Archive>
+		inline void load_construct_data(Archive & ar, slam3d::Measurement * t, const unsigned int file_version)
+		{
+			// retrieve data from archive required to construct new instance
+			std::string robot;
+			std::string sensor;
+			slam3d::Transform pose;
+			boost::uuids::uuid id;
+			ar >> robot;
+			ar >> sensor;
+			ar >> pose;
+			ar >> id;
+
+			// invoke inplace constructor to initialize instance of PointCloudMeasurement
+			::new(t)slam3d::Measurement(robot, sensor, pose, id);
+		}
+	}
+}
+
+BOOST_CLASS_EXPORT_KEY(slam3d::Measurement)
 
 #endif
