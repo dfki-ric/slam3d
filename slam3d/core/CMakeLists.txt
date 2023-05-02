@@ -4,7 +4,6 @@ add_library(core SHARED
 	Sensor.cpp
 	ScanSensor.cpp
 	Types.cpp
-	MeasurementSerialization.cpp
 	MeasurementStorage.cpp
 )
 
