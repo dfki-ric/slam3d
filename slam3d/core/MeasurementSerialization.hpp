@@ -59,16 +59,16 @@ namespace slam3d
 			boost::shared_ptr<TYPE> newptr = boost::dynamic_pointer_cast<TYPE>(ptr);
 			std::stringstream ss;
 			boost::archive::text_oarchive oa(ss);
-			oa << *(newptr.get());
+			oa << newptr;
 			return ss.str();
 		}
 
 		virtual Measurement::Ptr deserialize(const std::string &data)
 		{
-			boost::shared_ptr<TYPE> m = boost::make_shared<TYPE>();
+			boost::shared_ptr<TYPE> m;
 			std::stringstream ss(data);
 			boost::archive::text_iarchive ia(ss);
-			ia >> *(m.get());
+			ia >> m;
 			return m;
 		}
 
