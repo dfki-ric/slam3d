@@ -139,10 +139,6 @@ namespace slam3d
 			mStamp.tv_usec = cloud->header.stamp % 1000000;
 		}
 
-		PointCloudMeasurement():Measurement("","", slam3d::Transform()) {
-
-		}
-
 		/**
 		 * @brief Gets the point cloud contained within this measurement.
 		 * @return Constant shared pointer to the point cloud
@@ -161,8 +157,7 @@ namespace slam3d
 		template <typename Archive>
 		void serialize(Archive &ar, const unsigned int version)
 		{
-			ar & boost::serialization::base_object<slam3d::Measurement>(*this);
-			ar & mPointCloud;
+			// empty, everything done in save_/load_construct_data
 		}
 	};
 
@@ -296,6 +291,42 @@ namespace slam3d
 		double   mMapOutlierRadius;
 		unsigned mMapOutlierNeighbors;
 	};
+}
+
+namespace boost
+{
+	namespace serialization
+	{
+		template<class Archive>
+		inline void save_construct_data(Archive & ar, const slam3d::PointCloudMeasurement * m, const unsigned int file_version)
+		{
+			// save data required to construct instance
+			ar << m->getPointCloud();
+			ar << m->getRobotName();
+			ar << m->getSensorName();
+			ar << m->getSensorPose();
+			ar << m->getUniqueId();
+		}
+
+		template<class Archive>
+		inline void load_construct_data(Archive & ar, slam3d::PointCloudMeasurement * t, const unsigned int file_version)
+		{
+			// retrieve data from archive required to construct new instance
+			slam3d::PointCloud::Ptr cloud;
+			std::string robot;
+			std::string sensor;
+			slam3d::Transform pose;
+			boost::uuids::uuid id;
+			ar >> cloud;
+			ar >> robot;
+			ar >> sensor;
+			ar >> pose;
+			ar >> id;
+
+			// invoke inplace constructor to initialize instance of PointCloudMeasurement
+			::new(t)slam3d::PointCloudMeasurement(cloud, robot, sensor, pose, id);
+		}
+	}
 }
 
 #endif
