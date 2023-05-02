@@ -6,7 +6,8 @@
 #define private public
 #define protected public
 
-#include <slam3d/measurements/redis/RedisMeasurementStorage.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
+#include <slam3d/core/MeasurementSerialization.hpp>
 #include "Neo4jGraph.hpp"
 #include "Neo4jConversion.hpp"
 
@@ -58,7 +59,7 @@ void initEigenQuaternion(Eigen::Quaternionf* q) {
 void initDB() {
     static bool initialized = false;
     if (!initialized) {
-        std::shared_ptr<slam3d::MeasurementStorage> measurements = std::make_shared<slam3d::RedisMeasurementStorage>("localhost", 6379);
+        std::shared_ptr<slam3d::MeasurementStorage> measurements = std::make_shared<slam3d::MeasurementStorage>();
         neo4jlogger.setLogLevel(DEBUG);
         neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger, measurements);
         neo4jgraph->deleteDatabase();
