@@ -36,6 +36,7 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "RegistrationParameters.hpp"
 
