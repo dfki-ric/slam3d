@@ -5,8 +5,6 @@
 #include <slam3d/core/FileLogger.hpp>
 #include <slam3d/core/test_templates/MeasurementTests.hpp>
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
 #include <sstream>
 
 #include "PointCloudSensor.hpp"
