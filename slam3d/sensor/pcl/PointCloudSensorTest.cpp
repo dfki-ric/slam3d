@@ -9,8 +9,6 @@
 
 #include "PointCloudSensor.hpp"
 
-BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
-
 #define ROBOT_NAME "TestRobot"
 #define SENSOR_NAME "TestPclSensor"
 
