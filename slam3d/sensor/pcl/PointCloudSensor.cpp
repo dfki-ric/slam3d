@@ -40,8 +40,6 @@
 
 #define PI 3.141592654
 
-BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
-
 using namespace slam3d;
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
