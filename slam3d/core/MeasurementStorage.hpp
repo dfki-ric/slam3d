@@ -11,6 +11,8 @@ namespace slam3d
 	class MeasurementStorage
 	{
 	public:
+
+		virtual ~MeasurementStorage() {}
 		/**
 		 * @brief Set the measurement for a given UUID
 		 * @param key 
