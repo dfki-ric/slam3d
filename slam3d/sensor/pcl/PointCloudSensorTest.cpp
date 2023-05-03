@@ -31,6 +31,9 @@ BOOST_AUTO_TEST_CASE(serialization)
 	PointCloud::Ptr pcl_cloud(new PointCloud());
 	pcl::PLYReader ply_reader;
 	int result = ply_reader.read("../../../../test/test.ply", *pcl_cloud);
+	pcl_cloud->header.stamp = 1683104082;
+	pcl_cloud->header.frame_id = "test_frame";
+	pcl_cloud->header.seq = 54321;
 	BOOST_CHECK_GE(result, 0);
 
 	if(result >= 0)
@@ -50,6 +53,8 @@ BOOST_AUTO_TEST_CASE(serialization)
 
 		// check values of subtype slam3d::PointCloudMeasurement
 		BOOST_CHECK_EQUAL(pcl2->getTypeName(), "slam3d::PointCloudMeasurement");
+		BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.seq, 54321);
+		BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.frame_id, "test_frame");
 
 		BOOST_CHECK(pcl1->getPointCloud()->sensor_origin_.isApprox(pcl2->getPointCloud()->sensor_origin_));
 		BOOST_CHECK(pcl1->getPointCloud()->sensor_orientation_.isApprox(pcl2->getPointCloud()->sensor_orientation_));
