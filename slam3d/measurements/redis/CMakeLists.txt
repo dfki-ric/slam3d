@@ -13,7 +13,7 @@
 	target_link_libraries(measurements-redis
 		PUBLIC
 			core
-			hiredis
+			hiredis::hiredis
 	)
 
 	# Install header files
