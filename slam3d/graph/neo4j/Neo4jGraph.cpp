@@ -26,7 +26,7 @@ Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurem
     clientconf.set_validate_certificates(false);
     web::credentials clientcred(_XPLATSTR("neo4j"), _XPLATSTR("neo4j"));
     clientconf.set_credentials(clientcred);
-
+    std::cout << _XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)) << std::endl;
     client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)), clientconf);
 
 }

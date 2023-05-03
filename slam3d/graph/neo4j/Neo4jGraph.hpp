@@ -29,12 +29,18 @@ class Neo4jGraph : public Graph {
     public:
 
         struct Server {
-            Server(const std::string& host, const int &port):host(host),port(port){}
+            Server(const std::string& host, const int &port, const std::string& user, const std::string& passwd) : host(host), port(port), user(user), passwd(passwd) {}
             const std::string& host;
             const int &port;
+            const std::string& user;
+            const std::string& passwd;
         };
 
-        Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements, const Server &graphserver = Neo4jGraph::Server("localhost",7474));
+        Neo4jGraph(Logger* log, 
+                    std::shared_ptr<MeasurementStorage> measurements, 
+                    const Server &graphserver = Neo4jGraph::Server("127.0.0.1", 7474, "neo4j", "neo4j")
+
+                    );
         ~Neo4jGraph();
 
         /**
