@@ -325,6 +325,5 @@ namespace boost
 }
 
 BOOST_CLASS_EXPORT_KEY(slam3d::PointCloudMeasurement)
-BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 #endif

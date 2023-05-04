@@ -17,8 +17,7 @@ slam3d::Measurement::Ptr test_serialization(slam3d::Measurement::Ptr m)
 
 		// anonymous deserialisation
 		slam3d::Measurement::Ptr m2;
-		std::stringstream ss2(data);
-		boost::archive::text_iarchive ia(ss2);
+		boost::archive::text_iarchive ia(ss);
 		ia >> m2;
 		BOOST_ASSERT(m2);
 
