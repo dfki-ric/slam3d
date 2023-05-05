@@ -3,9 +3,9 @@
 #include <string>
 #include <map>
 #include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include <slam3d/core/Types.hpp>
-#include <slam3d/core/MeasurementSerialization.hpp>
 #include <slam3d/core/MeasurementStorage.hpp>
 
 class redisContext;
@@ -19,9 +19,7 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     RedisMeasurementStorage(const char *ip, int port);
 
-    virtual void set(const std::string& key, Measurement::Ptr measurement) {
-        store(key, measurement->getTypeName(), MeasurementSerialization::serialize(measurement));
-    }
+    virtual void set(const std::string& key, Measurement::Ptr measurement);
 
     virtual Measurement::Ptr get(const std::string& key);
 

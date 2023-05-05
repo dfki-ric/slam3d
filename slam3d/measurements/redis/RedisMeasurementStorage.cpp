@@ -1,11 +1,17 @@
 #include <hiredis/hiredis.h>
+#include <boost/serialization/shared_ptr.hpp>
 
 #include "RedisMeasurementStorage.hpp"
 
-#include <boost/archive/text_iarchive.hpp>
-
 
 namespace slam3d {
+
+    void RedisMeasurementStorage::set(const std::string& key, Measurement::Ptr measurement) {
+        std::stringstream ss;
+        boost::archive::text_oarchive oa(ss);
+        oa << measurement;
+        store(key, measurement->getTypeName(), ss.str());
+    }
 
     RedisMeasurementStorage::RedisMeasurementStorage(const char *ip, int port):MeasurementStorage() {
         context = std::shared_ptr<redisContext>(redisConnect(ip, port));
@@ -47,7 +53,11 @@ namespace slam3d {
 
         // printf("got %s\n", redisrep->element[0]->str);
 
-        Measurement::Ptr measurement = MeasurementSerialization::deserialize(redisrep->element[1]->str, redisrep->element[0]->str);
+		std::stringstream data(redisrep->element[1]->str);
+        boost::archive::text_iarchive ia(data);
+        Measurement::Ptr measurement;
+        ia >> measurement;
+
         //todo: create from 
 
         // redisReaderFree(reader);
