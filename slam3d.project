@@ -118,8 +118,6 @@
         <File Name="slam3d/core/test_templates/MeasurementTests.hpp"/>
         <File Name="slam3d/core/test_templates/GraphTest.hpp"/>
       </VirtualDirectory>
-      <File Name="slam3d/core/MeasurementSerialization.hpp"/>
-      <File Name="slam3d/core/MeasurementSerialization.cpp"/>
       <File Name="slam3d/core/Clock.hpp"/>
       <File Name="slam3d/core/CMakeLists.txt"/>
       <File Name="slam3d/core/FileLogger.hpp"/>

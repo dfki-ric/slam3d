@@ -122,7 +122,7 @@ namespace slam3d
 		Transform getSensorPose() const { return mSensorPose; }
 		Transform getInverseSensorPose() const { return mInverseSensorPose; }
 		
-		virtual const char* getTypeName() const { return "slam3d::Measurement"; }
+		virtual const char* getTypeName() const = 0;
 		
 	protected:
 		timeval mStamp;
@@ -132,22 +132,6 @@ namespace slam3d
 		
 		Transform mSensorPose;
 		Transform mInverseSensorPose;
-
-	private:
-		friend class boost::serialization::access;
-
-		template <typename Archive>
-		void serialize(Archive &ar, const unsigned int version)
-		{
-			 ar & mStamp.tv_sec;
-			 ar & mStamp.tv_usec;
-			 ar & mRobotName;
-			 ar & mSensorName;
-			 ar & mUniqueId;
-			 ar & mSensorPose;
-			 ar & mInverseSensorPose;
-		}
-
 	};
 	
 	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION};

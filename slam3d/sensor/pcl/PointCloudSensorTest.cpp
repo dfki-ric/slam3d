@@ -3,14 +3,13 @@
 #include <boost/test/unit_test.hpp>
 #include <pcl/io/ply_io.h>
 #include <slam3d/core/FileLogger.hpp>
-#include <slam3d/core/MeasurementSerialization.hpp>
 #include <slam3d/core/test_templates/MeasurementTests.hpp>
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
 #include <sstream>
 
 #include "PointCloudSensor.hpp"
+
+BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 #define ROBOT_NAME "TestRobot"
 #define SENSOR_NAME "TestPclSensor"
@@ -26,9 +25,6 @@ void initEigenTransform(slam3d::Transform* mat)
 
 BOOST_AUTO_TEST_CASE(serialization)
 {
-	// register serialization handler for slam3d::PointCloudMeasurement
-	MeasurementSerialization::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
-
 	Clock clock;
 	FileLogger logger(clock, "pcl_sensor.log");
 	logger.setLogLevel(DEBUG);
@@ -37,6 +33,9 @@ BOOST_AUTO_TEST_CASE(serialization)
 	PointCloud::Ptr pcl_cloud(new PointCloud());
 	pcl::PLYReader ply_reader;
 	int result = ply_reader.read("../../../../test/test.ply", *pcl_cloud);
+	pcl_cloud->header.stamp = 1683104082;
+	pcl_cloud->header.frame_id = "test_frame";
+	pcl_cloud->header.seq = 54321;
 	BOOST_CHECK_GE(result, 0);
 
 	if(result >= 0)
@@ -56,26 +55,10 @@ BOOST_AUTO_TEST_CASE(serialization)
 
 		// check values of subtype slam3d::PointCloudMeasurement
 		BOOST_CHECK_EQUAL(pcl2->getTypeName(), "slam3d::PointCloudMeasurement");
+		BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.seq, 54321);
+		BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.frame_id, "test_frame");
 
 		BOOST_CHECK(pcl1->getPointCloud()->sensor_origin_.isApprox(pcl2->getPointCloud()->sensor_origin_));
 		BOOST_CHECK(pcl1->getPointCloud()->sensor_orientation_.isApprox(pcl2->getPointCloud()->sensor_orientation_));
-
-		// check unregistered measurement type
-		std::string buffer;
-		BOOST_CHECK_THROW(MeasurementSerialization::deserialize(buffer, "UnknownMeasurementType"), std::out_of_range);
-
-		// debug out (run with --log_level=message)
-		
-		BOOST_TEST_MESSAGE( buffer );
 	}
-}
-
-BOOST_AUTO_TEST_CASE(empty_inputs)
-{
-	MeasurementSerialization registry;
-	registry.registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
-
-	Measurement::Ptr ptr;
-	BOOST_CHECK_THROW(registry.serialize(ptr), std::runtime_error);
-	BOOST_CHECK_THROW(ptr = registry.deserialize("", "slam3d::PointCloudMeasurement"), boost::archive::archive_exception);
 }

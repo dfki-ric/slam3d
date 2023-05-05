@@ -37,9 +37,6 @@
 #include <pcl/conversions.h>
 
 #include <boost/format.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
 
 #define PI 3.141592654
 
