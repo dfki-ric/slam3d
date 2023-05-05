@@ -7,7 +7,6 @@
 #define protected public
 
 #include <slam3d/core/MeasurementStorage.hpp>
-#include <slam3d/core/MeasurementSerialization.hpp>
 #include "Neo4jGraph.hpp"
 #include "Neo4jConversion.hpp"
 
@@ -16,6 +15,8 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <sstream>
+
+BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 using namespace slam3d;
 
@@ -67,13 +68,8 @@ void initDB() {
     }
 }
 
-void initRegistry() {
-    MeasurementSerialization::registerMeasurementType<slam3d::PointCloudMeasurement>("slam3d::PointCloudMeasurement");
-}
-
 BOOST_AUTO_TEST_CASE(neo4j_graph_construction) {
     initDB();
-    initRegistry();
     test_graph_construction(neo4jgraph.get());
 }
 
@@ -108,13 +104,13 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
     std::stringstream sin;
     boost::archive::text_oarchive oa(sin);
     // TODO, need to check for sub-type? https://theboostcpplibraries.com/boost.serialization-class-hierarchies
-    oa << *(m.get());
+    oa << m;
     std::string data = sin.str();
 
     std::stringstream sout(data);
     boost::archive::text_iarchive ia(sout);
-    PointCloudMeasurement::Ptr m_res = PointCloudMeasurement::Ptr(new PointCloudMeasurement());
-    ia >> *(m_res.get());
+    PointCloudMeasurement::Ptr m_res;
+    ia >> m_res;
 
     // ceck values of base slam3d::Measurement 
     BOOST_CHECK_NE(m_res.get(), nullptr);
@@ -147,7 +143,6 @@ BOOST_AUTO_TEST_CASE(measurement_serialization) {
 
 BOOST_AUTO_TEST_CASE(measurement_storage) {
     initDB();
-    initRegistry();
 
     PointCloud::Ptr cloud = PointCloud::Ptr(new PointCloud());
 
