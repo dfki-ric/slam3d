@@ -14,11 +14,10 @@ namespace slam3d
 
 		virtual ~MeasurementStorage() {}
 		/**
-		 * @brief Set the measurement for a given UUID
-		 * @param key 
+		 * @brief Add the given measurement to the storage
 		 * @param measurement 
 		 */
-		virtual void set(const boost::uuids::uuid& key, Measurement::Ptr measurement);
+		virtual void add(Measurement::Ptr measurement);
 
 		/**
 		 * @brief Get the measurement for a given UUID
@@ -26,14 +25,6 @@ namespace slam3d
 		 * @throws std::out_of_range if no measurement exists for that UUID
 		 */
 		virtual Measurement::Ptr get(const boost::uuids::uuid& key);
-
-		/**
-		 * @brief Set the measurement for a given UUID
-		 * @param key
-		 * @param measurement
-		 * @throws boost::bad_lexical_cast if the given string is no valid UUID
-		 */
-		void set(const std::string& key, Measurement::Ptr measurement);
 
 		/**
 		 * @brief Get the measurement for a given UUID
