@@ -5,19 +5,14 @@
 
 using namespace slam3d;
 
-void MeasurementStorage::set(const boost::uuids::uuid& key, Measurement::Ptr measurement)
+void MeasurementStorage::add(Measurement::Ptr measurement)
 {
-	mMeasurements[key] = measurement;
+	mMeasurements[measurement->getUniqueId()] = measurement;
 }
 
 Measurement::Ptr MeasurementStorage::get(const boost::uuids::uuid& uuid)
 {
 	return mMeasurements.at(uuid);
-}
-
-void MeasurementStorage::set(const std::string& key, Measurement::Ptr measurement)
-{
-	set(boost::lexical_cast<boost::uuids::uuid>(key), measurement);
 }
 
 Measurement::Ptr MeasurementStorage::get(const std::string& key)

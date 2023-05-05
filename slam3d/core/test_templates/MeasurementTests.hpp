@@ -44,7 +44,7 @@ slam3d::Measurement::Ptr test_serialization(slam3d::Measurement::Ptr m)
  */
 void test_measurement_storage(std::shared_ptr<slam3d::MeasurementStorage> storage, slam3d::Measurement::Ptr m)
 {
-	storage->set(m->getUniqueId(), m);
+	storage->add(m);
 
 	slam3d::Measurement::Ptr m_res = storage->get(m->getUniqueId());
 
