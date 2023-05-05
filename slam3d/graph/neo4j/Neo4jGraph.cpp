@@ -84,7 +84,7 @@ void Neo4jGraph::addVertex(const VertexObject& v)
     std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
     vertexQuery.addParameterToSet("props", "measurement", uuid);
 
-    measurements->set(uuid, v.measurement);
+    measurements->add(v.measurement);
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
@@ -217,7 +217,7 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
 
     // replace measurement in reg
     if (v.measurement.get() != nullptr) {
-        measurements->set(uuid, v.measurement);
+        measurements->add(v.measurement);
     }
 
     if (!vertexQuery.sendQuery()) {

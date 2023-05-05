@@ -6,11 +6,11 @@
 
 namespace slam3d {
 
-    void RedisMeasurementStorage::set(const std::string& key, Measurement::Ptr measurement) {
+    void RedisMeasurementStorage::add(Measurement::Ptr measurement) {
         std::stringstream ss;
         boost::archive::text_oarchive oa(ss);
         oa << measurement;
-        store(key, measurement->getTypeName(), ss.str());
+        store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
     }
 
     RedisMeasurementStorage::RedisMeasurementStorage(const char *ip, int port):MeasurementStorage() {
@@ -53,7 +53,7 @@ namespace slam3d {
 
         // printf("got %s\n", redisrep->element[0]->str);
 
-		std::stringstream data(redisrep->element[1]->str);
+        std::stringstream data(redisrep->element[1]->str);
         boost::archive::text_iarchive ia(data);
         Measurement::Ptr measurement;
         ia >> measurement;
@@ -63,6 +63,10 @@ namespace slam3d {
         // redisReaderFree(reader);
         freeReplyObject(reply);
         return measurement;
+    }
+
+    Measurement::Ptr RedisMeasurementStorage::get(const boost::uuids::uuid& key) {
+        return get(to_string(key));
     }
 
 }  // namespace slam3d

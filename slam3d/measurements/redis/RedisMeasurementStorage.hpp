@@ -19,9 +19,11 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     RedisMeasurementStorage(const char *ip, int port);
 
-    virtual void set(const std::string& key, Measurement::Ptr measurement);
+    virtual void add(Measurement::Ptr measurement);
 
     virtual Measurement::Ptr get(const std::string& key);
+
+    virtual Measurement::Ptr get(const boost::uuids::uuid& key);
 
 
  private:
