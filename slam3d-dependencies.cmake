@@ -9,7 +9,7 @@ endif ()
 
 find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework serialization)
 find_package(PCL 1.7 REQUIRED COMPONENTS registration sample_consensus io)
-find_package(PCLOMP 1.0 REQUIRED)
+find_package(PCLOMP 1.0)
 find_package(g2o REQUIRED)
 find_package(jsoncpp)
 if (NOT jsoncpp_FOUND)
