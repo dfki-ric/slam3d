@@ -109,6 +109,15 @@
     </Configuration>
   </Settings>
   <VirtualDirectory Name="slam3d">
+    <VirtualDirectory Name="measurements">
+      <VirtualDirectory Name="redis">
+        <File Name="slam3d/measurements/redis/slam3d_measurements_redis.pc.in"/>
+        <File Name="slam3d/measurements/redis/RedisMeasurementStorage.hpp"/>
+        <File Name="slam3d/measurements/redis/RedisMeasurementStorage.cpp"/>
+        <File Name="slam3d/measurements/redis/CMakeLists.txt"/>
+      </VirtualDirectory>
+      <File Name="slam3d/measurements/CMakeLists.txt"/>
+    </VirtualDirectory>
     <File Name="slam3d/CMakeLists.txt"/>
     <VirtualDirectory Name="core">
       <File Name="slam3d/core/MeasurementStorage.hpp"/>
@@ -155,8 +164,6 @@
     <VirtualDirectory Name="graph">
       <VirtualDirectory Name="neo4j">
         <File Name="slam3d/graph/neo4j/slam3d_graph_neo4j.pc.in"/>
-        <File Name="slam3d/graph/neo4j/RedisMap.hpp"/>
-        <File Name="slam3d/graph/neo4j/RedisMap.cpp"/>
         <File Name="slam3d/graph/neo4j/README.md"/>
         <File Name="slam3d/graph/neo4j/Neo4jQuery.hpp"/>
         <File Name="slam3d/graph/neo4j/Neo4jQuery.cpp"/>
@@ -165,7 +172,6 @@
         <File Name="slam3d/graph/neo4j/Neo4jGraph.cpp"/>
         <File Name="slam3d/graph/neo4j/Neo4jConversion.hpp"/>
         <File Name="slam3d/graph/neo4j/Neo4jConversion.cpp"/>
-        <File Name="slam3d/graph/neo4j/docker-compose.yml"/>
         <File Name="slam3d/graph/neo4j/CMakeLists.txt"/>
       </VirtualDirectory>
       <File Name="slam3d/graph/CMakeLists.txt"/>
