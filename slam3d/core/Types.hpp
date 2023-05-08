@@ -27,13 +27,22 @@
 #define SLAM_TYPES_HPP
 
 #include <sys/time.h>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/uuid/nil_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/split_free.hpp>
+
 #include <Eigen/Geometry>
 
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
+
 
 namespace slam3d
 {
@@ -44,7 +53,31 @@ namespace slam3d
 	typedef Eigen::Quaternion<ScalarType> Quaternion;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
-	
+}
+
+namespace boost
+{
+	namespace serialization
+	{
+		template<class Archive>
+		void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version)
+		{
+			ar & make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
+		}
+
+		template<class Archive>
+		void load(Archive & ar, slam3d::Transform &tf, const unsigned int version)
+		{
+			tf.setIdentity(); // init whole matrix
+			ar & make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
+		}
+	} // namespace serialization
+} // namespace boost
+
+BOOST_SERIALIZATION_SPLIT_FREE(slam3d::Transform)
+
+namespace slam3d
+{
 	/**
 	 * @brief Re-orthogonalize the rotation-matrix
 	 * @param t input tranform
@@ -88,6 +121,8 @@ namespace slam3d
 		boost::uuids::uuid getUniqueId() const { return mUniqueId; }
 		Transform getSensorPose() const { return mSensorPose; }
 		Transform getInverseSensorPose() const { return mInverseSensorPose; }
+		
+		virtual const char* getTypeName() const = 0;
 		
 	protected:
 		timeval mStamp;

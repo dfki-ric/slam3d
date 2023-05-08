@@ -3,7 +3,7 @@
 #include "G2oSolver.hpp"
 
 #include <slam3d/core/FileLogger.hpp>
-#include <slam3d/core/SolverTest.hpp>
+#include <slam3d/core/test_templates/SolverTest.hpp>
 
 using namespace slam3d;
 

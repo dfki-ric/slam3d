@@ -250,7 +250,7 @@ namespace slam3d
 		 * @param id vertex to be changed
 		 * @param pose new corrected pose to be set
 		 */
-		void setCorrectedPose(IdType id, const Transform& pose);
+		virtual void setCorrectedPose(IdType id, const Transform& pose) = 0;
 
 		/**
 		 * @brief Start the backend optimization process.
@@ -300,7 +300,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+		const VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -315,14 +315,14 @@ namespace slam3d
 		 * @param id identifier for a vertex
 		 * @return constant reference to a vertex
 		 */
-		virtual VertexObject getVertex(IdType id) const = 0;
+		virtual const VertexObject getVertex(IdType id) const = 0;
 
 		/**
 		 * @brief Gets a vertex by the uuid of the attached Measurement.
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		VertexObject getVertex(boost::uuids::uuid id) const;
+		const VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
@@ -335,7 +335,7 @@ namespace slam3d
 		 * @param source
 		 * @param target
 		 */
-		Transform getTransform(IdType source, IdType target) const;
+		const Transform getTransform(IdType source, IdType target) const;
 
 		/**
 		 * @brief Get the edge between source and traget from the given sensor.
@@ -344,20 +344,20 @@ namespace slam3d
 		 * @param sensor
 		 * @throw InvalidVertex, InvalidEdge
 		 */
-		virtual EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
+		virtual const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all outgoing edges from given source.
 		 * @param source
 		 * @throw InvalidVertex
 		 */
-		virtual EdgeObjectList getOutEdges(IdType source) const = 0;
+		virtual const EdgeObjectList getOutEdges(IdType source) const = 0;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
+		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
@@ -365,20 +365,20 @@ namespace slam3d
 		 * @param range maximum number of steps to search from source
 		 * @throw InvalidVertex
 		 */
-		virtual VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
+		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		virtual EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
+		virtual const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
 
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 * @throw InvalidVertex
 		 */
-		virtual EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
+		virtual const EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
 
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
@@ -386,7 +386,7 @@ namespace slam3d
 		 * @param target
 		 * @throw InvalidVertex
 		 */
-		virtual float calculateGraphDistance(IdType source, IdType target) = 0;
+		virtual float calculateGraphDistance(IdType source, IdType target) const = 0;
 
 	protected:
 		// Graph access

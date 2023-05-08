@@ -57,7 +57,7 @@ namespace slam3d
 		 * @brief 
 		 * @param id
 		 */
-		VertexObject getVertex(IdType id) const;
+		const VertexObject getVertex(IdType id) const;
 		
 		/**
 		 * @brief 
@@ -65,46 +65,46 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
+		const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
 		
 		/**
 		 * @brief Get all outgoing edges from given source.
 		 * @param source
 		 * @throw std::out_of_range
 		 */
-		EdgeObjectList getOutEdges(IdType source) const;
+		const EdgeObjectList getOutEdges(IdType source) const;
 		
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
 		 * @param range maximum number of steps to search from source
 		 */
-		VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
+		const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
-		EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
+		const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
 		
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		EdgeObjectList getEdges(const VertexObjectList& vertices) const;
+		const EdgeObjectList getEdges(const VertexObjectList& vertices) const;
 
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
 		 * @param source
 		 * @param target
 		 */
-		float calculateGraphDistance(IdType source, IdType target);
+		float calculateGraphDistance(IdType source, IdType target) const;
 		
 		/**
 		 * @brief Write the current graph to a file (currently dot).
@@ -112,6 +112,18 @@ namespace slam3d
 		 * @param name filename without type ending
 		 */
 		void writeGraphToFile(const std::string &name);
+
+		/**
+		 * @brief Set the corrected pose for the vertex with the given ID.
+		 * @details This method is designed to be used by Sensor and PoseSensor
+		 * implementations in order to position newly added measurements.
+		 * This allows to quickly set the pose of a vertex according to available
+		 * odometry or scan matching results, before it is correctly estimated by
+		 * executing the optimization backend.
+		 * @param id vertex to be changed
+		 * @param pose new corrected pose to be set
+		 */
+		void setCorrectedPose(IdType id, const Transform& pose);
 
 	protected:
 		/**

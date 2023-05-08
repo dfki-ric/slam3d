@@ -181,12 +181,12 @@ bool Graph::hasMeasurement(boost::uuids::uuid id) const
 	return mUuidIndex.find(id) != mUuidIndex.end();
 }
 
-VertexObject Graph::getVertex(boost::uuids::uuid id) const
+const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 {
 	return getVertex(mUuidIndex.at(id));
 }
 
-Transform Graph::getTransform(IdType source, IdType target) const
+const Transform Graph::getTransform(IdType source, IdType target) const
 {
 	return getVertex(source).corrected_pose.inverse() * getVertex(target).corrected_pose;
 }
@@ -221,7 +221,7 @@ void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 	mNeighborIndex.buildIndex(points);
 }
 
-VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) const
+const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) const
 {
 	// Fill in the query point
 	flann::Matrix<float> query(new float[3], 1, 3);
@@ -248,11 +248,4 @@ VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) con
 	
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
 	return result;
-}
-
-void Graph::setCorrectedPose(IdType id, const Transform& pose)
-{
-	VertexObject vo = getVertex(id);
-	vo.corrected_pose = pose;
-	setVertex(id, vo);
 }

@@ -111,6 +111,13 @@
   <VirtualDirectory Name="slam3d">
     <File Name="slam3d/CMakeLists.txt"/>
     <VirtualDirectory Name="core">
+      <File Name="slam3d/core/MeasurementStorage.hpp"/>
+      <File Name="slam3d/core/MeasurementStorage.cpp"/>
+      <VirtualDirectory Name="test_templates">
+        <File Name="slam3d/core/test_templates/SolverTest.hpp"/>
+        <File Name="slam3d/core/test_templates/MeasurementTests.hpp"/>
+        <File Name="slam3d/core/test_templates/GraphTest.hpp"/>
+      </VirtualDirectory>
       <File Name="slam3d/core/Clock.hpp"/>
       <File Name="slam3d/core/CMakeLists.txt"/>
       <File Name="slam3d/core/FileLogger.hpp"/>
@@ -124,8 +131,6 @@
       <File Name="slam3d/core/Solver.hpp"/>
       <File Name="slam3d/core/Types.hpp"/>
       <File Name="slam3d/core/slam3d_core.pc.in"/>
-      <File Name="slam3d/core/SolverTest.hpp"/>
-      <File Name="slam3d/core/GraphTest.hpp"/>
       <File Name="slam3d/core/ScanSensor.hpp"/>
       <File Name="slam3d/core/ScanSensor.cpp"/>
       <File Name="slam3d/core/Sensor.cpp"/>

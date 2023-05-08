@@ -4,6 +4,7 @@ add_library(core SHARED
 	Sensor.cpp
 	ScanSensor.cpp
 	Types.cpp
+	MeasurementStorage.cpp
 )
 
 target_include_directories(core
@@ -16,6 +17,7 @@ target_link_libraries(core
 	PUBLIC
 		Eigen3::Eigen
 		Boost::thread
+		Boost::serialization
 		PkgConfig::flann)
 
 target_compile_features(core PUBLIC cxx_alias_templates)

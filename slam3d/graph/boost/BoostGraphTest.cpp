@@ -3,7 +3,7 @@
 #include "BoostGraph.hpp"
 
 #include <slam3d/core/FileLogger.hpp>
-#include <slam3d/core/GraphTest.hpp>
+#include <slam3d/core/test_templates/GraphTest.hpp>
 
 using namespace slam3d;
 
