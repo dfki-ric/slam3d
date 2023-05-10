@@ -27,8 +27,14 @@
 
 #include <slam3d/core/Mapper.hpp>
 
-#include <pclomp/gicp_omp.h>
-#include <pclomp/ndt_omp.h>
+#ifdef USE_PCLOMP
+	#include <pclomp/gicp_omp.h>
+	#include <pclomp/ndt_omp.h>
+#else
+	#include <pcl/registration/gicp.h>
+	#include <pcl/registration/ndt.h>
+#endif
+
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/pcl_config.h>
@@ -37,67 +43,10 @@
 #include <pcl/conversions.h>
 
 #include <boost/format.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
 
 #define PI 3.141592654
 
 using namespace slam3d;
-
-namespace boost {
-namespace serialization {
-
-template<class Archive>
-void serialize(Archive & ar, pcl::PCLPointCloud2 & m, const unsigned int version)
-{
-	ar & m.header;
-	ar & m.width;
-	ar & m.height;
-	ar & m.is_bigendian;
-	ar & m.is_dense;
-	ar & m.point_step;
-	ar & m.row_step;
-	ar & m.fields;
-	ar & m.data;
-}
-
-template<class Archive>
-void serialize(Archive & ar, pcl::PCLPointField & f, const unsigned int version)
-{
-	ar & f.count;
-	ar & f.datatype;
-	ar & f.name;
-	ar & f.offset;
-}
-
-template<class Archive>
-void serialize(Archive & ar, pcl::PCLHeader & h, const unsigned int version)
-{
-	ar & h.frame_id;
-	ar & h.seq;
-	ar & h.stamp;
-}
-
-} // namespace serialization
-} // namespace boost
-
-void PointCloudMeasurement::toStream(std::ostream& stream) const
-{
-	pcl::PCLPointCloud2 blob;
-	pcl::toPCLPointCloud2(*mPointCloud, blob);
-	boost::archive::text_oarchive oa(stream);
-	oa << blob;
-}
-
-void PointCloudMeasurement::fromStream(std::istream &stream)
-{
-	pcl::PCLPointCloud2 blob;
-	boost::archive::text_iarchive ia(stream);
-	ia >> blob;
-	mPointCloud.reset(new PointCloud());
-	pcl::fromPCLPointCloud2(blob, *mPointCloud);
-}
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
@@ -240,7 +189,11 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
                                   const Transform& guess,
                                   const RegistrationParameters& config)
 {
+#if USE_PCLOMP
 	pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> icp;
+#else
+	pcl::GeneralizedIterativeClosestPoint<PointType, PointType> icp;
+#endif
 	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	icp.setMaximumIterations(config.maximum_iterations);
 	icp.setTransformationEpsilon(config.transformation_epsilon);
@@ -291,12 +244,17 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
                                   const Transform& guess,
                                   const RegistrationParameters& config)
 {
+#ifdef USE_PCLOMP
 	pclomp::NormalDistributionsTransform<PointType, PointType> ndt;
+	ndt.setOutlierRatio(config.outlier_ratio);
+#else
+	pcl::NormalDistributionsTransform<PointType, PointType> ndt;
+	ndt.setOulierRatio(config.outlier_ratio);
+#endif
 	ndt.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	ndt.setMaximumIterations(config.maximum_iterations);
 	ndt.setTransformationEpsilon(config.transformation_epsilon);
 	ndt.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
-	ndt.setOutlierRatio(config.outlier_ratio);
 	ndt.setStepSize(config.step_size);
 	ndt.setResolution(config.resolution);
 	
@@ -397,10 +355,4 @@ void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
 			cloud->push_back(p);
 		}
 	}
-}
-
-Measurement::Ptr PointCloudSensor::createFromStream(const std::string& r, const std::string& s,
-	const Transform& p, const boost::uuids::uuid id, std::istream& stream)
-{
-	return boost::make_shared<PointCloudMeasurement>(r, s, p, id, stream);
 }

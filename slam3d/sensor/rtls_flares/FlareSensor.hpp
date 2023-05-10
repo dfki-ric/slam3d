@@ -17,7 +17,7 @@ namespace slam3d
 		Transform getSensorPose() { return mSensorPose; }
 		
 		void setStatus(const std::string& json, const Transform& pose = Transform::Identity());
-		
+
 	protected:
 		rtls_flares::Status mStatus;
 		Clock mClock;

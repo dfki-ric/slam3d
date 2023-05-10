@@ -21,13 +21,15 @@ using namespace slam3d;
 BoostGraph::BoostGraph(Logger* log)
  : Graph(log)
 {
+	// insert a dummy node as a source of unary edges
+	mIndexMap.insert(IndexMap::value_type(0, 0));
 }
 
 BoostGraph::~BoostGraph()
 {
 }
 
-EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
+const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
 {
 	EdgeObjectList objectList;
 	EdgeRange edges = boost::edges(mPoseGraph);
@@ -62,14 +64,19 @@ void BoostGraph::addVertex(const VertexObject& v)
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
+void BoostGraph::setVertex(IdType id, const VertexObject& v)
+{
+	mPoseGraph[mIndexMap.at(id)] = v;
+}
+
 void BoostGraph::addEdge(const EdgeObject& e)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	Edge forward_edge, inverse_edge;
 	bool inserted_forward, inserted_inverse;
 	
-	Vertex source = mIndexMap[e.source];
-	Vertex target = mIndexMap[e.target];
+	Vertex source = mIndexMap.at(e.source);
+	Vertex target = mIndexMap.at(e.target);
 	boost::tie(forward_edge, inserted_forward) = boost::add_edge(source, target, mPoseGraph);
 	boost::tie(inverse_edge, inserted_inverse) = boost::add_edge(target, source, mPoseGraph);
 
@@ -89,7 +96,7 @@ void BoostGraph::removeEdge(IdType source, IdType target, const std::string& sen
 	boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
 }
 
-VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
+const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -103,23 +110,12 @@ VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) co
 	return objectList;
 }
 
-const VertexObject& BoostGraph::getVertex(IdType id) const
+const VertexObject BoostGraph::getVertex(IdType id) const
 {
 	return mPoseGraph[mIndexMap.at(id)];
 }
 
-VertexObject& BoostGraph::getVertexInternal(IdType id)
-{
-	return mPoseGraph[mIndexMap.at(id)];
-}
-
-const EdgeObject& BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
-{
-	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
-	return mPoseGraph[*it];
-}
-
-EdgeObject& BoostGraph::getEdgeInternal(IdType source, IdType target, const std::string& sensor)
+const EdgeObject BoostGraph::getEdge(IdType source, IdType target, const std::string& sensor) const
 {
 	OutEdgeIterator it = getEdgeIterator(source, target, sensor);
 	return mPoseGraph[*it];
@@ -147,7 +143,7 @@ OutEdgeIterator BoostGraph::getEdgeIterator(IdType source, IdType target, const 
 	throw InvalidEdge(source, target);
 }
 
-EdgeObjectList BoostGraph::getOutEdges(IdType source) const
+const EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 {
 	OutEdgeIterator it, it_end;
 	boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
@@ -160,7 +156,7 @@ EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 	return edges;
 }
 
-EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
+const EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
 {
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)
@@ -237,7 +233,7 @@ private:
 	unsigned max_depth;
 };
 
-VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
+const VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
 	// Create required data structures
 	Vertex source = mIndexMap.at(source_id);
@@ -264,7 +260,7 @@ VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned range
 	return vertices;
 }
 
-float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
+float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) const
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	int num = boost::num_vertices(mPoseGraph);
@@ -287,4 +283,9 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id)
 		.weight_map(boost::make_assoc_property_map(weight)) );
 
 	return distance[mIndexMap.at(target_id)];
+}
+
+void BoostGraph::setCorrectedPose(IdType id, const Transform& pose)
+{
+	mPoseGraph[mIndexMap.at(id)].corrected_pose = pose;
 }
