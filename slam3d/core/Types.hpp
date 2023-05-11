@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_TYPES_HPP
-#define SLAM_TYPES_HPP
+#pragma once
 
 #include <sys/time.h>
 
@@ -311,5 +310,3 @@ namespace slam3d
 	typedef std::vector<VertexObject> VertexObjectList;
 	typedef std::vector<EdgeObject> EdgeObjectList;
 }
-
-#endif

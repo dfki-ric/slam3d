@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM3D_COORDTRANSFORMER_HPP
-#define SLAM3D_COORDTRANSFORMER_HPP
+#pragma once
 
 #include <slam3d/core/Types.hpp>
 
@@ -46,5 +45,3 @@ namespace slam3d
 		Position mReference;
 	};
 }
-
-#endif

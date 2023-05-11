@@ -1,5 +1,4 @@
-#ifndef SLAM3D_BOOSTGRAPH_HPP
-#define SLAM3D_BOOSTGRAPH_HPP
+#pragma once
 
 #include <slam3d/core/Graph.hpp>
 
@@ -173,5 +172,3 @@ namespace slam3d
 		IndexMap mIndexMap;
 	};
 }
-
-#endif

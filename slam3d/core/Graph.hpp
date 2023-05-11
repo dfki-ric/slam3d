@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_GRAPH_HPP
-#define SLAM_GRAPH_HPP
+#pragma once
 
 /**
  * @mainpage A generic frontend for 3D Simultaneous Localization and Mapping
@@ -75,7 +74,7 @@ laser->addMeasurement(m);
  @endcode
  */
 
-#include "Solver.hpp"
+#include <slam3d/core/Solver.hpp>
 
 #include <flann/flann.hpp>
 #include <map>
@@ -453,5 +452,3 @@ namespace slam3d
 		unsigned mConstraintsAdded;
 	};
 }
-
-#endif

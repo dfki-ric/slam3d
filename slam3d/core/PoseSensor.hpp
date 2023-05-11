@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_POSESENSOR_HPP
-#define SLAM_POSESENSOR_HPP
+#pragma once
 
 #include "Graph.hpp"
 
@@ -102,5 +101,3 @@ namespace slam3d
 	
 	typedef std::map<std::string, PoseSensor*> PoseSensorList;
 }
-
-#endif
