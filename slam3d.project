@@ -111,8 +111,8 @@
   <VirtualDirectory Name="slam3d">
     <File Name="slam3d/CMakeLists.txt"/>
     <VirtualDirectory Name="core">
-      <File Name="slam3d/core/DataStorage.cpp"/>
-      <File Name="slam3d/core/DataStorage.hpp"/>
+      <File Name="slam3d/core/PostgreStorage.cpp"/>
+      <File Name="slam3d/core/PostgreStorage.hpp"/>
       <File Name="slam3d/core/MeasurementStorage.hpp"/>
       <File Name="slam3d/core/MeasurementStorage.cpp"/>
       <VirtualDirectory Name="test_templates">

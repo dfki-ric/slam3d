@@ -4,8 +4,8 @@ add_library(core SHARED
 	Sensor.cpp
 	ScanSensor.cpp
 	Types.cpp
-	DataStorage.cpp
 	MeasurementStorage.cpp
+	PostgreStorage.cpp
 )
 
 target_include_directories(core
