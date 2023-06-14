@@ -13,7 +13,7 @@
 	<buildtool_depend>cmake</buildtool_depend>
 
 	<build_depend>libpcl-all-dev</build_depend>
-	<build_depend>libg2o</build_depend>
+	<build_depend>g2o</build_depend>
 	<build_depend>suitesparse</build_depend>
 	<build_depend>eigen</build_depend>
 	<build_depend>boost</build_depend>
@@ -22,11 +22,12 @@
 
 	<run_depend>libpcl-all</run_depend>
 	<run_depend>catkin</run_depend>
-	<run_depend>libg2o</run_depend>
+	<run_depend>g2o</run_depend>
 	<run_depend>suitesparse</run_depend>
 	<run_depend>eigen</run_depend>
 	<run_depend>boost</run_depend>
 	<run_depend>libpointmatcher</run_depend>
+	<run_depend>pclomp</run_depend>
 
 	<export>
 		<build_type>cmake</build_type>
