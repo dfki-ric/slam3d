@@ -25,6 +25,8 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     virtual Measurement::Ptr get(const boost::uuids::uuid& key);
 
+    virtual void deleteDatabase();
+
 
  private:
     void store(const std::string& key, const std::string &type, const std::string& serializedData);

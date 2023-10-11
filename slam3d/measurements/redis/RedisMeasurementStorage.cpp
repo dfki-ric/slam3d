@@ -24,7 +24,7 @@ namespace slam3d {
                 printf("Can't allocate redis context\n");
             }
         }
-        redisCommand(context.get(), "flushdb");
+        //redisCommand(context.get(), "flushdb");
     }
 
     void RedisMeasurementStorage::store(const std::string& key, const std::string &type, const std::string& serializedData) {
@@ -53,10 +53,13 @@ namespace slam3d {
 
         // printf("got %s\n", redisrep->element[0]->str);
 
-        std::stringstream data(redisrep->element[1]->str);
-        boost::archive::text_iarchive ia(data);
         Measurement::Ptr measurement;
-        ia >> measurement;
+
+        if (redisrep->element[0]->len > 0) {
+            std::stringstream data(redisrep->element[1]->str);
+            boost::archive::text_iarchive ia(data);
+            ia >> measurement;
+        }
 
         //todo: create from 
 
@@ -67,6 +70,10 @@ namespace slam3d {
 
     Measurement::Ptr RedisMeasurementStorage::get(const boost::uuids::uuid& key) {
         return get(to_string(key));
+    }
+
+    void RedisMeasurementStorage::deleteDatabase() {
+        redisCommand(context.get(), "flushdb");
     }
 
 }  // namespace slam3d
