@@ -1,5 +1,4 @@
-#ifndef SLAM_CLOCK_HPP
-#define SLAM_CLOCK_HPP
+#pragma once
 
 #include <sys/time.h>
 
@@ -43,5 +42,3 @@ namespace slam3d
 		}
 	};
 }
-
-#endif

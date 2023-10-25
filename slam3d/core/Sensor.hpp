@@ -23,10 +23,9 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_SENSOR_HPP
-#define SLAM_SENSOR_HPP
+#pragma once
 
-#include "Types.hpp"
+#include <slam3d/core/Types.hpp>
 
 #include <set>
 
@@ -169,5 +168,3 @@ namespace slam3d
 	
 	typedef std::map<std::string, Sensor*> SensorList;
 }
-
-#endif

@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_GRAPH_HPP
-#define SLAM_GRAPH_HPP
+#pragma once
 
 /**
  * @mainpage A generic frontend for 3D Simultaneous Localization and Mapping
@@ -75,7 +74,7 @@ laser->addMeasurement(m);
  @endcode
  */
 
-#include "Solver.hpp"
+#include <slam3d/core/Solver.hpp>
 
 #include <flann/flann.hpp>
 #include <map>
@@ -368,6 +367,13 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
+		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
+		 *
+		 * @return const VertexObjectList
+		 */
+		virtual const VertexObjectList getAllVertices() const = 0;
+
+		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
@@ -453,5 +459,3 @@ namespace slam3d
 		unsigned mConstraintsAdded;
 	};
 }
-
-#endif

@@ -23,11 +23,10 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM3D_SCANSENSOR_HPP
-#define SLAM3D_SCANSENSOR_HPP
+#pragma once
 
-#include "Sensor.hpp"
-#include "Solver.hpp"
+#include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/Solver.hpp>
 
 #include <mutex>
 
@@ -166,5 +165,3 @@ namespace slam3d
 		Transform mLastTransform;
 	};
 }
-
-#endif

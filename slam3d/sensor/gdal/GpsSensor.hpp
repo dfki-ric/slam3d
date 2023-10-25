@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM3D_GPSSENSOR_HPP
-#define SLAM3D_GPSSENSOR_HPP
+#pragma once
 
 #include <slam3d/core/Sensor.hpp>
 
@@ -65,5 +64,3 @@ namespace slam3d
 		Position mLastPosition;
 	};
 }
-
-#endif

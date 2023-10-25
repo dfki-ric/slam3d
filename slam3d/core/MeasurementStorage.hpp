@@ -1,6 +1,6 @@
 # pragma once
 
-#include "Types.hpp"
+#include <slam3d/core/Types.hpp>
 
 namespace slam3d
 {

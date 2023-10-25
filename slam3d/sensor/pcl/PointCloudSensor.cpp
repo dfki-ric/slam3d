@@ -27,8 +27,14 @@
 
 #include <slam3d/core/Mapper.hpp>
 
-#include <pclomp/gicp_omp.h>
-#include <pclomp/ndt_omp.h>
+#ifdef USE_PCLOMP
+	#include <pclomp/gicp_omp.h>
+	#include <pclomp/ndt_omp.h>
+#else
+	#include <pcl/registration/gicp.h>
+	#include <pcl/registration/ndt.h>
+#endif
+
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/pcl_config.h>
@@ -183,7 +189,11 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
                                   const Transform& guess,
                                   const RegistrationParameters& config)
 {
+#if USE_PCLOMP
 	pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> icp;
+#else
+	pcl::GeneralizedIterativeClosestPoint<PointType, PointType> icp;
+#endif
 	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	icp.setMaximumIterations(config.maximum_iterations);
 	icp.setTransformationEpsilon(config.transformation_epsilon);
@@ -234,12 +244,17 @@ Transform PointCloudSensor::doNDT(PointCloud::Ptr source,
                                   const Transform& guess,
                                   const RegistrationParameters& config)
 {
+#ifdef USE_PCLOMP
 	pclomp::NormalDistributionsTransform<PointType, PointType> ndt;
+	ndt.setOutlierRatio(config.outlier_ratio);
+#else
+	pcl::NormalDistributionsTransform<PointType, PointType> ndt;
+	ndt.setOulierRatio(config.outlier_ratio);
+#endif
 	ndt.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	ndt.setMaximumIterations(config.maximum_iterations);
 	ndt.setTransformationEpsilon(config.transformation_epsilon);
 	ndt.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
-	ndt.setOutlierRatio(config.outlier_ratio);
 	ndt.setStepSize(config.step_size);
 	ndt.setResolution(config.resolution);
 	

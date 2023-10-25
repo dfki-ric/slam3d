@@ -23,10 +23,10 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_FILELOGGER_HPP
-#define SLAM_FILELOGGER_HPP
+#pragma once
 
-#include "Logger.hpp"
+#include <slam3d/core/Logger.hpp>
+
 #include <fstream>
 
 namespace slam3d
@@ -89,5 +89,3 @@ namespace slam3d
 		std::ofstream mLogFile;
 	};
 }
-
-#endif

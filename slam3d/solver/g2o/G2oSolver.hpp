@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_G2O_SOLVER_HPP
-#define SLAM_G2O_SOLVER_HPP
+#pragma once
 
 #include <slam3d/core/Solver.hpp>
 #include <boost/thread/mutex.hpp>
@@ -65,5 +64,3 @@ namespace slam3d
 		std::unique_ptr<Internal> mInt;
 	};
 }
-
-#endif

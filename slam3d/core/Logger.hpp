@@ -23,10 +23,9 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_LOGGER_HPP
-#define SLAM_LOGGER_HPP
+#pragma once
 
-#include "Clock.hpp"
+#include <slam3d/core/Clock.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -107,5 +106,3 @@ namespace slam3d
 		boost::mutex mLogMutex;
 	};
 }
-
-#endif
