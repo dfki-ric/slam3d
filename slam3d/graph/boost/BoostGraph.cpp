@@ -260,6 +260,16 @@ const VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned
 	return vertices;
 }
 
+const VertexObjectList BoostGraph::getAllVertices() const
+{
+	VertexObjectList vertice_list;
+	vertice_list.reserve(num_vertices(mPoseGraph));
+	for (auto entry : boost::make_iterator_range(vertices(mPoseGraph))) {
+		vertice_list.push_back(mPoseGraph[entry]);
+	}
+	return vertice_list;
+}
+
 float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) const
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
