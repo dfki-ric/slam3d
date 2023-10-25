@@ -95,6 +95,13 @@ class Neo4jGraph : public Graph {
         const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
         /**
+         * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
+         *
+         * @return const VertexObjectList
+         */
+        const VertexObjectList getAllVertices() const;
+
+        /**
          * @brief Gets a list of all edges from given sensor.
          * @param sensor
          */

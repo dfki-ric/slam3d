@@ -306,7 +306,6 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
     web::json::value result = query.getResponse().extract_json().get();
     try {
         web::json::array &nodes = result["results"][0]["data"][0]["row"][0].as_array();
-        
     } catch (const web::json::json_exception &e) {
         std::cout << "error on getVerticesInRange : " << source_id << " -- " << e.what() << std::endl;
         std::cout << result << std::endl;
@@ -319,6 +318,29 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
     // 	vertices.push_back(mPoseGraph[it->first]);
     // }
     return vertices;
+}
+
+const VertexObjectList Neo4jGraph::getAllVertices() const {
+    std::lock_guard<std::mutex> lock(queryMutex);
+    VertexObjectList vertexobjlist;
+
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (n:Vertex) RETURN n AS node");
+    if (!query.sendQuery()) {
+        std::string msg = query.getResponse().extract_string().get();
+        logger->message(ERROR, msg);
+        std::cout << msg << std::endl;
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    }
+    web::json::value reply = query.getResponse().extract_json().get();
+    web::json::array& results = reply["results"][0]["data"].as_array();
+    vertexobjlist.reserve(results.size());
+    for (auto& vertex : results) {
+        VertexObject vertexobj;
+        vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0], measurements);
+        vertexobjlist.push_back(vertexobj);
+    }
+    return vertexobjlist;
 }
 
 float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) const {
