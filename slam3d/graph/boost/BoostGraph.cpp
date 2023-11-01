@@ -18,8 +18,8 @@
 
 using namespace slam3d;
 
-BoostGraph::BoostGraph(Logger* log)
- : Graph(log)
+BoostGraph::BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements)
+ : Graph(log, measurements)
 {
 	// insert a dummy node as a source of unary edges
 	mIndexMap.insert(IndexMap::value_type(0, 0));
@@ -52,21 +52,23 @@ bool BoostGraph::optimize(unsigned iterations)
 	return Graph::optimize(iterations);
 }
 
-void BoostGraph::addVertex(const VertexObject& v)
+void BoostGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
-	
+
 	// Add vertex to the graph
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
 	mPoseGraph[newVertex] = v;
+	mMeasurements->add(measurement);
 
 	// Add it to the vertex index, so we can find it by its descriptor
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
-void BoostGraph::setVertex(IdType id, const VertexObject& v)
+void BoostGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement)
 {
 	mPoseGraph[mIndexMap.at(id)] = v;
+	mMeasurements->add(measurement);
 }
 
 void BoostGraph::addEdge(const EdgeObject& e)
@@ -102,7 +104,7 @@ const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sens
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(mPoseGraph[*it].measurement->getSensorName() == sensor)
+		if(mPoseGraph[*it].mSensorName == sensor)
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}

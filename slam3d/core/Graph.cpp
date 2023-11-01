@@ -29,8 +29,8 @@
 
 using namespace slam3d;
 
-Graph::Graph(Logger* log)
- : mLogger(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
+Graph::Graph(Logger* log, std::shared_ptr<MeasurementStorage> measurements)
+ : mLogger(log), mMeasurements(measurements), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	// Initialize some members
 	mSolver = NULL;	
@@ -104,12 +104,11 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	IdType id = mIndexer.getNext();
 	boost::format v_name("%1%:%2%(%3%)");
 	v_name % m->getRobotName() % m->getSensorName() % id;
-	VertexObject vo;
+	VertexObject vo(m);
 	vo.index = id;
 	vo.label = v_name.str();
 	vo.corrected_pose = corrected;
-	vo.measurement = m;
-	addVertex(vo);
+	addVertex(vo, m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
@@ -178,7 +177,22 @@ IdType Graph::getIndex(boost::uuids::uuid id) const
 
 bool Graph::hasMeasurement(boost::uuids::uuid id) const
 {
-	return mUuidIndex.find(id) != mUuidIndex.end();
+	return mMeasurements->contains(id);
+}
+
+Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id) const
+{
+	return mMeasurements->get(id);
+}
+
+Measurement::Ptr Graph::getMeasurement(IdType id) const
+{
+	return getMeasurement(getVertex(id).measurement_uuid);
+}
+
+Measurement::Ptr Graph::getMeasurement(const VertexObject& vo) const
+{
+	return getMeasurement(vo.measurement_uuid);
 }
 
 const VertexObject Graph::getVertex(boost::uuids::uuid id) const
