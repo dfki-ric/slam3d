@@ -286,10 +286,23 @@ namespace slam3d
 	 */
 	struct VertexObject
 	{
+		VertexObject(const Measurement::Ptr measurement) :
+			mRobotName(measurement->getRobotName()),
+			mSensorName(measurement->getSensorName()),
+			mTypeName(measurement->getTypeName()),
+			mStamp(measurement->getTimestamp()),
+			measurement_uuid(measurement->getUniqueId())
+		{}
+		VertexObject() {}
 		IdType index;
 		std::string label;
+		std::string mRobotName;
+		std::string mSensorName;
+		std::string mTypeName;
+		timeval mStamp;
+
 		Transform corrected_pose;
-		Measurement::Ptr measurement;
+		boost::uuids::uuid measurement_uuid;
 	};
 
 	/**

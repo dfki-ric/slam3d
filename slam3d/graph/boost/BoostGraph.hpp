@@ -41,7 +41,7 @@ namespace slam3d
 	class BoostGraph : public Graph
 	{
 	public:
-		BoostGraph(Logger* log);
+		BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>());
 		~BoostGraph();
 
 		/**
@@ -136,14 +136,14 @@ namespace slam3d
 		 * @brief Add the given VertexObject to the internal graph.
 		 * @param v
 		 */
-		void addVertex(const VertexObject& v);
+		void addVertex(const VertexObject& v, Measurement::Ptr measurement);
 		
 		/**
 		 * @brief Set the given VertexObject to the internal graph.
 		 * @param id
 		 * @param v
 		 */
-		void setVertex(IdType id, const VertexObject& v);
+		void setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement);
 		
 		/**
 		 * @brief Add the given EdgeObject to the internal graph.
