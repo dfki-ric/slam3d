@@ -37,9 +37,8 @@ class Neo4jGraph : public Graph {
         };
 
         Neo4jGraph(Logger* log, 
-                    std::shared_ptr<MeasurementStorage> measurements, 
+                    std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>(),
                     const Server &graphserver = Neo4jGraph::Server("127.0.0.1", 7474, "neo4j", "neo4j")
-
                     );
         ~Neo4jGraph();
 
@@ -64,7 +63,7 @@ class Neo4jGraph : public Graph {
          */
         const VertexObject getVertex(IdType id) const;
 
-        virtual void setVertex(IdType id, const VertexObject& v);
+        virtual void setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement);
 
         /**
          * @brief 
@@ -135,7 +134,7 @@ class Neo4jGraph : public Graph {
          * @brief Add the given VertexObject to the internal graph.
          * @param v
          */
-        void addVertex(const VertexObject& v);
+        void addVertex(const VertexObject& v, Measurement::Ptr measurement);
 
         /**
          * @brief Add the given EdgeObject to the internal graph.
@@ -201,7 +200,7 @@ class Neo4jGraph : public Graph {
         // std::map<std::string, Measurement::Ptr> measurements;
 
         // std::shared_ptr<RedisMap> measurements;
-        std::shared_ptr<MeasurementStorage> measurements;
+        // std::shared_ptr<MeasurementStorage> measurements;
 
 
         slam3d::Logger* logger;

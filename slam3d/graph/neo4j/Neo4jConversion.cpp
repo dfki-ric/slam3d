@@ -1,6 +1,7 @@
 #include "Neo4jConversion.hpp"
 
 #include <slam3d/core/MeasurementStorage.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace slam3d {
 
@@ -37,17 +38,19 @@ slam3d::EdgeObject Neo4jConversion::edgeObjectFromJson(web::json::value& json) {
     return returnval;
 }
 
-slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& json, std::shared_ptr<MeasurementStorage> measurements) {
+slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& json) {
     slam3d::VertexObject returnval;
-
     returnval.index = json["index"].as_integer();
     returnval.label = json["label"].as_string();
-    returnval.corrected_pose = Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(json["corrected_pose"].as_string()));
-    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    // std::cout << returnval.corrected_pose.matrix() << std::endl;
-    // std::cout << returnval.corrected_pose.translation() << std::endl;
-    returnval.measurement = measurements->get(json["measurement"].as_string());
+    returnval.mRobotName = json["mRobotName"].as_string();
+    returnval.mSensorName = json["mSensorName"].as_string();
+    returnval.mTypeName = json["mTypeName"].as_string();
+    returnval.mStamp.tv_sec = json["timestamp_tv_sec"].as_integer();
+    returnval.mStamp.tv_usec = json["timestamp_tv_usec"].as_integer();
+    returnval.mTypeName = json["mTypeName"].as_string();
 
+    returnval.corrected_pose = Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(json["corrected_pose"].as_string()));
+    returnval.measurement_uuid = boost::lexical_cast<boost::uuids::uuid>(json["measurement"].as_string());
     return returnval;
 }
 
