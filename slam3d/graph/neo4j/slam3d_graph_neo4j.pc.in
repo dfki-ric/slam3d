@@ -7,5 +7,5 @@ Name: slam3d_graph_neo4j
 Description: Graph representation using the neo4j graph database.
 Version: @SLAM3D_VERSION@
 Requires: slam3d_core
-Libs: -L${libdir} -lslam3d_graph_neo4j
+Libs: -L${libdir} -lslam3d_graph_neo4j -lcpprest
 Cflags: -I${includedir}
