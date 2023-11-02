@@ -23,12 +23,11 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_MAPPER_HPP
-#define SLAM_MAPPER_HPP
+#pragma once
 
-#include "Sensor.hpp"
-#include "PoseSensor.hpp"
-#include "Graph.hpp"
+#include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/PoseSensor.hpp>
+#include <slam3d/core/Graph.hpp>
 
 namespace slam3d
 {
@@ -130,5 +129,3 @@ namespace slam3d
 		Transform mStartPose;
 	};
 }
-
-#endif

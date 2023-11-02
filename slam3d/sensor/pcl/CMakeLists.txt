@@ -9,12 +9,19 @@ target_include_directories(sensor-pcl
 		${PCL_INCLUDE_DIRS}
 )
 
+if(TARGET pclomp::registration)
+	set(SLAM3D_REGISTRATION pclomp::registration)
+	target_compile_definitions(sensor-pcl PRIVATE USE_PCLOMP)
+else()
+	set(SLAM3D_REGISTRATION ${PCL_REGISTRATION_LIBRARIES})
+endif()
+
 target_link_libraries(sensor-pcl
 	PUBLIC
 		core
 	PRIVATE
-		pclomp::registration
 		Boost::serialization
+		${SLAM3D_REGISTRATION}
 		${PCL_SAMPLE_CONCENSUS_LIBRARIES}
 		${PCL_LIBRARIES}
 )

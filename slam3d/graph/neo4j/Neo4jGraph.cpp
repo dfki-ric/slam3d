@@ -8,6 +8,7 @@
 // #include <boost/format.hpp>
 #include <slam3d/core/Solver.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <fstream>
 
@@ -20,7 +21,7 @@ using namespace utility;
 using status_codes = web::http::status_codes;
 // using Client = web::http::client::http_client;
 
-Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements, const Server &graphserver) : Graph(log), logger(log), measurements(measurements)
+Neo4jGraph::Neo4jGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements, const Server &graphserver) : Graph(log, measurements), logger(log)
 {
     web::http::client::http_client_config clientconf;
     clientconf.set_validate_certificates(false);
@@ -72,19 +73,27 @@ bool Neo4jGraph::optimize(unsigned iterations)
     return Graph::optimize(iterations);
 }
 
-void Neo4jGraph::addVertex(const VertexObject& v)
+void Neo4jGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
 {
     Neo4jQuery vertexQuery(client);
+
     vertexQuery.addStatement("CREATE (n:Vertex $props)");
     vertexQuery.addParameterSet("props");
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
     vertexQuery.addParameterToSet("props", "corrected_pose", Neo4jConversion::eigenMatrixToString(v.corrected_pose.matrix()));
-    vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
-    std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
+    vertexQuery.addParameterToSet("props", "mRobotName", measurement->getRobotName());
+    vertexQuery.addParameterToSet("props", "mSensorName", measurement->getSensorName());
+    vertexQuery.addParameterToSet("props", "mTypeName", measurement->getTypeName());
+    vertexQuery.addParameterToSet("props", "timestamp_tv_sec", measurement->getTimestamp().tv_sec);
+    vertexQuery.addParameterToSet("props", "timestamp_tv_usec", measurement->getTimestamp().tv_usec);
+
+
+    // std::string uuid = boost::uuids::to_string(v.measurement_uuid);
+    std::string uuid = boost::lexical_cast<std::string>(v.measurement_uuid);
     vertexQuery.addParameterToSet("props", "measurement", uuid);
 
-    measurements->add(v.measurement);
+    mMeasurements->add(measurement);
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
@@ -159,7 +168,7 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
-    query.addStatement("MATCH (a:Vertex) WHERE a.sensor='"+sensor+"' RETURN a");
+    query.addStatement("MATCH (a:Vertex) WHERE a.mSensorName='"+sensor+"' RETURN a");
 
     if (!query.sendQuery()) {
         logger->message(ERROR, query.getResponse().extract_string().get());
@@ -168,7 +177,7 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
     web::json::value result = query.getResponse().extract_json().get();
 
     for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
-        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0], measurements);
+        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0]);
         objectList.push_back(vertex);
     }
     return objectList;
@@ -194,12 +203,12 @@ const VertexObject Neo4jGraph::getVertex(IdType id)  const{
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // std::cout << reply["results"][0]["data"][0]["row"][0].serialize() << std::endl;
 
-    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0], measurements);
+    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
 
     return vertexobj;
 }
 
-void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
+void Neo4jGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement) {
     // std::lock_guard<std::mutex> lock (queryMutex);
 
     Neo4jQuery vertexQuery(client);
@@ -211,13 +220,19 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
     vertexQuery.addParameterToSet("props", "corrected_pose", Neo4jConversion::eigenMatrixToString(v.corrected_pose.matrix()));
-    vertexQuery.addParameterToSet("props", "sensor", v.measurement->getSensorName());
-    std::string uuid = boost::uuids::to_string(v.measurement->getUniqueId());
+    vertexQuery.addParameterToSet("props", "sensor", measurement->getSensorName());
+    vertexQuery.addParameterToSet("props", "mRobotName", measurement->getRobotName());
+    vertexQuery.addParameterToSet("props", "mSensorName", measurement->getSensorName());
+    vertexQuery.addParameterToSet("props", "mTypeName", measurement->getTypeName());
+    vertexQuery.addParameterToSet("props", "timestamp_tv_sec", measurement->getTimestamp().tv_sec);
+    vertexQuery.addParameterToSet("props", "timestamp_tv_usec", measurement->getTimestamp().tv_usec);
+
+    std::string uuid = boost::uuids::to_string(v.measurement_uuid);
     vertexQuery.addParameterToSet("props", "measurement", uuid);
 
     // replace measurement in reg
-    if (v.measurement.get() != nullptr) {
-        measurements->add(v.measurement);
+    if (measurement.get() != nullptr) {
+        mMeasurements->add(measurement);
     }
 
     if (!vertexQuery.sendQuery()) {
@@ -306,7 +321,6 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
     web::json::value result = query.getResponse().extract_json().get();
     try {
         web::json::array &nodes = result["results"][0]["data"][0]["row"][0].as_array();
-        
     } catch (const web::json::json_exception &e) {
         std::cout << "error on getVerticesInRange : " << source_id << " -- " << e.what() << std::endl;
         std::cout << result << std::endl;
@@ -319,6 +333,29 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
     // 	vertices.push_back(mPoseGraph[it->first]);
     // }
     return vertices;
+}
+
+const VertexObjectList Neo4jGraph::getAllVertices() const {
+    std::lock_guard<std::mutex> lock(queryMutex);
+    VertexObjectList vertexobjlist;
+
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (n:Vertex) RETURN n AS node");
+    if (!query.sendQuery()) {
+        std::string msg = query.getResponse().extract_string().get();
+        logger->message(ERROR, msg);
+        std::cout << msg << std::endl;
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    }
+    web::json::value reply = query.getResponse().extract_json().get();
+    web::json::array& results = reply["results"][0]["data"].as_array();
+    vertexobjlist.reserve(results.size());
+    for (auto& vertex : results) {
+        VertexObject vertexobj;
+        vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0]);
+        vertexobjlist.push_back(vertexobj);
+    }
+    return vertexobjlist;
 }
 
 float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) const {

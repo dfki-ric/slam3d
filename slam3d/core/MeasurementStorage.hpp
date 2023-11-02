@@ -1,6 +1,6 @@
 # pragma once
 
-#include "Types.hpp"
+#include <slam3d/core/Types.hpp>
 
 namespace slam3d
 {
@@ -25,6 +25,15 @@ namespace slam3d
 		 * @throws std::out_of_range if no measurement exists for that UUID
 		 */
 		virtual Measurement::Ptr get(const boost::uuids::uuid& key);
+
+		/**
+		 * @brief check if the uuid is available in the database
+		 * 
+		 * @param key 
+		 * @return true 
+		 * @return false 
+		 */
+		virtual bool contains(const boost::uuids::uuid& key);
 
 		/**
 		 * @brief Get the measurement for a given UUID

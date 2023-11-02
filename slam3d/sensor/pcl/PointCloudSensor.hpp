@@ -23,12 +23,12 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_POINTCLOUDSENSOR_HPP
-#define SLAM_POINTCLOUDSENSOR_HPP
+#pragma once
 
 #include <slam3d/core/Graph.hpp>
 #include <slam3d/core/ScanSensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
+#include <slam3d/sensor/pcl/RegistrationParameters.hpp>
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -37,8 +37,6 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/export.hpp>
-
-#include "RegistrationParameters.hpp"
 
 namespace slam3d
 {
@@ -325,5 +323,3 @@ namespace boost
 }
 
 BOOST_CLASS_EXPORT_KEY(slam3d::PointCloudMeasurement)
-
-#endif

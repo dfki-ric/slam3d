@@ -19,3 +19,8 @@ Measurement::Ptr MeasurementStorage::get(const std::string& key)
 {
 	return get( boost::lexical_cast<boost::uuids::uuid>(key));
 }
+
+bool MeasurementStorage::contains(const boost::uuids::uuid& key)
+{
+	return mMeasurements.count(key);
+}

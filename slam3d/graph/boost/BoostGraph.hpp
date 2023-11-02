@@ -1,5 +1,4 @@
-#ifndef SLAM3D_BOOSTGRAPH_HPP
-#define SLAM3D_BOOSTGRAPH_HPP
+#pragma once
 
 #include <slam3d/core/Graph.hpp>
 
@@ -42,7 +41,7 @@ namespace slam3d
 	class BoostGraph : public Graph
 	{
 	public:
-		BoostGraph(Logger* log);
+		BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>());
 		~BoostGraph();
 
 		/**
@@ -88,6 +87,13 @@ namespace slam3d
 		const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
 		/**
+		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
+		 *
+		 * @return const VertexObjectList
+		 */
+		const VertexObjectList getAllVertices() const;
+
+		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
@@ -130,14 +136,14 @@ namespace slam3d
 		 * @brief Add the given VertexObject to the internal graph.
 		 * @param v
 		 */
-		void addVertex(const VertexObject& v);
+		void addVertex(const VertexObject& v, Measurement::Ptr measurement);
 		
 		/**
 		 * @brief Set the given VertexObject to the internal graph.
 		 * @param id
 		 * @param v
 		 */
-		void setVertex(IdType id, const VertexObject& v);
+		void setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement);
 		
 		/**
 		 * @brief Add the given EdgeObject to the internal graph.
@@ -173,5 +179,3 @@ namespace slam3d
 		IndexMap mIndexMap;
 	};
 }
-
-#endif

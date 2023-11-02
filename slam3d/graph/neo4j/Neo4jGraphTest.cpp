@@ -60,9 +60,8 @@ void initEigenQuaternion(Eigen::Quaternionf* q) {
 void initDB() {
     static bool initialized = false;
     if (!initialized) {
-        std::shared_ptr<slam3d::MeasurementStorage> measurements = std::make_shared<slam3d::MeasurementStorage>();
         neo4jlogger.setLogLevel(DEBUG);
-        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger, measurements);
+        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger);
         neo4jgraph->deleteDatabase();
         initialized = true;
     }
@@ -162,9 +161,12 @@ BOOST_AUTO_TEST_CASE(measurement_storage) {
 	BOOST_CHECK_NO_THROW(query_res = g->getVertex(id));
 	// BOOST_CHECK_EQUAL(query_res.index, exp_id);
 
-    BOOST_CHECK_EQUAL(m->getRobotName(), query_res.measurement->getRobotName()); 
+    Measurement::Ptr m_new = g->getMeasurement(query_res.measurement_uuid);
+    BOOST_CHECK_NE(m_new.get(), nullptr);
+    BOOST_CHECK_EQUAL(m->getRobotName(), m_new->getRobotName()); 
+    BOOST_CHECK_EQUAL(m->getRobotName(), query_res.mRobotName); 
 
-    slam3d::PointCloudMeasurement::Ptr m_res = boost::dynamic_pointer_cast<slam3d::PointCloudMeasurement>(query_res.measurement);
+    slam3d::PointCloudMeasurement::Ptr m_res = boost::dynamic_pointer_cast<slam3d::PointCloudMeasurement>(m_new);
 
     BOOST_CHECK_NE(m_res.get(), nullptr);
 

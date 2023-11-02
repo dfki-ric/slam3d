@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_GRAPH_HPP
-#define SLAM_GRAPH_HPP
+#pragma once
 
 /**
  * @mainpage A generic frontend for 3D Simultaneous Localization and Mapping
@@ -75,7 +74,8 @@ laser->addMeasurement(m);
  @endcode
  */
 
-#include "Solver.hpp"
+#include <slam3d/core/Solver.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 #include <flann/flann.hpp>
 #include <map>
@@ -197,7 +197,7 @@ namespace slam3d
 	class Graph
 	{
 	public:
-		Graph(Logger* log);
+		Graph(Logger* log, std::shared_ptr<MeasurementStorage> measurements);
 		virtual ~Graph();
 
 		/**
@@ -331,6 +331,28 @@ namespace slam3d
 		bool hasMeasurement(boost::uuids::uuid id) const;
 
 		/**
+		 * @brief get a spesific measurement.
+		 * @param id
+		 */
+		Measurement::Ptr getMeasurement(boost::uuids::uuid id) const;
+
+		/**
+		 * @brief Get a the Measurement from the storage
+		 * 
+		 * @param id 
+		 * @return Measurement::Ptr 
+		 */
+		Measurement::Ptr getMeasurement(IdType id) const;
+
+		/**
+		 * @brief Get the Measurement by VertexObject
+		 * 
+		 * @param vo 
+		 * @return Measurement::Ptr 
+		 */
+		Measurement::Ptr getMeasurement(const VertexObject& vo) const;
+
+		/**
 		 * @brief Get the transformation between source and target node.
 		 * @param source
 		 * @param target
@@ -368,6 +390,13 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
+		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
+		 *
+		 * @return const VertexObjectList
+		 */
+		virtual const VertexObjectList getAllVertices() const = 0;
+
+		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
 		 */
@@ -396,7 +425,7 @@ namespace slam3d
 		 * It should not be used directly, but is used internally.
 		 * @param v VertexObject to be stored in the graph
 		 */
-		virtual void addVertex(const VertexObject& v) = 0;
+		virtual void addVertex(const VertexObject& v, Measurement::Ptr measurement) = 0;
 
 		/**
 		 * @brief Set a new vertex for the given id.
@@ -405,7 +434,7 @@ namespace slam3d
 		 * @param v VertexObject to be stored in the graph
 		 * @return constant reference to a vertex
 		 */
-		virtual void setVertex(IdType id, const VertexObject& v) = 0;
+		virtual void setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement) = 0;
 
 		/**
 		 * @brief Add the given EdgeObject to the actual graph.
@@ -440,6 +469,9 @@ namespace slam3d
 		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
 		UuidIndex mUuidIndex;
 
+		// storage of the actual measurements
+		std::shared_ptr<MeasurementStorage> mMeasurements;
+
 		// Index to use nearest neighbor search
 		// Whenever this index is created, we have to enumerate all vertices from 0 to n-1.
 		// This mapping is kept in a separate map to later apply the result to the graph.
@@ -453,5 +485,3 @@ namespace slam3d
 		unsigned mConstraintsAdded;
 	};
 }
-
-#endif

@@ -23,11 +23,10 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM_SOLVER_HPP
-#define SLAM_SOLVER_HPP
+#pragma once
 
-#include "Types.hpp"
-#include "Logger.hpp"
+#include <slam3d/core/Types.hpp>
+#include <slam3d/core/Logger.hpp>
 
 #include <vector>
 
@@ -231,5 +230,3 @@ namespace slam3d
 		Logger* mLogger;
 	};
 }
-
-#endif

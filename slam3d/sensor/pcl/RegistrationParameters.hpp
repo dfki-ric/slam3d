@@ -23,8 +23,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SLAM3D_REGISTRATION_PARAMETERS_HPP
-#define SLAM3D_REGISTRATION_PARAMETERS_HPP
+#pragma once
 
 namespace slam3d
 {
@@ -105,5 +104,3 @@ namespace slam3d
 		                           outlier_ratio(0.35){};
 	};
 }
-
-#endif

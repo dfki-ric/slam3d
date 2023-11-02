@@ -46,7 +46,7 @@ namespace slam3d {
             printf("coud not load measurement: %s\n", context->errstr);
             // TODO: recreate context
             freeReplyObject(reply);
-            return Measurement::Ptr();
+            throw std::out_of_range("not found in database");
         }
         redisReply* redisrep = (redisReply*)reply;
         // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
@@ -70,6 +70,19 @@ namespace slam3d {
 
     Measurement::Ptr RedisMeasurementStorage::get(const boost::uuids::uuid& key) {
         return get(to_string(key));
+    }
+
+    bool RedisMeasurementStorage::contains(const boost::uuids::uuid& key) {
+        void* reply = redisCommand(context.get(), "EXISTS %s", to_string(key).c_str());
+        if (!reply) {
+            printf("coud not receive result form database: %s\n", context->errstr);
+            return false;
+        }
+        redisReply* redisrep = (redisReply*)reply;
+        bool result = redisrep->integer;
+        freeReplyObject(reply);
+
+        return result;
     }
 
     void RedisMeasurementStorage::deleteDatabase() {

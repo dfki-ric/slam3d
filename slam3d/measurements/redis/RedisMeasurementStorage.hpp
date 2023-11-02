@@ -25,6 +25,8 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     virtual Measurement::Ptr get(const boost::uuids::uuid& key);
 
+    virtual bool contains(const boost::uuids::uuid& key);
+
     virtual void deleteDatabase();
 
 
