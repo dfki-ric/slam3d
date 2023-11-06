@@ -29,8 +29,8 @@
 
 using namespace slam3d;
 
-Graph::Graph(Logger* log, std::shared_ptr<MeasurementStorage> measurements)
- : mLogger(log), mMeasurements(measurements), mNeighborIndex(flann::KDTreeSingleIndexParams())
+Graph::Graph(Logger* log)
+ : mLogger(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	// Initialize some members
 	mSolver = NULL;	
@@ -177,23 +177,23 @@ IdType Graph::getIndex(boost::uuids::uuid id) const
 
 bool Graph::hasMeasurement(boost::uuids::uuid id) const
 {
-	return mMeasurements->contains(id);
+	return mUuidIndex.find(id) != mUuidIndex.end();
 }
 
-Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id) const
-{
-	return mMeasurements->get(id);
-}
+// Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id) const
+// {
+// 	return mMeasurements->get(id);
+// }
 
-Measurement::Ptr Graph::getMeasurement(IdType id) const
-{
-	return getMeasurement(getVertex(id).measurement_uuid);
-}
+// Measurement::Ptr Graph::getMeasurement(IdType id) const
+// {
+// 	return getMeasurement(getVertex(id).measurement_uuid);
+// }
 
-Measurement::Ptr Graph::getMeasurement(const VertexObject& vo) const
-{
-	return getMeasurement(vo.measurement_uuid);
-}
+// Measurement::Ptr Graph::getMeasurement(const VertexObject& vo) const
+// {
+// 	return getMeasurement(vo.measurement_uuid);
+// }
 
 const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 {

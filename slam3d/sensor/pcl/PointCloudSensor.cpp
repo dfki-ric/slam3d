@@ -100,7 +100,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	PointCloud::Ptr accu(new PointCloud);
 	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
 	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(it->measurement_uuid);
+		Measurement::Ptr m = mMapper->getMeasurementStorage()->get(it->measurement_uuid);
 		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
 		if(!pcl)
 		{

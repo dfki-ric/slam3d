@@ -41,7 +41,7 @@ namespace slam3d
 	class BoostGraph : public Graph
 	{
 	public:
-		BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>());
+		BoostGraph(Logger* log);
 		~BoostGraph();
 
 		/**

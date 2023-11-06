@@ -18,8 +18,8 @@
 
 using namespace slam3d;
 
-BoostGraph::BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements)
- : Graph(log, measurements)
+BoostGraph::BoostGraph(Logger* log)
+ : Graph(log)
 {
 	// insert a dummy node as a source of unary edges
 	mIndexMap.insert(IndexMap::value_type(0, 0));
@@ -59,7 +59,6 @@ void BoostGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
 	// Add vertex to the graph
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
 	mPoseGraph[newVertex] = v;
-	mMeasurements->add(measurement);
 
 	// Add it to the vertex index, so we can find it by its descriptor
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
@@ -68,7 +67,6 @@ void BoostGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
 void BoostGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement)
 {
 	mPoseGraph[mIndexMap.at(id)] = v;
-	mMeasurements->add(measurement);
 }
 
 void BoostGraph::addEdge(const EdgeObject& e)

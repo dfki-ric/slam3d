@@ -197,7 +197,7 @@ namespace slam3d
 	class Graph
 	{
 	public:
-		Graph(Logger* log, std::shared_ptr<MeasurementStorage> measurements);
+		Graph(Logger* log);
 		virtual ~Graph();
 
 		/**
@@ -330,27 +330,27 @@ namespace slam3d
 		 */
 		bool hasMeasurement(boost::uuids::uuid id) const;
 
-		/**
-		 * @brief get a spesific measurement.
-		 * @param id
-		 */
-		Measurement::Ptr getMeasurement(boost::uuids::uuid id) const;
+		// /**
+		//  * @brief get a spesific measurement.
+		//  * @param id
+		//  */
+		// Measurement::Ptr getMeasurement(boost::uuids::uuid id) const;
 
-		/**
-		 * @brief Get a the Measurement from the storage
-		 * 
-		 * @param id 
-		 * @return Measurement::Ptr 
-		 */
-		Measurement::Ptr getMeasurement(IdType id) const;
+		// /**
+		//  * @brief Get a the Measurement from the storage
+		//  * 
+		//  * @param id 
+		//  * @return Measurement::Ptr 
+		//  */
+		// Measurement::Ptr getMeasurement(IdType id) const;
 
-		/**
-		 * @brief Get the Measurement by VertexObject
-		 * 
-		 * @param vo 
-		 * @return Measurement::Ptr 
-		 */
-		Measurement::Ptr getMeasurement(const VertexObject& vo) const;
+		// /**
+		//  * @brief Get the Measurement by VertexObject
+		//  * 
+		//  * @param vo 
+		//  * @return Measurement::Ptr 
+		//  */
+		// Measurement::Ptr getMeasurement(const VertexObject& vo) const;
 
 		/**
 		 * @brief Get the transformation between source and target node.
@@ -469,9 +469,6 @@ namespace slam3d
 		// Index to find Vertices by the unique id of their measurement
 		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
 		UuidIndex mUuidIndex;
-
-		// storage of the actual measurements
-		std::shared_ptr<MeasurementStorage> mMeasurements;
 
 		// Index to use nearest neighbor search
 		// Whenever this index is created, we have to enumerate all vertices from 0 to n-1.
