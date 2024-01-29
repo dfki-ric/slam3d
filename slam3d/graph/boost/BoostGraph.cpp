@@ -52,7 +52,7 @@ bool BoostGraph::optimize(unsigned iterations)
 	return Graph::optimize(iterations);
 }
 
-void BoostGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
+void BoostGraph::addVertex(const VertexObject& v)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 
@@ -64,7 +64,7 @@ void BoostGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
-void BoostGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement)
+void BoostGraph::setVertex(IdType id, const VertexObject& v)
 {
 	mPoseGraph[mIndexMap.at(id)] = v;
 }

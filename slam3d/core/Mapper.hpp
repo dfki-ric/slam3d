@@ -28,6 +28,7 @@
 #include <slam3d/core/Sensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
 #include <slam3d/core/Graph.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 namespace slam3d
 {
