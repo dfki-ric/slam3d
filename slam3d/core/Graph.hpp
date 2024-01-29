@@ -366,6 +366,14 @@ namespace slam3d
 		 */
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
+
+		/**
+		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
+		 *
+		 * @return const VertexObjectList
+		 */
+		virtual const VertexObjectList getAllVertices() const = 0;
+
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor

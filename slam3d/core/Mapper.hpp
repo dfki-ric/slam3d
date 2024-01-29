@@ -28,13 +28,14 @@
 #include <slam3d/core/Sensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
 #include <slam3d/core/Graph.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 namespace slam3d
 {
 	class Mapper
 	{
 	public:
-		Mapper(Graph* graph, Logger* log, const Transform& start = Transform::Identity());
+		Mapper(Graph* graph, Logger* log, const Transform& start = Transform::Identity(), std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>());
 		virtual ~Mapper();
 
 		/**
@@ -49,6 +50,12 @@ namespace slam3d
 		 */
 		Graph* getGraph() { return mGraph; }
 	
+		/**
+		 * @brief Access to the measurements.
+		 * @return measurement storage
+		 */
+		std::shared_ptr<MeasurementStorage> getMeasurementStorage() { return mMeasurements; }
+
 		/**
 		 * @brief Register a pose sensor to create spatial constraints.
 		 * @details For each node that is added by a registered sensor, each
@@ -127,5 +134,6 @@ namespace slam3d
 		Graph* mGraph;
 		IdType mLastIndex;
 		Transform mStartPose;
+		std::shared_ptr<MeasurementStorage> mMeasurements;
 	};
 }

@@ -89,4 +89,10 @@ void test_graph_construction(slam3d::Graph* graph)
 	int hops = graph->calculateGraphDistance(1,3);
 	BOOST_CHECK_EQUAL(hops, 2);
 
+	addVertexToGraph(graph, 4, "R2", "S1");
+	slam3d::VertexObjectList allVertices = graph->getAllVertices();
+	BOOST_CHECK_EQUAL(allVertices.size(), 4);
+
+
+
 }

@@ -104,11 +104,10 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	IdType id = mIndexer.getNext();
 	boost::format v_name("%1%:%2%(%3%)");
 	v_name % m->getRobotName() % m->getSensorName() % id;
-	VertexObject vo;
+	VertexObject vo(m);
 	vo.index = id;
 	vo.label = v_name.str();
 	vo.corrected_pose = corrected;
-	vo.measurement = m;
 	addVertex(vo);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
