@@ -78,6 +78,19 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	return false;
 }
 
+bool ScanSensor::checkMeasurementDistance(const Transform& odom)
+{
+	if(mLastVertex == 0)
+	{
+		return true;
+	}
+	if(checkMinDistance(mLastOdometry.inverse() * odom))
+	{
+		return true;
+	}
+	return false;
+}
+
 bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
 {
 	if(mLastVertex == 0)
