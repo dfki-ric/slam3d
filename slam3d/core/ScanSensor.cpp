@@ -298,5 +298,8 @@ void ScanSensor::setPatchBuildingRange(unsigned r)
 
 Transform ScanSensor::getCurrentPose() const
 {
-	return mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * mLastTransform;
+	if(mLastVertex)
+		return mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * mLastTransform;
+	else
+		return mMapper->getCurrentPose();
 }
