@@ -203,26 +203,9 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
 	icp.setRotationEpsilon(config.rotation_epsilon);
 	
 	PointCloud result;
-
-#if PCL_VERSION_COMPARE(<, 1, 8, 1)
-	// We cannot use the "guess" parameter from align() due to a bug in PCL.
-	// Instead we have to shift the source cloud to the target frame before
-	// calling align on it.
-	// > https://github.com/PointCloudLibrary/pcl/pull/989
-	PointCloud::Ptr shifted_target(new PointCloud);
-	pcl::transformPointCloud(*target, *shifted_target, guess.matrix());
-	
-	// Source and target are switched at this point!
-	// In the pose graph, our edge (with transform) goes from source to target,
-	// but ICP calculates the transformation from target to source.
-	icp.setInputSource(shifted_target);
-	icp.setInputTarget(source);
-	icp.align(result);
-#else
 	icp.setInputSource(target);
 	icp.setInputTarget(source);
 	icp.align(result, guess.matrix().cast<float>());
-#endif
 
 	// Check if ICP was successful (kind of...)
 	double score = icp.getFitnessScore(config.max_correspondence_distance);
@@ -233,9 +216,6 @@ Transform PointCloudSensor::doICP(PointCloud::Ptr source,
 	
 	// Get estimated transform
 	Transform icp_result(Eigen::Isometry3f(icp.getFinalTransformation()));
-#if PCL_VERSION_COMPARE(<, 1, 8, 1)
-	icp_result = icp_result * guess;
-#endif
 	return icp_result;
 }
 
