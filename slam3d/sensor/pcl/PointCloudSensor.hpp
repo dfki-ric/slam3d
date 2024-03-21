@@ -166,7 +166,7 @@ namespace slam3d
 		 * @param source
 		 * @param resolution 
 		 */
-		PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution) const;
+		static PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution);
 		
 		/**
 		 * @brief Transform source cloud by given transformation.
@@ -210,16 +210,6 @@ namespace slam3d
 		 * @param radius
 		 */
 		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
-
-	protected:
-		Transform align(PointCloudMeasurement::Ptr source, PointCloudMeasurement::Ptr target,
-		                const Transform& guess, const RegistrationParameters& config);
-
-		Transform doICP(PointCloud::Ptr source, PointCloud::Ptr target,
-		                const Transform& guess, const RegistrationParameters& config);
-
-		Transform doNDT(PointCloud::Ptr source, PointCloud::Ptr target,
-		                const Transform& guess, const RegistrationParameters& config);
 
 	protected:
 		RegistrationParameters mFineConfiguration;
