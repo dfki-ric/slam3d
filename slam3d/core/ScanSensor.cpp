@@ -79,6 +79,19 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	return false;
 }
 
+bool ScanSensor::checkMeasurementDistance(const Transform& odom)
+{
+	if(mLastVertex == 0)
+	{
+		return true;
+	}
+	if(checkMinDistance(mLastOdometry.inverse() * odom))
+	{
+		return true;
+	}
+	return false;
+}
+
 bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
 {
 	if(mLastVertex == 0)
@@ -288,5 +301,8 @@ void ScanSensor::setPatchBuildingRange(unsigned r)
 
 Transform ScanSensor::getCurrentPose() const
 {
-	return mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * mLastTransform;
+	if(mLastVertex)
+		return mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * mLastTransform;
+	else
+		return mMapper->getCurrentPose();
 }
