@@ -12,4 +12,9 @@ else()
 	message(WARNING, "Library 'gdal' not found, the module will be excluded from the build.")
 endif()
 
-add_subdirectory(rtls_flares)
+if (jsoncpp_FOUND)
+	add_subdirectory(rtls_flares)
+else()
+	message(WARNING, "Library 'jsoncpp' not found, the module RTLS-Flares will be excluded from the build.")
+endif()
+
