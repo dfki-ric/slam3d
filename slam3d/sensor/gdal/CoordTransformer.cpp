@@ -41,5 +41,6 @@ Position CoordTransformer::toUTM(ScalarType lon, ScalarType lat, ScalarType alt)
 
 void CoordTransformer::setReference(ScalarType lon, ScalarType lat, ScalarType alt)
 {
+	mReference.setZero();
 	mReference = toUTM(lon, lat, alt);
 }
