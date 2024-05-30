@@ -91,6 +91,12 @@ namespace slam3d
 		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom);
 
 		/**
+		 * @brief Check if a new measurement with given odometry would be added.
+		 * @param odom
+		 */
+		bool checkMeasurementDistance(const Transform& odom);
+
+		/**
 		 * @brief Create a virtual measurement by accumulating scans from given vertices.
 		 * @param vertices list of vertices that should contain a Measurement of this sensor
 		 * @param pose origin of the accumulated scan

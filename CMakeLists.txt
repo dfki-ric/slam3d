@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(SLAM3D VERSION "2.5.1")
+project(SLAM3D VERSION "2.6.0")
 enable_testing()
 
 include(slam3d-dependencies.cmake)
