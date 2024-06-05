@@ -102,7 +102,7 @@ const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sens
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(mPoseGraph[*it].mSensorName == sensor)
+		if(mPoseGraph[*it].sensorName == sensor)
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}
@@ -297,5 +297,5 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) con
 
 void BoostGraph::setCorrectedPose(IdType id, const Transform& pose)
 {
-	mPoseGraph[mIndexMap.at(id)].corrected_pose = pose;
+	mPoseGraph[mIndexMap.at(id)].correctedPose = pose;
 }

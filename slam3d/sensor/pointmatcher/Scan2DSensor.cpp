@@ -101,14 +101,14 @@ Measurement::Ptr Scan2DSensor::createCombinedMeasurement(const VertexObjectList&
 	PM::DataPoints accu = createDataPoints();
 	for(VertexObjectList::const_iterator it = vertices.begin(); it != vertices.end(); it++)
 	{
-		Measurement::Ptr m = mMapper->getMeasurementStorage()->get(it->measurement_uuid);
+		Measurement::Ptr m = mMapper->getMeasurementStorage()->get(it->measurementUuid);
 		Scan2DMeasurement::Ptr scan = boost::dynamic_pointer_cast<Scan2DMeasurement>(m);
 		if(!scan)
 		{
 			mLogger->message(WARNING, "Measurement is not a Scan2D!");
 			throw BadMeasurementType();
 		}
-		accu.concatenate(transformDataPoints(scan->getDataPoints(), it->corrected_pose * scan->getSensorPose()));
+		accu.concatenate(transformDataPoints(scan->getDataPoints(), it->correctedPose * scan->getSensorPose()));
 	}
 
 	// Transform to target frame

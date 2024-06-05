@@ -127,6 +127,13 @@ namespace slam3d
 		 */
 		virtual IdType getLastIndex() const { return mLastIndex; }
 
+		/**
+		 * @brief Get a measurement for a given vertex id. 
+		 * @param id
+		 * @return measurement
+		 */
+		virtual Measurement::Ptr getMeasurement(IdType id);
+
 	protected:
 		SensorList mSensors;
 		PoseSensorList mPoseSensors;

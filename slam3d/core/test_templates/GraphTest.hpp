@@ -31,9 +31,9 @@ void addVertexToGraph(slam3d::Graph* g, slam3d::IdType exp_id, const std::string
 	slam3d::IdType id = g->addVertex(m, tf);
 	BOOST_CHECK_EQUAL(id, exp_id);
 
-	slam3d::VertexObject query_res;
-	BOOST_CHECK_NO_THROW(query_res = g->getVertex(id));
-	BOOST_CHECK_EQUAL(query_res.index, exp_id);
+	slam3d::IdType query_res;
+	BOOST_CHECK_NO_THROW(query_res = g->getVertex(id).index);
+	BOOST_CHECK_EQUAL(query_res, exp_id);
 }
 
 void test_graph_construction(slam3d::Graph* graph)

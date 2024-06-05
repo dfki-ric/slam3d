@@ -54,8 +54,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 		return true;
 	}
 
-	VertexObject vertex = mMapper->getGraph()->getVertex(mLastVertex);
-	Measurement::Ptr source = mMapper->getMeasurementStorage()->get(vertex.measurement_uuid);
+	Measurement::Ptr source = mMapper->getMeasurement(mLastVertex);
 	try
 	{
 		Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
@@ -106,8 +105,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	if(checkMinDistance(mLastTransform))
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
-		VertexObject vertex = mMapper->getGraph()->getVertex(mLastVertex);
-		Measurement::Ptr source = mMapper->getMeasurementStorage()->get(vertex.measurement_uuid);
+		Measurement::Ptr source = mMapper->getMeasurement(mLastVertex);
 		if(mLinkPrevious)
 		{
 			try
@@ -121,7 +119,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 				{
 					mLastTransform = se3->getRelativePose();
 				}
-				Transform last_pose = mMapper->getGraph()->getVertex(mLastVertex).corrected_pose;
+				Transform last_pose = mMapper->getGraph()->getVertex(mLastVertex).correctedPose;
 				mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
 			}catch(std::exception &e)
 			{
@@ -176,7 +174,7 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 
 	mMapper->getGraph()->buildNeighborIndex(mLinkSensors);
 	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
-	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.corrected_pose, mNeighborRadius);
+	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.correctedPose, mNeighborRadius);
 	
 	int count = 0;
 	for(auto i = neighbors.rbegin(); i != neighbors.rend() && count < mMaxNeighorLinks; i++)
@@ -219,8 +217,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 {
 	if(mPatchBuildingRange == 0)
 	{
-		VertexObject vertex = mMapper->getGraph()->getVertex(source);
-		return mMapper->getMeasurementStorage()->get(vertex.measurement_uuid);
+		return mMapper->getMeasurement(source);
 	}
 
 	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);
@@ -232,7 +229,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 		mPatchSolver->clear();
 		for(VertexObjectList::iterator v = v_objects.begin(); v < v_objects.end(); v++)
 		{
-			mPatchSolver->addVertex(v->index, v->corrected_pose);
+			mPatchSolver->addVertex(v->index, v->correctedPose);
 		}
 		
 		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
@@ -259,7 +256,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 			{
 				if(v->index == it->first)
 				{
-					v->corrected_pose = it->second;
+					v->correctedPose = it->second;
 					ok = true;
 					break;
 				}
@@ -270,7 +267,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 			}
 		}
 	}
-	return createCombinedMeasurement(v_objects, mMapper->getGraph()->getVertex(source).corrected_pose);
+	return createCombinedMeasurement(v_objects, mMapper->getGraph()->getVertex(source).correctedPose);
 }
 
 void ScanSensor::setNeighborRadius(float r, unsigned l)
@@ -302,7 +299,7 @@ void ScanSensor::setPatchBuildingRange(unsigned r)
 Transform ScanSensor::getCurrentPose() const
 {
 	if(mLastVertex)
-		return mMapper->getGraph()->getVertex(mLastVertex).corrected_pose * mLastTransform;
+		return mMapper->getGraph()->getVertex(mLastVertex).correctedPose * mLastTransform;
 	else
 		return mMapper->getCurrentPose();
 }

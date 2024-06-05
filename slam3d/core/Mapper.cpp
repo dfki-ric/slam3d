@@ -77,9 +77,14 @@ void Mapper::registerSensor(Sensor* s)
 Transform Mapper::getCurrentPose()
 {
 	if(mLastIndex > 0)
-		return mGraph->getVertex(mLastIndex).corrected_pose;
+		return mGraph->getVertex(mLastIndex).correctedPose;
 	else
 		return mStartPose;
+}
+
+Measurement::Ptr Mapper::getMeasurement(IdType id)
+{
+	return mMeasurements->get(mGraph->getVertex(id).measurementUuid);
 }
 
 IdType Mapper::addMeasurement(Measurement::Ptr m)
@@ -113,7 +118,7 @@ void Mapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, co
 		throw DuplicateMeasurement();
 	}
 	
-	Transform pose = mGraph->getVertex(s).corrected_pose * transform;
+	Transform pose = mGraph->getVertex(s).correctedPose * transform;
 	IdType source = mGraph->getIndex(s);
 	IdType target = mGraph->addVertex(m, pose);
 	mMeasurements->add(m);

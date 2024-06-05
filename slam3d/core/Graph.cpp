@@ -102,12 +102,9 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
-	boost::format v_name("%1%:%2%(%3%)");
-	v_name % m->getRobotName() % m->getSensorName() % id;
-	VertexObject vo(m);
-	vo.index = id;
-	vo.label = v_name.str();
-	vo.corrected_pose = corrected;
+	VertexObject vo;
+	vo.init(m, id);
+	vo.correctedPose = corrected;
 	addVertex(vo);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
@@ -187,7 +184,7 @@ const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 
 const Transform Graph::getTransform(IdType source, IdType target) const
 {
-	return getVertex(source).corrected_pose.inverse() * getVertex(target).corrected_pose;
+	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
 }
 
 void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
@@ -209,7 +206,7 @@ void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 	mNeighborMap.clear();
 	for(VertexObjectList::iterator it = vertices.begin(); it < vertices.end(); ++it)
 	{
-		Transform::TranslationPart t = it->corrected_pose.translation();
+		Transform::TranslationPart t = it->correctedPose.translation();
 		points[row][0] = t[0];
 		points[row][1] = t[1];
 		points[row][2] = t[2];
