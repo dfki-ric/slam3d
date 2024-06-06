@@ -101,7 +101,7 @@ Measurement::Ptr Scan2DSensor::createCombinedMeasurement(const VertexObjectList&
 	PM::DataPoints accu = createDataPoints();
 	for(VertexObjectList::const_iterator it = vertices.begin(); it != vertices.end(); it++)
 	{
-		Measurement::Ptr m = mMapper->getMeasurementStorage()->get(it->measurementUuid);
+		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(it->measurementUuid);
 		Scan2DMeasurement::Ptr scan = boost::dynamic_pointer_cast<Scan2DMeasurement>(m);
 		if(!scan)
 		{

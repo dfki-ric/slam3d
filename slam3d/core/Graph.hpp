@@ -75,6 +75,7 @@ laser->addMeasurement(m);
  */
 
 #include <slam3d/core/Solver.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 #include <flann/flann.hpp>
 #include <map>
@@ -197,7 +198,7 @@ namespace slam3d
 	class Graph
 	{
 	public:
-		Graph(Logger* log);
+		Graph(Logger* log, MeasurementStorage* storage);
 		virtual ~Graph();
 
 		/**
@@ -331,6 +332,20 @@ namespace slam3d
 		const VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
+		 * @brief Get a measurement for a given vertex id. 
+		 * @param id
+		 * @return measurement
+		 */
+		Measurement::Ptr getMeasurement(IdType id);
+
+		/**
+		 * @brief Get a measurement for a given uuid. 
+		 * @param id
+		 * @return measurement
+		 */
+		Measurement::Ptr getMeasurement(boost::uuids::uuid id);
+
+		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
 		 * @param id
 		 */
@@ -445,6 +460,7 @@ namespace slam3d
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
+		MeasurementStorage* mStorage;
 
 		Indexer mIndexer;
 

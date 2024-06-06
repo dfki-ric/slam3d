@@ -29,8 +29,8 @@
 
 using namespace slam3d;
 
-Graph::Graph(Logger* log)
- : mLogger(log), mNeighborIndex(flann::KDTreeSingleIndexParams())
+Graph::Graph(Logger* log, MeasurementStorage* storage)
+ : mLogger(log), mStorage(storage), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	// Initialize some members
 	mSolver = NULL;	
@@ -106,6 +106,7 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	vo.init(m, id);
 	vo.correctedPose = corrected;
 	addVertex(vo);
+	mStorage->add(m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
@@ -185,6 +186,16 @@ const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 const Transform Graph::getTransform(IdType source, IdType target) const
 {
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
+}
+
+Measurement::Ptr Graph::getMeasurement(IdType id)
+{
+	return mStorage->get(getVertex(id).measurementUuid);
+}
+
+Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
+{
+	return mStorage->get(id);
 }
 
 void Graph::buildNeighborIndex(const std::set<std::string>& sensors)

@@ -29,13 +29,12 @@
 
 using namespace slam3d;
 
-Mapper::Mapper(Graph* graph, Logger* log, const Transform& start, std::shared_ptr<MeasurementStorage> measurements)
+Mapper::Mapper(Graph* graph, Logger* log, const Transform& start)
 {
 	mGraph = graph;
 	mLogger = log;
 	mLastIndex = 0;
 	mStartPose = start;
-	mMeasurements = measurements;
 }
 
 Mapper::~Mapper()
@@ -82,17 +81,11 @@ Transform Mapper::getCurrentPose()
 		return mStartPose;
 }
 
-Measurement::Ptr Mapper::getMeasurement(IdType id)
-{
-	return mMeasurements->get(mGraph->getVertex(id).measurementUuid);
-}
-
 IdType Mapper::addMeasurement(Measurement::Ptr m)
 {
 	// Add the vertex to the pose graph
 	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
 	mLastIndex = mGraph->addVertex(m, getCurrentPose());
-	mMeasurements->add(m);
 	
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)
@@ -121,7 +114,6 @@ void Mapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, co
 	Transform pose = mGraph->getVertex(s).correctedPose * transform;
 	IdType source = mGraph->getIndex(s);
 	IdType target = mGraph->addVertex(m, pose);
-	mMeasurements->add(m);
 	SE3Constraint::Ptr se3(new SE3Constraint(sensor, transform, information));
 	mGraph->addConstraint(source, target, se3);
 }

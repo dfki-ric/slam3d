@@ -18,8 +18,8 @@
 
 using namespace slam3d;
 
-BoostGraph::BoostGraph(Logger* log)
- : Graph(log)
+BoostGraph::BoostGraph(Logger* log, MeasurementStorage* storage)
+ : Graph(log, storage)
 {
 	// insert a dummy node as a source of unary edges
 	mIndexMap.insert(IndexMap::value_type(0, 0));
