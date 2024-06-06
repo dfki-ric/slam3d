@@ -54,7 +54,8 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 		return true;
 	}
 
-	Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
+	VertexObject vertex = mMapper->getGraph()->getVertex(mLastVertex);
+	Measurement::Ptr source = mMapper->getMeasurementStorage()->get(vertex.measurement_uuid);
 	try
 	{
 		Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
@@ -105,7 +106,8 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	if(checkMinDistance(mLastTransform))
 	{
 		IdType newVertex = mMapper->addMeasurement(m);
-		Measurement::Ptr source = mMapper->getGraph()->getVertex(mLastVertex).measurement;
+		VertexObject vertex = mMapper->getGraph()->getVertex(mLastVertex);
+		Measurement::Ptr source = mMapper->getMeasurementStorage()->get(vertex.measurement_uuid);
 		if(mLinkPrevious)
 		{
 			try
@@ -217,7 +219,8 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 {
 	if(mPatchBuildingRange == 0)
 	{
-		return mMapper->getGraph()->getVertex(source).measurement;
+		VertexObject vertex = mMapper->getGraph()->getVertex(source);
+		return mMapper->getMeasurementStorage()->get(vertex.measurement_uuid);
 	}
 
 	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);

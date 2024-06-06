@@ -55,7 +55,7 @@ bool BoostGraph::optimize(unsigned iterations)
 void BoostGraph::addVertex(const VertexObject& v)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
-	
+
 	// Add vertex to the graph
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
 	mPoseGraph[newVertex] = v;
@@ -102,7 +102,7 @@ const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sens
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(mPoseGraph[*it].measurement->getSensorName() == sensor)
+		if(mPoseGraph[*it].mSensorName == sensor)
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}
@@ -258,6 +258,16 @@ const VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned
 		vertices.push_back(mPoseGraph[it->first]);
 	}
 	return vertices;
+}
+
+const VertexObjectList BoostGraph::getAllVertices() const
+{
+	VertexObjectList vertice_list;
+	vertice_list.reserve(num_vertices(mPoseGraph));
+	for (auto entry : boost::make_iterator_range(vertices(mPoseGraph))) {
+		vertice_list.push_back(mPoseGraph[entry]);
+	}
+	return vertice_list;
 }
 
 float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) const
