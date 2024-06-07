@@ -381,6 +381,12 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
 
 		/**
+		 * @brief Gets a list of all vertices with a given measurement type.
+		 * @param sensor
+		 */
+		virtual const VertexObjectList getVerticesByType(const std::string& type) const = 0;
+
+		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
 		 * @param range maximum number of steps to search from source

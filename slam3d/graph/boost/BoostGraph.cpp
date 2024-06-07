@@ -110,6 +110,20 @@ const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sens
 	return objectList;
 }
 
+const VertexObjectList BoostGraph::getVerticesByType(const std::string& type) const
+{
+	VertexObjectList objectList;
+	VertexRange vertices = boost::vertices(mPoseGraph);
+	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
+	{
+		if(mPoseGraph[*it].typeName == type)
+		{
+			objectList.push_back(mPoseGraph[*it]);
+		}
+	}
+	return objectList;
+}
+
 const VertexObject BoostGraph::getVertex(IdType id) const
 {
 	return mPoseGraph[mIndexMap.at(id)];
