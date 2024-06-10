@@ -6,13 +6,18 @@ namespace slam3d
 {
 	/**
 	 * @class MeasurementStorage
-	 * @brief 
+	 * @brief Holds measurements to be organized in a slam3d::Graph.
+	 * @details This base implementation simply stores the measurements
+	 * in a map. It is used to separate the data storage from the topological
+	 * organization in the slam3d::Graph. Specializations might derive from
+	 * this class and store data externally, e.g. on disk or inside a database.
 	 */
 	class MeasurementStorage
 	{
 	public:
 
 		virtual ~MeasurementStorage() {}
+
 		/**
 		 * @brief Add the given measurement to the storage
 		 * @param measurement 
@@ -28,7 +33,6 @@ namespace slam3d
 
 		/**
 		 * @brief check if the uuid is available in the database
-		 * 
 		 * @param key 
 		 * @return true 
 		 * @return false 

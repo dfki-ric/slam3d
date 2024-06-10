@@ -7,7 +7,7 @@ if (NOT TARGET Eigen3::Eigen)
 		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
 endif ()
 
-find_package(jsoncpp REQUIRED)
+find_package(jsoncpp)
 find_package(g2o REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework serialization)
 find_package(PCL 1.8.1 REQUIRED COMPONENTS registration sample_consensus io)
@@ -18,8 +18,10 @@ find_package(cpprestsdk)
 
 
 if (NOT jsoncpp_FOUND)
-  pkg_check_modules(jsoncpp REQUIRED IMPORTED_TARGET jsoncpp)
-  add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
+  pkg_check_modules(jsoncpp IMPORTED_TARGET jsoncpp)
+  if (jsoncpp_FOUND)
+    add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
+  endif()
 endif()
 
 pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)

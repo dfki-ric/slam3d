@@ -18,8 +18,8 @@
 
 using namespace slam3d;
 
-BoostGraph::BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements)
- : Graph(log, measurements)
+BoostGraph::BoostGraph(Logger* log, MeasurementStorage* storage)
+ : Graph(log, storage)
 {
 	// insert a dummy node as a source of unary edges
 	mIndexMap.insert(IndexMap::value_type(0, 0));
@@ -104,7 +104,21 @@ const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sens
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(mPoseGraph[*it].mSensorName == sensor)
+		if(mPoseGraph[*it].sensorName == sensor)
+		{
+			objectList.push_back(mPoseGraph[*it]);
+		}
+	}
+	return objectList;
+}
+
+const VertexObjectList BoostGraph::getVerticesByType(const std::string& type) const
+{
+	VertexObjectList objectList;
+	VertexRange vertices = boost::vertices(mPoseGraph);
+	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
+	{
+		if(mPoseGraph[*it].typeName == type)
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}
@@ -299,5 +313,5 @@ float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) con
 
 void BoostGraph::setCorrectedPose(IdType id, const Transform& pose)
 {
-	mPoseGraph[mIndexMap.at(id)].corrected_pose = pose;
+	mPoseGraph[mIndexMap.at(id)].correctedPose = pose;
 }

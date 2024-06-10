@@ -34,6 +34,7 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/split_free.hpp>
+#include <boost/format.hpp>
 
 #include <Eigen/Geometry>
 
@@ -286,23 +287,29 @@ namespace slam3d
 	 */
 	struct VertexObject
 	{
-		VertexObject(const Measurement::Ptr measurement) :
-			mRobotName(measurement->getRobotName()),
-			mSensorName(measurement->getSensorName()),
-			mTypeName(measurement->getTypeName()),
-			mStamp(measurement->getTimestamp()),
-			measurement_uuid(measurement->getUniqueId())
-		{}
-		VertexObject() {}
-		IdType index;
-		std::string label;
-		std::string mRobotName;
-		std::string mSensorName;
-		std::string mTypeName;
-		timeval mStamp;
+		void init(const Measurement::Ptr m, IdType i)
+		{
+			index = i;
+			robotName = m->getRobotName();
+			sensorName = m->getSensorName();
+			typeName = m->getTypeName();
+			timestamp = m->getTimestamp();
+			measurementUuid = m->getUniqueId();
 
-		Transform corrected_pose;
-		boost::uuids::uuid measurement_uuid;
+			boost::format frm("%1%:%2%(%3%)");
+			frm % robotName % sensorName % index;
+			label = frm.str();
+		}
+
+		std::string label;
+		IdType index;
+		std::string robotName;
+		std::string sensorName;
+		std::string typeName;
+		timeval timestamp;
+
+		Transform correctedPose;
+		boost::uuids::uuid measurementUuid;
 	};
 
 	/**

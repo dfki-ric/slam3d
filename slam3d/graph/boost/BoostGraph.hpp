@@ -41,7 +41,7 @@ namespace slam3d
 	class BoostGraph : public Graph
 	{
 	public:
-		BoostGraph(Logger* log, std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>());
+		BoostGraph(Logger* log, MeasurementStorage* storage);
 		~BoostGraph();
 
 		/**
@@ -78,6 +78,12 @@ namespace slam3d
 		 * @param sensor
 		 */
 		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+		
+		/**
+		 * @brief Gets a list of all vertices with a given measurement type.
+		 * @param sensor
+		 */
+		virtual const VertexObjectList getVerticesByType(const std::string& type) const;
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search

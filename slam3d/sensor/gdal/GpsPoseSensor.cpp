@@ -23,7 +23,7 @@ void GpsPoseSensor::handleNewVertex(IdType vertex)
 	}
 
 //	double diff = mClock.diff(mTimestamp);
-	timeval time_meas = mGraph->getMeasurement(vertex)->getTimestamp();
+	timeval time_meas = mGraph->getVertex(vertex).timestamp;
 	timeval time_diff;
 	timersub(&time_meas, &mTimestamp, &time_diff);
 	mLogger->message(INFO, (boost::format("Time-Diff GPS/Scan: %1%.%2%")%time_diff.tv_sec%time_diff.tv_usec).str());

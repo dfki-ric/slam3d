@@ -29,8 +29,8 @@
 
 using namespace slam3d;
 
-Graph::Graph(Logger* log, std::shared_ptr<MeasurementStorage> measurements)
- : mLogger(log), mMeasurements(measurements), mNeighborIndex(flann::KDTreeSingleIndexParams())
+Graph::Graph(Logger* log, MeasurementStorage* storage)
+ : mLogger(log), mStorage(storage), mNeighborIndex(flann::KDTreeSingleIndexParams())
 {
 	// Initialize some members
 	mSolver = NULL;	
@@ -102,13 +102,11 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
-	boost::format v_name("%1%:%2%(%3%)");
-	v_name % m->getRobotName() % m->getSensorName() % id;
-	VertexObject vo(m);
-	vo.index = id;
-	vo.label = v_name.str();
-	vo.corrected_pose = corrected;
-	addVertex(vo, m);
+	VertexObject vo;
+	vo.init(m, id);
+	vo.correctedPose = corrected;
+	addVertex(vo);
+	mStorage->add(m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
@@ -202,7 +200,17 @@ const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 
 const Transform Graph::getTransform(IdType source, IdType target) const
 {
-	return getVertex(source).corrected_pose.inverse() * getVertex(target).corrected_pose;
+	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
+}
+
+Measurement::Ptr Graph::getMeasurement(IdType id)
+{
+	return mStorage->get(getVertex(id).measurementUuid);
+}
+
+Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
+{
+	return mStorage->get(id);
 }
 
 void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
@@ -224,7 +232,7 @@ void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 	mNeighborMap.clear();
 	for(VertexObjectList::iterator it = vertices.begin(); it < vertices.end(); ++it)
 	{
-		Transform::TranslationPart t = it->corrected_pose.translation();
+		Transform::TranslationPart t = it->correctedPose.translation();
 		points[row][0] = t[0];
 		points[row][1] = t[1];
 		points[row][2] = t[2];

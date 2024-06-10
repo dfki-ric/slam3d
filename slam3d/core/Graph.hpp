@@ -174,13 +174,14 @@ namespace slam3d
 	};
 	/**
 	 * @class Graph
-	 * @brief Holds measurements from different sensors in a graph.
+	 * @brief Organizes measurements from different sensors in a graph.
 	 * @details The Graph is the central structure that provides the
 	 * frontend for a graph-based SLAM approach. A registered Sensor
 	 * will provide a specific Measurement type to the internal graph.
 	 * For each added measurement a new vertex is created in the graph
-	 * that holds a pointer to the measurement together with the measurement's
+	 * that holds the measurement's UUID together with meta data and the
 	 * pose in the map coordinate frame. This data is stored in a VertexObject.
+	 * The actual measurement is stored in a slam3d::MeasurementStorage.
 	 * 
 	 * Spatial relations between measurements are represented as edges in the
 	 * graph. A registered Odometry will provide spatial constraints between any
@@ -197,7 +198,7 @@ namespace slam3d
 	class Graph
 	{
 	public:
-		Graph(Logger* log, std::shared_ptr<MeasurementStorage> measurements);
+		Graph(Logger* log, MeasurementStorage* storage);
 		virtual ~Graph();
 
 		/**
@@ -236,6 +237,12 @@ namespace slam3d
 		                           IdType target,
 		                           Constraint::Ptr constraint);
 
+		/**
+		 * @brief Remove a constraint (edge) from a specific sensor between two vertices in the graph.
+		 * @param source
+		 * @param target
+		 * @param sensor
+		 */
 		virtual void removeConstraint(IdType source,
 		                              IdType target,
 		                              const std::string& sensor);
@@ -325,6 +332,20 @@ namespace slam3d
 		const VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
+		 * @brief Get a measurement for a given vertex id. 
+		 * @param id
+		 * @return measurement
+		 */
+		Measurement::Ptr getMeasurement(IdType id);
+
+		/**
+		 * @brief Get a measurement for a given uuid. 
+		 * @param id
+		 * @return measurement
+		 */
+		Measurement::Ptr getMeasurement(boost::uuids::uuid id);
+
+		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
 		 * @param id
 		 */
@@ -382,6 +403,12 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
 
 		/**
+		 * @brief Gets a list of all vertices with a given measurement type.
+		 * @param sensor
+		 */
+		virtual const VertexObjectList getVerticesByType(const std::string& type) const = 0;
+
+		/**
 		 * @brief Serch for nodes by using breadth-first-search
 		 * @param source start search from this node
 		 * @param range maximum number of steps to search from source
@@ -390,9 +417,8 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
-		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
-		 *
-		 * @return const VertexObjectList
+		 * @brief Get all Vertices in the graph.
+		 * @details Can be used to accumulate a global map from different sources, i.e. not all sensor names are known.
 		 */
 		virtual const VertexObjectList getAllVertices() const = 0;
 
@@ -445,7 +471,7 @@ namespace slam3d
 		virtual void addEdge(const EdgeObject& e) = 0;
 
 		/**
-		 * @brief 
+		 * @brief Remove the edge of sensor between source and target from the graph.
 		 * @param source
 		 * @param target
 		 * @param sensor
@@ -462,6 +488,7 @@ namespace slam3d
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
+		MeasurementStorage* mStorage;
 
 		Indexer mIndexer;
 
