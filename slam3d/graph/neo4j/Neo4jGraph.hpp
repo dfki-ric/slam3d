@@ -62,7 +62,7 @@ class Neo4jGraph : public Graph {
          */
         const VertexObject getVertex(IdType id) const;
 
-        virtual void setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement);
+        virtual void setVertex(IdType id, const VertexObject& v);
 
         /**
          * @brief 
@@ -84,6 +84,12 @@ class Neo4jGraph : public Graph {
          * @param sensor
          */
         const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+
+		/**
+		 * @brief Gets a list of all vertices with a given measurement type.
+		 * @param sensor
+		 */
+		virtual const VertexObjectList getVerticesByType(const std::string& type) const;
 
         /**
          * @brief Serch for nodes by using breadth-first-search
@@ -133,7 +139,7 @@ class Neo4jGraph : public Graph {
          * @brief Add the given VertexObject to the internal graph.
          * @param v
          */
-        void addVertex(const VertexObject& v, Measurement::Ptr measurement);
+        void addVertex(const VertexObject& v);
 
         /**
          * @brief Add the given EdgeObject to the internal graph.

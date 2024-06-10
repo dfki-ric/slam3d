@@ -73,7 +73,7 @@ bool Neo4jGraph::optimize(unsigned iterations)
     return Graph::optimize(iterations);
 }
 
-void Neo4jGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
+void Neo4jGraph::addVertex(const VertexObject& v)
 {
     Neo4jQuery vertexQuery(client);
 
@@ -82,17 +82,16 @@ void Neo4jGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
     vertexQuery.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
-    vertexQuery.addParameterToSet("props", "robotName", measurement->getRobotName());
-    vertexQuery.addParameterToSet("props", "sensorName", measurement->getSensorName());
-    vertexQuery.addParameterToSet("props", "typeName", measurement->getTypeName());
-    vertexQuery.addParameterToSet("props", "timestamp_tv_sec", measurement->getTimestamp().tv_sec);
-    vertexQuery.addParameterToSet("props", "timestamp_tv_usec", measurement->getTimestamp().tv_usec);
-
+    vertexQuery.addParameterToSet("props", "robotName", v.robotName);
+    vertexQuery.addParameterToSet("props", "sensorName", v.sensorName);
+    vertexQuery.addParameterToSet("props", "typeName", v.typeName);
+    vertexQuery.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
+    vertexQuery.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
 
     std::string uuid = boost::lexical_cast<std::string>(v.measurementUuid);
-    vertexQuery.addParameterToSet("props", "measurement", uuid);
+    vertexQuery.addParameterToSet("props", "measurementUuid", uuid);
 
-    mStorage->add(measurement);
+    // mStorage->add(measurement);
 
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     vertexQuery.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
@@ -167,7 +166,26 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
-    query.addStatement("MATCH (a:Vertex) WHERE a.mSensorName='"+sensor+"' RETURN a");
+    query.addStatement("MATCH (a:Vertex) WHERE a.sensorName='"+sensor+"' RETURN a");
+
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
+    }
+    web::json::value result = query.getResponse().extract_json().get();
+
+    for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
+        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0]);
+        objectList.push_back(vertex);
+    }
+    return objectList;
+}
+
+const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) const {
+    VertexObjectList objectList;
+
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (a:Vertex) WHERE a.typeName='"+type+"' RETURN a");
 
     if (!query.sendQuery()) {
         logger->message(ERROR, query.getResponse().extract_string().get());
@@ -207,7 +225,7 @@ const VertexObject Neo4jGraph::getVertex(IdType id)  const{
     return vertexobj;
 }
 
-void Neo4jGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement) {
+void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
     // std::lock_guard<std::mutex> lock (queryMutex);
 
     Neo4jQuery vertexQuery(client);
@@ -218,20 +236,14 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr me
     vertexQuery.addParameterToSet("props", "label", v.label);
     vertexQuery.addParameterToSet("props", "index", v.index);
     vertexQuery.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
-    vertexQuery.addParameterToSet("props", "sensor", measurement->getSensorName());
-    vertexQuery.addParameterToSet("props", "robotName", measurement->getRobotName());
-    vertexQuery.addParameterToSet("props", "sensorName", measurement->getSensorName());
-    vertexQuery.addParameterToSet("props", "typeName", measurement->getTypeName());
-    vertexQuery.addParameterToSet("props", "timestamp_tv_sec", measurement->getTimestamp().tv_sec);
-    vertexQuery.addParameterToSet("props", "timestamp_tv_usec", measurement->getTimestamp().tv_usec);
+    vertexQuery.addParameterToSet("props", "sensorName", v.sensorName);
+    vertexQuery.addParameterToSet("props", "robotName", v.robotName);
+    vertexQuery.addParameterToSet("props", "typeName", v.typeName);
+    vertexQuery.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
+    vertexQuery.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
 
     std::string uuid = boost::uuids::to_string(v.measurementUuid);
-    vertexQuery.addParameterToSet("props", "measurement", uuid);
-
-    // replace measurement in reg
-    if (measurement.get() != nullptr) {
-        mStorage->add(measurement);
-    }
+    vertexQuery.addParameterToSet("props", "measurementUuid", uuid);
 
     if (!vertexQuery.sendQuery()) {
         logger->message(ERROR, vertexQuery.getResponse().extract_string().get());
