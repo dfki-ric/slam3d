@@ -27,7 +27,6 @@ namespace slam3d {
      */
 class Neo4jGraph : public Graph {
     public:
-
         struct Server {
             Server(const std::string& host, const int &port, const std::string& user, const std::string& passwd) : host(host), port(port), user(user), passwd(passwd) {}
             const std::string& host;
@@ -36,8 +35,8 @@ class Neo4jGraph : public Graph {
             const std::string& passwd;
         };
 
-        Neo4jGraph(Logger* log, 
-                    std::shared_ptr<MeasurementStorage> measurements = std::make_shared<MeasurementStorage>(),
+        Neo4jGraph(Logger* log,
+                    MeasurementStorage* storage,
                     const Server &graphserver = Neo4jGraph::Server("127.0.0.1", 7474, "neo4j", "neo4j")
                     );
         ~Neo4jGraph();
@@ -127,7 +126,7 @@ class Neo4jGraph : public Graph {
         void writeGraphToFile(const std::string &name);
 
 
-		void setCorrectedPose(IdType id, const Transform& pose);
+        void setCorrectedPose(IdType id, const Transform& pose);
 
     protected:
         /**
@@ -142,7 +141,7 @@ class Neo4jGraph : public Graph {
          */
         // version to overload graph interface
         virtual void addEdge(const EdgeObject& e);
-        //internal version
+        // internal version
         virtual void addEdge(const EdgeObject& e, bool addInverse);
 
         /**

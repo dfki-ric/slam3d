@@ -42,15 +42,14 @@ slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& jso
     slam3d::VertexObject returnval;
     returnval.index = json["index"].as_integer();
     returnval.label = json["label"].as_string();
-    returnval.mRobotName = json["mRobotName"].as_string();
-    returnval.mSensorName = json["mSensorName"].as_string();
-    returnval.mTypeName = json["mTypeName"].as_string();
-    returnval.mStamp.tv_sec = json["timestamp_tv_sec"].as_integer();
-    returnval.mStamp.tv_usec = json["timestamp_tv_usec"].as_integer();
-    returnval.mTypeName = json["mTypeName"].as_string();
+    returnval.robotName = json["robotName"].as_string();
+    returnval.sensorName = json["sensorName"].as_string();
+    returnval.typeName = json["typeName"].as_string();
+    returnval.timestamp.tv_sec = json["timestamp_tv_sec"].as_integer();
+    returnval.timestamp.tv_usec = json["timestamp_tv_usec"].as_integer();
 
-    returnval.corrected_pose = Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(json["corrected_pose"].as_string()));
-    returnval.measurement_uuid = boost::lexical_cast<boost::uuids::uuid>(json["measurement"].as_string());
+    returnval.correctedPose = Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(json["correctedPose"].as_string()));
+    returnval.measurementUuid = boost::lexical_cast<boost::uuids::uuid>(json["measurementUuid"].as_string());
     return returnval;
 }
 

@@ -99,6 +99,7 @@ namespace slam3d
 		 */
 		const VertexObjectList getAllVertices() const;
 
+
 		/**
 		 * @brief Gets a list of all edges from given sensor.
 		 * @param sensor
@@ -142,14 +143,14 @@ namespace slam3d
 		 * @brief Add the given VertexObject to the internal graph.
 		 * @param v
 		 */
-		void addVertex(const VertexObject& v, Measurement::Ptr measurement);
+		void addVertex(const VertexObject& v);
 		
 		/**
 		 * @brief Set the given VertexObject to the internal graph.
 		 * @param id
 		 * @param v
 		 */
-		void setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement);
+		void setVertex(IdType id, const VertexObject& v);
 		
 		/**
 		 * @brief Add the given EdgeObject to the internal graph.

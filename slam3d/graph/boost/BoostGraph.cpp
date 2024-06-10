@@ -52,23 +52,21 @@ bool BoostGraph::optimize(unsigned iterations)
 	return Graph::optimize(iterations);
 }
 
-void BoostGraph::addVertex(const VertexObject& v, Measurement::Ptr measurement)
+void BoostGraph::addVertex(const VertexObject& v)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 
 	// Add vertex to the graph
 	Vertex newVertex = boost::add_vertex(mPoseGraph);
 	mPoseGraph[newVertex] = v;
-	mMeasurements->add(measurement);
 
 	// Add it to the vertex index, so we can find it by its descriptor
 	mIndexMap.insert(IndexMap::value_type(v.index, newVertex));
 }
 
-void BoostGraph::setVertex(IdType id, const VertexObject& v, Measurement::Ptr measurement)
+void BoostGraph::setVertex(IdType id, const VertexObject& v)
 {
 	mPoseGraph[mIndexMap.at(id)] = v;
-	mMeasurements->add(measurement);
 }
 
 void BoostGraph::addEdge(const EdgeObject& e)
