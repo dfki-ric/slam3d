@@ -399,7 +399,7 @@ void Neo4jGraph::setCorrectedPose(IdType id, const Transform& pose)
                             + ", y: " + std::to_string(pose.translation().y())
                             + ", z: " + std::to_string(pose.translation().z())
                             + "}) ,"
-                            + " n.corrected_pose = \"" + Neo4jConversion::eigenMatrixToString(pose.matrix()) + "\"");
+                            + " n.correctedPose = \"" + Neo4jConversion::eigenMatrixToString(pose.matrix()) + "\"");
 
     if (!query.sendQuery()) {
         logger->message(ERROR, query.getResponse().extract_string().get());
