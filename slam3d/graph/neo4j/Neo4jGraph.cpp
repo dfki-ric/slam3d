@@ -200,8 +200,8 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     return objectList;
 }
 
-const VertexObject Neo4jGraph::getVertex(IdType id)  const{
-    std::lock_guard<std::mutex> lock (queryMutex);
+const VertexObject Neo4jGraph::getVertex(IdType id)  const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     VertexObject vertexobj;
 
     //query and fill
@@ -209,6 +209,32 @@ const VertexObject Neo4jGraph::getVertex(IdType id)  const{
     Neo4jQuery query(client);
     // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
     query.addStatement("MATCH (n:Vertex) WHERE n.index = "+std::to_string(id)+" RETURN n AS node");
+    if (!query.sendQuery()) {
+        std::string msg = query.getResponse().extract_string().get();
+        logger->message(ERROR, msg);
+        std::cout << msg << std::endl;
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    }
+    web::json::value reply = query.getResponse().extract_json().get();
+
+    // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+    // std::cout << reply["results"][0]["data"][0]["row"][0].serialize() << std::endl;
+
+    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
+
+    return vertexobj;
+}
+
+const VertexObject Neo4jGraph::getVertex(boost::uuids::uuid id) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
+    VertexObject vertexobj;
+
+    //query and fill
+    //MATCH (n:Vertex) WHERE n.index = "2" RETURN n AS node
+    Neo4jQuery query(client);
+    // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
+    std::string uuid = boost::lexical_cast<std::string>(id);
+    query.addStatement("MATCH (n:Vertex) WHERE n.measurementUuid = "+uuid+" RETURN n AS node");
     if (!query.sendQuery()) {
         std::string msg = query.getResponse().extract_string().get();
         logger->message(ERROR, msg);

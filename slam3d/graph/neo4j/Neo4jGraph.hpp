@@ -62,6 +62,8 @@ class Neo4jGraph : public Graph {
          */
         const VertexObject getVertex(IdType id) const;
 
+        const VertexObject getVertex(boost::uuids::uuid id) const;
+
         virtual void setVertex(IdType id, const VertexObject& v);
 
         /**
