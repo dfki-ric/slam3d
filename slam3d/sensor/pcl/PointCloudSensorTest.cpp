@@ -92,6 +92,5 @@ BOOST_AUTO_TEST_CASE(map_building)
 	VertexObjectList vertices = graph.getVerticesFromSensor(sensor.getName());
 	BOOST_CHECK_EQUAL(vertices.size(), 1);
 	PointCloud::Ptr map;
-//	BOOST_CHECK_NO_THROW(map = sensor.buildMap(vertices));
-	map = sensor.buildMap(vertices);
+	BOOST_CHECK_NO_THROW(map = sensor.buildMap(vertices));
 }
