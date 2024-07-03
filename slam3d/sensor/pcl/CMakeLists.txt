@@ -58,7 +58,14 @@ target_link_libraries(pcl_sensor_test
 	Boost::unit_test_framework
 	Boost::system
 	${PCL_IO_LIBRARIES}
-	sensor-pcl)
+	sensor-pcl
+	graph-boost
+)
 
-target_compile_definitions(pcl_sensor_test PRIVATE -DBOOST_TEST_DYN_LINK)
+target_compile_definitions(pcl_sensor_test
+	PRIVATE
+		BOOST_TEST_DYN_LINK
+		TEST_FILE_PATH="${PROJECT_SOURCE_DIR}/test"
+)
+
 add_test(pcl_sensor pcl_sensor_test)

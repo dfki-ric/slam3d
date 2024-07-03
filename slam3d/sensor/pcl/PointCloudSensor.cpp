@@ -271,13 +271,19 @@ PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) con
 {
 	Clock c;
 	timeval start = c.now();
-	PointCloud::Ptr accu = getAccumulatedCloud(vertices);
-	PointCloud::Ptr cleaned = removeOutliers(accu, mMapOutlierRadius, mMapOutlierNeighbors);
-	PointCloud::Ptr downsampled = downsample(cleaned, mMapResolution);
+	PointCloud::Ptr map = getAccumulatedCloud(vertices);
+	try
+	{
+		map = removeOutliers(map, mMapOutlierRadius, mMapOutlierNeighbors);
+		map = downsample(map, mMapResolution);
+	}catch(std::exception &e)
+	{
+		mLogger->message(ERROR, e.what());
+	}
 	timeval finish = c.now();
 	int duration = finish.tv_sec - start.tv_sec;
 	mLogger->message(INFO, (boost::format("Generated Pointcloud from %1% scans in %2% seconds.") % vertices.size() % duration).str());
-	return downsampled;
+	return map;
 }
 
 void PointCloudSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
