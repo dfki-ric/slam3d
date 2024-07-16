@@ -148,6 +148,12 @@ namespace slam3d
 		void setRegistrationParameters(const RegistrationParameters& param, bool coarse);
 		
 		/**
+		 * @brief Set density of points in input scans.
+		 * @param r
+		 */
+		void setScanResolution(double r);
+		
+		/**
 		 * @brief Set density of points in accumulated map cloud.
 		 * @param r
 		 */
@@ -167,6 +173,15 @@ namespace slam3d
 		 * @param resolution 
 		 */
 		static PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution);
+		
+		/**
+		 * @brief Reduces the size of the source cloud by sampling with internal scan resolution.
+		 * @details This method might seem unneccessary and only exists so that ScanResolution
+		 * can be an internal parameter of PointCloudSensor. It should be called before a scan is 
+		 * given to addMeasurement().
+		 * @param source
+		 */
+		PointCloud::Ptr downsampleScan(PointCloud::ConstPtr source);
 		
 		/**
 		 * @brief Transform source cloud by given transformation.
@@ -215,6 +230,7 @@ namespace slam3d
 		RegistrationParameters mFineConfiguration;
 		RegistrationParameters mCoarseConfiguration;
 		
+		double   mScanResolution;
 		double   mMapResolution;
 		double   mMapOutlierRadius;
 		unsigned mMapOutlierNeighbors;

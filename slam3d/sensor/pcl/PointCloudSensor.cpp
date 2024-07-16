@@ -161,6 +161,7 @@ Transform align(PointCloudMeasurement::Ptr source,
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
+	mScanResolution = 0.1;
 	mMapResolution = 0.1;
 	mMapOutlierRadius = 0.2;
 	mMapOutlierNeighbors = 3;
@@ -182,6 +183,11 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 		grid.filter(*out);
 	}
 	return out;
+}
+
+PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::ConstPtr source)
+{
+	return downsample(source, mScanResolution);
 }
 
 PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius, unsigned min_neighbors) const
@@ -306,6 +312,12 @@ void PointCloudSensor::setRegistrationParameters(const RegistrationParameters& c
 	mLogger->message(INFO, (boost::format("point_cloud_density:          %1%") % conf.point_cloud_density).str());
 	mLogger->message(INFO, (boost::format("rotation_epsilon:             %1%") % conf.rotation_epsilon).str());
 	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
+}
+
+void PointCloudSensor::setScanResolution(double r)
+{
+	mLogger->message(INFO, (boost::format("scan_resolution:        %1%") % r).str());
+	mScanResolution = r;
 }
 
 void PointCloudSensor::setMapResolution(double r)
