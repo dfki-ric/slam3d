@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 // dont define the U macro in the http client, it conflicts with the eigen U macro use _XPLATSTR() instead
 #define _TURN_OFF_PLATFORM_STRING
@@ -23,6 +24,15 @@ class Neo4jQuery {
 
     template <class VALUE> void addParameterToSet(const std::string& setname, const std::string& paramname, const VALUE& value, const size_t &statement_index = 0) {
         query["statements"][statement_index]["parameters"][setname][paramname] = web::json::value(value);
+    }
+
+    template <class VALUE> void addListToSet(const std::string& setname, const std::string& paramname, const std::vector<VALUE>& values, const size_t &statement_index = 0) {
+        std::vector<web::json::value> elements;
+        elements.reserve(values.size());
+        for (const auto & value : values) {
+            elements.push_back(web::json::value(value));
+        }
+        query["statements"][statement_index]["parameters"][setname][paramname] = web::json::value::array(elements);
     }
 
     web::json::value* getParameterSet(const std::string& setname, size_t statement_index = 0);
