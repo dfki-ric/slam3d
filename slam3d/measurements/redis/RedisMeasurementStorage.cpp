@@ -29,6 +29,7 @@ namespace slam3d {
 
     void RedisMeasurementStorage::store(const std::string& key, const std::string &type, const std::string& serializedData) {
         // printf("HSET %s type %s, data %s\n", key.c_str(), type.c_str(), "data");
+        std::lock_guard<std::mutex> lock(queryMutex);
         void* reply = redisCommand(context.get(), "HSET %s type %s data %s", key.c_str(), type.c_str(), serializedData.c_str());
         if (!reply) {
             printf("coud not store measurement: %s\n", context->errstr);
@@ -41,6 +42,7 @@ namespace slam3d {
     }
 
     Measurement::Ptr RedisMeasurementStorage::get(const std::string& key) {
+        std::lock_guard<std::mutex> lock(queryMutex);
         void* reply = redisCommand(context.get(), "HMGET %s type data", key.c_str());
         if (!reply) {
             printf("coud not load measurement: %s\n", context->errstr);
@@ -49,16 +51,17 @@ namespace slam3d {
             throw std::out_of_range("not found in database");
         }
         redisReply* redisrep = (redisReply*)reply;
-        // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
-
-        // printf("got %s\n", redisrep->element[0]->str);
 
         Measurement::Ptr measurement;
-
-        if (redisrep->element[0]->len > 0) {
-            std::stringstream data(redisrep->element[1]->str);
-            boost::archive::text_iarchive ia(data);
-            ia >> measurement;
+        if (redisrep->elements > 0) {
+            // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
+            if (redisrep->element[0]->len > 0) {
+                std::stringstream data(redisrep->element[1]->str);
+                boost::archive::text_iarchive ia(data);
+                ia >> measurement;
+            }
+        } else {
+            printf("%s:%i got empty measurement reply\n",__PRETTY_FUNCTION__,__LINE__);
         }
 
         //todo: create from 
@@ -72,7 +75,8 @@ namespace slam3d {
         return get(to_string(key));
     }
 
-    bool RedisMeasurementStorage::contains(const boost::uuids::uuid& key) {
+bool RedisMeasurementStorage::contains(const boost::uuids::uuid& key) {
+        std::lock_guard<std::mutex> lock(queryMutex);
         void* reply = redisCommand(context.get(), "EXISTS %s", to_string(key).c_str());
         if (!reply) {
             printf("coud not receive result form database: %s\n", context->errstr);
@@ -86,6 +90,7 @@ namespace slam3d {
     }
 
     void RedisMeasurementStorage::deleteDatabase() {
+        std::lock_guard<std::mutex> lock(queryMutex);
         redisCommand(context.get(), "flushdb");
     }
 

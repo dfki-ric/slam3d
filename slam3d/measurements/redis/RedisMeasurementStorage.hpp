@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <mutex>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
@@ -34,6 +35,8 @@ class RedisMeasurementStorage: public MeasurementStorage {
     void store(const std::string& key, const std::string &type, const std::string& serializedData);
 
     std::shared_ptr<redisContext> context;
+
+    mutable std::mutex queryMutex;
 
 };
 
