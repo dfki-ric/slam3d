@@ -124,8 +124,8 @@ Transform align(PointCloudMeasurement::Ptr source,
 	PointCloud::Ptr filtered_target = target->getPointCloud();
 	if(config.point_cloud_density > 0)
 	{
-		PointCloud::Ptr filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density);
-		PointCloud::Ptr filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density);
+		filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density);
+		filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density);
 	}
 	
 	// Make sure that there are enough points left (ICP will crash if not)
