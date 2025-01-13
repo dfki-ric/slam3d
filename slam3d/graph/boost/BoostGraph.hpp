@@ -93,6 +93,16 @@ namespace slam3d
 		const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
 		/**
+		 * @brief Serch for nodes by location and radius
+		 * @param location x,y,z location of the center
+		 * @param radius the radius of the return
+		 * @throw InvalidVertex
+		 */
+        virtual const VertexObjectList getVerticesInRadius(const slam3d::Transform &location, const float &radius) const {
+			throw std::logic_error(std::string(__PRETTY_FUNCTION__) + " not implemented for boost graph");
+		};
+
+		/**
 		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
 		 *
 		 * @return const VertexObjectList

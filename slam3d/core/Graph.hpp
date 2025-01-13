@@ -395,6 +395,16 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
+		 * @brief Serch for nodes by location and radius
+		 * @param location x,y,z location of the center
+		 * @param radius the radius of the return
+		 * @throw InvalidVertex
+		 */
+		virtual const VertexObjectList getVerticesInRadius(const slam3d::Transform &location, const float &radius) const = 0;
+
+
+
+		/**
 		 * @brief Get all Vertices in the graph.
 		 * @details Can be used to accumulate a global map from different sources, i.e. not all sensor names are known.
 		 */

@@ -98,7 +98,15 @@ class Neo4jGraph : public Graph {
          * @param source start search from this node
          * @param range maximum number of steps to search from source
          */
-        const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
+        virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
+
+		/**
+		 * @brief Serch for nodes by location and radius
+		 * @param location x,y,z location of the center
+		 * @param radius the radius of the return
+		 * @throw InvalidVertex
+		 */
+        virtual const VertexObjectList getVerticesInRadius(const slam3d::Transform &location, const float &radius) const;
 
         /**
          * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)

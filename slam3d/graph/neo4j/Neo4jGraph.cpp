@@ -200,6 +200,27 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     return objectList;
 }
 
+const VertexObjectList Neo4jGraph::getVerticesInRadius(const slam3d::Transform &location, const float &radius) const {
+    VertexObjectList objectList;
+
+    Neo4jQuery query(client);
+    //match (n) where point.distance(point({x:-20, y:10, z:0}), n.location) < 15 return n
+    query.addStatement("MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" RETURN a");
+
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
+    }
+    web::json::value result = query.getResponse().extract_json().get();
+
+    for (auto& jsonEdge : result["results"][0]["data"].as_array()) {
+        slam3d::VertexObject vertex = Neo4jConversion::vertexObjectFromJson(jsonEdge["row"][0]);
+        objectList.push_back(vertex);
+    }
+    return objectList;
+}
+
+
 const VertexObject Neo4jGraph::getVertex(IdType id)  const {
     std::lock_guard<std::mutex> lock(queryMutex);
     VertexObject vertexobj;
