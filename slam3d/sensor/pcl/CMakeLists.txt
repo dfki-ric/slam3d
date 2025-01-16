@@ -41,6 +41,10 @@ install(TARGETS sensor-pcl EXPORT slam3d-targets
 )
 
 # Install pkg-config file
+# Before version 1.14 pkg-config files of PCL had a version suffix.
+IF("${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}" VERSION_LESS 1.14)
+    SET(PCL_VERSION_SUFFIX "-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}")
+ENDIF()
 configure_file(slam3d_sensor_pcl.pc.in slam3d_sensor_pcl.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/sensor/pcl/slam3d_sensor_pcl.pc
