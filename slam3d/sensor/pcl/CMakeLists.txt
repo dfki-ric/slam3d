@@ -42,6 +42,10 @@ install(TARGETS sensor-pcl EXPORT slam3d-targets
 )
 
 # Install pkg-config file
+# Before version 1.14 pkg-config files of PCL had a version suffix.
+IF("${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}" VERSION_LESS 1.14)
+    SET(PCL_VERSION_SUFFIX "-${PCL_VERSION_MAJOR}.${PCL_VERSION_MINOR}")
+ENDIF()
 configure_file(slam3d_sensor_pcl.pc.in slam3d_sensor_pcl.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/sensor/pcl/slam3d_sensor_pcl.pc
@@ -59,7 +63,14 @@ target_link_libraries(pcl_sensor_test
 	Boost::unit_test_framework
 	Boost::system
 	${PCL_IO_LIBRARIES}
-	sensor-pcl)
+	sensor-pcl
+	graph-boost
+)
 
-target_compile_definitions(pcl_sensor_test PRIVATE -DBOOST_TEST_DYN_LINK)
+target_compile_definitions(pcl_sensor_test
+	PRIVATE
+		BOOST_TEST_DYN_LINK
+		TEST_FILE_PATH="${PROJECT_SOURCE_DIR}/test"
+)
+
 add_test(pcl_sensor pcl_sensor_test)

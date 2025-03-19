@@ -124,8 +124,8 @@ Transform align(PointCloudMeasurement::Ptr source,
 	PointCloud::Ptr filtered_target = target->getPointCloud();
 	if(config.point_cloud_density > 0)
 	{
-		PointCloud::Ptr filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density);
-		PointCloud::Ptr filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density);
+		filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density);
+		filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density);
 	}
 	
 	// Make sure that there are enough points left (ICP will crash if not)
@@ -161,6 +161,7 @@ Transform align(PointCloudMeasurement::Ptr source,
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
+	mScanResolution = 0.1;
 	mMapResolution = 0.1;
 	mMapOutlierRadius = 0.2;
 	mMapOutlierNeighbors = 3;
@@ -182,6 +183,11 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 		grid.filter(*out);
 	}
 	return out;
+}
+
+PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::ConstPtr source)
+{
+	return downsample(source, mScanResolution);
 }
 
 PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius, unsigned min_neighbors) const
@@ -271,13 +277,19 @@ PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) con
 {
 	Clock c;
 	timeval start = c.now();
-	PointCloud::Ptr accu = getAccumulatedCloud(vertices);
-	PointCloud::Ptr cleaned = removeOutliers(accu, mMapOutlierRadius, mMapOutlierNeighbors);
-	PointCloud::Ptr downsampled = downsample(cleaned, mMapResolution);
+	PointCloud::Ptr map = getAccumulatedCloud(vertices);
+	try
+	{
+		map = removeOutliers(map, mMapOutlierRadius, mMapOutlierNeighbors);
+		map = downsample(map, mMapResolution);
+	}catch(std::exception &e)
+	{
+		mLogger->message(ERROR, e.what());
+	}
 	timeval finish = c.now();
 	int duration = finish.tv_sec - start.tv_sec;
 	mLogger->message(INFO, (boost::format("Generated Pointcloud from %1% scans in %2% seconds.") % vertices.size() % duration).str());
-	return downsampled;
+	return map;
 }
 
 void PointCloudSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
@@ -300,6 +312,12 @@ void PointCloudSensor::setRegistrationParameters(const RegistrationParameters& c
 	mLogger->message(INFO, (boost::format("point_cloud_density:          %1%") % conf.point_cloud_density).str());
 	mLogger->message(INFO, (boost::format("rotation_epsilon:             %1%") % conf.rotation_epsilon).str());
 	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
+}
+
+void PointCloudSensor::setScanResolution(double r)
+{
+	mLogger->message(INFO, (boost::format("scan_resolution:        %1%") % r).str());
+	mScanResolution = r;
 }
 
 void PointCloudSensor::setMapResolution(double r)
