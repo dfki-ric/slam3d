@@ -321,16 +321,26 @@ const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::st
 
 const EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
 {
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-    //OutEdgeIterator it, it_end;
-    // boost::tie(it, it_end) = boost::out_edges(mIndexMap.at(source), mPoseGraph);
-    EdgeObjectList edges;
-    // while(it != it_end)
-    // {
-    // 	edges.push_back(mPoseGraph[*it]);
-    // 	++it;
-    // }
-    return edges;
+    EdgeObjectList edgeObjectList;
+    //match (n)-[r]->() where n.index=1 return r
+    Neo4jQuery query(client);
+    query.addStatement("MATCH (a:Vertex)-[r]->() WHERE a.index="+std::to_string(source)+" RETURN r");
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    }
+
+    web::json::value reply = query.getResponse().extract_json().get();
+    web::json::array& results = reply["results"][0]["data"].as_array();
+    edgeObjectList.reserve(results.size());   
+    
+    for (auto& edge : results) {
+        EdgeObject edgeobj;
+        edgeobj = Neo4jConversion::edgeObjectFromJson(edge["row"][0]);
+        edgeObjectList.push_back(edgeobj);
+    }
+
+    return edgeObjectList;
 }
 
 const EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
