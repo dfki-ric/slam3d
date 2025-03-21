@@ -307,7 +307,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		const VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+		virtual const VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -393,16 +393,6 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
-
-		/**
-		 * @brief Serch for nodes by location and radius
-		 * @param location x,y,z location of the center
-		 * @param radius the radius of the return
-		 * @throw InvalidVertex
-		 */
-		virtual const VertexObjectList getVerticesInRadius(const slam3d::Transform &location, const float &radius) const = 0;
-
-
 
 		/**
 		 * @brief Get all Vertices in the graph.

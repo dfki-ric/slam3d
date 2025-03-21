@@ -200,7 +200,7 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     return objectList;
 }
 
-const VertexObjectList Neo4jGraph::getVerticesInRadius(const slam3d::Transform &location, const float &radius) const {
+const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius) const {
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
