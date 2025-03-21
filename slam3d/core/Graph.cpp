@@ -46,6 +46,28 @@ Graph::~Graph()
 void Graph::setSolver(Solver* solver)
 {
 	mSolver = solver;
+
+	mFixNext = true;
+	// re-add edges and vertices
+	VertexObjectList vertices = getAllVertices();
+	for (const auto& vertex : vertices){
+		mSolver->addVertex(vertex.index, vertex.correctedPose);
+		if(mFixNext)
+		{
+			mLogger->message(INFO, (boost::format("Fixed position of vertex %1% in backend.") % vertex.index).str());
+			mSolver->setFixed(vertex.index);
+			mFixNext = false;
+		}
+	}
+
+	for (const auto& vertex : vertices) {
+		for (const auto& e : getOutEdges(vertex.index)) {
+			if (e.constraint->getType() != TENTATIVE) {
+				addToSolver(e);
+			}
+		}
+	}
+
 }
 
 void Graph::writeGraphToFile(const std::string &name)
