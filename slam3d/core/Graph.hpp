@@ -210,6 +210,14 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
+		 * @brief loads edges into solver
+		 * @details this is needed whenever the solver is changed while the graph exists
+		 * 
+		 * @param fixfirst it the first vertes should be threated as fixed
+		 */
+		void reloadEdgesToSolver(bool fixfirst = true);
+
+		/**
 		 * @brief Add a given measurement at the given pose
 		 * @details This method creates the VertexObject, adds the new vertex to
 		 * the solver, adds it to the index and then calls the method below to

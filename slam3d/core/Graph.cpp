@@ -46,9 +46,12 @@ Graph::~Graph()
 void Graph::setSolver(Solver* solver)
 {
 	mSolver = solver;
+}
 
-	mFixNext = true;
+void Graph::reloadEdgesToSolver(bool fixfirst) {
 	// re-add edges and vertices
+	mSolver->clear();
+	mFixNext = fixfirst;
 	VertexObjectList vertices = getAllVertices();
 	for (const auto& vertex : vertices){
 		mSolver->addVertex(vertex.index, vertex.correctedPose);
@@ -67,7 +70,6 @@ void Graph::setSolver(Solver* solver)
 			}
 		}
 	}
-
 }
 
 void Graph::writeGraphToFile(const std::string &name)
