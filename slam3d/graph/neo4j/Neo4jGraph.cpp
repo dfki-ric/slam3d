@@ -372,34 +372,28 @@ void Neo4jGraph::writeGraphToFile(const std::string& name)
 
 const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
-    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-
-    // TODO:
-
+    std::lock_guard<std::mutex> lock(queryMutex);
+    VertexObjectList vertexobjlist;
+    
     Neo4jQuery query(client);
-
-    query.addStatement("match (v1:Vertex), (v2:Vertex) where v1.index="+std::to_string(source_id)+" AND point.distance(v1.location, v2.location) <= "+std::to_string(range)+" return v2");
+    query.addStatement("match (v1:Vertex)--{1,"+std::to_string(range)+"}(v2:Vertex) where v1.index="+std::to_string(source_id)+" return v2 as node");
 
     if (!query.sendQuery()) {
-        logger->message(ERROR, query.getResponse().extract_string().get());
+        std::string msg = query.getResponse().extract_string().get();
+        logger->message(ERROR, msg);
+        std::cout << msg << std::endl;
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
     }
 
-    web::json::value result = query.getResponse().extract_json().get();
-    try {
-        web::json::array &nodes = result["results"][0]["data"][0]["row"][0].as_array();
-    } catch (const web::json::json_exception &e) {
-        std::cout << "error on getVerticesInRange : " << source_id << " -- " << e.what() << std::endl;
-        std::cout << result << std::endl;
+    web::json::value reply = query.getResponse().extract_json().get();
+    web::json::array& results = reply["results"][0]["data"].as_array();
+    vertexobjlist.reserve(results.size());
+    for (auto& vertex : results) {
+        VertexObject vertexobj;
+        vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0]);
+        vertexobjlist.push_back(vertexobj);
     }
-
-    // Write the result
-    VertexObjectList vertices;
-    // for(DepthMap::iterator it = depth_map.begin(); it != depth_map.end(); ++it)
-    // {
-    // 	vertices.push_back(mPoseGraph[it->first]);
-    // }
-    return vertices;
+    return vertexobjlist;
 }
 
 const VertexObjectList Neo4jGraph::getAllVertices() const {
