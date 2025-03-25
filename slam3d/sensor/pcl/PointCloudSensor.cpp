@@ -277,15 +277,19 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	return Constraint::Ptr(new SE3Constraint(mName, transform, covariance.inverse()));
 }
 
-PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) const
+PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices, bool doRemoveOutliers, bool doDownsample) const
 {
 	Clock c;
 	timeval start = c.now();
 	PointCloud::Ptr map = getAccumulatedCloud(vertices);
 	try
 	{
-		map = removeOutliers(map, mMapOutlierRadius, mMapOutlierNeighbors);
-		map = downsample(map, mMapResolution);
+		if (doRemoveOutliers) {
+			map = removeOutliers(map, mMapOutlierRadius, mMapOutlierNeighbors);
+		}
+		if (doDownsample) {
+			map = downsample(map, mMapResolution);
+		}
 	}catch(std::exception &e)
 	{
 		mLogger->message(ERROR, e.what());
