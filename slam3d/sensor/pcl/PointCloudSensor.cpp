@@ -114,7 +114,7 @@ Transform doNDT(PointCloud::Ptr source,
 	return Transform(tf_matrix);
 }
 
-Transform align(PointCloudMeasurement::Ptr source,
+Transform PointCloudSensor::align(PointCloudMeasurement::Ptr source,
                 PointCloudMeasurement::Ptr target,
                 const Transform& guess,
                 const RegistrationParameters& config)
