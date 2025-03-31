@@ -38,6 +38,7 @@ Neo4jGraph::~Neo4jGraph()
 
 bool Neo4jGraph::deleteDatabase()
 {
+    std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery vertexQuery(client);
     vertexQuery.addStatement("match (n) detach delete n");
 
@@ -50,6 +51,7 @@ bool Neo4jGraph::deleteDatabase()
 
 const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)  const
 {
+    std::lock_guard<std::mutex> lock(queryMutex);
     EdgeObjectList objectList;
 
     Neo4jQuery query(client);
@@ -183,6 +185,7 @@ const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sens
 }
 
 const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
@@ -202,6 +205,7 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
 }
 
 const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius, const std::string& sensortype) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
@@ -282,7 +286,7 @@ const VertexObject Neo4jGraph::getVertex(boost::uuids::uuid id) const {
 }
 
 void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
-    // std::lock_guard<std::mutex> lock (queryMutex);
+    std::lock_guard<std::mutex> lock (queryMutex);
 
     Neo4jQuery vertexQuery(client);
 
@@ -308,6 +312,7 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
 }
 
 const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::string& sensor) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery query(client);
     // MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index=1 AND b.index=2 AND r.sensor="S1" RETURN r
     query.addStatement("MATCH (a:Vertex)-[r]->(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor='"+sensor+"' RETURN r");
@@ -328,8 +333,8 @@ const EdgeObject Neo4jGraph::getEdge(IdType source, IdType target, const std::st
     return returnval;
 }
 
-const EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
-{
+const EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     EdgeObjectList edgeObjectList;
     //match (n)-[r]->() where n.index=1 return r
     Neo4jQuery query(client);
@@ -352,8 +357,8 @@ const EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const
     return edgeObjectList;
 }
 
-const EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const
-{
+const EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     EdgeObjectList edgeObjectList;
     //match ()-[r]->() return r
     Neo4jQuery query(client);
@@ -433,6 +438,7 @@ const VertexObjectList Neo4jGraph::getAllVertices() const {
 }
 
 float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) const {
+    std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery query(client);
     // MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]-(b)) WHERE a.index = 1 AND b.index = 28 return p
     query.addStatement("MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN RELATIONSHIPS(p)");
@@ -456,6 +462,7 @@ float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) con
 
 void Neo4jGraph::setCorrectedPose(IdType id, const Transform& pose)
 {
+    std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery query(client);
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     query.addStatement("MATCH (n:Vertex) WHERE n.index="+std::to_string(id)+" SET n.location = point({"
