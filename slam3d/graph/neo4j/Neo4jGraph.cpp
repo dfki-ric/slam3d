@@ -154,8 +154,9 @@ void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
 
 void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sensor) {
     Neo4jQuery query(client);
-    // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r
-    query.addStatement("MATCH ("+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
+    // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r 
+    //query.addStatement("MATCH (a:Vertex"+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
+    query.addStatement("MATCH (a:Vertex)-[r]-(b:Vertex) WHERE a.index="+std::to_string(source)+" AND b.index="+std::to_string(target)+" AND r.sensor=\""+sensor+"\" DELETE r");
     if (!query.sendQuery()) {
         logger->message(ERROR, query.getResponse().extract_string().get());
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
