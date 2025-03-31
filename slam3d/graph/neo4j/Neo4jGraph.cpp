@@ -397,12 +397,14 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
     }
 
     web::json::value reply = query.getResponse().extract_json().get();
-    web::json::array& results = reply["results"][0]["data"].as_array();
-    vertexobjlist.reserve(results.size());
-    for (auto& vertex : results) {
-        VertexObject vertexobj;
-        vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0]);
-        vertexobjlist.push_back(vertexobj);
+    if (reply["results"].size()) {
+        web::json::array& results = reply["results"][0]["data"].as_array();
+        vertexobjlist.reserve(results.size());
+        for (auto& vertex : results) {
+            VertexObject vertexobj;
+            vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0]);
+            vertexobjlist.push_back(vertexobj);
+        }
     }
     return vertexobjlist;
 }
