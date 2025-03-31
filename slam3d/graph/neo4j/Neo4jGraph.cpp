@@ -245,8 +245,12 @@ const VertexObject Neo4jGraph::getVertex(IdType id)  const {
 
     // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     // std::cout << reply["results"][0]["data"][0]["row"][0].serialize() << std::endl;
-
-    vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
+    try {
+        vertexobj = Neo4jConversion::vertexObjectFromJson(reply["results"][0]["data"][0]["row"][0]);
+    } catch (const web::json::json_exception& e) {
+        printf("%s:%i %s\n", __PRETTY_FUNCTION__, __LINE__,e.what());
+        vertexobj = VertexObject();
+    }
 
     return vertexobj;
 }
