@@ -1,14 +1,22 @@
 #include <hiredis/hiredis.h>
 #include <boost/serialization/shared_ptr.hpp>
 
+#include <iostream>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 #include "RedisMeasurementStorage.hpp"
 
 
 namespace slam3d {
 
     void RedisMeasurementStorage::add(Measurement::Ptr measurement) {
-        std::stringstream ss;
-        boost::archive::text_oarchive oa(ss);
+
+        //std::stringstream ss;
+        //boost::archive::text_oarchive oa(ss);
+        std::ostringstream ss;
+        boost::archive::binary_oarchive oa(ss);
+        
         oa << measurement;
         store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
     }
@@ -56,8 +64,10 @@ namespace slam3d {
         if (redisrep->elements > 0) {
             // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
             if (redisrep->element[0]->len > 0) {
-                std::stringstream data(redisrep->element[1]->str);
-                boost::archive::text_iarchive ia(data);
+                //std::stringstream data(redisrep->element[1]->str);
+                //boost::archive::text_iarchive ia(data);
+                std::istringstream data(redisrep->element[1]->str);
+                boost::archive::binary_iarchive ia(data);
                 ia >> measurement;
             }
         } else {

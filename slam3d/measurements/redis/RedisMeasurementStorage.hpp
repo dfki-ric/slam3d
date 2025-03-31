@@ -3,8 +3,6 @@
 #include <string>
 #include <map>
 #include <mutex>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
 
 #include <slam3d/core/Types.hpp>
 #include <slam3d/core/MeasurementStorage.hpp>
