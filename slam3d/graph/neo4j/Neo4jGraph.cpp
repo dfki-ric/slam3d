@@ -77,6 +77,7 @@ bool Neo4jGraph::optimize(unsigned iterations)
 
 void Neo4jGraph::addVertex(const VertexObject& v)
 {
+    std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery vertexQuery(client);
 
     vertexQuery.addStatement("CREATE (n:Vertex $props)");
@@ -114,6 +115,7 @@ void Neo4jGraph::addEdge(const EdgeObject& e) {
 }
 
 void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
+    std::lock_guard<std::mutex> lock(queryMutex);
     std::string constrainttypename = e.constraint->getTypeName();
     std::replace(constrainttypename.begin(), constrainttypename.end(), '(', '_');
     std::replace(constrainttypename.begin(), constrainttypename.end(), ')', '_');
@@ -155,6 +157,7 @@ void Neo4jGraph::addEdge(const EdgeObject& e, bool addInverse) {
 }
 
 void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sensor) {
+    std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery query(client);
     // MATCH (n:Person {name: 'Laurence Fishburne'})-[r:ACTED_IN]->() DELETE r 
     //query.addStatement("MATCH (a:Vertex"+std::to_string(source)+")-[r]->("+std::to_string(target)+") DELETE r");
@@ -166,6 +169,7 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
 }
 
 const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor)  const{
+    std::lock_guard<std::mutex> lock(queryMutex);
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
