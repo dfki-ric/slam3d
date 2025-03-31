@@ -1,6 +1,10 @@
 #include <hiredis/hiredis.h>
 #include <boost/serialization/shared_ptr.hpp>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
+
 #include "RedisMeasurementStorage.hpp"
 
 
