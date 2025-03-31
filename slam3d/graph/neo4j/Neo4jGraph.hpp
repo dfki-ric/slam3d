@@ -100,6 +100,14 @@ class Neo4jGraph : public Graph {
          */
         virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
 
+
+        /**
+         * @brief override buildNeighborIndex as getNearbyVertices is evaluated by the neo4j database
+         * 
+         * @param sensors 
+         */
+		void buildNeighborIndex(const std::set<std::string>& sensors){}
+
 		/**
 		 * @brief Serch for nodes by location and radius
 		 * @param location x,y,z location of the center
