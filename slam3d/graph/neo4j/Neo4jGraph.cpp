@@ -200,12 +200,16 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     return objectList;
 }
 
-const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius) const {
+const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius, const std::string& sensortype) const {
     VertexObjectList objectList;
 
     Neo4jQuery query(client);
     //match (n) where point.distance(point({x:-20, y:10, z:0}), n.location) < 15 return n
-    query.addStatement("MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" RETURN a");
+    if (sensortype == "") {
+        query.addStatement("MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" RETURN a");
+    } else {
+        query.addStatement("MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" AND a.typeName = \""+sensortype+"\" RETURN a");
+    }
 
     if (!query.sendQuery()) {
         logger->message(ERROR, query.getResponse().extract_string().get());
