@@ -17,7 +17,7 @@ namespace slam3d {
         store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
     }
 
-    RedisMeasurementStorage::RedisMeasurementStorage(const char *ip, int port):MeasurementStorage() {
+    RedisMeasurementStorage::RedisMeasurementStorage(const char *ip, int port, size_t cacheSize):MeasurementStorage(),cacheSize(cacheSize) {
         context = std::shared_ptr<redisContext>(redisConnect(ip, port));
 
         if (context.get() == nullptr || context->err) {
@@ -46,6 +46,19 @@ namespace slam3d {
     }
 
     Measurement::Ptr RedisMeasurementStorage::get(const std::string& key) {
+
+        // check cache
+        if (cacheSize > 0) {
+            auto uuidIterator = std::find_if(cache.begin(),cache.end(),[&key](const std::pair<std::string, Measurement::Ptr>  &pair){
+                                                return pair.first == key;
+                                            });
+            if (uuidIterator != cache.end()) {
+                // if in cache, return here
+                printf("load from cache\n");
+                return uuidIterator->second;
+            }
+        }
+
         std::lock_guard<std::mutex> lock(queryMutex);
         void* reply = redisCommand(context.get(), "HMGET %s type data", key.c_str());
         if (!reply) {
@@ -63,6 +76,12 @@ namespace slam3d {
                 std::stringstream data(redisrep->element[1]->str);
                 boost::archive::text_iarchive ia(data);
                 ia >> measurement;
+                if (cacheSize > 0) {
+                    while (cache.size() >= cacheSize){
+                        cache.pop_front();
+                    }
+                    cache.push_back({to_string(measurement->getUniqueId()) , measurement});
+                }
             }
         } else {
             printf("%s:%i got empty measurement reply\n",__PRETTY_FUNCTION__,__LINE__);

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <deque>
 #include <mutex>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -18,7 +19,7 @@ namespace slam3d {
 class RedisMeasurementStorage: public MeasurementStorage {
  public:
 
-    RedisMeasurementStorage(const char *ip, int port);
+    RedisMeasurementStorage(const char *ip, int port, size_t cacheSize = 0);
 
     virtual void add(Measurement::Ptr measurement);
 
@@ -35,6 +36,9 @@ class RedisMeasurementStorage: public MeasurementStorage {
     void store(const std::string& key, const std::string &type, const std::string& serializedData);
 
     std::shared_ptr<redisContext> context;
+    size_t cacheSize;
+
+    std::deque<std::pair<std::string, Measurement::Ptr>> cache;
 
     mutable std::mutex queryMutex;
 
