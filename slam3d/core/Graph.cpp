@@ -48,6 +48,30 @@ void Graph::setSolver(Solver* solver)
 	mSolver = solver;
 }
 
+void Graph::reloadEdgesToSolver(bool fixfirst) {
+	// re-add edges and vertices
+	mSolver->clear();
+	mFixNext = fixfirst;
+	VertexObjectList vertices = getAllVertices();
+	for (const auto& vertex : vertices){
+		mSolver->addVertex(vertex.index, vertex.correctedPose);
+		if(mFixNext)
+		{
+			mLogger->message(INFO, (boost::format("Fixed position of vertex %1% in backend.") % vertex.index).str());
+			mSolver->setFixed(vertex.index);
+			mFixNext = false;
+		}
+	}
+
+	for (const auto& vertex : vertices) {
+		for (const auto& e : getOutEdges(vertex.index)) {
+			if (e.constraint->getType() != TENTATIVE) {
+				addToSolver(e);
+			}
+		}
+	}
+}
+
 void Graph::writeGraphToFile(const std::string &name)
 {
 	mLogger->message(ERROR, "Graph writing not implemented!");
