@@ -315,7 +315,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		const VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+		virtual const VertexObjectList getNearbyVertices(const Transform &tf, float radius, const std::string& sensortype = "") const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
