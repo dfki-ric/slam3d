@@ -303,7 +303,7 @@ namespace slam3d
 		 * @brief Create the index for nearest neighbor search of nodes.
 		 * @param sensors index nodes of these sensors
 		 */
-		void buildNeighborIndex(const std::set<std::string>& sensors);
+		virtual void buildNeighborIndex(const std::set<std::string>& sensors = std::set<std::string>());
 
 		/**
 		 * @brief Search for nodes in the graph near the given pose.
