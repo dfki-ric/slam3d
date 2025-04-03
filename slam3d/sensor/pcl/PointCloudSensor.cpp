@@ -214,9 +214,11 @@ PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const T
 PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices) const
 {
 	PointCloud::Ptr accu(new PointCloud);
-	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
-	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(it->measurementUuid);
+
+	#pragma omp parallel for
+	for (size_t i = 0; i < vertices.size(); ++i) {
+	//for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++){
+		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].measurementUuid);
 		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
 		if(!pcl)
 		{
@@ -224,8 +226,10 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 			throw BadMeasurementType();
 		}
 		
-		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (it->correctedPose * pcl->getSensorPose()));
-		*accu += *tempCloud;
+		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (vertices[i].correctedPose * pcl->getSensorPose()));
+
+		#pragma omp critical 
+		*accu += *tempCloud; 
 	}
 	return accu;
 }
