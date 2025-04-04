@@ -212,7 +212,7 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
 }
 
-const std::set<std::string> Graph::getVertexSensorsInGraph()
+const std::set<std::string> Graph::getVertexSensors() const
 {
 	std::set<std::string> sensors;
 	for (const auto& vertex : getAllVertices()) {
@@ -221,7 +221,7 @@ const std::set<std::string> Graph::getVertexSensorsInGraph()
 	return sensors;
 }
 
-const std::set<std::string> Graph::getEdgeSensorsInGraph()
+const std::set<std::string> Graph::getEdgeSensors() const
 {
 	std::set<std::string> sensors;
 	for (const auto& edge : getEdges(getAllVertices())) {

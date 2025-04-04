@@ -386,13 +386,13 @@ namespace slam3d
 		 * @brief Get a list of sensors of all vertices in the graph
 		 * @return const std::set<std::string> list of all sensors within the graph
 		 */
-		const virtual std::set<std::string> getVertexSensorsInGraph();
+		virtual const std::set<std::string> getVertexSensors() const;
 
 		/**
 		 * @brief Get a list of sensors of all vertices in the graph
 		 * @return const std::set<std::string> list of all sensors within the graph
 		 */
-		const virtual std::set<std::string> getEdgeSensorsInGraph();
+		virtual const std::set<std::string> getEdgeSensors() const;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
