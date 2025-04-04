@@ -169,23 +169,39 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
 }
 
 
-const virtual std::set<std::string> getVertexSensorsInGraph() const {
+const std::set<std::string> Neo4jGraph::getVertexSensors() const {
     std::set<std::string> result;
     std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery query(client);
-    query.addStatement("MATCH (a:Vertex) WHERE a.sensorName= RETURN a");
+    query.addStatement("MATCH (a:Vertex) RETURN DISTINCT a.sensorName");
+
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
+    }
+    web::json::value reply = query.getResponse().extract_json().get();
+
+    std::cout << reply.serialize() << std::endl;
+
     return result;
 }
 
-const virtual std::set<std::string> getEdgeSensorsInGraph() const {
+const std::set<std::string> Neo4jGraph::getEdgeSensors() const {
     std::set<std::string> result;
     std::lock_guard<std::mutex> lock(queryMutex);
     Neo4jQuery query(client);
-    query.addStatement("MATCH (a:Vertex) WHERE a.sensorName= RETURN a");
+    query.addStatement("MATCH ()-[r]->() RETURN DISTINCT r.sensor");
+
+    if (!query.sendQuery()) {
+        logger->message(ERROR, query.getResponse().extract_string().get());
+        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
+    }
+    web::json::value reply = query.getResponse().extract_json().get();
+
+    std::cout << reply.serialize() << std::endl;
+
     return result;
 }
-
-
 
 
 const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor)  const{
