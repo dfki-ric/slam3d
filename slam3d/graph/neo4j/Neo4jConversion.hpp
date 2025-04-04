@@ -7,9 +7,11 @@
 #include <cpprest/json.h>
 #include <slam3d/core/Types.hpp>
 
+
 namespace slam3d {
 
 class MeasurementStorage;
+
 
 class Neo4jConversion {
  public:

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.7)
 
 project(SLAM3D VERSION "3.0.0")
 enable_testing()

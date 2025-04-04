@@ -13,6 +13,7 @@
 #include <fstream>
 
 
+
 using namespace slam3d;
 
 using namespace web;
@@ -30,10 +31,14 @@ Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Server &g
     std::cout << _XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)) << std::endl;
     client = std::make_shared<web::http::client::http_client>(_XPLATSTR("http://"+graphserver.host+":" + std::to_string(graphserver.port)), clientconf);
 
+    connection = neo4j_connect("neo4j://neo4j:neo4j@localhost:7687", NULL, NEO4J_INSECURE);
+
 }
 
 Neo4jGraph::~Neo4jGraph()
 {
+    neo4j_close(connection);
+    neo4j_client_cleanup();
 }
 
 bool Neo4jGraph::deleteDatabase()
@@ -458,25 +463,61 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
 }
 
 const VertexObjectList Neo4jGraph::getAllVertices() const {
-    std::lock_guard<std::mutex> lock(queryMutex);
-    VertexObjectList vertexobjlist;
 
-    Neo4jQuery query(client);
-    query.addStatement("MATCH (n:Vertex) RETURN n AS node");
-    if (!query.sendQuery()) {
-        std::string msg = query.getResponse().extract_string().get();
-        logger->message(ERROR, msg);
-        std::cout << msg << std::endl;
-        throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+
+    slam3d::VertexObjectList vertexobjlist;
+    neo4j_result_stream_t *results = neo4j_run(connection, "MATCH (n:Vertex) RETURN n AS node", neo4j_null);
+    neo4j_result_t *result = neo4j_fetch_next(results);
+    // std::map<std::string> nodemap;
+    while (result) {
+
+
+        //get other results
+        result = neo4j_fetch_next(results);
+
+        if (result) {
+            neo4j_value_t node = neo4j_result_field(result, 0);
+            neo4j_value_t props = neo4j_node_properties(node);
+        
+            Neo4jValue json(props);
+
+            slam3d::VertexObject returnval;
+            returnval.index = json["index"].as_integer();
+            returnval.label = json["label"].as_string();
+            returnval.robotName = json["robotName"].as_string();
+            returnval.sensorName = json["sensorName"].as_string();
+            returnval.typeName = json["typeName"].as_string();
+            returnval.timestamp.tv_sec = json["timestamp_tv_sec"].as_integer();
+            returnval.timestamp.tv_usec = json["timestamp_tv_usec"].as_integer();
+            returnval.correctedPose = Eigen::Matrix4d(slam3d::Neo4jConversion::eigenMatrixFromString(json["correctedPose"].as_string()));
+            returnval.measurementUuid = boost::lexical_cast<boost::uuids::uuid>(json["measurementUuid"].as_string());
+
+
+            vertexobjlist.push_back(returnval);
+        }
     }
-    web::json::value reply = query.getResponse().extract_json().get();
-    web::json::array& results = reply["results"][0]["data"].as_array();
-    vertexobjlist.reserve(results.size());
-    for (auto& vertex : results) {
-        VertexObject vertexobj;
-        vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0]);
-        vertexobjlist.push_back(vertexobj);
-    }
+    neo4j_close_results(results);
+    
+
+    // std::lock_guard<std::mutex> lock(queryMutex);
+    // VertexObjectList vertexobjlist;
+
+    // Neo4jQuery query(client);
+    // query.addStatement("MATCH (n:Vertex) RETURN n AS node");
+    // if (!query.sendQuery()) {
+    //     std::string msg = query.getResponse().extract_string().get();
+    //     logger->message(ERROR, msg);
+    //     std::cout << msg << std::endl;
+    //     throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()) + query.getResponse().extract_string().get());
+    // }
+    // web::json::value reply = query.getResponse().extract_json().get();
+    // web::json::array& results = reply["results"][0]["data"].as_array();
+    // vertexobjlist.reserve(results.size());
+    // for (auto& vertex : results) {
+    //     VertexObject vertexobj;
+    //     vertexobj = Neo4jConversion::vertexObjectFromJson(vertex["row"][0]);
+    //     vertexobjlist.push_back(vertexobj);
+    // }
     return vertexobjlist;
 }
 

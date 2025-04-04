@@ -25,6 +25,7 @@ if (NOT jsoncpp_FOUND)
 endif()
 
 pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
+pkg_check_modules(neo4j-client REQUIRED IMPORTED_TARGET GLOBAL)
 
 # Optional libraries
 find_package(libpointmatcher 1.3.1)

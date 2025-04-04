@@ -1,4 +1,7 @@
 # Define graph-neo4j library
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(neo4j-client REQUIRED IMPORTED_TARGET GLOBAL)
+                  
 
 	add_library(graph-neo4j SHARED
 		Neo4jGraph.cpp
@@ -9,13 +12,14 @@
 	target_include_directories(graph-neo4j
 		PUBLIC
 			$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+			$<BUILD_INTERFACE:${neo4j-client_INCLUDE_DIRS}>
+			$<BUILD_INTERFACE:/opt/workspace/install/include>
 			$<INSTALL_INTERFACE:include>
 	)
 
 	target_link_libraries(graph-neo4j
 		PUBLIC
-			# Boost::graph
-			# Boost::thread
+			PkgConfig::neo4j-client
 			cpprest
 			crypto
 			core

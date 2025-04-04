@@ -48,6 +48,8 @@ slam3d::VertexObject Neo4jConversion::vertexObjectFromJson(web::json::value& jso
     returnval.timestamp.tv_sec = json["timestamp_tv_sec"].as_integer();
     returnval.timestamp.tv_usec = json["timestamp_tv_usec"].as_integer();
 
+    // std::cout << json["correctedPose"].as_string() << std::endl;
+
     returnval.correctedPose = Eigen::Matrix4d(Neo4jConversion::eigenMatrixFromString(json["correctedPose"].as_string()));
     returnval.measurementUuid = boost::lexical_cast<boost::uuids::uuid>(json["measurementUuid"].as_string());
     return returnval;
