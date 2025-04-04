@@ -81,17 +81,29 @@ class Neo4jGraph : public Graph {
          */
         const EdgeObjectList getOutEdges(IdType source) const;
 
+		/**
+		 * @brief Get a list of sensors of all vertices in the graph
+		 * @return const std::set<std::string> list of all sensors within the graph
+		 */
+		const virtual std::set<std::string> getVertexSensorsInGraph();
+
+		/**
+		 * @brief Get a list of sensors of all vertices in the graph
+		 * @return const std::set<std::string> list of all sensors within the graph
+		 */
+		const virtual std::set<std::string> getEdgeSensorsInGraph();
+
         /**
          * @brief Gets a list of all vertices from given sensor.
          * @param sensor
          */
-        const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+        const VertexObjectList getVerticesFromSensor(const std::string& sensor);
 
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesByType(const std::string& type) const;
+		virtual const VertexObjectList getVerticesByType(const std::string& type);
 
         /**
          * @brief Serch for nodes by using breadth-first-search
