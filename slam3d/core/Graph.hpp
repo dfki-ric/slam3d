@@ -383,6 +383,18 @@ namespace slam3d
 		virtual const EdgeObjectList getOutEdges(IdType source) const = 0;
 
 		/**
+		 * @brief Get a list of sensors of all vertices in the graph
+		 * @return const std::set<std::string> list of all sensors within the graph
+		 */
+		const virtual std::set<std::string> getVertexSensorsInGraph() const;
+
+		/**
+		 * @brief Get a list of sensors of all vertices in the graph
+		 * @return const std::set<std::string> list of all sensors within the graph
+		 */
+		const virtual std::set<std::string> getEdgeSensorsInGraph() const;
+
+		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */

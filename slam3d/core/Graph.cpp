@@ -212,6 +212,24 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
 }
 
+const std::set<std::string> Graph::getVertexSensorsInGraph() const
+{
+	std::set<std::string> sensors;
+	for (const auto& vertex : getAllVertices()) {
+		sensors.insert(vertex.sensorName);
+	}
+	return sensors;
+}
+
+const std::set<std::string> Graph::getEdgeSensorsInGraph() const
+{
+	std::set<std::string> sensors;
+	for (const auto& edge : getEdges(getAllVertices())) {
+		sensors.insert(edge.constraint->getSensorName());
+	}
+	return sensors;
+}
+
 Measurement::Ptr Graph::getMeasurement(IdType id)
 {
 	return mStorage->get(getVertex(id).measurementUuid);
