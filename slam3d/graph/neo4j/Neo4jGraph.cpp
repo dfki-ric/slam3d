@@ -180,9 +180,10 @@ const std::set<std::string> Neo4jGraph::getVertexSensors() const {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
     }
     web::json::value reply = query.getResponse().extract_json().get();
-
-    std::cout << reply.serialize() << std::endl;
-
+    //std::cout << reply.serialize() << std::endl;
+    for (auto& json : reply["results"][0]["data"].as_array()) {
+        result.insert(json["row"][0].as_string());
+    }
     return result;
 }
 
@@ -197,8 +198,10 @@ const std::set<std::string> Neo4jGraph::getEdgeSensors() const {
         throw std::runtime_error("Returned " + std::to_string(query.getResponse().status_code()));
     }
     web::json::value reply = query.getResponse().extract_json().get();
-
-    std::cout << reply.serialize() << std::endl;
+    // std::cout << reply.serialize() << std::endl;
+    for (auto& json : reply["results"][0]["data"].as_array()) {
+        result.insert(json["row"][0].as_string());
+    }
 
     return result;
 }
