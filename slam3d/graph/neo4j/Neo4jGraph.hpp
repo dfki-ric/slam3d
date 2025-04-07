@@ -57,10 +57,9 @@ class Neo4jGraph : public Graph {
          * 
          * @param query 
          * @param function 
-         * @return true 
-         * @return false 
+         * @return number of results
          */
-        bool runQuery(const std::string query, std::function<void (neo4j_result_t *element)> function) const;
+        size_t runQuery(const std::string query, std::function<void (neo4j_result_t *element)> function, neo4j_value_t params = neo4j_null) const;
 
         /**
          * @brief Start the backend optimization process.

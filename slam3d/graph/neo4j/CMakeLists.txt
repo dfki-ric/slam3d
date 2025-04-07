@@ -1,7 +1,8 @@
 # Define graph-neo4j library
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(neo4j-client REQUIRED IMPORTED_TARGET GLOBAL)
-                  
+pkg_check_modules(neo4j REQUIRED IMPORTED_TARGET neo4j-client)
+
+message(DEBUG ${neo4j_LIBRARIES})
 
 	add_library(graph-neo4j SHARED
 		Neo4jGraph.cpp
@@ -19,7 +20,7 @@ pkg_check_modules(neo4j-client REQUIRED IMPORTED_TARGET GLOBAL)
 
 	target_link_libraries(graph-neo4j
 		PUBLIC
-			PkgConfig::neo4j-client
+			PkgConfig::neo4j
 			cpprest
 			crypto
 			core
@@ -52,8 +53,9 @@ pkg_check_modules(neo4j-client REQUIRED IMPORTED_TARGET GLOBAL)
 	)
 
 	# Build test
-	# add_executable(test_neo4j_graph Neo4jGraphTest.cpp)
-	# add_dependencies(test_neo4j_graph sensor-pcl)
-	# target_link_libraries(test_neo4j_graph Boost::unit_test_framework graph-neo4j sensor-pcl)
-	# target_compile_definitions(test_boost_graph PRIVATE BOOST_TEST_DYN_LINK)
-	# add_test(neo4j_graph test_neo4j_graph)
+	add_executable(test_neo4j_graph Neo4jGraphTest.cpp)
+	add_dependencies(test_neo4j_graph sensor-pcl)
+	# message(FATAL_ERROR )
+	target_link_libraries(test_neo4j_graph PUBLIC PkgConfig::neo4j Boost::unit_test_framework graph-neo4j sensor-pcl)
+	target_compile_definitions(test_boost_graph PRIVATE BOOST_TEST_DYN_LINK)
+	add_test(neo4j_graph test_neo4j_graph)

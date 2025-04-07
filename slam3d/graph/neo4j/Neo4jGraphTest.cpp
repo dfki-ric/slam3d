@@ -3,9 +3,6 @@
 #include <slam3d/core/FileLogger.hpp>
 #include <slam3d/core/test_templates/GraphTest.hpp>
 
-#define private public
-#define protected public
-
 #include <slam3d/core/MeasurementStorage.hpp>
 #include "Neo4jGraph.hpp"
 #include "Neo4jConversion.hpp"
@@ -16,11 +13,16 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <sstream>
 
+
+#define private public
+#define protected public
+
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 using namespace slam3d;
 
 std::unique_ptr<Neo4jGraph> neo4jgraph;
+slam3d::MeasurementStorage measurements;
 Clock neo4jclock;
 FileLogger neo4jlogger(neo4jclock, "neo4j_graph.log");
 
@@ -61,7 +63,7 @@ void initDB() {
     static bool initialized = false;
     if (!initialized) {
         neo4jlogger.setLogLevel(DEBUG);
-        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger);
+        neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger,&measurements);
         neo4jgraph->deleteDatabase();
         initialized = true;
     }
@@ -161,10 +163,10 @@ BOOST_AUTO_TEST_CASE(measurement_storage) {
 	BOOST_CHECK_NO_THROW(query_res = g->getVertex(id));
 	// BOOST_CHECK_EQUAL(query_res.index, exp_id);
 
-    Measurement::Ptr m_new = g->getMeasurement(query_res.measurement_uuid);
+    Measurement::Ptr m_new = g->getMeasurement(query_res.measurementUuid);
     BOOST_CHECK_NE(m_new.get(), nullptr);
     BOOST_CHECK_EQUAL(m->getRobotName(), m_new->getRobotName()); 
-    BOOST_CHECK_EQUAL(m->getRobotName(), query_res.mRobotName); 
+    BOOST_CHECK_EQUAL(m->getRobotName(), query_res.robotName); 
 
     slam3d::PointCloudMeasurement::Ptr m_res = boost::dynamic_pointer_cast<slam3d::PointCloudMeasurement>(m_new);
 

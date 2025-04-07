@@ -210,5 +210,42 @@ slam3d::Constraint::Ptr Neo4jConversion::constraint(const neo4j_result_t *result
     return slam3d::Constraint::Ptr();
 }
 
+void  Neo4jConversion::constraintToParameters(slam3d::Constraint::Ptr constraint, const std::string& setname, ParamaterSet* set) {
+    ParamaterSet& params = *set;
+
+    switch (constraint->getType()) {
+        case slam3d::TENTATIVE : break;
+        case slam3d::SE3 : {
+            slam3d::SE3Constraint* se3 = dynamic_cast<slam3d::SE3Constraint*>(constraint.get());
+            params.addParameterToSet(setname, "mRelativePose", eigenMatrixToString(se3->getRelativePose().matrix()));
+            params.addParameterToSet(setname, "mInformation", eigenMatrixToString(se3->getInformation().matrix()));
+            break;
+        }
+        case slam3d::GRAVITY : {
+            slam3d::GravityConstraint* grav = dynamic_cast<slam3d::GravityConstraint*>(constraint.get());
+            params.addParameterToSet(setname, "mDirection", eigenMatrixToString(grav->getDirection().matrix()));
+            params.addParameterToSet(setname, "mReference", eigenMatrixToString(grav->getReference().matrix()));
+            params.addParameterToSet(setname, "mCovariance", eigenMatrixToString(grav->getCovariance().matrix()));
+            break;
+        }
+        case slam3d::POSITION : {
+            slam3d::PositionConstraint* grav = dynamic_cast<slam3d::PositionConstraint*>(constraint.get());
+            params.addParameterToSet(setname, "mPosition", eigenMatrixToString(grav->getPosition().matrix()));
+            params.addParameterToSet(setname, "mSensorPose", eigenMatrixToString(grav->getSensorPose().matrix()));
+            params.addParameterToSet(setname, "mCovariance", eigenMatrixToString(grav->getCovariance().matrix()));
+            break;
+        }
+        case slam3d::ORIENTATION : {
+            slam3d::OrientationConstraint* grav = dynamic_cast<slam3d::OrientationConstraint*>(constraint.get());
+            params.addParameterToSet(setname, "mOrientation", eigenMatrixToString(grav->getOrientation().matrix()));
+            params.addParameterToSet(setname, "mSensorPose", eigenMatrixToString(grav->getSensorPose().matrix()));
+            params.addParameterToSet(setname, "mCovariance", eigenMatrixToString(grav->getCovariance().matrix()));
+            break;
+        }
+    }
+
+}
+
+
 }  // namespace slam3d
 
