@@ -8,7 +8,7 @@
 
 #include <slam3d/core/Graph.hpp>
 #include <slam3d/core/MeasurementStorage.hpp>
-#include <neo4j-client.h>
+
 
 
 
@@ -23,29 +23,6 @@
 //     namespace json{ class value;}
 // }
 
-class Neo4jValue {
- public:
-    Neo4jValue(const neo4j_value_t value):value(value){}
-
-    int as_integer() {
-        return neo4j_int_value(value);
-    }
-
-    std::string as_string() {
-        std::string result;
-        result.resize(neo4j_string_length(value));
-        neo4j_string_value(value, const_cast<char*>(result.data()), result.size());
-        return result;
-    }
-
-    Neo4jValue operator[](const std::string& key) {
-        return Neo4jValue(neo4j_map_kget(value, neo4j_ustring(key.data(), key.size())));
-    }
-
-
- private:
-    neo4j_value_t value;
-};
 
 namespace slam3d {
     /**
@@ -74,6 +51,16 @@ class Neo4jGraph : public Graph {
          * @return true if deletion was successful
          */
         bool deleteDatabase();
+
+        /**
+         * @brief send a query and run fuinctio for each returned element
+         * 
+         * @param query 
+         * @param function 
+         * @return true 
+         * @return false 
+         */
+        bool runQuery(const std::string query, std::function<void (neo4j_result_t *element)> function) const;
 
         /**
          * @brief Start the backend optimization process.
@@ -190,6 +177,7 @@ class Neo4jGraph : public Graph {
 
 
         void setCorrectedPose(IdType id, const Transform& pose);
+
 
     protected:
         /**

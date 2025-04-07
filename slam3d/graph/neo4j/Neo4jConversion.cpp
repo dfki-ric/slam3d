@@ -121,7 +121,94 @@ slam3d::Constraint::Ptr Neo4jConversion::jsonToConstraint(web::json::value& json
     return slam3d::Constraint::Ptr();
 }
 
+slam3d::VertexObjectList Neo4jConversion::vertexObjectList(neo4j_result_stream_t *results) {
+    slam3d::VertexObjectList vertexobjlist;
+    neo4j_result_t *result = neo4j_fetch_next(results);
+    while (result) {
+        vertexobjlist.push_back(Neo4jConversion::vertexObject(result));
+        //get next result
+        result = neo4j_fetch_next(results);
+    }
+    return vertexobjlist;
+}
 
+slam3d::VertexObject Neo4jConversion::vertexObject(const neo4j_result_t *result) {
+    slam3d::VertexObject returnval;
+    Neo4jValue bolt(result);
+    Neo4jValue properties = bolt.as_node_properties();
+
+    returnval.index = properties["index"].as_integer();
+    returnval.label = properties["label"].as_string();
+    returnval.robotName = properties["robotName"].as_string();
+    returnval.sensorName = properties["sensorName"].as_string();
+    returnval.typeName = properties["typeName"].as_string();
+    returnval.timestamp.tv_sec = properties["timestamp_tv_sec"].as_integer();
+    returnval.timestamp.tv_usec = properties["timestamp_tv_usec"].as_integer();
+    returnval.correctedPose = Eigen::Matrix4d(slam3d::Neo4jConversion::eigenMatrixFromString(properties["correctedPose"].as_string()));
+    returnval.measurementUuid = boost::lexical_cast<boost::uuids::uuid>(properties["measurementUuid"].as_string());
+    return returnval;
+}
+
+slam3d::EdgeObjectList Neo4jConversion::edgeObjectList(neo4j_result_stream_t *results) {
+    slam3d::EdgeObjectList edgeobjlist;
+    neo4j_result_t *result = neo4j_fetch_next(results);
+    while (result) {
+        edgeobjlist.push_back(Neo4jConversion::edgeObject(result));
+        //get next result
+        result = neo4j_fetch_next(results);
+    }
+    return edgeobjlist;
+}
+
+slam3d::EdgeObject Neo4jConversion::edgeObject(const neo4j_result_t *result) {
+    slam3d::EdgeObject returnval;
+    Neo4jValue bolt(result);
+    Neo4jValue properties = bolt.as_relationship_properties();
+
+    if (properties["inverted"].as_bool()) {
+        returnval.source = properties["target"].as_integer();
+        returnval.target = properties["source"].as_integer();
+    } else {
+        returnval.source = properties["source"].as_integer();
+        returnval.target = properties["target"].as_integer();
+    }
+    //
+    returnval.constraint = Neo4jConversion::constraint(result);
+    return returnval;
+}
+
+slam3d::Constraint::Ptr Neo4jConversion::constraint(const neo4j_result_t *result) {
+    Neo4jValue bolt(result);
+    Neo4jValue properties = bolt.as_relationship_properties();
+    switch (properties["constraint_type"].as_integer()) {
+        case slam3d::TENTATIVE : return slam3d::Constraint::Ptr(new slam3d::TentativeConstraint(properties["sensor"].as_string()));
+        case slam3d::SE3 : {
+            slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(properties["mRelativePose"].as_string())));
+            slam3d::Covariance<6> i = slam3d::Covariance<6>(eigenMatrixFromString(properties["mInformation"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::SE3Constraint(properties["sensor"].as_string(), t, i));
+        }
+        case slam3d::GRAVITY : {
+            slam3d::Direction d = slam3d::Direction(eigenMatrixFromString(properties["mDirection"].as_string()));
+            slam3d::Direction r = slam3d::Direction(eigenMatrixFromString(properties["mReference"].as_string()));
+            slam3d::Covariance<2> c = slam3d::Covariance<2>(eigenMatrixFromString(properties["mCovariance"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::GravityConstraint(properties["sensor"].as_string(), d, r, c));
+        }
+        case slam3d::POSITION : {
+            slam3d::Position p = slam3d::Position(eigenMatrixFromString(properties["mPosition"].as_string()));
+            slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(properties["mSensorPose"].as_string())));
+            slam3d::Covariance<3> c = slam3d::Covariance<3>(eigenMatrixFromString(properties["mCovariance"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::PositionConstraint(properties["sensor"].as_string(), p, c, t));
+        }
+        case slam3d::ORIENTATION : {
+            slam3d::Quaternion q = slam3d::Quaternion(Eigen::Matrix3d(eigenMatrixFromString(properties["mOrientation"].as_string())));
+            slam3d::Transform t = slam3d::Transform(Eigen::Matrix4d(eigenMatrixFromString(properties["mSensorPose"].as_string())));
+            slam3d::Covariance<3> c = slam3d::Covariance<3>(eigenMatrixFromString(properties["mCovariance"].as_string()));
+            return slam3d::Constraint::Ptr(new slam3d::OrientationConstraint(properties["sensor"].as_string(), q, c, t));
+        }
+    }
+    // should never be here
+    return slam3d::Constraint::Ptr();
+}
 
 }  // namespace slam3d
 
