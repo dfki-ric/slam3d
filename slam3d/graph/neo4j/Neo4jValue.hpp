@@ -37,7 +37,8 @@ class Neo4jValue {
             size = neo4j_ntostring(value, buf.data(), buf.size());
         }
         buf.resize(size);
-        return buf;
+        std::string ret(buf.data()+1, buf.size()-2); //  remove "" from start/end
+        return ret;
     }
 
     Neo4jValue as_node_properties() {
@@ -50,8 +51,9 @@ class Neo4jValue {
         size_t size = neo4j_map_size(map);
         for (size_t i = 0; i< size; ++i) {
             const neo4j_map_entry_t *entry = neo4j_map_getentry(map,i);
-            Neo4jValue key(entry->value);
+            Neo4jValue key(entry->key);
             Neo4jValue value(entry->value);
+            // printf("%s : %s\n", key.as_string().c_str(), value.to_string().c_str());
             result[key.as_string()] = value.to_string();
         }
         return result;
@@ -67,7 +69,7 @@ class Neo4jValue {
         size_t size = neo4j_map_size(map);
         for (size_t i = 0; i< size; ++i) {
             const neo4j_map_entry_t *entry = neo4j_map_getentry(map,i);
-            Neo4jValue key(entry->value);
+            Neo4jValue key(entry->key);
             Neo4jValue value(entry->value);
             result[key.as_string()] = value.to_string();
         }
