@@ -15,7 +15,7 @@ find_package(PCLOMP 1.0)
 
 find_package(hiredis)
 find_package(cpprestsdk)
-
+pkg_check_modules(neo4j REQUIRED IMPORTED_TARGET neo4j-client)
 
 if (NOT jsoncpp_FOUND)
   pkg_check_modules(jsoncpp IMPORTED_TARGET jsoncpp)

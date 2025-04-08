@@ -1,12 +1,10 @@
 # Define graph-neo4j library
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(neo4j REQUIRED IMPORTED_TARGET neo4j-client)
 
 message(DEBUG ${neo4j_LIBRARIES})
 
 	add_library(graph-neo4j SHARED
 		Neo4jGraph.cpp
-		Neo4jQuery.cpp
+		Neo4jConnection.cpp
 		Neo4jConversion.cpp
 	)
 
@@ -21,16 +19,17 @@ message(DEBUG ${neo4j_LIBRARIES})
 	target_link_libraries(graph-neo4j
 		PUBLIC
 			PkgConfig::neo4j
-			cpprest
-			crypto
+			jsoncpp_lib
 			core
 	)
 
 	# Install header files
 	install(
 		FILES 	Neo4jGraph.hpp 
-				Neo4jQuery.hpp
+				Neo4jConnection.hpp
 				Neo4jConversion.hpp
+				Neo4jParamaterSet.hpp
+				Neo4jValue.hpp
 		DESTINATION include/slam3d/graph/neo4j/
 	)
 

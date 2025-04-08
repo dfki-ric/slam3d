@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include <slam3d/core/Graph.hpp>
 #include <slam3d/core/MeasurementStorage.hpp>
@@ -12,8 +11,9 @@
 
 
 
-#include "Neo4jQuery.hpp"
+// #include "Neo4jQuery.hpp"
 #include "Neo4jConversion.hpp"
+#include "Neo4jConnection.hpp"
 // #include "RedisMap.hpp"
 // #include <boost/thread/shared_mutex.hpp>
 
@@ -31,17 +31,13 @@ namespace slam3d {
      */
 class Neo4jGraph : public Graph {
     public:
-        struct Server {
-            Server(const std::string& host, const int &port, const std::string& user, const std::string& passwd) : host(host), port(port), user(user), passwd(passwd) {}
-            const std::string& host;
-            const int &port;
-            const std::string& user;
-            const std::string& passwd;
-        };
+
+        //compatibility typedef
+        typedef Neo4jConnection::ServerConfig Server;
 
         Neo4jGraph(Logger* log,
                     MeasurementStorage* storage,
-                    const Server &graphserver = Neo4jGraph::Server("127.0.0.1", 7474, "neo4j", "neo4j")
+                    const Neo4jConnection::ServerConfig &graphserver = Neo4jConnection::ServerConfig("127.0.0.1", 7687, "neo4j", "neo4j")
                     );
         ~Neo4jGraph();
 
@@ -52,14 +48,6 @@ class Neo4jGraph : public Graph {
          */
         bool deleteDatabase();
 
-        /**
-         * @brief send a query and run fuinctio for each returned element
-         * 
-         * @param query 
-         * @param function 
-         * @return number of results
-         */
-        size_t runQuery(const std::string query, std::function<void (neo4j_result_t *element)> function, neo4j_value_t params = neo4j_null) const;
 
         /**
          * @brief Start the backend optimization process.
@@ -225,9 +213,9 @@ class Neo4jGraph : public Graph {
         // OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
 
     private:
-        std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
+        // std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
 
-
+        std::shared_ptr<Neo4jConnection> neo4j;
 
         // neo4j_connection_t *connection;
         // The boost graph object
@@ -242,8 +230,8 @@ class Neo4jGraph : public Graph {
         // todo remove this and pass shared_ptr
         std::vector<VertexObject> vertexObjects;
 
-        std::shared_ptr<web::http::client::http_client> client;
-        neo4j_connection_t *connection;
+        // std::shared_ptr<web::http::client::http_client> client;
+        
 
 
         // todo replace with databae (value store)
@@ -255,7 +243,6 @@ class Neo4jGraph : public Graph {
 
         slam3d::Logger* logger;
 
-        mutable std::mutex queryMutex;
 };
 }  // namespace slam3d
 

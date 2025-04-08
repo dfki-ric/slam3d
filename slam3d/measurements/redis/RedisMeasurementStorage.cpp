@@ -54,7 +54,6 @@ namespace slam3d {
                                             });
             if (uuidIterator != cache.end()) {
                 // if in cache, return here
-                printf("load from cache\n");
                 return uuidIterator->second;
             }
         }
