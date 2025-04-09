@@ -8,7 +8,13 @@ namespace slam3d {
 Neo4jConnection::Neo4jConnection(const Neo4jConnection::ServerConfig &server):lastRunSuccessful(false) {
     //neo4j://neo4j:neo4j@localhost:7687
     std::string url = "neo4j://neo4j:neo4j@"+server.host+":" + std::to_string(server.port);
-    connection = neo4j_connect(url.c_str(), NULL, NEO4J_INSECURE);
+
+    // neo4jconfig = neo4j_new_config();
+    // neo4j_config_set_render_quoted_strings(neo4jconfig, false);
+    // neo4j_config_set_render_ascii(neo4jconfig, true);
+    // connection = neo4j_connect(url.c_str(), neo4jconfig, NEO4J_INSECURE);
+    
+    connection = neo4j_connect(url.c_str(), nullptr, NEO4J_INSECURE);
 
     if (!connection) {
         printf("could not connect to neo4j: %s\n", url.c_str());
@@ -20,6 +26,7 @@ Neo4jConnection::~Neo4jConnection()
 {
     neo4j_close(connection);
     neo4j_client_cleanup();
+    // neo4j_config_free(neo4jconfig);
 }
 
 size_t Neo4jConnection::runQuery(const std::string query, std::function<void (neo4j_result_t *element)> function, neo4j_value_t params) const {
@@ -42,7 +49,6 @@ size_t Neo4jConnection::runQuery(const std::string query, std::function<void (ne
             return count;
         } else {
             // std::cout << query << " received 0 results" << std::endl;
-
             return 0;
         }
     } else {

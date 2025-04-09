@@ -58,6 +58,7 @@ class Neo4jConnection {
 
 
  private:
+    neo4j_config *neo4jconfig;
     neo4j_connection_t *connection;
     mutable std::mutex queryMutex;
     mutable bool lastRunSuccessful;

@@ -24,7 +24,7 @@ Eigen::MatrixXd Neo4jConversion::eigenMatrixFromString(const std::string & strin
     // web::json::value val = web::json::value::parse(string);
     
     if (!reader.parse( string, val )) {
-        printf("error readign matrix \n");
+        printf("error reading matrix \n");
     }
 
     Eigen::MatrixXd mat(val.size(), val[0].size());
