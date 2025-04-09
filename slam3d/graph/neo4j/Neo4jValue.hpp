@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <algorithm>
 #include <neo4j-client.h>
 
 
@@ -21,10 +22,10 @@ class Neo4jValue {
     }
 
     std::string as_string() {
-        std::string result;
-        result.resize(neo4j_string_length(value)+1); // includes '\0' in copy
-        neo4j_string_value(value, const_cast<char*>(result.data()), result.size());
-        result.resize(result.size()-1);
+        std::string result(neo4j_ustring_value(value), neo4j_string_length(value));
+        // result.resize(neo4j_string_length(value)+1); // includes '\0' in copy
+        // neo4j_ustring_value(value, const_cast<char*>(result.data()), result.size());
+        // result.resize(result.size()-1);
         return result;
     }
 
@@ -38,6 +39,8 @@ class Neo4jValue {
         }
         buf.resize(size);
         std::string ret(buf.data()+1, buf.size()-2); //  remove "" from start/end
+        //remove excapes before " ( \" -> " )
+        ret.erase (std::remove(ret.begin(), ret.end(), '\\'), ret.end());
         return ret;
     }
 
