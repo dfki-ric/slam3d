@@ -32,10 +32,10 @@ class Neo4jValue {
     std::string to_string(const size_t &buffersize = 1024) {
         std::string buf;
         buf.resize(buffersize);
-        size_t size = neo4j_ntostring(value, buf.data(), buf.size());
+        size_t size = neo4j_ntostring(value, const_cast<char*>(buf.data()), buf.size());
         while (size == buffersize) {
             buf.resize(buf.size() + buffersize);
-            size = neo4j_ntostring(value, buf.data(), buf.size());
+            size = neo4j_ntostring(value, const_cast<char*>(buf.data()), buf.size());
         }
         buf.resize(size);
         std::string ret(buf.data()+1, buf.size()-2); //  remove "" from start/end
