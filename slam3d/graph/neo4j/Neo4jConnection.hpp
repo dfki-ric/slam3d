@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <mutex>
+#include <functional>
 #include <neo4j-client.h>
 
 namespace slam3d {
