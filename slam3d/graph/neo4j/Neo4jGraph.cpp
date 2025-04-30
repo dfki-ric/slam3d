@@ -21,6 +21,16 @@ using namespace slam3d;
 Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConnection::ServerConfig &graphserver) : Graph(log, storage), logger(log)
 {
     neo4j = std::make_shared<Neo4jConnection>(graphserver);
+
+    VertexObjectList existingVertices = getAllVertices();
+    IdType maxindex = 0;
+    for (const auto& vertex : existingVertices) {
+        if (vertex.index > maxindex) {
+            maxindex = vertex.index;
+        }
+    }
+    mIndexer = Indexer(maxindex+1);
+
 }
 
 Neo4jGraph::~Neo4jGraph()
