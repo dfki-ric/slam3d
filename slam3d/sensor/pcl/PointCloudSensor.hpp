@@ -214,11 +214,29 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
+
+		/**
+		 * @brief configuration struct for buildMap
+		 * 
+		 */
+		struct MapConfig {
+			MapConfig():removeOutliers(true),downsample(true),cut(false) {}
+			bool removeOutliers;
+			bool downsample;
+			bool cut;
+			PointType min;
+			PointType max;
+		};
 		/**
 		 * @brief Build an accumulated point cloud map from given vertices.
 		 * @param vertices
 		 */
-		PointCloud::Ptr buildMap(const VertexObjectList& vertices, bool doRemoveOutliers = true, bool doDownsample = true) const;
+		PointCloud::Ptr buildMap(const VertexObjectList& vertices, const MapConfig& mapConfig = MapConfig()) const;
+
+		/**
+		 * @brief backward-compatibility version
+		 */
+		PointCloud::Ptr buildMap(const VertexObjectList& vertices, bool doRemoveOutliers, bool doDownsample = true) const;
 		
 		/**
 		 * @brief Fill ground plane around center.
