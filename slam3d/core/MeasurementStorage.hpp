@@ -15,7 +15,7 @@ namespace slam3d
 	class MeasurementStorage
 	{
 	public:
-
+		MeasurementStorage():enabled(true) {}
 		virtual ~MeasurementStorage() {}
 
 		/**
@@ -47,7 +47,14 @@ namespace slam3d
 		 */
 		Measurement::Ptr get(const std::string& key);
 
+		void enable();
+		void disable();
+
+	protected:
+		bool enabled;
+
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
+		
 	};
 }  // namespace slam3d

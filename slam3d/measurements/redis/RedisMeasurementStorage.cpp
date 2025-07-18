@@ -21,16 +21,18 @@ namespace slam3d {
     }
 
     void RedisMeasurementStorage::add(Measurement::Ptr measurement) {
-        if (useBinaryArchive) {
-            std::ostringstream ss;
-            boost::archive::binary_oarchive oa(ss);
-            oa << measurement;
-            store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
-        } else {
-            std::stringstream ss;
-            boost::archive::text_oarchive oa(ss);
-            oa << measurement;
-            store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
+        if (enabled) {
+            if (useBinaryArchive) {
+                std::ostringstream ss;
+                boost::archive::binary_oarchive oa(ss);
+                oa << measurement;
+                store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
+            } else {
+                std::stringstream ss;
+                boost::archive::text_oarchive oa(ss);
+                oa << measurement;
+                store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
+            }
         }
     }
 
