@@ -30,7 +30,6 @@ Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConn
         }
     }
     mIndexer = Indexer(maxindex+1);
-
 }
 
 Neo4jGraph::~Neo4jGraph()
@@ -41,6 +40,7 @@ bool Neo4jGraph::deleteDatabase()
 {
     std::string request = "match (n) detach delete n";
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
+    mIndexer = Indexer();
     return true;
 }
 
@@ -85,7 +85,6 @@ void Neo4jGraph::addVertex(const VertexObject& v)
                              + "})";
 
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
-
 }
 
 void Neo4jGraph::addEdge(const EdgeObject& e) {
