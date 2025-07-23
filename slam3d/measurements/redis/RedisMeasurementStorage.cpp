@@ -74,16 +74,23 @@ namespace slam3d {
         
         Measurement::Ptr measurement;
         if (redisrep->elements > 0) {
-            // printf("reply %i %lu\n", redisrep->type,  redisrep->elements );
             if (redisrep->element[0]->len > 0) {
                 if (useBinaryArchive) {
                     std::istringstream data(std::string(redisrep->element[1]->str, redisrep->element[1]->len));
-                    boost::archive::binary_iarchive ia(data);
-                    ia >> measurement;
+                    try {
+                        boost::archive::binary_iarchive ia(data);    
+                        ia >> measurement;
+                    } catch (const std::length_error& e) {
+                        printf("could not read measurement, try setting the boost archive type to text\n");
+                    }
                 } else {
                     std::stringstream data(redisrep->element[1]->str);
-                    boost::archive::text_iarchive ia(data);
-                    ia >> measurement;
+                    try {
+                        boost::archive::text_iarchive ia(data);
+                        ia >> measurement;
+                    } catch (const std::length_error& e) {
+                        printf("could not read measurement, try setting the boost archive type to binary\n");
+                    }
                 }
                 if (cacheSize > 0) {
                     while (cache.size() >= cacheSize){
