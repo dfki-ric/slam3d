@@ -36,6 +36,14 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     virtual void deleteDatabase();
 
+    /**
+     * @brief Set the Split Size redis max value is 512 MB per string
+     * 
+     * @param splitsize in bytes
+     */
+    virtual void setSplitSize(const size_t splitsize) {
+        split_size = splitsize;
+    }
 
  private:
     void store(const std::string& key, const std::string &type, const std::string& serializedData);
@@ -48,6 +56,8 @@ class RedisMeasurementStorage: public MeasurementStorage {
     mutable std::mutex queryMutex;
 
     bool useBinaryArchive;
+
+    size_t split_size;
 
 };
 
