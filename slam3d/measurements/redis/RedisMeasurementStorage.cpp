@@ -101,7 +101,12 @@ namespace slam3d {
             throw std::out_of_range("not found in database");
         }
         redisReply* redismetarep = (redisReply*)metareply;
-        elements = std::stoi(redismetarep->str);
+        if (redismetarep->str == nullptr) {
+            // older saved data, where size field is not set
+            elements = 1; 
+        } else {
+            elements = std::stoi(redismetarep->str);
+        }
         freeReplyObject(metareply);
 
 
