@@ -225,7 +225,8 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 const std::set<std::string> Graph::getVertexSensors() const
 {
 	std::set<std::string> sensors;
-	for (const auto& vertex : getAllVertices()) {
+	for (const auto& vertex : getAllVertices())
+	{
 		sensors.insert(vertex.sensorName);
 	}
 	return sensors;
@@ -234,7 +235,8 @@ const std::set<std::string> Graph::getVertexSensors() const
 const std::set<std::string> Graph::getEdgeSensors() const
 {
 	std::set<std::string> sensors;
-	for (const auto& edge : getEdges(getAllVertices())) {
+	for (const auto& edge : getEdges(getAllVertices()))
+	{
 		sensors.insert(edge.constraint->getSensorName());
 	}
 	return sensors;
