@@ -308,18 +308,13 @@ const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radiu
 	VertexObjectList result;
 	std::vector<int>::iterator it = neighbors[0].begin();
 	std::vector<NeighborIndex::DistanceType>::iterator d = distances[0].begin();
-	if (sensortype == "") {
-		for(; it < neighbors[0].end(); ++it, ++d) {	
-			result.push_back(getVertex(mNeighborMap.at(*it)));
+	for(; it < neighbors[0].end(); ++it, ++d)
+	{
+		VertexObject vertex = getVertex(mNeighborMap.at(*it));
+		if (sensortype.empty() || vertex.typeName == sensortype)
+		{
+			result.push_back(vertex);
 			mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mNeighborMap.at(*it) % *d).str());
-		}
-	} else {
-		for(; it < neighbors[0].end(); ++it, ++d) {	
-			VertexObject vertex = getVertex(mNeighborMap.at(*it));
-			if (vertex.typeName == sensortype) {
-				result.push_back(vertex);
-				mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mNeighborMap.at(*it) % *d).str());
-			}
 		}
 	}
 	
