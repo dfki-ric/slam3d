@@ -255,15 +255,16 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 {
 	VertexObjectList vertices;
-	if (sensors.size()) {
+	if(sensors.empty())
+	{
+		vertices = getAllVertices();
+	}else
+	{
 		for(auto sensor : sensors)
 		{
 			VertexObjectList v = getVerticesFromSensor(sensor);
 			vertices.insert(vertices.end(), v.begin(), v.end());
 		}
-	} else {
-		VertexObjectList v = getAllVertices();
-		vertices.insert(vertices.end(), v.begin(), v.end());
 	}
 
 	int numOfVertices = vertices.size();
