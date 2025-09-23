@@ -48,25 +48,30 @@ void Graph::setSolver(Solver* solver)
 	mSolver = solver;
 }
 
-void Graph::reloadEdgesToSolver(bool fixfirst) {
-	// re-add edges and vertices
+void Graph::reloadToSolver()
+{
+	// clear current solver
 	mSolver->clear();
-	mFixNext = fixfirst;
+
+	// add all vertices 
 	VertexObjectList vertices = getAllVertices();
-	for (const auto& vertex : vertices){
+	for (const auto& vertex : vertices)
+	{
 		mSolver->addVertex(vertex.index, vertex.correctedPose);
-		if(mFixNext)
+		if(vertex.fixed)
 		{
-			mLogger->message(INFO, (boost::format("Fixed position of vertex %1% in backend.") % vertex.index).str());
 			mSolver->setFixed(vertex.index);
-			mFixNext = false;
 		}
 	}
 
-	for (const auto& vertex : vertices) {
-		for (const auto& e : getOutEdges(vertex.index)) {
-			if (e.constraint->getType() != TENTATIVE) {
-				addToSolver(e);
+	// add all edges after vertices are defined
+	for (const auto& vertex : vertices)
+	{
+		for (const auto& edge : getOutEdges(vertex.index))
+		{
+			if (edge.constraint->getType() != TENTATIVE)
+			{
+				mSolver->addEdge(edge.source, edge.target, edge.constraint);
 			}
 		}
 	}
@@ -129,6 +134,8 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	VertexObject vo;
 	vo.init(m, id);
 	vo.correctedPose = corrected;
+	vo.fixed = mFixNext;
+	mFixNext = false;
 	addVertex(vo);
 	mStorage->add(m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
@@ -140,11 +147,9 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	if(mSolver)
 	{
 		mSolver->addVertex(id, corrected);
-		if(mFixNext)
+		if(vo.fixed)
 		{
-			mLogger->message(INFO, (boost::format("Fixed position of vertex %1% in backend.") % id).str());
 			mSolver->setFixed(id);
-			mFixNext = false;
 		}
 	}
 	return id;
@@ -167,12 +172,6 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	eo.target = target_id;
 	eo.constraint = c;
 	addEdge(eo);
-	addToSolver(eo);
-}
-
-void Graph::addToSolver(const EdgeObject& eo)
-{
-	mConstraintsAdded++;
 	mLogger->message(INFO, (boost::format("%3% created edge from node %1% to node %2% of type %4%.")
 	 % eo.source % eo.target % eo.constraint->getSensorName() % eo.constraint->getTypeName()).str());
 	
@@ -180,6 +179,7 @@ void Graph::addToSolver(const EdgeObject& eo)
 	if(mSolver)
 	{
 		mSolver->addEdge(eo.source, eo.target, eo.constraint);
+		mConstraintsAdded++;
 	}
 }
 

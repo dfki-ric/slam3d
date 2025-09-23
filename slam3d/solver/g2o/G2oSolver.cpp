@@ -157,6 +157,7 @@ void G2oSolver::setFixed(IdType id)
 		mLogger->message(ERROR, (boost::format("Could not fix vertex with ID %1%!") % id).str());
 		throw UnknownVertex(id);
 	}
+	mLogger->message(INFO, (boost::format("Fixed position of vertex with ID %1%.") % id).str());
 	v->setFixed(true);
 }
 

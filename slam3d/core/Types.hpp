@@ -307,6 +307,7 @@ namespace slam3d
 		std::string sensorName;
 		std::string typeName;
 		timeval timestamp;
+		bool fixed = false;
 
 		Transform correctedPose;
 		boost::uuids::uuid measurementUuid;
