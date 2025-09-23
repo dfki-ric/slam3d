@@ -45,11 +45,21 @@ Graph::~Graph()
 
 void Graph::setSolver(Solver* solver)
 {
+	if(mSolver)
+	{
+		delete mSolver;
+	}
 	mSolver = solver;
 }
 
 void Graph::reloadToSolver()
 {
+	if(!mSolver)
+	{
+		mLogger->message(ERROR, "A solver must be set before reloadToSolver() is called!");
+		return;
+	}
+
 	// clear current solver
 	mSolver->clear();
 
