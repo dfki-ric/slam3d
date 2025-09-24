@@ -39,7 +39,8 @@ class Neo4jConversion {
 
     static void constraintToParameters(slam3d::Constraint::Ptr constraint, const std::string& setname, ParamaterSet* set);
 
-    
+    static ParamaterSet createParamaterSet(const VertexObject& v);
+
 
 };
 

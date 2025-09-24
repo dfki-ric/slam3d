@@ -50,6 +50,7 @@ slam3d::VertexObject Neo4jConversion::vertexObject(const neo4j_result_t *result)
     returnval.timestamp.tv_usec = properties["timestamp_tv_usec"].as_integer();
     returnval.correctedPose = Eigen::Matrix4d(slam3d::Neo4jConversion::eigenMatrixFromString(properties["correctedPose"].as_string()));
     returnval.measurementUuid = boost::lexical_cast<boost::uuids::uuid>(properties["measurementUuid"].as_string());
+    returnval.fixed = properties["fixed"].as_bool();
     return returnval;
 }
 
@@ -140,6 +141,21 @@ void  Neo4jConversion::constraintToParameters(slam3d::Constraint::Ptr constraint
 
 }
 
+ParamaterSet Neo4jConversion::createParamaterSet(const VertexObject& v) {
+    ParamaterSet params;
+    params.addParameterSet("props");
+    params.addParameterToSet("props", "label", v.label);
+    params.addParameterToSet("props", "index", v.index);
+    params.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
+    params.addParameterToSet("props", "robotName", v.robotName);
+    params.addParameterToSet("props", "sensorName", v.sensorName);
+    params.addParameterToSet("props", "typeName", v.typeName);
+    params.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
+    params.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
+    params.addParameterToSet("props", "measurementUuid", boost::lexical_cast<std::string>(v.measurementUuid));
+    params.addParameterToSet("props", "fixed", v.fixed);
 
+    return params;
+}
 }  // namespace slam3d
 

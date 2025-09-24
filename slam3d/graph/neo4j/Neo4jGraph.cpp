@@ -63,17 +63,7 @@ void Neo4jGraph::addVertex(const VertexObject& v)
 {
     std::string request = "CREATE (n:Vertex $props)";
 
-    ParamaterSet params;
-    params.addParameterSet("props");
-    params.addParameterToSet("props", "label", v.label);
-    params.addParameterToSet("props", "index", v.index);
-    params.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
-    params.addParameterToSet("props", "robotName", v.robotName);
-    params.addParameterToSet("props", "sensorName", v.sensorName);
-    params.addParameterToSet("props", "typeName", v.typeName);
-    params.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
-    params.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
-    params.addParameterToSet("props", "measurementUuid", boost::lexical_cast<std::string>(v.measurementUuid));
+    ParamaterSet params = Neo4jConversion::createParamaterSet(v);
 
     neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
 
@@ -216,17 +206,7 @@ const VertexObject Neo4jGraph::getVertex(boost::uuids::uuid id) const {
 void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
     std::string request = "MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n = $props";
 
-    ParamaterSet params;
-    params.addParameterSet("props");
-    params.addParameterToSet("props", "label", v.label);
-    params.addParameterToSet("props", "index", v.index);
-    params.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
-    params.addParameterToSet("props", "robotName", v.robotName);
-    params.addParameterToSet("props", "sensorName", v.sensorName);
-    params.addParameterToSet("props", "typeName", v.typeName);
-    params.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
-    params.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
-    params.addParameterToSet("props", "measurementUuid", boost::lexical_cast<std::string>(v.measurementUuid));
+    ParamaterSet params = Neo4jConversion::createParamaterSet(v);
 
     neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
 
