@@ -210,12 +210,10 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
-		 * @brief loads edges into solver
+		 * @brief loads the graph into solver
 		 * @details this is needed whenever the solver is changed while the graph exists
-		 * 
-		 * @param fixfirst it the first vertes should be threated as fixed
 		 */
-		void reloadEdgesToSolver(bool fixfirst = true);
+		void reloadToSolver();
 
 		/**
 		 * @brief Add a given measurement at the given pose
@@ -383,14 +381,14 @@ namespace slam3d
 		virtual const EdgeObjectList getOutEdges(IdType source) const = 0;
 
 		/**
-		 * @brief Get a list of sensors of all vertices in the graph
-		 * @return const std::set<std::string> list of all sensors within the graph
+		 * @brief Get a list of sensors that created vertices within the graph
+		 * @return list of sensor names 
 		 */
 		virtual const std::set<std::string> getVertexSensors() const;
 
 		/**
-		 * @brief Get a list of sensors of all vertices in the graph
-		 * @return const std::set<std::string> list of all sensors within the graph
+		 * @brief Get a list of sensors that created edges within the graph
+		 * @return list of sensor names 
 		 */
 		virtual const std::set<std::string> getEdgeSensors() const;
 
@@ -475,13 +473,6 @@ namespace slam3d
 		 * @param sensor
 		 */
 		virtual void removeEdge(IdType source, IdType target, const std::string& sensor) = 0;
-
-	protected:
-		/**
-		 * @brief Add the given edge to the solver.
-		 * @param eo
-		 */
-		virtual void addToSolver(const EdgeObject& eo);
 
 	protected:
 		Solver* mSolver;

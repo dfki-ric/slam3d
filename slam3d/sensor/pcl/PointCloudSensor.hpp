@@ -232,11 +232,6 @@ namespace slam3d
 		 * @param vertices
 		 */
 		PointCloud::Ptr buildMap(const VertexObjectList& vertices, const MapConfig& mapConfig = MapConfig()) const;
-
-		/**
-		 * @brief backward-compatibility version
-		 */
-		PointCloud::Ptr buildMap(const VertexObjectList& vertices, bool doRemoveOutliers, bool doDownsample = true) const;
 		
 		/**
 		 * @brief Fill ground plane around center.
