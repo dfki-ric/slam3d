@@ -218,7 +218,7 @@ namespace slam3d
 		 * @brief Build an accumulated point cloud map from given vertices.
 		 * @param vertices
 		 */
-		PointCloud::Ptr buildMap(const VertexObjectList& vertices, bool doRemoveOutliers = true, bool doDownsample = true) const;
+		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
 		
 		/**
 		 * @brief Fill ground plane around center.
