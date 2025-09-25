@@ -172,7 +172,7 @@ PointCloudSensor::~PointCloudSensor()
 
 }
 
-PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double leaf_size)
+PointCloud::Ptr PointCloudSensor::downsample(PointCloud::Ptr in, double leaf_size)
 {
 	PointCloud::Ptr out(new PointCloud);
 	if(in->size() > 0)
@@ -185,23 +185,29 @@ PointCloud::Ptr PointCloudSensor::downsample(PointCloud::ConstPtr in, double lea
 	return out;
 }
 
-PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::ConstPtr source)
+PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::Ptr source)
 {
-	return downsample(source, mScanResolution);
+	if(mScanResolution > 0)
+		return downsample(source, mScanResolution);
+	else
+		return source;
 }
 
-PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::ConstPtr in, double radius, unsigned min_neighbors) const
+PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::Ptr in, double radius, unsigned min_neighbors) const
 {
 	PointCloud::Ptr out(new PointCloud);
-	if(in->size() > 0)
+	if(in->size() > 0 && radius > 0 && min_neighbors > 0)
 	{
 		pcl::RadiusOutlierRemoval<PointType> out_removal;
 		out_removal.setInputCloud(in);
 		out_removal.setRadiusSearch(radius);
 		out_removal.setMinNeighborsInRadius(min_neighbors);
 		out_removal.filter(*out);
+		return out;
+	}else
+	{
+		return in;
 	}
-	return out;
 }
 
 PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const
@@ -214,9 +220,11 @@ PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const T
 PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices) const
 {
 	PointCloud::Ptr accu(new PointCloud);
-	for(VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++)
+
+	#pragma omp parallel for
+	for (size_t i = 0; i < vertices.size(); ++i)
 	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(it->measurementUuid);
+		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].measurementUuid);
 		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
 		if(!pcl)
 		{
@@ -224,8 +232,10 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 			throw BadMeasurementType();
 		}
 		
-		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (it->correctedPose * pcl->getSensorPose()));
-		*accu += *tempCloud;
+		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (vertices[i].correctedPose * pcl->getSensorPose()));
+
+		#pragma omp critical 
+		*accu += *tempCloud; 
 	}
 	return accu;
 }

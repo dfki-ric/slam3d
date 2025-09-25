@@ -172,7 +172,7 @@ namespace slam3d
 		 * @param source
 		 * @param resolution 
 		 */
-		static PointCloud::Ptr downsample(PointCloud::ConstPtr source, double resolution);
+		static PointCloud::Ptr downsample(PointCloud::Ptr source, double resolution);
 		
 		/**
 		 * @brief Reduces the size of the source cloud by sampling with internal scan resolution.
@@ -181,7 +181,7 @@ namespace slam3d
 		 * given to addMeasurement().
 		 * @param source
 		 */
-		PointCloud::Ptr downsampleScan(PointCloud::ConstPtr source);
+		PointCloud::Ptr downsampleScan(PointCloud::Ptr source);
 		
 		/**
 		 * @brief Transform source cloud by given transformation.
@@ -197,7 +197,7 @@ namespace slam3d
 		 * @param radius
 		 * @param min_neighbors
 		 */
-		PointCloud::Ptr removeOutliers(PointCloud::ConstPtr source, double radius, unsigned min_neighbors) const;
+		PointCloud::Ptr removeOutliers(PointCloud::Ptr source, double radius, unsigned min_neighbors) const;
 		
 		/**
 		 * @brief Creates a single point cloud that contains all measurements in vertices.

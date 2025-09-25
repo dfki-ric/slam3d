@@ -45,7 +45,46 @@ Graph::~Graph()
 
 void Graph::setSolver(Solver* solver)
 {
+	if(mSolver)
+	{
+		delete mSolver;
+	}
 	mSolver = solver;
+}
+
+void Graph::reloadToSolver()
+{
+	if(!mSolver)
+	{
+		mLogger->message(ERROR, "A solver must be set before reloadToSolver() is called!");
+		return;
+	}
+
+	// clear current solver
+	mSolver->clear();
+
+	// add all vertices 
+	VertexObjectList vertices = getAllVertices();
+	for (const auto& vertex : vertices)
+	{
+		mSolver->addVertex(vertex.index, vertex.correctedPose);
+		if(vertex.fixed)
+		{
+			mSolver->setFixed(vertex.index);
+		}
+	}
+
+	// add all edges after vertices are defined
+	for (const auto& vertex : vertices)
+	{
+		for (const auto& edge : getOutEdges(vertex.index))
+		{
+			if (edge.constraint->getType() != TENTATIVE)
+			{
+				mSolver->addEdge(edge.source, edge.target, edge.constraint);
+			}
+		}
+	}
 }
 
 void Graph::writeGraphToFile(const std::string &name)
@@ -105,6 +144,8 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	VertexObject vo;
 	vo.init(m, id);
 	vo.correctedPose = corrected;
+	vo.fixed = mFixNext;
+	mFixNext = false;
 	addVertex(vo);
 	mStorage->add(m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
@@ -116,11 +157,9 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
 	if(mSolver)
 	{
 		mSolver->addVertex(id, corrected);
-		if(mFixNext)
+		if(vo.fixed)
 		{
-			mLogger->message(INFO, (boost::format("Fixed position of vertex %1% in backend.") % id).str());
 			mSolver->setFixed(id);
-			mFixNext = false;
 		}
 	}
 	return id;
@@ -143,12 +182,6 @@ void Graph::addConstraint(IdType source_id, IdType target_id, Constraint::Ptr c)
 	eo.target = target_id;
 	eo.constraint = c;
 	addEdge(eo);
-	addToSolver(eo);
-}
-
-void Graph::addToSolver(const EdgeObject& eo)
-{
-	mConstraintsAdded++;
 	mLogger->message(INFO, (boost::format("%3% created edge from node %1% to node %2% of type %4%.")
 	 % eo.source % eo.target % eo.constraint->getSensorName() % eo.constraint->getTypeName()).str());
 	
@@ -156,6 +189,7 @@ void Graph::addToSolver(const EdgeObject& eo)
 	if(mSolver)
 	{
 		mSolver->addEdge(eo.source, eo.target, eo.constraint);
+		mConstraintsAdded++;
 	}
 }
 
@@ -188,6 +222,26 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
 }
 
+const std::set<std::string> Graph::getVertexSensors() const
+{
+	std::set<std::string> sensors;
+	for (const auto& vertex : getAllVertices())
+	{
+		sensors.insert(vertex.sensorName);
+	}
+	return sensors;
+}
+
+const std::set<std::string> Graph::getEdgeSensors() const
+{
+	std::set<std::string> sensors;
+	for (const auto& edge : getEdges(getAllVertices()))
+	{
+		sensors.insert(edge.constraint->getSensorName());
+	}
+	return sensors;
+}
+
 Measurement::Ptr Graph::getMeasurement(IdType id)
 {
 	return mStorage->get(getVertex(id).measurementUuid);
@@ -201,11 +255,18 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 {
 	VertexObjectList vertices;
-	for(auto sensor : sensors)
+	if(sensors.empty())
 	{
-		VertexObjectList v = getVerticesFromSensor(sensor);
-		vertices.insert(vertices.end(), v.begin(), v.end());
+		vertices = getAllVertices();
+	}else
+	{
+		for(auto sensor : sensors)
+		{
+			VertexObjectList v = getVerticesFromSensor(sensor);
+			vertices.insert(vertices.end(), v.begin(), v.end());
+		}
 	}
+
 	int numOfVertices = vertices.size();
 	if(numOfVertices == 0)
 	{
@@ -228,7 +289,7 @@ void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
 	mNeighborIndex.buildIndex(points);
 }
 
-const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius) const
+const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const std::string& sensortype) const
 {
 	// Fill in the query point
 	flann::Matrix<float> query(new float[3], 1, 3);
@@ -249,8 +310,12 @@ const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radiu
 	std::vector<NeighborIndex::DistanceType>::iterator d = distances[0].begin();
 	for(; it < neighbors[0].end(); ++it, ++d)
 	{
-		result.push_back(getVertex(mNeighborMap.at(*it)));
-		mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mNeighborMap.at(*it) % *d).str());
+		VertexObject vertex = getVertex(mNeighborMap.at(*it));
+		if (sensortype.empty() || vertex.typeName == sensortype)
+		{
+			result.push_back(vertex);
+			mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mNeighborMap.at(*it) % *d).str());
+		}
 	}
 	
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());

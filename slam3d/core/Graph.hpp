@@ -210,6 +210,12 @@ namespace slam3d
 		void setSolver(Solver* solver);
 
 		/**
+		 * @brief loads the graph into solver
+		 * @details this is needed whenever the solver is changed while the graph exists
+		 */
+		void reloadToSolver();
+
+		/**
 		 * @brief Add a given measurement at the given pose
 		 * @details This method creates the VertexObject, adds the new vertex to
 		 * the solver, adds it to the index and then calls the method below to
@@ -295,7 +301,7 @@ namespace slam3d
 		 * @brief Create the index for nearest neighbor search of nodes.
 		 * @param sensors index nodes of these sensors
 		 */
-		void buildNeighborIndex(const std::set<std::string>& sensors);
+		virtual void buildNeighborIndex(const std::set<std::string>& sensors = std::set<std::string>());
 
 		/**
 		 * @brief Search for nodes in the graph near the given pose.
@@ -307,7 +313,7 @@ namespace slam3d
 		 * @param radius The radius within nodes should be returned
 		 * @return list of spatially near vertices
 		 */
-		const VertexObjectList getNearbyVertices(const Transform &tf, float radius) const;
+		virtual const VertexObjectList getNearbyVertices(const Transform &tf, float radius, const std::string& sensortype = "") const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -373,6 +379,18 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual const EdgeObjectList getOutEdges(IdType source) const = 0;
+
+		/**
+		 * @brief Get a list of sensors that created vertices within the graph
+		 * @return list of sensor names 
+		 */
+		virtual const std::set<std::string> getVertexSensors() const;
+
+		/**
+		 * @brief Get a list of sensors that created edges within the graph
+		 * @return list of sensor names 
+		 */
+		virtual const std::set<std::string> getEdgeSensors() const;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
@@ -455,13 +473,6 @@ namespace slam3d
 		 * @param sensor
 		 */
 		virtual void removeEdge(IdType source, IdType target, const std::string& sensor) = 0;
-
-	protected:
-		/**
-		 * @brief Add the given edge to the solver.
-		 * @param eo
-		 */
-		virtual void addToSolver(const EdgeObject& eo);
 
 	protected:
 		Solver* mSolver;
