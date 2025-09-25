@@ -138,11 +138,6 @@ namespace slam3d
 		                                         const Transform& odometry,
 		                                         bool loop);
 		
-		Transform align(PointCloudMeasurement::Ptr source,
-						PointCloudMeasurement::Ptr target,
-						const Transform& guess,
-						const RegistrationParameters& config);
-
 		/**
 		 * @brief Sets parameters for the internal pointcloud registration.
 		 * The standard set is always used to calculate the final transformation.
