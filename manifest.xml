@@ -10,8 +10,6 @@
   <depend package="slam/g2o" />
   <depend package="slam/pclomp" optional="1" />
   <depend package="slam/pointmatcher" optional="1" />
-  <depend package="database/redis/hiredis" optional="1" />
-  <depend package="restcpp" optional="1"/>
   <depend package="suitesparse" />
   <depend package="jsoncpp" />
   <depend package="flann" />
