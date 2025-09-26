@@ -1,4 +1,4 @@
-#include "MeasurementStorage.hpp"
+﻿#include "MeasurementStorage.hpp"
 
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
@@ -7,12 +7,19 @@ using namespace slam3d;
 
 void MeasurementStorage::add(Measurement::Ptr measurement)
 {
-	mMeasurements[measurement->getUniqueId()] = measurement;
+	if (enabled) {
+		mMeasurements[measurement->getUniqueId()] = measurement;
+	}
+
 }
 
 Measurement::Ptr MeasurementStorage::get(const boost::uuids::uuid& uuid)
 {
-	return mMeasurements.at(uuid);
+	try {
+		return mMeasurements.at(uuid);
+	}catch (const std::out_of_range& e) {
+		return Measurement::Ptr();
+	}
 }
 
 Measurement::Ptr MeasurementStorage::get(const std::string& key)
@@ -23,4 +30,14 @@ Measurement::Ptr MeasurementStorage::get(const std::string& key)
 bool MeasurementStorage::contains(const boost::uuids::uuid& key)
 {
 	return mMeasurements.count(key);
+}
+
+void MeasurementStorage::enable()
+{
+	enabled = true;
+}
+
+void MeasurementStorage::disable()
+{
+	enabled = false;
 }
