@@ -20,8 +20,6 @@ if (NOT jsoncpp_FOUND)
   endif()
 endif()
 
-pkg_check_modules(flann REQUIRED IMPORTED_TARGET flann)
-
 # Optional libraries
 find_package(libpointmatcher 1.3.1)
 find_package(GDAL)
