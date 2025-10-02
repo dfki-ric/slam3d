@@ -30,7 +30,7 @@
 using namespace slam3d;
 
 Graph::Graph(Logger* log, MeasurementStorage* storage)
- : mLogger(log), mStorage(storage), mNeighborIndex(flann::KDTreeSingleIndexParams())
+ : mLogger(log), mStorage(storage)
 {
 	// Initialize some members
 	mSolver = NULL;	
@@ -252,72 +252,26 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 	return mStorage->get(id);
 }
 
-void Graph::buildNeighborIndex(const std::set<std::string>& sensors)
+const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const std::set<std::string>& sensors) const
 {
-	VertexObjectList vertices;
-	if(sensors.empty())
-	{
-		vertices = getAllVertices();
-	}else
-	{
-		for(auto sensor : sensors)
-		{
-			VertexObjectList v = getVerticesFromSensor(sensor);
-			vertices.insert(vertices.end(), v.begin(), v.end());
-		}
-	}
-
-	int numOfVertices = vertices.size();
-	if(numOfVertices == 0)
-	{
-		throw std::runtime_error("Cannot build neighbor index, vertex list is empty.");
-	}
-	flann::Matrix<float> points(new float[numOfVertices * 3], numOfVertices, 3);
-
-	IdType row = 0;
-	mNeighborMap.clear();
-	for(VertexObjectList::iterator it = vertices.begin(); it < vertices.end(); ++it)
-	{
-		Transform::TranslationPart t = it->correctedPose.translation();
-		points[row][0] = t[0];
-		points[row][1] = t[1];
-		points[row][2] = t[2];
-		mNeighborMap.insert(std::map<IdType, IdType>::value_type(row, it->index));
-		row++;
-	}
-	
-	mNeighborIndex.buildIndex(points);
-}
-
-const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const std::string& sensortype) const
-{
-	// Fill in the query point
-	flann::Matrix<float> query(new float[3], 1, 3);
-	Transform::ConstTranslationPart t = tf.translation();
-	query[0][0] = t[0];
-	query[0][1] = t[1];
-	query[0][2] = t[2];
-	mLogger->message(DEBUG, (boost::format("Doing NN search from (%1%, %2%, %3%) with radius %4%.")%t[0]%t[1]%t[2]%radius).str());
-	
-	// Find points nearby
-	std::vector< std::vector<int> > neighbors;
-	std::vector< std::vector<NeighborIndex::DistanceType> > distances;
-	int found = mNeighborIndex.radiusSearch(query, neighbors, distances, radius, mSearchParams);
-	
-	// Write the result
+	// get Vertex list from specific graph implementation
+	VertexObjectList allVertices = getAllVertices();
 	VertexObjectList result;
-	std::vector<int>::iterator it = neighbors[0].begin();
-	std::vector<NeighborIndex::DistanceType>::iterator d = distances[0].begin();
-	for(; it < neighbors[0].end(); ++it, ++d)
-	{
-		VertexObject vertex = getVertex(mNeighborMap.at(*it));
-		if (sensortype.empty() || vertex.typeName == sensortype)
-		{
-			result.push_back(vertex);
-			mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % mNeighborMap.at(*it) % *d).str());
+
+	// reserve space for all vertices (to avoid memory allocation during push_back calls)
+	result.reserve(allVertices.size());
+
+	for (const auto& vertex : allVertices) {
+		if (sensors.empty() || sensors.count(vertex.typeName)) {
+			double d = (vertex.correctedPose.translation()-tf.translation()).norm();
+			if (d < radius) {
+				result.push_back(vertex);
+				mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % vertex.index % d).str());
+			}
 		}
 	}
-	
-	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % found).str());
+	// free leftover memory
+	result.shrink_to_fit();
+	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % result.size()).str());
 	return result;
 }

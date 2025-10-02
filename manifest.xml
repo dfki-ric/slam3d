@@ -14,7 +14,6 @@
   <depend package="restcpp" optional="1"/>
   <depend package="suitesparse" />
   <depend package="jsoncpp" />
-  <depend package="flann" />
   
   <keywords>
     <keyword>Mapping</keyword>
