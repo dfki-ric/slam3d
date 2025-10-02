@@ -260,11 +260,13 @@ const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radiu
 
 	// reserve space for all vertices (to avoid memory allocation during push_back calls)
 	result.reserve(allVertices.size());
-
-	for (const auto& vertex : allVertices) {
-		if (sensors.empty() || sensors.count(vertex.typeName)) {
+	for (const auto& vertex : allVertices)
+	{
+		if (sensors.empty() || sensors.count(vertex.sensorName))
+		{
 			double d = (vertex.correctedPose.translation()-tf.translation()).norm();
-			if (d < radius) {
+			if (d < radius)
+			{
 				result.push_back(vertex);
 				mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % vertex.index % d).str());
 			}
