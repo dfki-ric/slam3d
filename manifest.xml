@@ -12,7 +12,6 @@
   <depend package="slam/pointmatcher" optional="1" />
   <depend package="suitesparse" />
   <depend package="jsoncpp" />
-  <depend package="flann" />
   
   <keywords>
     <keyword>Mapping</keyword>

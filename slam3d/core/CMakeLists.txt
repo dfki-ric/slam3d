@@ -18,7 +18,7 @@ target_link_libraries(core
 		Eigen3::Eigen
 		Boost::thread
 		Boost::serialization
-		PkgConfig::flann)
+)
 
 target_compile_features(core PUBLIC cxx_alias_templates)
 
