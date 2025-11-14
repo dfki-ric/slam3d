@@ -21,5 +21,5 @@ if (NOT jsoncpp_FOUND)
 endif()
 
 # Optional libraries
-find_package(libpointmatcher 1.3.1)
+find_package(libpointmatcher)
 find_package(GDAL)
