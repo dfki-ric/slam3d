@@ -28,8 +28,3 @@ install(
 		lib/cmake/slam3d
 )
 
-# Install catkin package-manifest
-install(
-	FILES package.xml
-	DESTINATION share/slam3d
-)
