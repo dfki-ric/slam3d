@@ -166,7 +166,7 @@ Transform align(PointCloudMeasurement::Ptr source,
 	const Eigen::AngleAxisd rot(delta.linear());
 	if(delta.translation().norm() > config.max_translation || rot.angle() > config.max_rotation)
 	{
-		throw NoMatch("coarse ICP result is to far away from guess");
+		throw NoMatch("ICP result is to far away from guess");
 	}
 	return result;
 }
