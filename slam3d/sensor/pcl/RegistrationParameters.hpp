@@ -39,68 +39,60 @@ namespace slam3d
 	// ----------------------------------
 
 		// the applied registration algorithm (ICP, GICP, NDT)
-		RegistrationAlgorithm registration_algorithm;
+		RegistrationAlgorithm registration_algorithm = GICP;
 
 		// pointclouds will be downsampled to this density before the alignement
-		double point_cloud_density;
+		double point_cloud_density = 0.2;
 
 		// maximum fitness score (e.g., sum of squared distances from the source to the target)
 		// to accept the registration result
-		double max_fitness_score;
+		double max_fitness_score = 2.0;
+		
+		// maximum accepted translation during alignment
+		double max_translation = 1.0;
+		
+		// maximum accepted rotation during alignment
+		double max_rotation = 1.0;
 		
 	// General registration parameters
 	// -------------------------------
 
 		// maximum allowed distance error before the algorithm will be considered to have converged
-		double euclidean_fitness_epsilon;
+		double euclidean_fitness_epsilon = 1.0;
 
 		// transformation epsilon in order for an optimization to be considered as having converged to the final solution
-		double transformation_epsilon;
+		double transformation_epsilon = 1e-5;
 
 		// maximum distance threshold between a point and its nearest neighbor
 		// correspondent in order to be considered in the alignment process
-		double max_correspondence_distance;
+		double max_correspondence_distance = 2.5;
 
 		// the maximum number of iterations the internal optimization should run for
-		int maximum_iterations;
+		int maximum_iterations = 50;
 
 	// GICP parameters
 	// ---------------
 	
 		// maximum allowable difference between two consecutive rotations in order
 		// for an optimization to be considered as having converged to the final solution.
-		double rotation_epsilon;
+		double rotation_epsilon = 2e-3;
 
 		// number of neighbors to use when computing covariances
-		int correspondence_randomness;
+		int correspondence_randomness = 20;
 
 		// maximum number of iterations for the optimizer
-		int maximum_optimizer_iterations;
+		int maximum_optimizer_iterations = 20;
 
 	// NDT parameters
 	// --------------
 
 		// side length of voxels in the grid
-		float resolution;
+		float resolution = 1.0;
 
 		// the newton line search maximum step length
-		double step_size;
+		double step_size = 0.05;
 
 		// point cloud outlier ratio
-		double outlier_ratio;
-
-		RegistrationParameters() : registration_algorithm(GICP),
-		                           point_cloud_density(0.2),
-		                           max_fitness_score(2.0),
-		                           euclidean_fitness_epsilon(1.0),
-		                           transformation_epsilon(1e-5),
-		                           max_correspondence_distance(2.5),
-		                           maximum_iterations(50), 
-		                           rotation_epsilon(2e-3),
-		                           correspondence_randomness(20),
-		                           maximum_optimizer_iterations(20),
-		                           resolution(1.0),
-		                           step_size(0.05),
-		                           outlier_ratio(0.35){};
+		double outlier_ratio = 0.35;
 	};
 }
