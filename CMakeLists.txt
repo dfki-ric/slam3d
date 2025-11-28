@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(SLAM3D VERSION "3.0.0")
+project(slam3d VERSION "3.0.0")
 enable_testing()
 
 include(slam3d-dependencies.cmake)
@@ -28,8 +28,3 @@ install(
 		lib/cmake/slam3d
 )
 
-# Install catkin package-manifest
-install(
-	FILES package.xml
-	DESTINATION share/slam3d
-)

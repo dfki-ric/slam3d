@@ -123,7 +123,7 @@ Transform align(PointCloudMeasurement::Ptr source,
 	PointCloud::Ptr filtered_source = source->getPointCloud();
 	PointCloud::Ptr filtered_target = target->getPointCloud();
 
-	if (!filtered_source || !filtered_target) {
+	if (!filtered_source || !filtered_target || filtered_source->size() == 0 || filtered_target->size() == 0) {
 		return Transform::Identity();
 	}
 
@@ -138,21 +138,26 @@ Transform align(PointCloudMeasurement::Ptr source,
 		throw NoMatch("Too few points after filtering, you may have to decrease 'point_cloud_density'.");
 	
 	// Configure Generalized-ICP
+	Transform result;
 	switch(config.registration_algorithm)
 	{
 	case GICP:
-		return doICP< pcl::GeneralizedIterativeClosestPoint<PointType, PointType> >
+		result = doICP< pcl::GeneralizedIterativeClosestPoint<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 	case NDT:
-		return doNDT< pcl::NormalDistributionsTransform<PointType, PointType> >
+		result = doNDT< pcl::NormalDistributionsTransform<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 #ifdef USE_PCLOMP
 	case GICP_OMP:
-		return doICP< pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> >
+		result = doICP< pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 	case NDT_OMP:
-		return doNDT< pclomp::NormalDistributionsTransform<PointType, PointType> >
+		result = doNDT< pclomp::NormalDistributionsTransform<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 #else
 	case GICP_OMP:
 	case NDT_OMP:
@@ -161,6 +166,14 @@ Transform align(PointCloudMeasurement::Ptr source,
 	default:
 		throw std::runtime_error("Unknown registration algorithm specified.");
 	}
+	
+	const Transform delta = guess.inverse() * result;
+	const Eigen::AngleAxisd rot(delta.linear());
+	if(delta.translation().norm() > config.max_translation || rot.angle() > config.max_rotation)
+	{
+		throw NoMatch("coarse ICP result is to far away from guess");
+	}
+	return result;
 }
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
