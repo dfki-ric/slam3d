@@ -123,7 +123,7 @@ Transform align(PointCloudMeasurement::Ptr source,
 	PointCloud::Ptr filtered_source = source->getPointCloud();
 	PointCloud::Ptr filtered_target = target->getPointCloud();
 
-	if (!filtered_source || !filtered_target) {
+	if (!filtered_source || !filtered_target || filtered_source->size() == 0 || filtered_target->size() == 0) {
 		return Transform::Identity();
 	}
 
