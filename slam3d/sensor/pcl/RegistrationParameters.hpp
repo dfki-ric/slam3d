@@ -27,7 +27,7 @@
 
 namespace slam3d
 {
-	enum RegistrationAlgorithm {ICP, GICP, GICP_OMP, NDT, NDT_OMP};
+	enum RegistrationAlgorithm {ICP, GICP, GICP_OMP, NDT, NDT_OMP, C_GICP};
 
 	/**
 	 * @class GICPConfiguration

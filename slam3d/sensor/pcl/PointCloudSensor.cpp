@@ -26,6 +26,7 @@
 #include "PointCloudSensor.hpp"
 
 #include <slam3d/core/Mapper.hpp>
+#include "ConstrainedGICP.hpp"
 
 #ifdef USE_PCLOMP
 	#include <pclomp/gicp_omp.h>
@@ -54,6 +55,7 @@ Transform doICP(PointCloud::Ptr source,
           const RegistrationParameters& config)
 {
 	ICP_TYPE icp;
+//	ConstrainedGICP icp;
 	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
 	icp.setMaximumIterations(config.maximum_iterations);
 	icp.setTransformationEpsilon(config.transformation_epsilon);
@@ -140,10 +142,15 @@ Transform align(PointCloudMeasurement::Ptr source,
 		result = doICP< pcl::GeneralizedIterativeClosestPoint<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
 		break;
+	case C_GICP:
+		result = doICP< slam3d::ConstrainedGICP >  // TODO pass weight of guess vs ICP during optimization
+			(filtered_source, filtered_target, guess, config);
+		break;
 	case NDT:
 		result = doNDT< pcl::NormalDistributionsTransform<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
 		break;
+
 #ifdef USE_PCLOMP
 	case GICP_OMP:
 		result = doICP< pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> >
