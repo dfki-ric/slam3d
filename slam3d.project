@@ -86,6 +86,8 @@
       </VirtualDirectory>
       <File Name="slam3d/sensor/CMakeLists.txt"/>
       <VirtualDirectory Name="pcl">
+        <File Name="slam3d/sensor/pcl/ConstrainedGICP.hpp"/>
+        <File Name="slam3d/sensor/pcl/ConstrainedGICP.cpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensorTest.cpp"/>
         <File Name="slam3d/sensor/pcl/CMakeLists.txt"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.cpp"/>
