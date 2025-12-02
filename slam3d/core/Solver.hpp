@@ -150,6 +150,9 @@ namespace slam3d
 			case ORIENTATION:
 				addEdgeOrientation(source, boost::static_pointer_cast<OrientationConstraint>(c));
 				break;
+			case POSE:
+				addEdgePose(source, boost::static_pointer_cast<PoseConstraint>(c));
+				break;
 			default:
 				std::ostringstream msg;
 				msg << "Edge with type " << c->getTypeName() << " is not known to the Solver!";
@@ -187,6 +190,13 @@ namespace slam3d
 		 * @param ori constraint describing the measured orientation
 		 */
 		virtual void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr ori) = 0;
+		
+		/**
+		 * @brief Adds a pose edge to a vertex in the graph.
+		 * @param vertex id of the vertex this edge connects to
+		 * @param pose constraint describing the measured pose
+		 */
+		virtual void addEdgePose(IdType vertex, PoseConstraint::Ptr pose) = 0;
 		
 		/**
 		 * @brief Fix the vertex with the given id, so it is not moved during optimization.
