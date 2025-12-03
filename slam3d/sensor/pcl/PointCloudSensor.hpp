@@ -226,6 +226,13 @@ namespace slam3d
 		 */
 		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
 
+		/**
+		 * @brief Load a PLY and add it as measurement to the graph.
+		 * @param path load ply from this file
+		 * @param robot the name which will be added to the measurement
+		 */
+		void loadPLY(const std::string& path, const std::string& robot);
+
 	protected:
 		RegistrationParameters mFineConfiguration;
 		RegistrationParameters mCoarseConfiguration;
