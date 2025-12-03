@@ -150,7 +150,7 @@ void G2oSolver::addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr ori
 void G2oSolver::addEdgePose(IdType vertex, PoseConstraint::Ptr pose)
 {
 	boost::unique_lock<boost::mutex> guard(mMutex);
-	g2o::EdgePosePrior* prior = new g2o::EdgePosePrior(pose->getRelativePose(), pose->getSensorPose());
+	g2o::EdgePosePrior* prior = new g2o::EdgePosePrior(pose->getRelativePose());
 	prior->vertices()[0] = mInt->optimizer.vertex(vertex);
 	prior->setMeasurement(pose->getRelativePose().cast<double>());
 	prior->setInformation(pose->getInformation().cast<double>());
