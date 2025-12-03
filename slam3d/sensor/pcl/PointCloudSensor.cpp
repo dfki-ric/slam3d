@@ -124,6 +124,11 @@ Transform align(PointCloudMeasurement::Ptr source,
 	// Downsample the scans
 	PointCloud::Ptr filtered_source = source->getPointCloud();
 	PointCloud::Ptr filtered_target = target->getPointCloud();
+
+	if (!filtered_source || !filtered_target || filtered_source->size() == 0 || filtered_target->size() == 0) {
+		return Transform::Identity();
+	}
+
 	if(config.point_cloud_density > 0)
 	{
 		filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density);
@@ -241,10 +246,11 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	{
 		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].measurementUuid);
 		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
-		if(!pcl)
+		if(!pcl || pcl->getPointCloud()->size() == 0)
 		{
-			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
-			throw BadMeasurementType();
+			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not available or not a point cloud!");
+			// throw BadMeasurementType();
+			continue;
 		}
 		
 		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (vertices[i].correctedPose * pcl->getSensorPose()));
@@ -276,10 +282,13 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	// Cast to this sensors measurement type
 	PointCloudMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(source);
 	PointCloudMeasurement::Ptr targetCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(target);
-	if(!sourceCloud || !targetCloud)
+	if((!sourceCloud || !targetCloud) || sourceCloud->getPointCloud()->size() == 0 || targetCloud->getPointCloud()->size() == 0)
 	{
 		mLogger->message(ERROR, "Measurement given to createConstraint() is not a PointCloud!");
-		throw BadMeasurementType();
+		// throw BadMeasurementType();
+		// is there was an emptyx cloud, use the guess
+		Covariance<6> covariance = Covariance<6>::Identity() * mCovarianceScale;
+		return Constraint::Ptr(new SE3Constraint(mName, guess, covariance.inverse()));
 	}
 	
 	// For large loops, refine guess by a coarse ICP

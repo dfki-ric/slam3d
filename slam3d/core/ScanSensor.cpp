@@ -55,6 +55,15 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
 	}
 
 	Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
+
+	if (!source.get()) {
+		IdType newVertex = mMapper->addMeasurement(m);
+		mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
+		mLastTransform = Transform::Identity();
+		mLastVertex = newVertex;
+		return true;
+	}
+
 	try
 	{
 		Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
@@ -100,10 +109,34 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 		return true;
 	}
 	
+	Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
+
+
+
 	// Add measurement if sufficient movement is reported by the odometry
 	mLastTransform = mLastOdometry.inverse() * odom;
 	if(checkMinDistance(mLastTransform))
 	{
+		if (!source.get()) {
+			IdType newVertex = mMapper->addMeasurement(m);
+			mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
+
+			Constraint::Ptr c(new SE3Constraint("paused", mLastTransform, Covariance<6>::Identity()));
+			SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
+			mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
+			mLastTransform = se3->getRelativePose();
+			Transform last_pose = mMapper->getGraph()->getVertex(mLastVertex).correctedPose;
+			mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
+
+
+			mLastOdometry = odom;
+			mLastVertex = newVertex;
+			mLastTransform = Transform::Identity();
+			return true;
+		}
+
+
+
 		IdType newVertex = mMapper->addMeasurement(m);
 		Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
 		if(mLinkPrevious)
@@ -119,7 +152,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 				{
 					mLastTransform = se3->getRelativePose();
 				}
-				Transform last_pose = mMapper->getGraph()->getVertex(mLastVertex).correctedPose;
+				// Transform last_pose = mMapper->getGraph()->getVertex(mLastVertex).correctedPose;
 				mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
 			}catch(std::exception &e)
 			{
