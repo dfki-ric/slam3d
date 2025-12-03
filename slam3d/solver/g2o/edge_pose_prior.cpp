@@ -1,5 +1,6 @@
-// slam3d - Frontend for graph-based SLAM
-// Copyright (C) 2017 S. Kasperski
+// g2o - General Graph Optimization
+// Copyright (C) 2019 S. Kasperski
+// All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -23,45 +24,33 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#include <g2o/types/slam3d/edge_se3_prior.h>
+#include <g2o/types/slam3d/isometry3d_gradients.h>
+#include <iostream>
 
-#include <slam3d/core/Solver.hpp>
-#include <boost/thread/mutex.hpp>
+#include "edge_pose_prior.h"
 
-namespace slam3d
-{	
-	/**
-	 * @class G2oSolver
-	 * @brief A solver for graph otimization that uses the g2o-backend.
-	 * @details See: https://github.com/RainerKuemmerle/g2o for documentation
-	 * on the backend.
-	 */
-	class G2oSolver : public Solver
-	{
-	public:
-		G2oSolver(Logger* logger);
-		~G2oSolver();
-		
-		void addVertex(IdType id, const Transform& pose);
-		void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3);
-		void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav);
-		void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos);
-		void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient);
-		void addEdgePose(IdType vertex, PoseConstraint::Ptr pose);
-		void setFixed(IdType id);
-		bool compute(unsigned iterations);
-		void clear();
-		void saveGraph(std::string filename);
-		
-		IdPoseVector getCorrections();
-		
-	protected:
-		IdPoseVector mCorrections;
-		bool mInitialized;
-		boost::mutex mMutex;
+namespace g2o {
+  using namespace std;
 
-	private:
-		struct Internal;
-		std::unique_ptr<Internal> mInt;
-	};
+  EdgePosePrior::EdgePosePrior(const Isometry3& m)
+  : BaseUnaryEdge<6, Isometry3, VertexSE3>() {
+    _measurement = m;
+    _inverse_measurement = m.inverse();
+    information().setIdentity();
+  }
+
+  bool EdgePosePrior::read(std::istream& is) {
+    return false;
+  }
+
+  bool EdgePosePrior::write(std::ostream& os) const {
+    return false;
+}
+
+  void EdgePosePrior::computeError() {
+    VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
+    const Isometry3 delta = _inverse_measurement * vertex->estimate();
+    _error = internal::toVectorMQT(delta);
+  }
 }

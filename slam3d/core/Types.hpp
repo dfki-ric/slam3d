@@ -40,8 +40,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
-#include <iostream>
 
 
 namespace slam3d
@@ -134,7 +132,7 @@ namespace slam3d
 		Transform mInverseSensorPose;
 	};
 	
-	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION};
+	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION, POSE};
 	
 	/**
 	 * @class Constraint
@@ -172,9 +170,10 @@ namespace slam3d
 		
 		SE3Constraint(const std::string& s, const Transform& t, const Covariance<6>& i)
 		: Constraint(s), mRelativePose(t), mInformation(i) {}
+		virtual ~SE3Constraint(){}
 
-		ConstraintType getType() { return SE3; }
-		const char* getTypeName() { return "SE(3)"; }
+		virtual ConstraintType getType() { return SE3; }
+		virtual const char* getTypeName() { return "SE(3)"; }
 		
 		const Transform& getRelativePose() const { return mRelativePose; }
 		const Covariance<6>& getInformation() const { return mInformation; }
@@ -183,6 +182,22 @@ namespace slam3d
 		Transform mRelativePose;
 		Covariance<6> mInformation;
 		
+	};
+
+	/**
+	 * @class PoseConstraint
+	 * @brief 
+	 */
+	class PoseConstraint : public SE3Constraint
+	{
+	public:
+		typedef boost::shared_ptr<PoseConstraint> Ptr;
+		
+		PoseConstraint(const std::string& s, const Transform& t, const Covariance<6>& i)
+		: SE3Constraint(s, t, i) {}
+
+		ConstraintType getType() { return POSE; }
+		const char* getTypeName() { return "Pose"; }
 	};
 	
 	/**
