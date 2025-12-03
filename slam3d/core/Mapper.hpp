@@ -120,6 +120,14 @@ namespace slam3d
 		 */
 		virtual IdType getLastIndex() const { return mLastIndex; }
 
+		/**
+		 * @brief Fix the pose of the first node in graph.
+		 * @details It set, the mapper will create a PoseConstraint that links the
+		 * first vertex to its corrected pose after insertion. This is needed if
+		 * no global localization is used for mapping.
+		 */
+		void fixFirst(bool fix = true) { mFixFirst = fix; }
+
 	protected:
 		SensorList mSensors;
 		PoseSensorList mPoseSensors;
@@ -127,5 +135,6 @@ namespace slam3d
 		Graph* mGraph;
 		IdType mLastIndex;
 		Transform mStartPose;
+		bool mFixFirst = false;
 	};
 }

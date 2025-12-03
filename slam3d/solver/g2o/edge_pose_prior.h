@@ -1,5 +1,6 @@
-// slam3d - Frontend for graph-based SLAM
-// Copyright (C) 2017 S. Kasperski
+// g2o - General Graph Optimization
+// Copyright (C) 2019 S. Kasperski
+// All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -23,45 +24,31 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#ifndef G2O_EDGE_POSE_PRIOR_H_
+#define G2O_EDGE_POSE_PRIOR_H_
 
-#include <slam3d/core/Solver.hpp>
-#include <boost/thread/mutex.hpp>
+#include <g2o/types/slam3d/vertex_se3.h>
+#include <g2o/core/base_unary_edge.h>
+#include <g2o/types/slam3d/parameter_se3_offset.h>
+#include <g2o/types/slam3d/g2o_types_slam3d_api.h>
+namespace g2o {
+	
+  class G2O_TYPES_SLAM3D_API EdgePosePrior : public BaseUnaryEdge<6, Isometry3, VertexSE3> {
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EdgePosePrior(const Isometry3& measurement);
+    virtual bool read(std::istream& is);
+    virtual bool write(std::ostream& os) const;
 
-namespace slam3d
-{	
-	/**
-	 * @class G2oSolver
-	 * @brief A solver for graph otimization that uses the g2o-backend.
-	 * @details See: https://github.com/RainerKuemmerle/g2o for documentation
-	 * on the backend.
-	 */
-	class G2oSolver : public Solver
-	{
-	public:
-		G2oSolver(Logger* logger);
-		~G2oSolver();
-		
-		void addVertex(IdType id, const Transform& pose);
-		void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3);
-		void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav);
-		void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos);
-		void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient);
-		void addEdgePose(IdType vertex, PoseConstraint::Ptr pose);
-		void setFixed(IdType id);
-		bool compute(unsigned iterations);
-		void clear();
-		void saveGraph(std::string filename);
-		
-		IdPoseVector getCorrections();
-		
-	protected:
-		IdPoseVector mCorrections;
-		bool mInitialized;
-		boost::mutex mMutex;
+    // return the error estimate as a 3-vector
+    void computeError();
+    
+    // jacobian
+//  virtual void linearizeOplus();
 
-	private:
-		struct Internal;
-		std::unique_ptr<Internal> mInt;
-	};
+  private:
+	Isometry3 _inverse_measurement;
+  };
+
 }
+#endif
