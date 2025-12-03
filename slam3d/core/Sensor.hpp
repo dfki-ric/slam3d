@@ -28,6 +28,7 @@
 #include <slam3d/core/Types.hpp>
 
 #include <set>
+#include <map>
 
 namespace slam3d
 {	

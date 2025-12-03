@@ -1,6 +1,7 @@
 # pragma once
 
 #include <slam3d/core/Types.hpp>
+#include <map>
 
 namespace slam3d
 {

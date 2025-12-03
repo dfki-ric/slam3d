@@ -40,8 +40,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
-#include <iostream>
 
 
 namespace slam3d
@@ -195,11 +193,16 @@ namespace slam3d
 	public:
 		typedef boost::shared_ptr<PoseConstraint> Ptr;
 		
-		PoseConstraint(const std::string& s, const Transform& t, const Covariance<6>& i)
-		: SE3Constraint(s, t, i){}
+		PoseConstraint(const std::string& s, const Transform& t, const Covariance<6>& i, const Transform& sp)
+		: SE3Constraint(s, t, i), mSensorPose(sp) {}
 
 		ConstraintType getType() { return POSE; }
 		const char* getTypeName() { return "Pose"; }
+
+		const Transform& getSensorPose() const { return mSensorPose; }
+
+	protected:
+		Transform mSensorPose;
 	};
 	
 	/**
