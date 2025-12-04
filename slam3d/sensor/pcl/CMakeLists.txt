@@ -25,6 +25,7 @@ target_link_libraries(sensor-pcl
 		Boost::serialization
 		${SLAM3D_REGISTRATION}
 		${PCL_SAMPLE_CONCENSUS_LIBRARIES}
+		${PCL_IO_LIBRARIES}
 )
 
 # Install header files

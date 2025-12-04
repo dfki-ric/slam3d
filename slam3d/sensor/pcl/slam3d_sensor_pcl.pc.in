@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: slam3d_sensor_pcl
 Description: Sensor module to handle pointclouds using PCL.
 Version: @SLAM3D_VERSION@
-Requires: slam3d_core pcl_registration@PCL_VERSION_SUFFIX@
+Requires: slam3d_core
 Libs: -L${libdir} -lslam3d_sensor_pcl
 Cflags: -I${includedir}
