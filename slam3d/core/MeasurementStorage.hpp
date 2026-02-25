@@ -16,7 +16,7 @@ namespace slam3d
 	class MeasurementStorage
 	{
 	public:
-
+		MeasurementStorage():enabled(true) {}
 		virtual ~MeasurementStorage() {}
 
 		/**
@@ -47,6 +47,12 @@ namespace slam3d
 		 * @throws boost::bad_lexical_cast if the given string is no valid UUID
 		 */
 		Measurement::Ptr get(const std::string& key);
+
+		void enable();
+		void disable();
+
+	protected:
+		bool enabled;
 
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
