@@ -35,8 +35,8 @@ namespace slam3d
 		GpsPoseSensor(const std::string& n, Graph* g, Logger* l);
 		~GpsPoseSensor();
 
-		void handleNewVertex(IdType vertex);
-		Transform getPose(timeval stamp);
+		void handleNewVertex(IdType vertex) override;
+		Transform getPose(timeval stamp) override;
 		
 		void update(const timeval& t, const Position& p,
 		            const Covariance<3>& c, const Transform& sp);
