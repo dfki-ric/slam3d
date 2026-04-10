@@ -375,19 +375,25 @@ namespace slam3d
 		 * @brief Get a list of sensors that created vertices within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const StringSet getVertexSensors() const;
+		virtual const StringSet getVertexSensors() const = 0;
 
 		/**
 		 * @brief Get a list of sensors that created edges within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const StringSet getEdgeSensors() const;
+		virtual const StringSet getEdgeSensors() const = 0;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesFromSensor(const StringSet& sensors = {}) const = 0;
+		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+
+		/**
+		 * @brief Gets a list of all vertices from given sensor.
+		 * @param sensor
+		 */
+		virtual const VertexObjectList getVertices(const StringSet& sensors = {}) const = 0;
 
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.

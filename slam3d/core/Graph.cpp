@@ -64,7 +64,7 @@ void Graph::reloadToSolver()
 	mSolver->clear();
 
 	// add all vertices 
-	VertexObjectList vertices = getAllVertices();
+	VertexObjectList vertices = getVertices();
 	for (const auto& vertex : vertices)
 	{
 		mSolver->addVertex(vertex.index, vertex.correctedPose);
@@ -222,26 +222,6 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
 }
 
-const std::set<std::string> Graph::getVertexSensors() const
-{
-	std::set<std::string> sensors;
-	for (const auto& vertex : getAllVertices())
-	{
-		sensors.insert(vertex.sensorName);
-	}
-	return sensors;
-}
-
-const std::set<std::string> Graph::getEdgeSensors() const
-{
-	std::set<std::string> sensors;
-	for (const auto& edge : getEdges(getAllVertices()))
-	{
-		sensors.insert(edge.constraint->getSensorName());
-	}
-	return sensors;
-}
-
 Measurement::Ptr Graph::getMeasurement(IdType id)
 {
 	return mStorage->get(getVertex(id).measurementUuid);
@@ -252,10 +232,15 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 	return mStorage->get(id);
 }
 
+const VertexObjectList Graph::getVerticesFromSensor(const std::string& sensor) const
+{
+	return getVertices({sensor});
+}
+
 const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const StringSet& sensors) const
 {
 	// get Vertex list from specific graph implementation
-	VertexObjectList allVertices = getVerticesFromSensor(sensors);
+	VertexObjectList allVertices = getVertices(sensors);
 	VertexObjectList result;
 
 	// reserve space for all vertices (to avoid memory allocation during push_back calls)

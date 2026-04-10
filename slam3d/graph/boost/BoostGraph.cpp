@@ -91,7 +91,7 @@ void BoostGraph::removeEdge(IdType source, IdType target, const std::string& sen
 	boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
 }
 
-const VertexObjectList BoostGraph::getVerticesFromSensor(const StringSet& sensors) const
+const VertexObjectList BoostGraph::getVertices(const StringSet& sensors) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
@@ -117,6 +117,28 @@ const VertexObjectList BoostGraph::getVerticesByType(const std::string& type) co
 		}
 	}
 	return objectList;
+}
+
+const StringSet BoostGraph::getVertexSensors() const
+{
+	std::set<std::string> sensors;
+	VertexRange vertices = boost::vertices(mPoseGraph);
+	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
+	{
+		sensors.insert(mPoseGraph[*it].sensorName);
+	}
+	return sensors;
+}
+
+const StringSet BoostGraph::getEdgeSensors() const
+{
+	std::set<std::string> sensors;
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		sensors.insert(mPoseGraph[*it].constraint->getSensorName());
+	}
+	return sensors;
 }
 
 const VertexObject BoostGraph::getVertex(IdType id) const

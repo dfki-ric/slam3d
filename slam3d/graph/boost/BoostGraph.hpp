@@ -77,7 +77,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		const VertexObjectList getVerticesFromSensor(const StringSet& sensor) const;
+		const VertexObjectList getVertices(const StringSet& sensor) const;
 		
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
@@ -103,6 +103,19 @@ namespace slam3d
 		 * @param vertices
 		 */
 		const EdgeObjectList getEdges(const VertexObjectList& vertices) const;
+
+		/**
+		 * @brief Get a list of sensors that created vertices within the graph
+		 * @return list of sensor names 
+		 */
+		virtual const StringSet getVertexSensors() const;
+
+		/**
+		 * @brief Get a list of sensors that created edges within the graph
+		 * @return list of sensor names 
+		 */
+		virtual const StringSet getEdgeSensors() const;
+
 
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
