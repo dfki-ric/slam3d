@@ -78,7 +78,6 @@ laser->addMeasurement(m);
 #include <slam3d/core/MeasurementStorage.hpp>
 
 #include <map>
-#include <set>
 
 namespace slam3d
 {
@@ -296,13 +295,16 @@ namespace slam3d
 
 		/**
 		 * @brief Search for nodes in the graph near the given pose, filtered by sensors.
-		 * @example For sensor types, you can use a initializer list to shorten you code: getNearbyVertices(location, radius, {"slam3d::PointCloudMeasurement"});
+		 * @example getNearbyVertices(location, radius, {"FrontLaser"});
 		 * @param tf The pose where to search for nodes
 		 * @param radius The radius within nodes should be returned
-		 * @param sensors sensor types to include
+		 * @param sensors sensor names to include
 		 * @return list of spatially near vertices
 		 */
-		virtual const VertexObjectList getNearbyVertices(const Transform &tf, float radius, const std::set<std::string>& sensors = std::set<std::string>()) const;
+		virtual const VertexObjectList getNearbyVertices(
+			const Transform &tf,
+			float radius,
+			const StringSet& sensors = {}) const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -373,19 +375,19 @@ namespace slam3d
 		 * @brief Get a list of sensors that created vertices within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const std::set<std::string> getVertexSensors() const;
+		virtual const StringSet getVertexSensors() const;
 
 		/**
 		 * @brief Get a list of sensors that created edges within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const std::set<std::string> getEdgeSensors() const;
+		virtual const StringSet getEdgeSensors() const;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
+		virtual const VertexObjectList getVerticesFromSensor(const StringSet& sensors = {}) const = 0;
 
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
@@ -400,12 +402,6 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
-
-		/**
-		 * @brief Get all Vertices in the graph.
-		 * @details Can be used to accumulate a global map from different sources, i.e. not all sensor names are known.
-		 */
-		virtual const VertexObjectList getAllVertices() const = 0;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.

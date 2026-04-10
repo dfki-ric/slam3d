@@ -252,24 +252,21 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 	return mStorage->get(id);
 }
 
-const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const std::set<std::string>& sensors) const
+const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const StringSet& sensors) const
 {
 	// get Vertex list from specific graph implementation
-	VertexObjectList allVertices = getAllVertices();
+	VertexObjectList allVertices = getVerticesFromSensor(sensors);
 	VertexObjectList result;
 
 	// reserve space for all vertices (to avoid memory allocation during push_back calls)
 	result.reserve(allVertices.size());
 	for (const auto& vertex : allVertices)
 	{
-		if (sensors.empty() || sensors.count(vertex.sensorName))
+		double d = (vertex.correctedPose.translation()-tf.translation()).norm();
+		if (d < radius)
 		{
-			double d = (vertex.correctedPose.translation()-tf.translation()).norm();
-			if (d < radius)
-			{
-				result.push_back(vertex);
-				mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % vertex.index % d).str());
-			}
+			result.push_back(vertex);
+			mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % vertex.index % d).str());
 		}
 	}
 	// free leftover memory

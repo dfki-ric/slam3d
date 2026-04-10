@@ -40,6 +40,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 
 namespace slam3d
@@ -51,6 +52,7 @@ namespace slam3d
 	typedef Eigen::Quaternion<ScalarType> Quaternion;
 	typedef Eigen::Transform<ScalarType,3,Eigen::Isometry> Transform;
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
+	typedef std::set<std::string> StringSet;
 }
 
 namespace boost

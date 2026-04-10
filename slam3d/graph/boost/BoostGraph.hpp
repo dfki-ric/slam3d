@@ -77,7 +77,7 @@ namespace slam3d
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+		const VertexObjectList getVerticesFromSensor(const StringSet& sensor) const;
 		
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
@@ -91,14 +91,6 @@ namespace slam3d
 		 * @param range maximum number of steps to search from source
 		 */
 		const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
-
-		/**
-		 * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
-		 *
-		 * @return const VertexObjectList
-		 */
-		const VertexObjectList getAllVertices() const;
-
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
