@@ -326,7 +326,7 @@ namespace slam3d
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		const VertexObject getVertex(boost::uuids::uuid id) const;
+		virtual const VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Get a measurement for a given vertex id. 
