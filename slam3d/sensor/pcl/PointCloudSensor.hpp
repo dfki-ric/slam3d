@@ -136,7 +136,7 @@ namespace slam3d
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
 		                                         const Transform& odometry,
-		                                         bool loop);
+		                                         bool loop) override;
 		
 		/**
 		 * @brief Sets parameters for the internal pointcloud registration.
