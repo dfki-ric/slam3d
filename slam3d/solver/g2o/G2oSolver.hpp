@@ -42,18 +42,18 @@ namespace slam3d
 		G2oSolver(Logger* logger);
 		~G2oSolver();
 		
-		void addVertex(IdType id, const Transform& pose);
-		void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3);
-		void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav);
-		void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos);
-		void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient);
-		void addEdgePose(IdType vertex, PoseConstraint::Ptr pose);
-		void setFixed(IdType id);
-		bool compute(unsigned iterations);
-		void clear();
-		void saveGraph(std::string filename);
+		void addVertex(IdType id, const Transform& pose) override;
+		void addEdgeSE3(IdType source, IdType target, SE3Constraint::Ptr se3) override;
+		void addEdgeGravity(IdType vertex, GravityConstraint::Ptr grav) override;
+		void addEdgePosition(IdType vertex, PositionConstraint::Ptr pos) override;
+		void addEdgeOrientation(IdType vertex, OrientationConstraint::Ptr orient) override;
+		void addEdgePose(IdType vertex, PoseConstraint::Ptr pose) override;
+		void setFixed(IdType id) override;
+		bool compute(unsigned iterations) override;
+		void clear() override;
+		void saveGraph(std::string filename) override;
 		
-		IdPoseVector getCorrections();
+		IdPoseVector getCorrections() override;
 		
 	protected:
 		IdPoseVector mCorrections;

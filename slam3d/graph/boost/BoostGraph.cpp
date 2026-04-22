@@ -1,8 +1,3 @@
-// workaround for:
-//https://svn.boost.org/trac/boost/ticket/10382
-#define BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
-
-
 #include "BoostGraph.hpp"
 
 #include <slam3d/core/Solver.hpp>
@@ -96,13 +91,13 @@ void BoostGraph::removeEdge(IdType source, IdType target, const std::string& sen
 	boost::remove_edge(getEdgeIterator(source, target, sensor), mPoseGraph);
 }
 
-const VertexObjectList BoostGraph::getVerticesFromSensor(const std::string& sensor) const
+const VertexObjectList BoostGraph::getVertices(const StringSet& sensors) const
 {
 	VertexObjectList objectList;
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(mPoseGraph[*it].sensorName == sensor)
+		if(sensors.empty() || sensors.count(mPoseGraph[*it].sensorName))
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}
@@ -122,6 +117,28 @@ const VertexObjectList BoostGraph::getVerticesByType(const std::string& type) co
 		}
 	}
 	return objectList;
+}
+
+const StringSet BoostGraph::getVertexSensors() const
+{
+	std::set<std::string> sensors;
+	VertexRange vertices = boost::vertices(mPoseGraph);
+	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
+	{
+		sensors.insert(mPoseGraph[*it].sensorName);
+	}
+	return sensors;
+}
+
+const StringSet BoostGraph::getEdgeSensors() const
+{
+	std::set<std::string> sensors;
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		sensors.insert(mPoseGraph[*it].constraint->getSensorName());
+	}
+	return sensors;
 }
 
 const VertexObject BoostGraph::getVertex(IdType id) const
@@ -272,16 +289,6 @@ const VertexObjectList BoostGraph::getVerticesInRange(IdType source_id, unsigned
 		vertices.push_back(mPoseGraph[it->first]);
 	}
 	return vertices;
-}
-
-const VertexObjectList BoostGraph::getAllVertices() const
-{
-	VertexObjectList vertice_list;
-	vertice_list.reserve(num_vertices(mPoseGraph));
-	for (auto entry : boost::make_iterator_range(vertices(mPoseGraph))) {
-		vertice_list.push_back(mPoseGraph[entry]);
-	}
-	return vertice_list;
 }
 
 float BoostGraph::calculateGraphDistance(IdType source_id, IdType target_id) const

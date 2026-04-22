@@ -64,7 +64,7 @@ void Graph::reloadToSolver()
 	mSolver->clear();
 
 	// add all vertices 
-	VertexObjectList vertices = getAllVertices();
+	VertexObjectList vertices = getVertices();
 	for (const auto& vertex : vertices)
 	{
 		mSolver->addVertex(vertex.index, vertex.correctedPose);
@@ -222,26 +222,6 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
 }
 
-const std::set<std::string> Graph::getVertexSensors() const
-{
-	std::set<std::string> sensors;
-	for (const auto& vertex : getAllVertices())
-	{
-		sensors.insert(vertex.sensorName);
-	}
-	return sensors;
-}
-
-const std::set<std::string> Graph::getEdgeSensors() const
-{
-	std::set<std::string> sensors;
-	for (const auto& edge : getEdges(getAllVertices()))
-	{
-		sensors.insert(edge.constraint->getSensorName());
-	}
-	return sensors;
-}
-
 Measurement::Ptr Graph::getMeasurement(IdType id)
 {
 	return mStorage->get(getVertex(id).measurementUuid);
@@ -252,24 +232,26 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 	return mStorage->get(id);
 }
 
-const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const std::set<std::string>& sensors) const
+const VertexObjectList Graph::getVerticesFromSensor(const std::string& sensor) const
+{
+	return getVertices({sensor});
+}
+
+const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const StringSet& sensors) const
 {
 	// get Vertex list from specific graph implementation
-	VertexObjectList allVertices = getAllVertices();
+	VertexObjectList allVertices = getVertices(sensors);
 	VertexObjectList result;
 
 	// reserve space for all vertices (to avoid memory allocation during push_back calls)
 	result.reserve(allVertices.size());
 	for (const auto& vertex : allVertices)
 	{
-		if (sensors.empty() || sensors.count(vertex.sensorName))
+		double d = (vertex.correctedPose.translation()-tf.translation()).norm();
+		if (d < radius)
 		{
-			double d = (vertex.correctedPose.translation()-tf.translation()).norm();
-			if (d < radius)
-			{
-				result.push_back(vertex);
-				mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % vertex.index % d).str());
-			}
+			result.push_back(vertex);
+			mLogger->message(DEBUG, (boost::format(" - vertex %1% nearby (d = %2%)") % vertex.index % d).str());
 		}
 	}
 	// free leftover memory
