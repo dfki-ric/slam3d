@@ -12,8 +12,24 @@ namespace slam3d {
 class GraphSerialization {
  public:
 
+    /**
+     * @brief saves the graph to a folder
+     *
+     * @param graph the slam3d graph
+     * @param targetfolder folder to save the graph to
+     * @param status callback to give the processing status: void (current coud, total clouds)
+     * @param binaryClouds wheter to use text archives if binary
+     */
     static bool toFolder(Graph& graph, const std::string targetfolder, std::function<void(size_t,size_t)> status = nullptr, bool binaryClouds = false);
 
+    /**
+     * @brief restores the graph from folder
+     *
+     * @param graph the slam3d graph
+     * @param targetfolder folder to load the graph from
+     * @param status callback to give the processing status: void (current coud, total clouds)
+     * @param binaryClouds wheter to use text archives if binary
+     */
     static bool fromFolder(Graph* graph, const std::string targetfolder, std::function<void(size_t,size_t)> status = nullptr, bool binaryClouds = false);
 
 };
