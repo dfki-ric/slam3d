@@ -11,7 +11,7 @@
 using namespace slam3d;
 
 
-bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
+bool GraphSerialization::toFolder(Graph& graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
     
     
     auto &config = Yaml<YamlGraph>::getInstance();
@@ -38,17 +38,16 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, 
         newvertex.tv_usec = vertex.timestamp.tv_usec;
 
         newvertex.measurementUuid = boost::lexical_cast<std::string>(vertex.measurementUuid);
+        newvertex.filename = std::to_string(vertex.index) + ".s3dm";
 
-
-        newvertex.filename = targetfolder + "/" + std::to_string(vertex.index) + ".s3dm";
 
         if (cloudmode != SKIP) {
             slam3d::Measurement::Ptr m = graph.getMeasurement(vertex.measurementUuid);
             if (m) {
                 if (cloudmode == PORTABLE){
-                    MeasurementSerialization::toFile(m,newvertex.filename, false);
+                    MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, false);
                 } else if (cloudmode == BINARY){
-                    MeasurementSerialization::toFile(m,newvertex.filename, true);
+                    MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, true);
                 }
             }
         }
@@ -60,19 +59,19 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, 
         config.get().vertices.push_back(newvertex);
     }
     
-    config.saveConfig(targetfolder + "/" +"slam3dGraph.yml");
+    config.saveConfig(targetfolder + "/" + graphfile);
 
     return true;
 
 }
 
-bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
+bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
 
-    std::string graphfile = targetfolder + "/slam3dGraph.yml";
-    printf("loading Graph from file: %s\n",graphfile.c_str());
+    std::string graphfilefull = targetfolder + "/" + graphfile;
+    printf("loading Graph from file: %s\n",graphfilefull.c_str());
 
     auto &config = Yaml<YamlGraph>::getInstance();
-    config.loadConfig(graphfile);
+    config.loadConfig(graphfilefull);
 
     graph->fixNext();
 
@@ -95,14 +94,14 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
         } else {
             uuid = boost::lexical_cast<boost::uuids::uuid>(vertex.second.measurementUuid);
         }
-
         slam3d::Measurement::Ptr measurement;
 
         if (cloudmode != SKIP) {
+            std::string filename = targetfolder + "/" + vertex.second.filename;
             if (cloudmode == PORTABLE){
-                measurement = MeasurementSerialization::fromFile(targetfolder + "/" + vertex.second.filename, false);
+                measurement = MeasurementSerialization::fromFile(filename, false);
             } else if (cloudmode == BINARY){
-                measurement = MeasurementSerialization::fromFile(targetfolder + "/" + vertex.second.filename, true);
+                measurement = MeasurementSerialization::fromFile(filename, true);
             }
         }
 
