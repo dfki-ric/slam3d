@@ -15,7 +15,6 @@ target_link_libraries(serialization
 		sensor-pcl
 		Boost::serialization
 		yaml-cpp
-
 )
 
 # Install header files

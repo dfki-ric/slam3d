@@ -27,15 +27,19 @@ bool MeasurementSerialization::toFile(Measurement::Ptr measurement, const std::s
 Measurement::Ptr MeasurementSerialization::fromFile(const std::string &filename, bool binary) {
     std::ifstream file(filename);
     Measurement::Ptr measurement;
-    if (file.is_open()) {
-        if (binary) {
-            boost::archive::binary_iarchive ia(file);
-            ia >> measurement;
-        } else {
-            boost::archive::text_iarchive ia(file);
-            ia >> measurement;
+    try {
+        if (file.is_open()) {
+            if (binary) {
+                boost::archive::binary_iarchive ia(file);
+                ia >> measurement;
+            } else {
+                boost::archive::text_iarchive ia(file);
+                ia >> measurement;
+            }
+            file.close();
         }
-        file.close();
+    } catch (const std::length_error& le) {
+        return fromFile(filename, !binary);
     }
     return measurement;
 }
@@ -52,17 +56,19 @@ std::string MeasurementSerialization::toString(Measurement::Ptr measurement, boo
     return ss.str();
 }
 
-
-
 Measurement::Ptr MeasurementSerialization::fromString(const std::string &serialized, bool binary) {
     Measurement::Ptr measurement;
     std::stringstream serializedData(serialized);
-    if (binary) {
-        boost::archive::binary_iarchive ia(serializedData);
-        ia >> measurement;
-    } else {
-        boost::archive::text_iarchive ia(serializedData);
-        ia >> measurement;
+    try {
+        if (binary) {
+            boost::archive::binary_iarchive ia(serializedData);
+            ia >> measurement;
+        } else {
+            boost::archive::text_iarchive ia(serializedData);
+            ia >> measurement;
+        }
+    } catch (const std::length_error& le) {
+        return fromString(serialized, !binary);
     }
     return measurement;
 }
