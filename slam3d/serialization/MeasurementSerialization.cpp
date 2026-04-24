@@ -40,6 +40,8 @@ Measurement::Ptr MeasurementSerialization::fromFile(const std::string &filename,
         }
     } catch (const std::length_error& le) {
         return fromFile(filename, !binary);
+    } catch (const boost::archive::archive_exception ae) {
+        return fromFile(filename, !binary);
     }
     return measurement;
 }
@@ -68,6 +70,8 @@ Measurement::Ptr MeasurementSerialization::fromString(const std::string &seriali
             ia >> measurement;
         }
     } catch (const std::length_error& le) {
+        return fromString(serialized, !binary);
+    } catch (const boost::archive::archive_exception ae) {
         return fromString(serialized, !binary);
     }
     return measurement;
