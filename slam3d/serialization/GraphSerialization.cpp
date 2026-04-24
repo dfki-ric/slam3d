@@ -11,7 +11,7 @@
 using namespace slam3d;
 
 
-bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, bool binaryClouds) {
+bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
     
     
     auto &config = Yaml<YamlGraph>::getInstance();
@@ -42,9 +42,15 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, 
 
         newvertex.filename = targetfolder + "/" + std::to_string(vertex.index) + ".s3dm";
 
-        slam3d::Measurement::Ptr m = graph.getMeasurement(vertex.measurementUuid);
-        if (m) {
-            MeasurementSerialization::toFile(m,newvertex.filename, binaryClouds);
+        if (cloudmode != SKIP) {
+            slam3d::Measurement::Ptr m = graph.getMeasurement(vertex.measurementUuid);
+            if (m) {
+                if (cloudmode == PORTABLE){
+                    MeasurementSerialization::toFile(m,newvertex.filename, false);
+                } else if (cloudmode == BINARY){
+                    MeasurementSerialization::toFile(m,newvertex.filename, true);
+                }
+            }
         }
 
         slam3d::EdgeObjectList edges = graph.getOutEdges(vertex.index);
@@ -60,7 +66,7 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, 
 
 }
 
-bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, bool binaryClouds) {
+bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
 
     std::string graphfile = targetfolder + "/slam3dGraph.yml";
     printf("loading Graph from file: %s\n",graphfile.c_str());
@@ -80,8 +86,6 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
     // load vertices first
     for (const auto& vertex : vertices) {
 
-
-
         slam3d::Transform pose = vertex.second.correctedPose;
         slam3d::Transform sensorpose = vertex.second.sensorPose;
 
@@ -92,7 +96,15 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
             uuid = boost::lexical_cast<boost::uuids::uuid>(vertex.second.measurementUuid);
         }
 
-        slam3d::Measurement::Ptr measurement = MeasurementSerialization::fromFile(targetfolder + "/" + vertex.second.filename, binaryClouds);
+        slam3d::Measurement::Ptr measurement;
+
+        if (cloudmode != SKIP) {
+            if (cloudmode == PORTABLE){
+                measurement = MeasurementSerialization::fromFile(targetfolder + "/" + vertex.second.filename, false);
+            } else if (cloudmode == BINARY){
+                measurement = MeasurementSerialization::fromFile(targetfolder + "/" + vertex.second.filename, true);
+            }
+        }
 
         size_t vertexid = graph->addVertex(measurement, pose);
         newVertexId[vertex.first] = vertexid;
