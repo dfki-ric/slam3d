@@ -7,11 +7,6 @@ if (NOT TARGET Eigen3::Eigen)
 		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
 endif ()
 
-find_package(g2o REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework serialization)
-find_package(PCL 1.8.1 REQUIRED COMPONENTS registration sample_consensus io)
-find_package(PCLOMP 1.0)
-
 if (NOT TARGET JsonCpp::JsonCpp)
 	find_package(jsoncpp)
 endif()
@@ -21,6 +16,15 @@ if (NOT jsoncpp_FOUND)
     add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
   endif()
 endif()
+
+find_package(g2o REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework serialization)
+find_package(PCL 1.8.1 REQUIRED COMPONENTS registration sample_consensus io)
+find_package(PCLOMP 1.0)
+
+
+
+find_package(yaml-cpp)
 
 # Optional libraries
 find_package(libpointmatcher)
