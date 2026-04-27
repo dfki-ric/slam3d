@@ -19,8 +19,8 @@ target_link_libraries(serialization
 # Install header files
 install(
 	FILES
-	GraphSerialization.hpp
-	MeasurementSerialization.hpp
+		GraphSerialization.hpp
+		MeasurementSerialization.hpp
 	DESTINATION include/slam3d/serialization/
 )
 
