@@ -85,9 +85,6 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
     // load vertices first
     for (const auto& vertex : vertices) {
 
-        slam3d::Transform pose = vertex.second.correctedPose;
-        slam3d::Transform sensorpose = vertex.second.sensorPose;
-
         boost::uuids::uuid uuid;
         if (vertex.second.measurementUuid == "") {
             uuid = boost::uuids::random_generator()();
@@ -105,7 +102,7 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
             }
         }
 
-        size_t vertexid = graph->addVertex(measurement, pose);
+        size_t vertexid = graph->addVertex(measurement, vertex.second.correctedPose);
         newVertexId[vertex.first] = vertexid;
 
         if (status) {
@@ -121,7 +118,6 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
             size_t target = newVertexId[edge.target];
 
             graph->addConstraint(source, target, edge.constraint);
-            graph->setCorrectedPose(target, vertex.correctedPose);    
         }
     }
 
