@@ -22,6 +22,16 @@
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
   <VirtualDirectory Name="slam3d">
+    <VirtualDirectory Name="serialization">
+      <File Name="slam3d/serialization/YamlTypes.hpp"/>
+      <File Name="slam3d/serialization/Yaml.hpp"/>
+      <File Name="slam3d/serialization/slam3d_serialization.pc.in"/>
+      <File Name="slam3d/serialization/MeasurementSerialization.hpp"/>
+      <File Name="slam3d/serialization/MeasurementSerialization.cpp"/>
+      <File Name="slam3d/serialization/GraphSerialization.hpp"/>
+      <File Name="slam3d/serialization/GraphSerialization.cpp"/>
+      <File Name="slam3d/serialization/CMakeLists.txt"/>
+    </VirtualDirectory>
     <File Name="slam3d/CMakeLists.txt"/>
     <VirtualDirectory Name="core">
       <File Name="slam3d/core/MeasurementStorage.hpp"/>
