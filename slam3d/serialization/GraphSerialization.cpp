@@ -11,14 +11,14 @@
 using namespace slam3d;
 
 
-bool GraphSerialization::toFolder(Graph& graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
+bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
     
     
     auto &config = Yaml<YamlGraph>::getInstance();
     config.get().vertices.clear();
 
     size_t count = 0;
-    slam3d::VertexObjectList vertices = graph.getVertices();
+    slam3d::VertexObjectList vertices = graph->getVertices();
     for (const auto& vertex : vertices) {
 
         if (status) {
@@ -42,7 +42,7 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string& targetfolder,
 
 
         if (cloudmode != SKIP) {
-            slam3d::Measurement::Ptr m = graph.getMeasurement(vertex.measurementUuid);
+            slam3d::Measurement::Ptr m = graph->getMeasurement(vertex.measurementUuid);
             if (m) {
                 if (cloudmode == PORTABLE){
                     MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, false);
@@ -52,7 +52,7 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string& targetfolder,
             }
         }
 
-        slam3d::EdgeObjectList edges = graph.getOutEdges(vertex.index);
+        slam3d::EdgeObjectList edges = graph->getOutEdges(vertex.index);
         for (const auto& edge : edges) {
             newvertex.children.push_back(edge);
         }

@@ -23,7 +23,7 @@ namespace slam3d
 		 * @param status callback to give the processing status: void (current coud, total clouds)
 		 * @param binaryClouds wheter to use text archives if binary
 		 */
-		static bool toFolder(Graph& graph,
+		static bool toFolder(Graph* graph,
 			const std::string& targetfolder = ".",
 			const std::string &graphfile = "slam3d_graph.yml",
 			std::function<void(size_t,size_t)> status = nullptr,
