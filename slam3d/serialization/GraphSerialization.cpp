@@ -11,14 +11,14 @@
 using namespace slam3d;
 
 
-bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, bool binaryClouds) {
+bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
     
     
     auto &config = Yaml<YamlGraph>::getInstance();
     config.get().vertices.clear();
 
     size_t count = 0;
-    slam3d::VertexObjectList vertices = graph.getVertices();
+    slam3d::VertexObjectList vertices = graph->getVertices();
     for (const auto& vertex : vertices) {
 
         if (status) {
@@ -42,33 +42,37 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, 
         newvertex.fixed = vertex.fixed;
 
 
-        newvertex.filename = targetfolder + "/" + std::to_string(vertex.index) + ".s3dm";
-
-        slam3d::Measurement::Ptr m = graph.getMeasurement(vertex.measurementUuid);
-        if (m) {
-            MeasurementSerialization::toFile(m,newvertex.filename, binaryClouds);
+        if (cloudmode != SKIP) {
+            slam3d::Measurement::Ptr m = graph->getMeasurement(vertex.measurementUuid);
+            if (m) {
+                if (cloudmode == PORTABLE){
+                    MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, false);
+                } else if (cloudmode == BINARY){
+                    MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, true);
+                }
+            }
         }
 
-        slam3d::EdgeObjectList edges = graph.getOutEdges(vertex.index);
+        slam3d::EdgeObjectList edges = graph->getOutEdges(vertex.index);
         for (const auto& edge : edges) {
             newvertex.children.push_back(edge);
         }
         config.get().vertices.push_back(newvertex);
     }
     
-    config.saveConfig(targetfolder + "/" +"slam3dGraph.yml");
+    config.saveConfig(targetfolder + "/" + graphfile);
 
     return true;
 
 }
 
-bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder, std::function<void(size_t,size_t)> status, bool binaryClouds) {
+bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
 
-    std::string graphfile = targetfolder + "/slam3dGraph.yml";
-    printf("loading Graph from file: %s\n",graphfile.c_str());
+    std::string graphfilefull = targetfolder + "/" + graphfile;
+    printf("loading Graph from file: %s\n",graphfilefull.c_str());
 
     auto &config = Yaml<YamlGraph>::getInstance();
-    config.loadConfig(graphfile);
+    config.loadConfig(graphfilefull);
 
     std::map<size_t, size_t> newVertexId;
     std::map<size_t, YamlVertex> vertices; // use map to sort by vertex id
@@ -92,10 +96,18 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
         } else {
             uuid = boost::lexical_cast<boost::uuids::uuid>(vertex.second.measurementUuid);
         }
+        slam3d::Measurement::Ptr measurement;
 
-        slam3d::Measurement::Ptr measurement = MeasurementSerialization::fromFile(targetfolder + "/" + vertex.second.filename, binaryClouds);
+        if (cloudmode != SKIP) {
+            std::string filename = targetfolder + "/" + vertex.second.filename;
+            if (cloudmode == PORTABLE){
+                measurement = MeasurementSerialization::fromFile(filename, false);
+            } else if (cloudmode == BINARY){
+                measurement = MeasurementSerialization::fromFile(filename, true);
+            }
+        }
 
-        size_t vertexid = graph->addVertex(measurement, pose);
+        size_t vertexid = graph->addVertex(measurement, vertex.second.correctedPose);
         newVertexId[vertex.first] = vertexid;
 
         if (status) {
@@ -111,7 +123,6 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
             size_t target = newVertexId[edge.target];
 
             graph->addConstraint(source, target, edge.constraint);
-            graph->setCorrectedPose(target, vertex.correctedPose);    
         }
     }
 

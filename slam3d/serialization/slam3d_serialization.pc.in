@@ -3,9 +3,9 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: slam3d_core
-Description: Core components of the SLAM3D library.
+Name: slam3d_serialization
+Description: Serialization for graph and measurement types.
 Version: @SLAM3D_VERSION@
-Requires: eigen3
-Libs: -L${libdir} -lslam3d_core -lboost_thread
+Requires:  slam3d_sensor_pcl
+Libs: -L${libdir} -lslam3d_serialization
 Cflags: -I${includedir}

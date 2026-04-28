@@ -1,4 +1,3 @@
-
 add_library(serialization SHARED
 	GraphSerialization.cpp
 	MeasurementSerialization.cpp
@@ -15,14 +14,13 @@ target_link_libraries(serialization
 		sensor-pcl
 		Boost::serialization
 		yaml-cpp
-
 )
 
 # Install header files
 install(
 	FILES
-	GraphSerialization.hpp
-	MeasurementSerialization.hpp
+		GraphSerialization.hpp
+		MeasurementSerialization.hpp
 	DESTINATION include/slam3d/serialization/
 )
 
