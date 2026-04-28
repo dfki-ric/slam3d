@@ -110,13 +110,14 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
         if (measurement) {
             size_t vertexid = graph->addVertex(measurement, vertex.second.correctedPose);
             newVertexId[vertex.first] = vertexid;
+            if (status) {
+                status(vertexid,vertices.size());
+            }
         } else {
             throw std::runtime_error("incompatible boost serialization file (.s3dm)");
         }
 
-        if (status) {
-            status(vertexid,vertices.size());
-        }
+
 
     }
 
