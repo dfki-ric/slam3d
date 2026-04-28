@@ -57,21 +57,12 @@ namespace YAML {
 
     template<> struct convert<slam3d::Transform> {
         static bool decode(const Node& node, slam3d::Transform& config) {
-            // printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-            // config.translation() = node["translation"].as<slam3d::Position>();
-            // slam3d::Quaternion q = node["rotation"].as<slam3d::Quaternion>();
-            // q.normalize();
-            // std::cout << q << std::endl;
-            // config.rotate(q);
             std::vector<double> array = node.as<std::vector<double>>();
             config.matrix() = Eigen::Map<slam3d::Transform::MatrixType>(const_cast<double *>(array.data()));
-            // return true;
             return true;
         }
         static Node encode(const slam3d::Transform& config) {
             Node node;
-            // node["rotation"] = slam3d::Quaternion(config.linear());
-            // node["translation"] = slam3d::Position(config.translation());
             std::vector<double> array;
             for (auto value : config.matrix().reshaped()) {
                 array.push_back(value);
@@ -148,7 +139,7 @@ namespace YAML {
 
             switch (type) {
                 case slam3d::TENTATIVE: {
-                        config = boost::make_shared<slam3d::TentativeConstraint>(sensor);
+                        // config = boost::make_shared<slam3d::TentativeConstraint>(sensor);
                         break;
                     }
                 case slam3d::SE3: {
@@ -185,8 +176,6 @@ namespace YAML {
                         break;
                     }
             }
-
-            
             return true;
         }
         static Node encode(const slam3d::Constraint::Ptr& config) {
