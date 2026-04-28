@@ -92,7 +92,7 @@ namespace slam3d
 	class Indexer
 	{
 	public:
-		Indexer(const IdType& firstID = 1):mNextID(firstID) {}
+		Indexer(const IdType& firstID = 0):mNextID(firstID) {}
 		IdType getNext() { return mNextID++; }
 	private:
 		IdType mNextID;
