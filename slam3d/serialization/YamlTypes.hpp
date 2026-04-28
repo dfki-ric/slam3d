@@ -225,6 +225,7 @@ struct YamlVertex {
     std::string filename;
     slam3d::Transform correctedPose;
     slam3d::Transform sensorPose;
+    bool fixed;
 
     std::vector<slam3d::EdgeObject> children;
 };
@@ -247,6 +248,7 @@ namespace YAML {
             checkAndSet(&config.filename, node["filename"]);
             checkAndSet(&config.correctedPose, node["correctedPose"]);
             checkAndSet(&config.sensorPose, node["sensorPose"]);
+            checkAndSet(&config.fixed, node["fixed"]);
             checkAndSet(&config.children, node["children"]);
             return true;
         }
@@ -264,6 +266,7 @@ namespace YAML {
             node["filename"] = config.filename;
             node["correctedPose"] = config.correctedPose;
             node["sensorPose"] = config.sensorPose;
+            node["fixed"] = config.fixed;
             node["children"] = config.children;
             return node;
         }

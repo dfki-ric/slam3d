@@ -38,6 +38,8 @@ bool GraphSerialization::toFolder(Graph& graph, const std::string targetfolder, 
         newvertex.tv_usec = vertex.timestamp.tv_usec;
 
         newvertex.measurementUuid = boost::lexical_cast<std::string>(vertex.measurementUuid);
+        newvertex.filename = std::to_string(vertex.index) + ".s3dm";
+        newvertex.fixed = vertex.fixed;
 
 
         newvertex.filename = targetfolder + "/" + std::to_string(vertex.index) + ".s3dm";
@@ -68,10 +70,7 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
     auto &config = Yaml<YamlGraph>::getInstance();
     config.loadConfig(graphfile);
 
-    graph->fixNext();
-
     std::map<size_t, size_t> newVertexId;
-    
     std::map<size_t, YamlVertex> vertices; // use map to sort by vertex id
     for (const auto& vertex : config.get().vertices) {
         vertices[vertex.vertexIndex] = vertex;
@@ -80,7 +79,9 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string targetfolder
     // load vertices first
     for (const auto& vertex : vertices) {
 
-
+        if (vertex.second.fixed) {
+            graph->fixNext();
+        }
 
         slam3d::Transform pose = vertex.second.correctedPose;
         slam3d::Transform sensorpose = vertex.second.sensorPose;
