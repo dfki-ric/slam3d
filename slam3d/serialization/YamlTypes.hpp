@@ -81,6 +81,40 @@ namespace YAML {
         }
     };
 
+    template<> struct convert<slam3d::Covariance<2>> {
+        static bool decode(const Node& node, slam3d::Covariance<2>& config) {
+            std::vector<double> array = node.as<std::vector<double>>();
+            config = Eigen::Map<slam3d::Covariance<2>>(const_cast<double *>(array.data()));
+            return true;
+        }
+        static Node encode(const slam3d::Covariance<2>& config) {
+            Node node;
+            std::vector<double> array;
+            for (auto value : config.reshaped()) {
+                array.push_back(value);
+            }
+            node = array;
+            return node;
+        }
+    };
+
+    template<> struct convert<slam3d::Covariance<3>> {
+        static bool decode(const Node& node, slam3d::Covariance<3>& config) {
+            std::vector<double> array = node.as<std::vector<double>>();
+            config = Eigen::Map<slam3d::Covariance<3>>(const_cast<double *>(array.data()));
+            return true;
+        }
+        static Node encode(const slam3d::Covariance<3>& config) {
+            Node node;
+            std::vector<double> array;
+            for (auto value : config.reshaped()) {
+                array.push_back(value);
+            }
+            node = array;
+            return node;
+        }
+    };
+
     template<> struct convert<slam3d::Covariance<6>> {
         static bool decode(const Node& node, slam3d::Covariance<6>& config) {
             std::vector<double> array = node.as<std::vector<double>>();
@@ -123,28 +157,33 @@ namespace YAML {
                         config = boost::make_shared<slam3d::SE3Constraint>(sensor, tf, cov);
                         break;
                     }
-                case slam3d::POSE:
-                    // checkAndSet(&config.translation, node["translation"]);
-                    // checkAndSet(&config.rotation, node["rotation"]);
-                    // checkAndSet(&config.covariance_6, node["covariance_6"]);
-                    break;
-                case slam3d::GRAVITY:
-                    // checkAndSet(&config.mDirection, node["mDirection"]);
-                    // checkAndSet(&config.mReference, node["mReference"]);
-                    // checkAndSet(&config.covariance, node["covariance"]);
-                    break;
-                case slam3d::POSITION:
-                    // checkAndSet(&config.mPosition, node["mPosition"]);
-                    // checkAndSet(&config.translation, node["translation"]);
-                    // checkAndSet(&config.rotation, node["rotation"]);
-                    // checkAndSet(&config.covariance, node["covariance"]);
-                    break;
-                case slam3d::ORIENTATION:
-                    // checkAndSet(&config.mOrientation, node["mOrientation"]);
-                    // checkAndSet(&config.translation, node["translation"]);
-                    // checkAndSet(&config.rotation, node["rotation"]);
-                    // checkAndSet(&config.covariance, node["covariance"]);
-                    break;
+                case slam3d::POSE: {
+                        slam3d::Transform tf = node["transform"].as<slam3d::Transform>();
+                        slam3d::Covariance<6> cov = node["covariance_6"].as<slam3d::Covariance<6>>();
+                        config = boost::make_shared<slam3d::PoseConstraint>(sensor, tf, cov);
+                        break;
+                    }
+                case slam3d::GRAVITY: {
+                        slam3d::Direction d1 = node["mDirection"].as<slam3d::Direction>();
+                        slam3d::Direction d2 = node["mReference"].as<slam3d::Direction>();
+                        slam3d::Covariance<2> cov = node["covariance_2"].as<slam3d::Covariance<2>>();
+                        config = boost::make_shared<slam3d::GravityConstraint>(sensor, d1, d2, cov);
+                        break;
+                    }
+                case slam3d::POSITION: {
+                        slam3d::Position p = node["mPosition"].as<slam3d::Direction>();
+                        slam3d::Covariance<3> cov = node["covariance_3"].as<slam3d::Covariance<3>>();
+                        slam3d::Transform sp = node["mSensorPose"].as<slam3d::Transform>();
+                        config = boost::make_shared<slam3d::PositionConstraint>(sensor, p, cov, sp);
+                        break;
+                    }
+                case slam3d::ORIENTATION: {
+                        slam3d::Quaternion p = node["mOrientation"].as<slam3d::Quaternion>();
+                        slam3d::Covariance<3> cov = node["covariance_3"].as<slam3d::Covariance<3>>();
+                        slam3d::Transform sp = node["mSensorPose"].as<slam3d::Transform>();
+                        config = boost::make_shared<slam3d::OrientationConstraint>(sensor, p, cov, sp);
+                        break;
+                    }
             }
 
             
@@ -171,23 +210,30 @@ namespace YAML {
                         node["covariance_6"] = constraint.getInformation();
                         break;
                     }
-                case slam3d::GRAVITY:
-                    // node["mDirection"] = config.mDirection;
-                    // node["mReference"] = config.mReference;
-                    // node["covariance"] = config.covariance;
-                    break;
-                case slam3d::POSITION:
-                    // node["mPosition"] = config.mPosition;
-                    // node["translation"] = config.translation;
-                    // node["rotation"] = config.rotation;
-                    // node["covariance"] = config.covariance;
-                    break;
-                case slam3d::ORIENTATION:
-                    // node["mOrientation"] = config.mOrientation;
-                    // node["translation"] = config.translation;
-                    // node["rotation"] = config.rotation;
-                    // node["covariance"] = config.covariance;
-                    break;
+                case slam3d::GRAVITY: {
+                        slam3d::GravityConstraint& constraint = dynamic_cast<slam3d::GravityConstraint&>(*(config));
+                        node["mDirection"] = constraint.getDirection();
+                        node["mReference"] = constraint.getReference();
+                        node["covariance_2"] = constraint.getCovariance();
+                        break;
+                    }
+                case slam3d::POSITION: {
+                        slam3d::PositionConstraint& constraint = dynamic_cast<slam3d::PositionConstraint&>(*(config));
+                        node["mPosition"] = constraint.getPosition();
+                        node["covariance_3"] = constraint.getCovariance();
+                        node["mSensorPose"] = constraint.getSensorPose();
+                        break;
+                    }
+                case slam3d::ORIENTATION: {
+                        slam3d::OrientationConstraint& constraint = dynamic_cast<slam3d::OrientationConstraint&>(*(config));
+                        node["mOrientation"] = constraint.getOrientation();
+                        node["covariance_3"] = constraint.getCovariance();
+                        node["mSensorPose"] = constraint.getSensorPose();
+                        break;
+                    }
+            }
+            if (!node) {
+                throw std::runtime_error("couls not load constraint of sensor: " + config->getSensorName());
             }
             return node;
         }
