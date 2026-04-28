@@ -113,12 +113,10 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
             if (status) {
                 status(vertexid,vertices.size());
             }
-        } else {
+        } else if (vertex.second.measurementUuid != boost::lexical_cast<std::string>(boost::uuids::nil_uuid()))
+        {
             throw std::runtime_error("incompatible boost serialization file (.s3dm)");
         }
-
-
-
     }
 
     //go overr egdes and add with new vertex ids

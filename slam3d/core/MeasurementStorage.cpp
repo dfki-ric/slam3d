@@ -5,6 +5,11 @@
 
 using namespace slam3d;
 
+MeasurementStorage::MeasurementStorage()
+{
+	mMeasurements[boost::uuids::nil_uuid()] = Measurement::Ptr();
+}
+
 void MeasurementStorage::add(Measurement::Ptr measurement)
 {
 	mMeasurements[measurement->getUniqueId()] = measurement;

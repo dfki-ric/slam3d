@@ -16,7 +16,7 @@ namespace slam3d
 	class MeasurementStorage
 	{
 	public:
-
+		MeasurementStorage();
 		virtual ~MeasurementStorage() {}
 
 		/**
