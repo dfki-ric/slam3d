@@ -53,13 +53,16 @@ bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder,
             }
         }
 
-        slam3d::EdgeObjectList edges = graph->getOutEdges(vertex.index);
-        for (const auto& edge : edges) {
-            newvertex.children.push_back(edge);
+            slam3d::EdgeObjectList edges = graph->getOutEdges(vertex.index);
+            for (const auto& edge : edges) {
+                // don't save possible inverse edges
+                if (vertex.index == edge.source) {
+                    newvertex.children.push_back(edge);
+                }
+            }
+            config.get().vertices.push_back(newvertex);
         }
-        config.get().vertices.push_back(newvertex);
     }
-    
     config.saveConfig(targetfolder + "/" + graphfile);
 
     return true;
