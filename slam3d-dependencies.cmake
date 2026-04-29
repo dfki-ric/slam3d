@@ -8,17 +8,19 @@ if (NOT TARGET Eigen3::Eigen)
 endif ()
 
 find_package(jsoncpp)
+if(TARGET JsonCpp::JsonCpp)
+	add_library(jsoncpp_lib ALIAS JsonCpp::JsonCpp)
+else()
+	pkg_check_modules(jsoncpp IMPORTED_TARGET jsoncpp)
+	if (jsoncpp_FOUND)
+		add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
+	endif()
+endif()
+
 find_package(g2o REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework serialization)
 find_package(PCL 1.8.1 REQUIRED COMPONENTS registration sample_consensus io)
 find_package(PCLOMP 1.0)
-
-if (NOT jsoncpp_FOUND)
-  pkg_check_modules(jsoncpp IMPORTED_TARGET jsoncpp)
-  if (jsoncpp_FOUND)
-    add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
-  endif()
-endif()
 find_package(yaml-cpp)
 
 # Optional libraries
