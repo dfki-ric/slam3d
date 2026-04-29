@@ -104,6 +104,8 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
             } else if (cloudmode == BINARY){
                 measurement = MeasurementSerialization::fromFile(filename, true);
             }
+        } else {
+            measurement = graph->getMeasurement(uuid);
         }
 
         if (measurement) {
