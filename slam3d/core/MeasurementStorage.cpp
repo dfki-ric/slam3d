@@ -29,3 +29,8 @@ bool MeasurementStorage::contains(const boost::uuids::uuid& key)
 {
 	return mMeasurements.count(key);
 }
+
+void MeasurementStorage::clear() {
+	mMeasurements.clear();
+	mMeasurements[boost::uuids::nil_uuid()] = Measurement::Ptr();
+}
