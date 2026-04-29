@@ -21,37 +21,38 @@ bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder,
     slam3d::VertexObjectList vertices = graph->getVertices();
     for (const auto& vertex : vertices) {
 
-        if (status) {
-            status(++count, vertices.size());
-        }
+        if (vertex.index != 0) {
+            if (status) {
+                status(++count, vertices.size());
+            }
 
-        YamlVertex newvertex;
-        newvertex.vertexIndex = vertex.index;
+            YamlVertex newvertex;
+            newvertex.vertexIndex = vertex.index;
 
-        newvertex.correctedPose = vertex.correctedPose;
-        
-        newvertex.robotName = vertex.robotName;
-        newvertex.sensorName = vertex.sensorName;
-        newvertex.typeName = vertex.typeName;
+            newvertex.correctedPose = vertex.correctedPose;
+            
+            newvertex.robotName = vertex.robotName;
+            newvertex.sensorName = vertex.sensorName;
+            newvertex.typeName = vertex.typeName;
 
-        newvertex.tv_sec = vertex.timestamp.tv_sec;
-        newvertex.tv_usec = vertex.timestamp.tv_usec;
+            newvertex.tv_sec = vertex.timestamp.tv_sec;
+            newvertex.tv_usec = vertex.timestamp.tv_usec;
 
-        newvertex.measurementUuid = boost::lexical_cast<std::string>(vertex.measurementUuid);
-        newvertex.filename = std::to_string(vertex.index) + ".s3dm";
-        newvertex.fixed = vertex.fixed;
+            newvertex.measurementUuid = boost::lexical_cast<std::string>(vertex.measurementUuid);
+            newvertex.filename = std::to_string(vertex.index) + ".s3dm";
+            newvertex.fixed = vertex.fixed;
 
 
-        if (cloudmode != SKIP) {
-            slam3d::Measurement::Ptr m = graph->getMeasurement(vertex.measurementUuid);
-            if (m) {
-                if (cloudmode == PORTABLE){
-                    MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, false);
-                } else if (cloudmode == BINARY){
-                    MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, true);
+            if (cloudmode != SKIP) {
+                slam3d::Measurement::Ptr m = graph->getMeasurement(vertex.measurementUuid);
+                if (m) {
+                    if (cloudmode == PORTABLE){
+                        MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, false);
+                    } else if (cloudmode == BINARY){
+                        MeasurementSerialization::toFile(m,targetfolder + "/" + newvertex.filename, true);
+                    }
                 }
             }
-        }
 
         slam3d::EdgeObjectList edges = graph->getOutEdges(vertex.index);
         for (const auto& edge : edges) {
@@ -113,12 +114,10 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
             if (status) {
                 status(vertexid,vertices.size());
             }
-        } else {
+        } else if (vertex.second.measurementUuid != boost::lexical_cast<std::string>(boost::uuids::nil_uuid()))
+        {
             throw std::runtime_error("incompatible boost serialization file (.s3dm)");
         }
-
-
-
     }
 
     //go overr egdes and add with new vertex ids
