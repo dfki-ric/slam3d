@@ -44,6 +44,8 @@ namespace slam3d
 		BoostGraph(Logger* log, MeasurementStorage* storage);
 		~BoostGraph();
 
+		void clearGraph() override;
+
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.

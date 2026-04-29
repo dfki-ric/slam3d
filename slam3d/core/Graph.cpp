@@ -43,6 +43,21 @@ Graph::~Graph()
 {
 }
 
+void Graph::clear(const bool &deleteMeasurements) {
+	mSolver->clear();
+	mUuidIndex.clear();
+	mFixNext = false;
+	mOptimized = false;
+	mConstraintsAdded = 0;
+	mIndexer = Indexer(0);
+
+	clearGraph();
+	if (deleteMeasurements) {
+		printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+		mStorage->clear();
+	}
+}
+
 void Graph::setSolver(Solver* solver)
 {
 	if(mSolver)
