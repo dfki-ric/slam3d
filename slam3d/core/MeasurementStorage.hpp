@@ -48,6 +48,11 @@ namespace slam3d
 		 */
 		Measurement::Ptr get(const std::string& key);
 
+		/**
+		 * @brief delete contents
+		 */
+		virtual void clear();
+
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
 	};

@@ -197,6 +197,15 @@ namespace slam3d
 		Graph(Logger* log, MeasurementStorage* storage);
 		virtual ~Graph();
 
+
+		/**
+		 * @brief resets the grapg to empty state
+		 * @details empty means sets it to the original state 
+		 * (including the spectial verties 0)
+		 */
+		void clear(const bool &deleteMeasurements = true);
+		virtual void clearGraph() = 0;
+
 		/**
 		 * @brief Sets a specific Solver to be used as SLAM backend.
 		 * @details The mapper can be used without a backend,
