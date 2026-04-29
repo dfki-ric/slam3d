@@ -20,6 +20,10 @@ bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder,
     size_t count = 0;
     slam3d::VertexObjectList vertices = graph->getVertices();
     for (const auto& vertex : vertices) {
+        if (vertex.index != 0) {
+            if (status) {
+                status(++count, vertices.size());
+            }
 
         if (vertex.index != 0) {
             if (status) {
@@ -28,16 +32,12 @@ bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder,
 
             YamlVertex newvertex;
             newvertex.vertexIndex = vertex.index;
-
             newvertex.correctedPose = vertex.correctedPose;
-            
             newvertex.robotName = vertex.robotName;
             newvertex.sensorName = vertex.sensorName;
             newvertex.typeName = vertex.typeName;
-
             newvertex.tv_sec = vertex.timestamp.tv_sec;
             newvertex.tv_usec = vertex.timestamp.tv_usec;
-
             newvertex.measurementUuid = boost::lexical_cast<std::string>(vertex.measurementUuid);
             newvertex.filename = std::to_string(vertex.index) + ".s3dm";
             newvertex.fixed = vertex.fixed;
