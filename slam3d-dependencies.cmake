@@ -19,6 +19,7 @@ if (NOT jsoncpp_FOUND)
     add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
   endif()
 endif()
+find_package(yaml-cpp)
 
 # Optional libraries
 find_package(libpointmatcher)

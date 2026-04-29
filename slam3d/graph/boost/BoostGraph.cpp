@@ -17,7 +17,14 @@ BoostGraph::BoostGraph(Logger* log, MeasurementStorage* storage)
  : Graph(log, storage)
 {
 	// insert a dummy node as a source of unary edges
-	mIndexMap.insert(IndexMap::value_type(0, 0));
+	VertexObject vo;
+	vo.index = mIndexer.getNext();
+	vo.fixed = true;
+	vo.correctedPose = Transform::Identity();
+	vo.measurementUuid = boost::uuids::nil_uuid();
+	vo.label = "origin";
+	vo.typeName = "void";
+	addVertex(vo);
 }
 
 BoostGraph::~BoostGraph()
