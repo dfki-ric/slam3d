@@ -9,11 +9,11 @@ endif ()
 
 find_package(jsoncpp)
 if(TARGET JsonCpp::JsonCpp)
-	add_library(jsoncpp_lib ALIAS JsonCpp::JsonCpp)
+	set(JSONCPP_TARGET JsonCpp::JsonCpp)
 else()
 	pkg_check_modules(jsoncpp IMPORTED_TARGET jsoncpp)
 	if (jsoncpp_FOUND)
-		add_library(jsoncpp_lib ALIAS PkgConfig::jsoncpp)
+		set(JSONCPP_TARGET PkgConfig::jsoncpp)
 	endif()
 endif()
 

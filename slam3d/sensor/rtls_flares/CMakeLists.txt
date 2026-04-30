@@ -10,7 +10,7 @@ target_include_directories(sensor-rtls
 )
 
 target_link_libraries(sensor-rtls
-	PUBLIC core jsoncpp_lib
+	PUBLIC core ${JSONCPP_TARGET}
 )
 
 # Install header files
