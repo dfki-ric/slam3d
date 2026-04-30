@@ -168,11 +168,26 @@ namespace slam3d
 		void setMapOutlierRemoval(double r, unsigned n);
 		
 		/**
+		 * @brief Set parameters for crop box filter.
+		 * @param min
+		 * @param max
+		 */
+		void setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max);
+		
+		/**
 		 * @brief Reduces the size of the source cloud by sampling with the given resolution.
 		 * @param source
 		 * @param resolution 
 		 */
 		static PointCloud::Ptr downsample(PointCloud::Ptr source, double resolution);
+		
+		/**
+		 * @brief Crop the source cloud to a square box with given corners.
+		 * @param source
+		 * @param min
+		 * @param max 
+		 */
+		static PointCloud::Ptr crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max);
 		
 		/**
 		 * @brief Reduces the size of the source cloud by sampling with internal scan resolution.
@@ -211,22 +226,37 @@ namespace slam3d
 		
 
 		/**
-		 * @brief configuration struct for buildMap
-		 * 
+		 * @struct MapConfig
+		 * @brief configuration parameters for map building
 		 */
-		struct MapConfig {
-			MapConfig():removeOutliers(true),downsample(true),cut(false) {}
-			bool removeOutliers;
-			bool downsample;
-			bool cut;
-			PointType min;
-			PointType max;
+		struct MapConfig
+		{
+			// Default config performs no filtering
+			MapConfig():resolution(0.0),outlierRadius(0.0),outlierNeighbors(0)
+			{
+				cropBoxMin.setConstant(-std::numeric_limits<float>::infinity());
+				cropBoxMax.setConstant( std::numeric_limits<float>::infinity());
+			}
+
+			double   resolution;
+			double   outlierRadius;
+			unsigned outlierNeighbors;
+			Eigen::Vector4f cropBoxMin;
+			Eigen::Vector4f cropBoxMax;
 		};
+
 		/**
 		 * @brief Build an accumulated point cloud map from given vertices.
 		 * @param vertices
 		 */
-		PointCloud::Ptr buildMap(const VertexObjectList& vertices, const MapConfig& mapConfig = MapConfig()) const;
+		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
+
+		/**
+		 * @brief Build an accumulated point cloud map from given vertices with custom map params.
+		 * @param vertices
+		 * @param config
+		 */
+		PointCloud::Ptr buildMap(const VertexObjectList& vertices, const MapConfig& config) const;
 		
 		/**
 		 * @brief Fill ground plane around center.
@@ -251,9 +281,7 @@ namespace slam3d
 		RegistrationParameters mCoarseConfiguration;
 		
 		double   mScanResolution;
-		double   mMapResolution;
-		double   mMapOutlierRadius;
-		unsigned mMapOutlierNeighbors;
+		MapConfig mMapConfig;
 	};
 }
 
