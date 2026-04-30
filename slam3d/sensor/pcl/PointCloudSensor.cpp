@@ -36,6 +36,7 @@
 #include <pcl/registration/ndt.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/filters/crop_box.h>
 #include <pcl/pcl_config.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
@@ -177,9 +178,6 @@ PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
 	mScanResolution = 0.1;
-	mMapResolution = 0.1;
-	mMapOutlierRadius = 0.2;
-	mMapOutlierNeighbors = 3;
 }
 
 PointCloudSensor::~PointCloudSensor()
@@ -187,17 +185,37 @@ PointCloudSensor::~PointCloudSensor()
 
 }
 
+PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max)
+{
+	if(min.allFinite() && max.allFinite())
+	{
+		PointCloud::Ptr out (new PointCloud);
+		pcl::CropBox<PointType> cropBox;
+		cropBox.setInputCloud(in);
+		cropBox.setMin(min);
+		cropBox.setMax(max);
+		cropBox.filter(*out);
+		return out;
+	}else
+	{
+		return in;
+	}
+}
+
 PointCloud::Ptr PointCloudSensor::downsample(PointCloud::Ptr in, double leaf_size)
 {
-	PointCloud::Ptr out(new PointCloud);
-	if(in->size() > 0)
+	if(in->size() > 0 && leaf_size > 0)
 	{
+		PointCloud::Ptr out(new PointCloud);
 		pcl::VoxelGrid<PointType> grid;
 		grid.setLeafSize (leaf_size, leaf_size, leaf_size);
 		grid.setInputCloud(in);
 		grid.filter(*out);
+		return out;
+	}else
+	{
+		return in;
 	}
-	return out;
 }
 
 PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::Ptr source)
@@ -300,13 +318,19 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 
 PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices) const
 {
+	return buildMap(vertices, mMapConfig);
+}
+
+PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices, const MapConfig& config) const
+{
 	Clock c;
 	timeval start = c.now();
 	PointCloud::Ptr map = getAccumulatedCloud(vertices);
 	try
 	{
-		map = removeOutliers(map, mMapOutlierRadius, mMapOutlierNeighbors);
-		map = downsample(map, mMapResolution);
+		map = crop(map, config.cropBoxMin, config.cropBoxMax);
+		map = removeOutliers(map, config.outlierRadius, config.outlierNeighbors);
+		map = downsample(map, config.resolution);
 	}catch(std::exception &e)
 	{
 		mLogger->message(ERROR, e.what());
@@ -348,15 +372,21 @@ void PointCloudSensor::setScanResolution(double r)
 void PointCloudSensor::setMapResolution(double r)
 {
 	mLogger->message(INFO, (boost::format("map_resolution:         %1%") % r).str());
-	mMapResolution = r;
+	mMapConfig.resolution = r;
 }
 
 void PointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
 {
 	mLogger->message(INFO, (boost::format("map_outlier_radius:     %1%") % r).str());
 	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());
-	mMapOutlierRadius = r;
-	mMapOutlierNeighbors = n;
+	mMapConfig.outlierRadius = r;
+	mMapConfig.outlierNeighbors = n;
+}
+
+void PointCloudSensor::setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max)
+{
+	mMapConfig.cropBoxMin = min;
+	mMapConfig.cropBoxMax = max;
 }
 
 void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
@@ -371,8 +401,8 @@ void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
 	ransac.getModelCoefficients(c);
 	Direction normal(c[0], c[1], c[2]);
 	Eigen::Hyperplane<ScalarType, 3> plane(normal, c[3]);
-	double angle_inc = mMapResolution / radius;
-	for(ScalarType r = mMapResolution; r <= radius; r += mMapResolution)
+	double angle_inc = mMapConfig.resolution / radius;
+	for(ScalarType r = mMapConfig.resolution; r <= radius; r += mMapConfig.resolution)
 	{
 		Position sample = plane.projection(Position(r,0,0));
 		for(ScalarType angle = 0; angle < 2*PI; angle += angle_inc)
