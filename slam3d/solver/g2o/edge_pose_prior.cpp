@@ -1,5 +1,6 @@
-// slam3d - Frontend for graph-based SLAM
+// g2o - General Graph Optimization
 // Copyright (C) 2019 S. Kasperski
+// All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -23,30 +24,33 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#include <g2o/types/slam3d/edge_se3_prior.h>
+#include <g2o/types/slam3d/isometry3d_gradients.h>
+#include <iostream>
 
-#include <slam3d/core/PoseSensor.hpp>
+#include "edge_pose_prior.h"
 
-namespace slam3d
-{
-	class GpsPoseSensor : public PoseSensor
-	{
-	public:
-		GpsPoseSensor(const std::string& n, Graph* g, Logger* l);
-		~GpsPoseSensor();
+namespace g2o {
+  using namespace std;
 
-		void handleNewVertex(IdType vertex) override;
-		Transform getPose(timeval stamp) override;
-		
-		void update(const timeval& t, const Position& p,
-		            const Covariance<3>& c, const Transform& sp);
+  EdgePosePrior::EdgePosePrior(const Isometry3& m)
+  : BaseUnaryEdge<6, Isometry3, VertexSE3>() {
+    _measurement = m;
+    _inverse_measurement = m.inverse();
+    information().setIdentity();
+  }
 
-	protected:
-		Clock mClock;
-		Position mPosition;
-		Covariance<3> mCovariance;
-		Transform mSensorPose;
-		timeval mTimestamp;
-		bool mHasNewData;
-	};
+  bool EdgePosePrior::read(std::istream& is) {
+    return false;
+  }
+
+  bool EdgePosePrior::write(std::ostream& os) const {
+    return false;
+}
+
+  void EdgePosePrior::computeError() {
+    VertexSE3 *vertex = static_cast<VertexSE3*>(_vertices[0]);
+    const Isometry3 delta = _inverse_measurement * vertex->estimate();
+    _error = internal::toVectorMQT(delta);
+  }
 }

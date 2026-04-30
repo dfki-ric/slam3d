@@ -1,4 +1,4 @@
-// slam3d - Frontend for graph-based SLAM
+﻿// slam3d - Frontend for graph-based SLAM
 // Copyright (C) 2017 S. Kasperski
 //
 // Redistribution and use in source and binary forms, with or without
@@ -77,14 +77,10 @@ laser->addMeasurement(m);
 #include <slam3d/core/Solver.hpp>
 #include <slam3d/core/MeasurementStorage.hpp>
 
-#include <flann/flann.hpp>
 #include <map>
-#include <set>
 
 namespace slam3d
 {
-	typedef flann::Index< flann::L2<float> > NeighborIndex;
-	
 	/**
 	 * @class InvalidVertex
 	 * @brief Exception thrown when a vertex ID does not exist in the graph.
@@ -298,22 +294,17 @@ namespace slam3d
 		virtual void writeGraphToFile(const std::string &name);
 
 		/**
-		 * @brief Create the index for nearest neighbor search of nodes.
-		 * @param sensors index nodes of these sensors
-		 */
-		virtual void buildNeighborIndex(const std::set<std::string>& sensors = std::set<std::string>());
-
-		/**
-		 * @brief Search for nodes in the graph near the given pose.
-		 * @details This does not refer to a NN-Search in the graph, but to search for
-		 * spatially near poses according to their current corrected pose.
-		 * If new nodes have been added, the index has to be created with
-		 * a call to buildNeighborIndex.
+		 * @brief Search for nodes in the graph near the given pose, filtered by sensors.
+		 * @example getNearbyVertices(location, radius, {"FrontLaser"});
 		 * @param tf The pose where to search for nodes
 		 * @param radius The radius within nodes should be returned
+		 * @param sensors sensor names to include
 		 * @return list of spatially near vertices
 		 */
-		virtual const VertexObjectList getNearbyVertices(const Transform &tf, float radius, const std::string& sensortype = "") const;
+		virtual const VertexObjectList getNearbyVertices(
+			const Transform &tf,
+			float radius,
+			const StringSet& sensors = {}) const;
 
 		/**
 		 * @brief Gets the index of the vertex with the given Measurement
@@ -335,7 +326,7 @@ namespace slam3d
 		 * @param id uuid of a measurement
 		 * @return constant reference to a vertex
 		 */
-		const VertexObject getVertex(boost::uuids::uuid id) const;
+		virtual const VertexObject getVertex(boost::uuids::uuid id) const;
 
 		/**
 		 * @brief Get a measurement for a given vertex id. 
@@ -384,19 +375,25 @@ namespace slam3d
 		 * @brief Get a list of sensors that created vertices within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const std::set<std::string> getVertexSensors() const;
+		virtual const StringSet getVertexSensors() const = 0;
 
 		/**
 		 * @brief Get a list of sensors that created edges within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const std::set<std::string> getEdgeSensors() const;
+		virtual const StringSet getEdgeSensors() const = 0;
 
 		/**
 		 * @brief Gets a list of all vertices from given sensor.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const = 0;
+		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+
+		/**
+		 * @brief Gets a list of all vertices from given sensor.
+		 * @param sensor
+		 */
+		virtual const VertexObjectList getVertices(const StringSet& sensors = {}) const = 0;
 
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
@@ -411,12 +408,6 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
-
-		/**
-		 * @brief Get all Vertices in the graph.
-		 * @details Can be used to accumulate a global map from different sources, i.e. not all sensor names are known.
-		 */
-		virtual const VertexObjectList getAllVertices() const = 0;
 
 		/**
 		 * @brief Gets a list of all edges from given sensor.
@@ -484,13 +475,6 @@ namespace slam3d
 		// Index to find Vertices by the unique id of their measurement
 		typedef std::map<boost::uuids::uuid, IdType> UuidIndex;
 		UuidIndex mUuidIndex;
-
-		// Index to use nearest neighbor search
-		// Whenever this index is created, we have to enumerate all vertices from 0 to n-1.
-		// This mapping is kept in a separate map to later apply the result to the graph.
-		flann::SearchParams mSearchParams;
-		NeighborIndex mNeighborIndex;
-		std::map<IdType, IdType> mNeighborMap; // vertex-id --> neighbor-id
 
 		// Parameters
 		bool mFixNext;

@@ -83,6 +83,7 @@ Transform Mapper::getCurrentPose()
 
 IdType Mapper::addMeasurement(Measurement::Ptr m)
 {
+	const bool first = mLastIndex == 0;
 	// Add the vertex to the pose graph
 	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
 	mLastIndex = mGraph->addVertex(m, getCurrentPose());
@@ -97,6 +98,13 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 		{
 			mLogger->message(ERROR, (boost::format("PoseSensor '%1%' failed: %2%") % ps->second->getName() % e.what()).str());
 		}
+	}
+	
+	// Create pose prior for first
+	if(first && mFixFirst)
+	{
+		Constraint::Ptr prior(new PoseConstraint("Mapper", getCurrentPose(), Covariance<6>::Identity()));
+		mGraph->addConstraint(mLastIndex, 0, prior);
 	}
 	
 	// Return the new vertex index

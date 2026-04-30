@@ -82,7 +82,7 @@ namespace slam3d
 		 * @param pose origin of the accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */		
-		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const override;
 
 		/**
 		 * @brief 

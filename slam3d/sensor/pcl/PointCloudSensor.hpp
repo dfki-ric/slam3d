@@ -124,7 +124,7 @@ namespace slam3d
 		 * @param pose origin of the accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */		
-		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const;
+		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const override;
 		
 		/**
 		 * @brief Create an ICP constraint between two point clouds.
@@ -136,7 +136,7 @@ namespace slam3d
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
 		                                         const Measurement::Ptr& target,
 		                                         const Transform& odometry,
-		                                         bool loop);
+		                                         bool loop) override;
 		
 		/**
 		 * @brief Sets parameters for the internal pointcloud registration.
@@ -238,6 +238,13 @@ namespace slam3d
 		 * @param radius
 		 */
 		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
+
+		/**
+		 * @brief Load a PLY and add it as measurement to the graph.
+		 * @param path load ply from this file
+		 * @param robot the name which will be added to the measurement
+		 */
+		void loadPLY(const std::string& path, const std::string& robot);
 
 	protected:
 		RegistrationParameters mFineConfiguration;

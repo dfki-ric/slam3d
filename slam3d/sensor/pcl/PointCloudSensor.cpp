@@ -40,8 +40,10 @@
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/conversions.h>
+#include <pcl/io/ply_io.h>
 
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 
 #define PI 3.141592654
 
@@ -133,21 +135,26 @@ Transform align(PointCloudMeasurement::Ptr source,
 		throw NoMatch("Too few points after filtering, you may have to decrease 'point_cloud_density'.");
 	
 	// Configure Generalized-ICP
+	Transform result;
 	switch(config.registration_algorithm)
 	{
 	case GICP:
-		return doICP< pcl::GeneralizedIterativeClosestPoint<PointType, PointType> >
+		result = doICP< pcl::GeneralizedIterativeClosestPoint<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 	case NDT:
-		return doNDT< pcl::NormalDistributionsTransform<PointType, PointType> >
+		result = doNDT< pcl::NormalDistributionsTransform<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 #ifdef USE_PCLOMP
 	case GICP_OMP:
-		return doICP< pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> >
+		result = doICP< pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 	case NDT_OMP:
-		return doNDT< pclomp::NormalDistributionsTransform<PointType, PointType> >
+		result = doNDT< pclomp::NormalDistributionsTransform<PointType, PointType> >
 			(filtered_source, filtered_target, guess, config);
+		break;
 #else
 	case GICP_OMP:
 	case NDT_OMP:
@@ -156,6 +163,14 @@ Transform align(PointCloudMeasurement::Ptr source,
 	default:
 		throw std::runtime_error("Unknown registration algorithm specified.");
 	}
+	
+	const Transform delta = guess.inverse() * result;
+	const Eigen::AngleAxisd rot(delta.linear());
+	if(delta.translation().norm() > config.max_translation || rot.angle() > config.max_rotation)
+	{
+		throw NoMatch("ICP result is to far away from guess");
+	}
+	return result;
 }
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
@@ -389,5 +404,32 @@ void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
 			p.z = rot[2];
 			cloud->push_back(p);
 		}
+	}
+}
+
+void PointCloudSensor::loadPLY(const std::string& path, const std::string& robot)
+{
+	PointCloud::Ptr pcl_cloud(new PointCloud());
+	pcl::PLYReader ply_reader;
+	if(ply_reader.read(path, *pcl_cloud) == 0)
+	{
+		Transform pc_tr(pcl_cloud->sensor_orientation_.cast<ScalarType>());
+		pc_tr.translation() = pcl_cloud->sensor_origin_.block(0,0,3,1).cast<ScalarType>();
+		PointCloudMeasurement::Ptr initial_map(
+			new PointCloudMeasurement(pcl_cloud, robot, mName, pc_tr));
+		try
+		{
+			IdType id = mMapper->getGraph()->addVertex(initial_map, Transform::Identity());
+			Constraint::Ptr prior(new PoseConstraint(mName, Transform::Identity(), Covariance<6>::Identity()));
+			mMapper->getGraph()->addConstraint(id, 0, prior);
+			mLogger->message(INFO, "Successfully loaded initial map.");
+		}
+		catch(std::exception& e)
+		{
+			mLogger->message(ERROR, (boost::format("Adding initial point cloud failed: %1%") % e.what()).str());
+		}
+	}else
+	{
+		mLogger->message(ERROR, "Could not load initial map.");
 	}
 }

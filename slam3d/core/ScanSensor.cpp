@@ -172,9 +172,8 @@ void ScanSensor::linkToNeighbors(IdType vertex)
 	if(mMaxNeighorLinks == 0)
 		return;
 
-	mMapper->getGraph()->buildNeighborIndex(mLinkSensors);
 	VertexObject obj = mMapper->getGraph()->getVertex(vertex);
-	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.correctedPose, mNeighborRadius);
+	VertexObjectList neighbors = mMapper->getGraph()->getNearbyVertices(obj.correctedPose, mNeighborRadius, mLinkSensors);
 	
 	int count = 0;
 	for(auto i = neighbors.rbegin(); i != neighbors.rend() && count < mMaxNeighorLinks; i++)
