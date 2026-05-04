@@ -30,10 +30,8 @@
 using namespace slam3d;
 
 Graph::Graph(Logger* log, MeasurementStorage* storage)
- : mLogger(log), mStorage(storage)
+ : mLogger(log), mStorage(storage), mSolver(nullptr)
 {
-	// Initialize some members
-	mSolver = NULL;	
 	init();
 }
 
@@ -51,18 +49,6 @@ void Graph::init(const size_t &indexer_start) {
 	mOptimized = false;
 	mConstraintsAdded = 0;
 	mIndexer = Indexer(indexer_start);
-
-	if (indexer_start == 0) {
-		// insert a dummy node as a source of unary edges
-		VertexObject vo;
-		vo.index = mIndexer.getNext();
-		vo.fixed = true;
-		vo.correctedPose = Transform::Identity();
-		vo.measurementUuid = boost::uuids::nil_uuid();
-		vo.label = "origin";
-		vo.typeName = "void";
-		addVertex(vo);
-	}
 }
 
 void Graph::setSolver(Solver* solver)

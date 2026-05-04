@@ -44,6 +44,8 @@ namespace slam3d
 		BoostGraph(Logger* log, MeasurementStorage* storage);
 		~BoostGraph();
 
+		void init(const size_t &indexer_start = 0) override;
+
 		void clear() override;
 
 		/**
