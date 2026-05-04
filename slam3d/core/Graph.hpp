@@ -197,13 +197,25 @@ namespace slam3d
 		Graph(Logger* log, MeasurementStorage* storage);
 		virtual ~Graph();
 
-
+		/**
+		 * @brief initializes the graph
+		 * @details this initialization sets an empy graph to
+		 * working state. (e.g. adding an default vertex as target for unary edges)
+		 * @warning All Graph implementations MUST call this classes init function
+		 * within their init() function using Graph::init(indexer_start);
+		 * @param indexer_start when the Graph is persistent (e.g. in a database)
+		 * the indexer should skip the existing vertex ids and start at indexer_start
+		 */
 		virtual void init(const size_t &indexer_start = 0);
 
 		/**
-		 * @brief resets the grapg to empty state
-		 * @details empty means sets it to the original state 
-		 * (including the spectial verties 0)
+		 * @brief resets the graph to empty state
+		 * @details sets the graph it to empty
+		 * Measurements have to be deleted seperately
+		 * @warning init() should be called after a graph was cleared
+		 * to get to the initial state right after the constructor was called.
+		 * in case measurements are to be deleted, call init() after
+		 * deletion of measurements
 		 */
 		virtual void clear() = 0;
 

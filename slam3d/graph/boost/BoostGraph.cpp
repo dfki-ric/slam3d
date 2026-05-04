@@ -23,12 +23,28 @@ BoostGraph::~BoostGraph()
 {
 }
 
+void BoostGraph::init(const size_t &indexer_start)
+{
+	// call parent init
+	Graph::init(indexer_start);
+
+	if (indexer_start == 0) {
+		// insert a dummy node as a source of unary edges
+		VertexObject vo;
+		vo.index = mIndexer.getNext();
+		vo.fixed = true;
+		vo.correctedPose = Transform::Identity();
+		vo.measurementUuid = boost::uuids::nil_uuid();
+		vo.label = "origin";
+		vo.typeName = "void";
+		addVertex(vo);
+	}
+}
+
 void BoostGraph::clear() {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	mPoseGraph.clear();
 	mIndexMap.clear();
-
-	init();
 }
 
 const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
