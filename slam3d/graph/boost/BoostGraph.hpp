@@ -44,7 +44,7 @@ namespace slam3d
 		BoostGraph(Logger* log, MeasurementStorage* storage);
 		~BoostGraph();
 
-		void clearGraph() override;
+		void clear() override;
 
 		/**
 		 * @brief Start the backend optimization process.

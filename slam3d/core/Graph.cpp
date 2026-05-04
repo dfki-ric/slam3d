@@ -34,27 +34,34 @@ Graph::Graph(Logger* log, MeasurementStorage* storage)
 {
 	// Initialize some members
 	mSolver = NULL;	
-	mFixNext = false;
-	mOptimized = false;
-	mConstraintsAdded = 0;
+	init();
 }
 
 Graph::~Graph()
 {
 }
 
-void Graph::clear(const bool &deleteMeasurements) {
-	mSolver->clear();
+void Graph::init(const size_t &indexer_start) {
+	if (mSolver)
+	{
+		mSolver->clear();
+	}
 	mUuidIndex.clear();
 	mFixNext = false;
 	mOptimized = false;
 	mConstraintsAdded = 0;
-	mIndexer = Indexer(0);
+	mIndexer = Indexer(indexer_start);
 
-	clearGraph();
-	if (deleteMeasurements) {
-		printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
-		mStorage->clear();
+	if (indexer_start == 0) {
+		// insert a dummy node as a source of unary edges
+		VertexObject vo;
+		vo.index = mIndexer.getNext();
+		vo.fixed = true;
+		vo.correctedPose = Transform::Identity();
+		vo.measurementUuid = boost::uuids::nil_uuid();
+		vo.label = "origin";
+		vo.typeName = "void";
+		addVertex(vo);
 	}
 }
 

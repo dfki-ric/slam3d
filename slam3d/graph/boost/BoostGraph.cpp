@@ -16,39 +16,19 @@ using namespace slam3d;
 BoostGraph::BoostGraph(Logger* log, MeasurementStorage* storage)
  : Graph(log, storage)
 {
-	// insert a dummy node as a source of unary edges
-	VertexObject vo;
-	vo.index = mIndexer.getNext();
-	vo.fixed = true;
-	vo.correctedPose = Transform::Identity();
-	vo.measurementUuid = boost::uuids::nil_uuid();
-	vo.label = "origin";
-	vo.typeName = "void";
-	addVertex(vo);
+	init();
 }
 
 BoostGraph::~BoostGraph()
 {
 }
 
-void BoostGraph::clearGraph() {
+void BoostGraph::clear() {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	mPoseGraph.clear();
 	mIndexMap.clear();
 
-	// insert a dummy node as a source of unary edges
-	VertexObject vo;
-	vo.index = mIndexer.getNext();
-	vo.fixed = true;
-	vo.correctedPose = Transform::Identity();
-	vo.measurementUuid = boost::uuids::nil_uuid();
-	vo.label = "origin";
-	vo.typeName = "void";
-	// Add vertex manually (without calling addVertex()) to the graph to avoid double locking
-	Vertex newVertex = boost::add_vertex(mPoseGraph);
-	mPoseGraph[newVertex] = vo;
-	// Add it to the vertex index, so we can find it by its descriptor
-	mIndexMap.insert(IndexMap::value_type(vo.index, newVertex));
+	init();
 }
 
 const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
