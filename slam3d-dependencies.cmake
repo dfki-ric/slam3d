@@ -7,7 +7,10 @@ if (NOT TARGET Eigen3::Eigen)
 		INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR})
 endif ()
 
-find_package(jsoncpp)
+if (NOT TARGET JsonCpp::JsonCpp) # guard to fix faulty jsoncpp .cmake in ubuntu 22.04
+	find_package(jsoncpp)
+endif()
+
 if(TARGET JsonCpp::JsonCpp)
 	set(JSONCPP_TARGET JsonCpp::JsonCpp)
 else()
