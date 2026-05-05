@@ -212,7 +212,7 @@ const EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 	return edges;
 }
 
-const EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
+const EdgeObjectList BoostGraph::getConnectingEdges(const VertexObjectList& vertices) const
 {
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)

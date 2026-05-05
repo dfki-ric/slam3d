@@ -444,7 +444,7 @@ namespace slam3d
 		 * @param vertices
 		 * @throw InvalidVertex
 		 */
-		virtual const EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
+		virtual const EdgeObjectList getConnectingEdges(const VertexObjectList& vertices) const = 0;
 
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.

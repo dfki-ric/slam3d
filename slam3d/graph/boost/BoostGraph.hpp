@@ -106,7 +106,7 @@ namespace slam3d
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		const EdgeObjectList getEdges(const VertexObjectList& vertices) const override;
+		const EdgeObjectList getConnectingEdges(const VertexObjectList& vertices) const override;
 
 		/**
 		 * @brief Get a list of sensors that created vertices within the graph
