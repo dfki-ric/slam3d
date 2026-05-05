@@ -72,56 +72,27 @@ namespace YAML {
         }
     };
 
-    template<> struct convert<slam3d::Covariance<2>> {
-        static bool decode(const Node& node, slam3d::Covariance<2>& config) {
-            std::vector<double> array = node.as<std::vector<double>>();
-            config = Eigen::Map<slam3d::Covariance<2>>(const_cast<double *>(array.data()));
-            return true;
-        }
-        static Node encode(const slam3d::Covariance<2>& config) {
-            Node node;
-            std::vector<double> array;
-            for (auto value : config.reshaped()) {
-                array.push_back(value);
-            }
-            node = array;
-            return node;
-        }
-    };
-
-    template<> struct convert<slam3d::Covariance<3>> {
-        static bool decode(const Node& node, slam3d::Covariance<3>& config) {
-            std::vector<double> array = node.as<std::vector<double>>();
-            config = Eigen::Map<slam3d::Covariance<3>>(const_cast<double *>(array.data()));
-            return true;
-        }
-        static Node encode(const slam3d::Covariance<3>& config) {
-            Node node;
-            std::vector<double> array;
-            for (auto value : config.reshaped()) {
-                array.push_back(value);
-            }
-            node = array;
-            return node;
-        }
-    };
-
-    template<> struct convert<slam3d::Covariance<6>> {
-        static bool decode(const Node& node, slam3d::Covariance<6>& config) {
-            std::vector<double> array = node.as<std::vector<double>>();
-            config = Eigen::Map<slam3d::Covariance<6>>(const_cast<double *>(array.data()));
-            return true;
-        }
-        static Node encode(const slam3d::Covariance<6>& config) {
-            Node node;
-            std::vector<double> array;
-            for (auto value : config.reshaped()) {
-                array.push_back(value);
-            }
-            node = array;
-            return node;
-        }
-    };
+	template<int DIM>
+	struct convert<slam3d::Covariance<DIM>>
+	{
+		static bool decode(const Node& node, slam3d::Covariance<DIM>& config)
+		{
+			std::vector<double> array = node.as<std::vector<double>>();
+			config = Eigen::Map<slam3d::Covariance<DIM>>(const_cast<double *>(array.data()));
+			return true;
+		}
+		static Node encode(const slam3d::Covariance<DIM>& config)
+		{
+			Node node;
+			std::vector<double> array;
+			for (auto value : config.reshaped())
+			{
+				array.push_back(value);
+			}
+			node = array;
+			return node;
+		}
+	};
 
     template<> struct convert<slam3d::Constraint::Ptr>
 	{
