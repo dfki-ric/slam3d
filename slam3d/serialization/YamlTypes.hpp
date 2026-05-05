@@ -223,7 +223,7 @@ namespace YAML {
 		{
 			if (node)
 			{
-				id = node.as<boost::uuids::uuid>();
+				id = boost::lexical_cast<boost::uuids::uuid>(node);
 				return true;
 			}
 			return false;
@@ -231,7 +231,7 @@ namespace YAML {
 		static Node encode(const boost::uuids::uuid& id)
 		{
             Node node;
-            node = id;
+            node = boost::lexical_cast<std::string>(id);
             return node;
         }
 	};
