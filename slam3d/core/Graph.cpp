@@ -241,11 +241,6 @@ Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 	return mStorage->get(id);
 }
 
-const VertexObjectList Graph::getVerticesFromSensor(const std::string& sensor) const
-{
-	return getVertices({sensor});
-}
-
 const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const StringSet& sensors) const
 {
 	// get Vertex list from specific graph implementation

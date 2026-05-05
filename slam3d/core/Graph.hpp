@@ -408,14 +408,8 @@ namespace slam3d
 		virtual const StringSet getEdgeSensors() const = 0;
 
 		/**
-		 * @brief Gets a list of all vertices from given sensor.
-		 * @param sensor
-		 */
-		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
-
-		/**
-		 * @brief Gets a list of all vertices from given sensor.
-		 * @param sensor
+		 * @brief Gets a list of vertices from given sensors or all vertices by default.
+		 * @param sensors
 		 */
 		virtual const VertexObjectList getVertices(const StringSet& sensors = {}) const = 0;
 
@@ -434,10 +428,10 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
-		 * @brief Gets a list of all edges from given sensor.
-		 * @param sensor
+		 * @brief Gets a list of edges from given sensors or all edges by default.
+		 * @param sensors
 		 */
-		virtual const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
+		virtual const EdgeObjectList getEdges(const StringSet& sensors = {}) const = 0;
 
 		/**
 		 * @brief Get all connecting edges between given vertices.

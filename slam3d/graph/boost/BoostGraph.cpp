@@ -49,23 +49,6 @@ void BoostGraph::clear()
 	mIndexMap.clear();
 }
 
-const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
-{
-	EdgeObjectList objectList;
-	EdgeRange edges = boost::edges(mPoseGraph);
-	for(EdgeIterator it = edges.first; it != edges.second; ++it)
-	{
-		EdgeObject eo = mPoseGraph[*it];
-		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
-		bool add_sensor = (sensor == "") || (sensor == eo.constraint->getSensorName());
-		if(add_sensor && eo.source == source_id)
-		{
-			objectList.push_back(mPoseGraph[*it]);
-		}
-	}
-	return objectList;
-}
-
 bool BoostGraph::optimize(unsigned iterations)
 {
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
@@ -122,9 +105,11 @@ const VertexObjectList BoostGraph::getVertices(const StringSet& sensors) const
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(sensors.empty() || sensors.count(mPoseGraph[*it].sensorName))
+		const VertexObject& vo = mPoseGraph[*it];
+		if(vo.index == 0) continue;
+		if(sensors.empty() || sensors.count(vo.sensorName))
 		{
-			objectList.push_back(mPoseGraph[*it]);
+			objectList.push_back(vo);
 		}
 	}
 	return objectList;
@@ -197,6 +182,23 @@ OutEdgeIterator BoostGraph::getEdgeIterator(IdType source, IdType target, const 
 		++it;
 	}
 	throw InvalidEdge(source, target);
+}
+
+const EdgeObjectList BoostGraph::getEdges(const StringSet& sensors) const
+{
+	EdgeObjectList objectList;
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		const EdgeObject& eo = mPoseGraph[*it];
+		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
+		bool add_sensor = sensors.empty() || sensors.count(eo.constraint->getSensorName());
+		if(add_sensor && eo.source == source_id)
+		{
+			objectList.push_back(eo);
+		}
+	}
+	return objectList;
 }
 
 const EdgeObjectList BoostGraph::getOutEdges(IdType source) const
