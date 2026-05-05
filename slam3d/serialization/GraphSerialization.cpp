@@ -11,9 +11,9 @@
 using namespace slam3d;
 
 
-bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
-    
-    
+bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode)
+{
+/*
     auto &config = Yaml<YamlGraph>::getInstance();
     config.get().vertices.clear();
 
@@ -60,9 +60,8 @@ bool GraphSerialization::toFolder(Graph* graph, const std::string& targetfolder,
         }
     }
     config.saveConfig(targetfolder + "/" + graphfile);
-
+*/
     return true;
-
 }
 
 bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolder, const std::string &graphfile, std::function<void(size_t,size_t)> status, const CloudMode &cloudmode) {
@@ -73,61 +72,9 @@ bool GraphSerialization::fromFolder(Graph* graph, const std::string& targetfolde
     auto &config = Yaml<YamlGraph>::getInstance();
     config.loadConfig(graphfilefull);
 
-    std::map<size_t, size_t> newVertexId;
-    std::map<size_t, YamlVertex> vertices; // use map to sort by vertex id
-    for (const auto& vertex : config.get().vertices) {
-        vertices[vertex.vertexIndex] = vertex;
-    }
-
-    // load vertices first
-    for (const auto& vertex : vertices) {
-
-        if (vertex.second.fixed) {
-            graph->fixNext();
-        }
-
-        slam3d::Transform pose = vertex.second.correctedPose;
-        slam3d::Transform sensorpose = vertex.second.sensorPose;
-
-        boost::uuids::uuid uuid;
-        if (vertex.second.measurementUuid == "") {
-            uuid = boost::uuids::random_generator()();
-        } else {
-            uuid = boost::lexical_cast<boost::uuids::uuid>(vertex.second.measurementUuid);
-        }
-        slam3d::Measurement::Ptr measurement;
-
-        if (cloudmode != SKIP) {
-            std::string filename = targetfolder + "/" + vertex.second.filename;
-            if (cloudmode == PORTABLE){
-                measurement = MeasurementSerialization::fromFile(filename, false);
-            } else if (cloudmode == BINARY){
-                measurement = MeasurementSerialization::fromFile(filename, true);
-            }
-        } else {
-            measurement = graph->getMeasurement(uuid);
-        }
-
-        if (measurement) {
-            size_t vertexid = graph->addVertex(measurement, vertex.second.correctedPose);
-            newVertexId[vertex.first] = vertexid;
-            if (status) {
-                status(vertexid,vertices.size());
-            }
-        } else if (vertex.second.measurementUuid != boost::lexical_cast<std::string>(boost::uuids::nil_uuid()))
-        {
-            throw std::runtime_error("incompatible boost serialization file (.s3dm)");
-        }
-    }
-
-    //go overr egdes and add with new vertex ids
-    for (const auto& vertex : config.get().vertices) {
-        for (const auto& edge : vertex.children) {
-            size_t source = newVertexId[edge.source];
-            size_t target = newVertexId[edge.target];
-
-            graph->addConstraint(source, target, edge.constraint);
-        }
+    for (const auto& vertex : config.get().vertices)
+	{
+        graph->addVertex(vertex);
     }
 
     // optimize locations

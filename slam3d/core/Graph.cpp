@@ -39,7 +39,8 @@ Graph::~Graph()
 {
 }
 
-void Graph::init(const size_t &indexer_start) {
+void Graph::init(const size_t &indexer_start)
+{
 	if (mSolver)
 	{
 		mSolver->clear();

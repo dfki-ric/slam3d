@@ -193,6 +193,8 @@ namespace slam3d
 	 */
 	class Graph
 	{
+	friend class GraphSerialization;
+
 	public:
 		Graph(Logger* log, MeasurementStorage* storage);
 		virtual ~Graph();

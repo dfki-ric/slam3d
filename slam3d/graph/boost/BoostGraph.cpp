@@ -28,7 +28,8 @@ void BoostGraph::init(const size_t &indexer_start)
 	// call parent init
 	Graph::init(indexer_start);
 
-	if (indexer_start == 0) {
+	if (indexer_start == 0)
+	{
 		// insert a dummy node as a source of unary edges
 		VertexObject vo;
 		vo.index = mIndexer.getNext();
@@ -41,7 +42,8 @@ void BoostGraph::init(const size_t &indexer_start)
 	}
 }
 
-void BoostGraph::clear() {
+void BoostGraph::clear()
+{
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	mPoseGraph.clear();
 	mIndexMap.clear();

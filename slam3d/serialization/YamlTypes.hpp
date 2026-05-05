@@ -2,9 +2,9 @@
 
 #include <string>
 #include <vector>
-#include <map>
 
 #include <boost/make_shared.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <slam3d/core/Types.hpp>
 
@@ -123,10 +123,10 @@ namespace YAML {
         }
     };
 
-    template<> struct convert<slam3d::Constraint::Ptr> {
-        static bool decode(const Node& node, slam3d::Constraint::Ptr& config) {
-
-
+    template<> struct convert<slam3d::Constraint::Ptr>
+	{
+        static bool decode(const Node& node, slam3d::Constraint::Ptr& config)
+		{
             // for backward comp, if no type is set on loading, assume SE3
             size_t type;
             if (node["type"]) {
@@ -227,7 +227,7 @@ namespace YAML {
             return node;
         }
     };
-
+	
     template<> struct convert<slam3d::EdgeObject> {
         static bool decode(const Node& node, slam3d::EdgeObject& config) {
             checkAndSet(&config.source, node["source"]);
@@ -246,82 +246,97 @@ namespace YAML {
         }
     };
 
+	template<> struct convert<boost::uuids::uuid>
+	{
+		static bool decode(const Node& node, boost::uuids::uuid& id)
+		{
+			if (node)
+			{
+				id = node.as<boost::uuids::uuid>();
+				return true;
+			}
+			return false;
+		}
+		static Node encode(const boost::uuids::uuid& id)
+		{
+            Node node;
+            node = id;
+            return node;
+        }
+	};
 
-}
+	template<> struct convert<timeval>
+	{
+		static bool decode(const Node& node, timeval& time)
+		{
+			checkAndSet(&time.tv_sec, node["tv_sec"]);
+			checkAndSet(&time.tv_usec, node["tv_usec"]);
+			return true;
+		}
+		static Node encode(const timeval& time)
+		{
+            Node node;
+            node["tv_sec"] = time.tv_sec;
+			node["tv_usec"] = time.tv_usec;
+            return node;
+        }
+	};
 
-struct YamlVertex {
-    size_t vertexIndex;
-    std::string robotName;
-    std::string sensorName;
-    std::string typeName;
-    size_t tv_sec, tv_usec, timestamp;
-    std::string frame;
-    std::string measurementUuid;
-    std::string filename;
-    slam3d::Transform correctedPose;
-    slam3d::Transform sensorPose;
-    bool fixed;
-
-    std::vector<slam3d::EdgeObject> children;
-};
-
-/**
- * define yaml-cpp parser for the Config type
- */
-namespace YAML {
-    template<> struct convert<YamlVertex> {
-        static bool decode(const Node& node, YamlVertex& config) {
-            checkAndSet(&config.vertexIndex, node["vertexIndex"]);
+    template<> struct convert<slam3d::VertexObject>
+	{
+        static bool decode(const Node& node, slam3d::VertexObject& config)
+		{
+            checkAndSet(&config.index, node["index"]);
+            checkAndSet(&config.timestamp, node["timestamp"]);
+            checkAndSet(&config.label, node["label"]);
             checkAndSet(&config.robotName, node["robotName"]);
             checkAndSet(&config.sensorName, node["sensorName"]);
             checkAndSet(&config.typeName, node["typeName"]);
-            checkAndSet(&config.tv_sec, node["tv_sec"]);
-            checkAndSet(&config.tv_sec, node["tv_sec"]);
-            checkAndSet(&config.timestamp, node["timestamp"]);
-            checkAndSet(&config.frame, node["frame"]);
-            checkAndSet(&config.measurementUuid, node["measurementUuid"]);
-            checkAndSet(&config.filename, node["filename"]);
             checkAndSet(&config.correctedPose, node["correctedPose"]);
-            checkAndSet(&config.sensorPose, node["sensorPose"]);
             checkAndSet(&config.fixed, node["fixed"]);
-            checkAndSet(&config.children, node["children"]);
+            checkAndSet(&config.measurementUuid,node["measurementUuid"]);
+
             return true;
         }
-        static Node encode(const YamlVertex& config) {
+        static Node encode(const slam3d::VertexObject& config)
+		{
             Node node;
-            node["vertexIndex"] = config.vertexIndex;
+            node["index"] = config.index;
+            node["timestamp"] = config.timestamp;
+            node["label"] = config.label;
             node["robotName"] = config.robotName;
             node["sensorName"] = config.sensorName;
             node["typeName"] = config.typeName;
-            node["tv_sec"] = config.tv_sec;
-            node["tv_usec"] = config.tv_usec;
-            node["timestamp"] = config.timestamp;
-            node["frame"] = config.frame;
             node["measurementUuid"] = config.measurementUuid;
-            node["filename"] = config.filename;
             node["correctedPose"] = config.correctedPose;
-            node["sensorPose"] = config.sensorPose;
             node["fixed"] = config.fixed;
-            node["children"] = config.children;
             return node;
         }
     };
 }
 
-struct YamlGraph {
-    std::vector<YamlVertex> vertices;
+struct YamlGraph
+{
+    slam3d::VertexObjectList vertices;
+	slam3d::EdgeObjectList edges;
 };
 
-namespace YAML {
-    template<> struct convert<YamlGraph> {
-        static bool decode(const Node& node, YamlGraph& config) {
-            checkAndSet(&config.vertices, node["vertices"]);
-            return true;
-        }
-        static Node encode(const YamlGraph& config) {
-            Node node;
-            node["vertices"] = config.vertices;
-            return node;
-        }
-    };
+namespace YAML
+{
+	template<> struct convert<YamlGraph>
+	{
+		static bool decode(const Node& node, YamlGraph& config)
+		{
+			checkAndSet(&config.vertices, node["vertices"]);
+			checkAndSet(&config.edges, node["edges"]);
+			return true;
+		}
+		static Node encode(const YamlGraph& config)
+		{
+			Node node;
+			node["vertices"] = config.vertices;
+			node["edges"] = config.edges;
+			return node;
+		}
+	};
 }
