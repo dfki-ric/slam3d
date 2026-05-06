@@ -78,10 +78,10 @@ namespace slam3d
 		const EdgeObjectList getOutEdges(IdType source) const override;
 		
 		/**
-		 * @brief Gets a list of all vertices from given sensor.
-		 * @param sensor
+		 * @brief Gets a list of vertices from given sensors or all vertices by default.
+		 * @param sensors
 		 */
-		const VertexObjectList getVertices(const StringSet& sensor) const override;
+		const VertexObjectList getVertices(const StringSet& sensors = {}) const override;
 		
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
