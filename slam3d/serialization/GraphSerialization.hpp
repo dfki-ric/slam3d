@@ -10,9 +10,6 @@ namespace slam3d
 	class GraphSerialization
 	{
 	public:
-
-		enum CloudMode {PORTABLE, BINARY, SKIP};
-
 		/**
 		 * @brief saves the graph to a folder
 		 *
