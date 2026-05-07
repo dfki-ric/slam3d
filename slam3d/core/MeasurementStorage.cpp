@@ -5,19 +5,21 @@
 
 using namespace slam3d;
 
-MeasurementStorage::MeasurementStorage()
-{
-	mMeasurements[boost::uuids::nil_uuid()] = Measurement::Ptr();
-}
-
 void MeasurementStorage::add(Measurement::Ptr measurement)
 {
+	if(measurement->getUniqueId().is_nil())
+	{
+		throw std::runtime_error("Measurement added to storage has nil-uuid.");
+	}
 	mMeasurements[measurement->getUniqueId()] = measurement;
 }
 
 Measurement::Ptr MeasurementStorage::get(const boost::uuids::uuid& uuid)
 {
-	return mMeasurements.at(uuid);
+	if(uuid.is_nil())
+		return {};
+	else
+		return mMeasurements.at(uuid);
 }
 
 Measurement::Ptr MeasurementStorage::get(const std::string& key)
@@ -30,7 +32,7 @@ bool MeasurementStorage::contains(const boost::uuids::uuid& key)
 	return mMeasurements.count(key);
 }
 
-void MeasurementStorage::clear() {
+void MeasurementStorage::clear()
+{
 	mMeasurements.clear();
-	mMeasurements[boost::uuids::nil_uuid()] = Measurement::Ptr();
 }
