@@ -42,7 +42,16 @@ namespace slam3d
 		 * @param binary use boost text achhive or binary acrchive
 		 * @return number of files that could not be written
 		 */
-		static unsigned toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary = false);
+		static void toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary = false);
+
+		/**
+		 * @brief read all measurements from a directory into a storage
+		 * @param storage
+		 * @param dir
+		 * @param binary use boost text achhive or binary acrchive
+		 * @return number of files that could not be written
+		 */
+		static void fromDirectory(MeasurementStorage* storage, const std::string &dir, bool binary = false);
 		
 		/**
 		 * @brief write measurement to serialized string

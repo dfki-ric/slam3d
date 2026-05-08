@@ -3,6 +3,8 @@
 
 #include <fstream>
 #include <sstream>
+#include <filesystem>
+
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -53,18 +55,24 @@ Measurement::Ptr MeasurementSerialization::fromFile(const std::string &filename,
     return measurement;
 }
 
-unsigned MeasurementSerialization::toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
+void MeasurementSerialization::toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
 {
-	unsigned failed = 0;
 	for(const auto entry : *storage)
 	{
 		const std::string filename(dir + "/" + boost::lexical_cast<std::string>(entry.second->getUniqueId()) + ".s3dm");
-		if(!toFile(entry.second, filename, binary))
+		toFile(entry.second, filename, binary);
+	}
+}
+
+void MeasurementSerialization::fromDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
+{
+	for(const auto& entry : std::filesystem::directory_iterator{dir}) 
+	{
+		if(entry.path().extension() == ".s3dm")
 		{
-			failed++;
+			storage->add(fromFile(entry.path(), binary));
 		}
 	}
-	return failed;
 }
 
 std::string MeasurementSerialization::toString(Measurement::Ptr measurement, bool binary) {
@@ -97,5 +105,3 @@ Measurement::Ptr MeasurementSerialization::fromString(const std::string &seriali
     }
     return measurement;
 }
-
-
