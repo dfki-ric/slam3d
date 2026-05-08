@@ -16,7 +16,7 @@ namespace slam3d
 		 * @param graph the slam3d graph
 		 * @param graphfile file name of the exported graph
 		 */
-		static bool toFolder(Graph* graph, const std::string &graphfile = "slam3d_graph.yml");
+		static bool toFile(Graph* graph, const std::string &graphfile = "slam3d_graph.yml");
 
 		/**
 		 * @brief restores the graph from folder
@@ -24,7 +24,7 @@ namespace slam3d
 		 * @param graph the slam3d graph
 		 * @param graphfile file name of the exported graph
 		 */
-		static bool fromFolder(Graph* graph, const std::string &graphfile = "slam3d_graph.yml");
+		static bool fromFile(Graph* graph, const std::string &graphfile = "slam3d_graph.yml");
 	};
 
 }  // namespace slam3d

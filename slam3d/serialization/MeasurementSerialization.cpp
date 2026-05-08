@@ -1,7 +1,14 @@
 #include "MeasurementSerialization.hpp"
-
-
 #include "../sensor/pcl/PointCloudSensor.hpp"
+
+#include <fstream>
+#include <sstream>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/lexical_cast.hpp>
+
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 using namespace slam3d;
@@ -44,6 +51,20 @@ Measurement::Ptr MeasurementSerialization::fromFile(const std::string &filename,
         return fromFile(filename, !binary);
     }
     return measurement;
+}
+
+unsigned MeasurementSerialization::toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
+{
+	unsigned failed = 0;
+	for(const auto entry : *storage)
+	{
+		const std::string filename(dir + "/" + boost::lexical_cast<std::string>(entry.second->getUniqueId()) + ".s3dm");
+		if(!toFile(entry.second, filename, binary))
+		{
+			failed++;
+		}
+	}
+	return failed;
 }
 
 std::string MeasurementSerialization::toString(Measurement::Ptr measurement, bool binary) {

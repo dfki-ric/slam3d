@@ -1,13 +1,7 @@
 #pragma once
 
 #include <slam3d/core/Types.hpp>
-
-#include <fstream>
-#include <sstream>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 namespace slam3d
 {
@@ -41,7 +35,14 @@ namespace slam3d
 		 */
 		static Measurement::Ptr fromFile(const std::string &filename, bool binary = false);
 
-
+		/**
+		 * @brief write all measurements from a storage to files
+		 * @param storage
+		 * @param dir
+		 * @param binary use boost text achhive or binary acrchive
+		 * @return number of files that could not be written
+		 */
+		static unsigned toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary = false);
 		
 		/**
 		 * @brief write measurement to serialized string

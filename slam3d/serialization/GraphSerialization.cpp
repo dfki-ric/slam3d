@@ -10,7 +10,7 @@
 using namespace slam3d;
 
 
-bool GraphSerialization::toFolder(Graph* graph, const std::string &graphfile)
+bool GraphSerialization::toFile(Graph* graph, const std::string &graphfile)
 {
 	auto &config = Yaml<YamlGraph>::getInstance();
 	config.get().vertices = graph->getVertices();
@@ -18,7 +18,7 @@ bool GraphSerialization::toFolder(Graph* graph, const std::string &graphfile)
 	return config.saveConfig(graphfile);
 }
 
-bool GraphSerialization::fromFolder(Graph* graph, const std::string &graphfile)
+bool GraphSerialization::fromFile(Graph* graph, const std::string &graphfile)
 {
 	auto &config = Yaml<YamlGraph>::getInstance();
 	config.loadConfig(graphfile);
