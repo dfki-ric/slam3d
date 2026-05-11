@@ -57,7 +57,7 @@ Measurement::Ptr MeasurementSerialization::fromFile(const std::string &filename,
 
 void MeasurementSerialization::toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
 {
-	for(const auto entry : *storage)
+	for(const auto& entry : *storage)
 	{
 		const std::string filename(dir + "/" + boost::lexical_cast<std::string>(entry.second->getUniqueId()) + ".s3dm");
 		toFile(entry.second, filename, binary);
