@@ -16,6 +16,8 @@ target_link_libraries(serialization
 		yaml-cpp
 )
 
+target_compile_features(serialization PRIVATE cxx_std_17)
+
 # Install header files
 install(
 	FILES

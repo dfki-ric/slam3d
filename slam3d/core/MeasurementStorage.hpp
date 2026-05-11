@@ -51,8 +51,10 @@ namespace slam3d
 		 */
 		virtual void clear();
 
-		const auto begin() const { return mMeasurements.begin(); }
-		const auto end() const { return mMeasurements.end(); }
+		/**
+		 * @brief Get a list of all available UUID's
+		 */
+		virtual std::vector<boost::uuids::uuid> getAllKeys() const;
 
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
