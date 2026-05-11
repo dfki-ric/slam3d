@@ -36,3 +36,13 @@ void MeasurementStorage::clear()
 {
 	mMeasurements.clear();
 }
+
+std::vector<boost::uuids::uuid> MeasurementStorage::getAllKeys() const
+{
+	std::vector<boost::uuids::uuid> result;
+	for(const auto& m : mMeasurements)
+	{
+		result.push_back(m.first);
+	}
+	return result;
+}
