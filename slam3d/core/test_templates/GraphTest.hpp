@@ -58,13 +58,13 @@ void test_graph_construction(slam3d::Graph* graph)
 	BOOST_CHECK_THROW(graph->getEdge(1,3,"A"), slam3d::InvalidEdge);
 	
 	slam3d::EdgeObjectList s1_edges;
-	BOOST_CHECK_NO_THROW(s1_edges = graph->getEdgesFromSensor("S1"));
+	BOOST_CHECK_NO_THROW(s1_edges = graph->getEdges({"S1"}));
 	BOOST_CHECK_EQUAL(s1_edges.size(), 1);
 	BOOST_CHECK_EQUAL(s1_edges.at(0).source, 1);
 	BOOST_CHECK_EQUAL(s1_edges.at(0).target, 2);
 
 
-	slam3d::VertexObjectList list = graph->getVerticesFromSensor("S1");
+	slam3d::VertexObjectList list = graph->getVertices({"S1"});
 	BOOST_CHECK_EQUAL(list.size(), 2);
 
 

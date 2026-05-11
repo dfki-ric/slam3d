@@ -231,7 +231,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 			mPatchSolver->addVertex(v->index, v->correctedPose);
 		}
 		
-		EdgeObjectList e_objects = mMapper->getGraph()->getEdges(v_objects);
+		EdgeObjectList e_objects = mMapper->getGraph()->getConnectingEdges(v_objects);
 		for(EdgeObjectList::iterator e = e_objects.begin(); e < e_objects.end(); e++)
 		{
 			if(e->constraint->getType() != SE3)

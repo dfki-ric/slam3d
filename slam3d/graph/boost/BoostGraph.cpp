@@ -28,7 +28,8 @@ void BoostGraph::init(const size_t &indexer_start)
 	// call parent init
 	Graph::init(indexer_start);
 
-	if (indexer_start == 0) {
+	if (indexer_start == 0)
+	{
 		// insert a dummy node as a source of unary edges
 		VertexObject vo;
 		vo.index = mIndexer.getNext();
@@ -41,27 +42,11 @@ void BoostGraph::init(const size_t &indexer_start)
 	}
 }
 
-void BoostGraph::clear() {
+void BoostGraph::clear()
+{
 	boost::unique_lock<boost::shared_mutex> guard(mGraphMutex);
 	mPoseGraph.clear();
 	mIndexMap.clear();
-}
-
-const EdgeObjectList BoostGraph::getEdgesFromSensor(const std::string& sensor) const
-{
-	EdgeObjectList objectList;
-	EdgeRange edges = boost::edges(mPoseGraph);
-	for(EdgeIterator it = edges.first; it != edges.second; ++it)
-	{
-		EdgeObject eo = mPoseGraph[*it];
-		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
-		bool add_sensor = (sensor == "") || (sensor == eo.constraint->getSensorName());
-		if(add_sensor && eo.source == source_id)
-		{
-			objectList.push_back(mPoseGraph[*it]);
-		}
-	}
-	return objectList;
 }
 
 bool BoostGraph::optimize(unsigned iterations)
@@ -120,9 +105,11 @@ const VertexObjectList BoostGraph::getVertices(const StringSet& sensors) const
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(sensors.empty() || sensors.count(mPoseGraph[*it].sensorName))
+		const VertexObject& vo = mPoseGraph[*it];
+		if(vo.index == 0) continue;
+		if(sensors.empty() || sensors.count(vo.sensorName))
 		{
-			objectList.push_back(mPoseGraph[*it]);
+			objectList.push_back(vo);
 		}
 	}
 	return objectList;
@@ -197,6 +184,23 @@ OutEdgeIterator BoostGraph::getEdgeIterator(IdType source, IdType target, const 
 	throw InvalidEdge(source, target);
 }
 
+const EdgeObjectList BoostGraph::getEdges(const StringSet& sensors) const
+{
+	EdgeObjectList objectList;
+	EdgeRange edges = boost::edges(mPoseGraph);
+	for(EdgeIterator it = edges.first; it != edges.second; ++it)
+	{
+		const EdgeObject& eo = mPoseGraph[*it];
+		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
+		bool add_sensor = sensors.empty() || sensors.count(eo.constraint->getSensorName());
+		if(add_sensor && eo.source == source_id)
+		{
+			objectList.push_back(eo);
+		}
+	}
+	return objectList;
+}
+
 const EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 {
 	OutEdgeIterator it, it_end;
@@ -210,7 +214,7 @@ const EdgeObjectList BoostGraph::getOutEdges(IdType source) const
 	return edges;
 }
 
-const EdgeObjectList BoostGraph::getEdges(const VertexObjectList& vertices) const
+const EdgeObjectList BoostGraph::getConnectingEdges(const VertexObjectList& vertices) const
 {
 	std::set<int> v_ids;
 	for(VertexObjectList::const_iterator v = vertices.begin(); v != vertices.end(); v++)

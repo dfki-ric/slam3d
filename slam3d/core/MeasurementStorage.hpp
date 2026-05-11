@@ -1,7 +1,8 @@
 # pragma once
 
-#include <slam3d/core/Types.hpp>
 #include <map>
+#include <boost/lexical_cast.hpp>
+#include <slam3d/core/Types.hpp>
 
 namespace slam3d
 {
@@ -16,9 +17,6 @@ namespace slam3d
 	class MeasurementStorage
 	{
 	public:
-		MeasurementStorage();
-		virtual ~MeasurementStorage() {}
-
 		/**
 		 * @brief Add the given measurement to the storage
 		 * @param measurement 
@@ -52,6 +50,9 @@ namespace slam3d
 		 * @brief delete contents
 		 */
 		virtual void clear();
+
+		const auto begin() const { return mMeasurements.begin(); }
+		const auto end() const { return mMeasurements.end(); }
 
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
