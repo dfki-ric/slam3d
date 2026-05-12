@@ -30,17 +30,26 @@
 using namespace slam3d;
 
 Graph::Graph(Logger* log, MeasurementStorage* storage)
- : mLogger(log), mStorage(storage)
+ : mLogger(log), mStorage(storage), mSolver(nullptr)
 {
-	// Initialize some members
-	mSolver = NULL;	
-	mFixNext = false;
-	mOptimized = false;
-	mConstraintsAdded = 0;
+	init();
 }
 
 Graph::~Graph()
 {
+}
+
+void Graph::init(const size_t &indexer_start)
+{
+	if (mSolver)
+	{
+		mSolver->clear();
+	}
+	mUuidIndex.clear();
+	mFixNext = false;
+	mOptimized = false;
+	mConstraintsAdded = 0;
+	mIndexer = Indexer(indexer_start);
 }
 
 void Graph::setSolver(Solver* solver)
@@ -230,11 +239,6 @@ Measurement::Ptr Graph::getMeasurement(IdType id)
 Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
 {
 	return mStorage->get(id);
-}
-
-const VertexObjectList Graph::getVerticesFromSensor(const std::string& sensor) const
-{
-	return getVertices({sensor});
 }
 
 const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const StringSet& sensors) const

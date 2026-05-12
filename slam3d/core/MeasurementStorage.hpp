@@ -16,9 +16,6 @@ namespace slam3d
 	class MeasurementStorage
 	{
 	public:
-		MeasurementStorage();
-		virtual ~MeasurementStorage() {}
-
 		/**
 		 * @brief Add the given measurement to the storage
 		 * @param measurement 
@@ -47,6 +44,16 @@ namespace slam3d
 		 * @throws boost::bad_lexical_cast if the given string is no valid UUID
 		 */
 		Measurement::Ptr get(const std::string& key);
+
+		/**
+		 * @brief delete contents
+		 */
+		virtual void clear();
+
+		/**
+		 * @brief Get a list of all available UUID's
+		 */
+		virtual std::vector<boost::uuids::uuid> getAllKeys() const;
 
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;

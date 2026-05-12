@@ -1,7 +1,16 @@
 #include "MeasurementSerialization.hpp"
-
-
 #include "../sensor/pcl/PointCloudSensor.hpp"
+
+#include <fstream>
+#include <sstream>
+#include <filesystem>
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/lexical_cast.hpp>
+
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 
 using namespace slam3d;
@@ -46,6 +55,26 @@ Measurement::Ptr MeasurementSerialization::fromFile(const std::string &filename,
     return measurement;
 }
 
+void MeasurementSerialization::toDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
+{
+	for(const auto& uuid : storage->getAllKeys())
+	{
+		const std::string filename(dir + "/" + boost::lexical_cast<std::string>(uuid) + ".s3dm");
+		toFile(storage->get(uuid), filename, binary);
+	}
+}
+
+void MeasurementSerialization::fromDirectory(MeasurementStorage* storage, const std::string &dir, bool binary)
+{
+	for(const auto& entry : std::filesystem::directory_iterator{dir}) 
+	{
+		if(entry.path().extension() == ".s3dm")
+		{
+			storage->add(fromFile(entry.path(), binary));
+		}
+	}
+}
+
 std::string MeasurementSerialization::toString(Measurement::Ptr measurement, bool binary) {
     std::ostringstream ss;
     if (binary) {
@@ -76,5 +105,3 @@ Measurement::Ptr MeasurementSerialization::fromString(const std::string &seriali
     }
     return measurement;
 }
-
-

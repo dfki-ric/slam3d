@@ -193,9 +193,33 @@ namespace slam3d
 	 */
 	class Graph
 	{
+	friend class GraphSerialization;
+
 	public:
 		Graph(Logger* log, MeasurementStorage* storage);
 		virtual ~Graph();
+
+		/**
+		 * @brief initializes the graph
+		 * @details this initialization sets an empy graph to
+		 * working state. (e.g. adding an default vertex as target for unary edges)
+		 * @warning All Graph implementations MUST call this classes init function
+		 * within their init() function using Graph::init(indexer_start);
+		 * @param indexer_start when the Graph is persistent (e.g. in a database)
+		 * the indexer should skip the existing vertex ids and start at indexer_start
+		 */
+		virtual void init(const size_t &indexer_start = 0);
+
+		/**
+		 * @brief resets the graph to empty state
+		 * @details sets the graph it to empty
+		 * Measurements have to be deleted seperately
+		 * @warning init() should be called after a graph was cleared
+		 * to get to the initial state right after the constructor was called.
+		 * in case measurements are to be deleted, call init() after
+		 * deletion of measurements
+		 */
+		virtual void clear() = 0;
 
 		/**
 		 * @brief Sets a specific Solver to be used as SLAM backend.
@@ -384,14 +408,8 @@ namespace slam3d
 		virtual const StringSet getEdgeSensors() const = 0;
 
 		/**
-		 * @brief Gets a list of all vertices from given sensor.
-		 * @param sensor
-		 */
-		const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
-
-		/**
-		 * @brief Gets a list of all vertices from given sensor.
-		 * @param sensor
+		 * @brief Gets a list of vertices from given sensors or all vertices by default.
+		 * @param sensors
 		 */
 		virtual const VertexObjectList getVertices(const StringSet& sensors = {}) const = 0;
 
@@ -410,17 +428,17 @@ namespace slam3d
 		virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const = 0;
 
 		/**
-		 * @brief Gets a list of all edges from given sensor.
-		 * @param sensor
+		 * @brief Gets a list of edges from given sensors or all edges by default.
+		 * @param sensors
 		 */
-		virtual const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const = 0;
+		virtual const EdgeObjectList getEdges(const StringSet& sensors = {}) const = 0;
 
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 * @throw InvalidVertex
 		 */
-		virtual const EdgeObjectList getEdges(const VertexObjectList& vertices) const = 0;
+		virtual const EdgeObjectList getConnectingEdges(const VertexObjectList& vertices) const = 0;
 
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.

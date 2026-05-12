@@ -44,6 +44,10 @@ namespace slam3d
 		BoostGraph(Logger* log, MeasurementStorage* storage);
 		~BoostGraph();
 
+		void init(const size_t &indexer_start = 0) override;
+
+		void clear() override;
+
 		/**
 		 * @brief Start the backend optimization process.
 		 * @details Requires that a Solver has been set with setSolver.
@@ -74,16 +78,16 @@ namespace slam3d
 		const EdgeObjectList getOutEdges(IdType source) const override;
 		
 		/**
-		 * @brief Gets a list of all vertices from given sensor.
-		 * @param sensor
+		 * @brief Gets a list of vertices from given sensors or all vertices by default.
+		 * @param sensors
 		 */
-		const VertexObjectList getVertices(const StringSet& sensor) const override;
+		const VertexObjectList getVertices(const StringSet& sensors = {}) const override;
 		
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesByType(const std::string& type) const override;
+		const VertexObjectList getVerticesByType(const std::string& type) const override;
 		
 		/**
 		 * @brief Serch for nodes by using breadth-first-search
@@ -93,28 +97,28 @@ namespace slam3d
 		const VertexObjectList getVerticesInRange(IdType source, unsigned range) const override;
 
 		/**
-		 * @brief Gets a list of all edges from given sensor.
+		 * @brief Gets a list of edges from given sensors or all edges by default.
 		 * @param sensor
 		 */
-		const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const override;
+		const EdgeObjectList getEdges(const StringSet& sensors = {}) const override;
 		
 		/**
 		 * @brief Get all connecting edges between given vertices.
 		 * @param vertices
 		 */
-		const EdgeObjectList getEdges(const VertexObjectList& vertices) const override;
+		const EdgeObjectList getConnectingEdges(const VertexObjectList& vertices) const override;
 
 		/**
 		 * @brief Get a list of sensors that created vertices within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const StringSet getVertexSensors() const override;
+		const StringSet getVertexSensors() const override;
 
 		/**
 		 * @brief Get a list of sensors that created edges within the graph
 		 * @return list of sensor names 
 		 */
-		virtual const StringSet getEdgeSensors() const override;
+		const StringSet getEdgeSensors() const override;
 
 
 		/**
@@ -161,7 +165,7 @@ namespace slam3d
 		 * @brief Add the given EdgeObject to the internal graph.
 		 * @param e
 		 */
-		virtual void addEdge(const EdgeObject& e) override;
+		void addEdge(const EdgeObject& e) override;
 		
 		/**
 		 * @brief Remove an edge from the internal graph.
@@ -169,7 +173,7 @@ namespace slam3d
 		 * @param target
 		 * @param sensor
 		 */
-		virtual void removeEdge(IdType source, IdType target, const std::string& sensor) override;
+		void removeEdge(IdType source, IdType target, const std::string& sensor) override;
 
 		
 		/**

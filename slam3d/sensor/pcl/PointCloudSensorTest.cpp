@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(map_building)
 	PointCloudMeasurement::Ptr m(new PointCloudMeasurement(pcl_cloud, "robot", sensor.getName(), Transform::Identity()));
 	sensor.addMeasurement(m);
 	
-	VertexObjectList vertices = graph.getVerticesFromSensor(sensor.getName());
+	VertexObjectList vertices = graph.getVertices({sensor.getName()});
 	BOOST_CHECK_EQUAL(vertices.size(), 1);
 	PointCloud::Ptr map;
 	BOOST_CHECK_NO_THROW(map = sensor.buildMap(vertices));
