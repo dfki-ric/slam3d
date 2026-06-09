@@ -1,5 +1,6 @@
 add_library(sensor-pcl SHARED
 	PointCloudSensor.cpp
+	MultiScanSensor.cpp
 )
 
 target_include_directories(sensor-pcl
@@ -32,6 +33,7 @@ target_link_libraries(sensor-pcl
 install(
 	FILES
 		PointCloudSensor.hpp
+		MultiScanSensor.hpp
 		RegistrationParameters.hpp
 	DESTINATION include/slam3d/sensor/pcl
 )

@@ -39,6 +39,6 @@ bool GraphSerialization::fromFile(Graph* graph, const std::string &graphfile)
 
 	// optimize locations
 	graph->reloadToSolver();
-	graph->optimize();
+	// graph->optimize();
 	return true;
 }
