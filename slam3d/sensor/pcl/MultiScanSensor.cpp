@@ -150,25 +150,25 @@ MultiScanMeasurement::MultiScanMeasurement(const std::vector<slam3d::PointCloudM
 }
 
 
-const PointCloud::Ptr MultiScanMeasurement::getCombinedPointCloud(const std::string& annotation) {
-    PointCloud::Ptr combined(new PointCloud);
-    for (unsigned int i = 0; i < clouds.size(); ++i) {
-        if (annotation == "" || annotation == annotations[i]) {
-            *combined += *(clouds[i]->getPointCloud());
-        }
-    }
-    return combined;
-}
+// const PointCloud::Ptr MultiScanMeasurement::getCombinedPointCloud(const std::string& annotation) {
+//     PointCloud::Ptr combined(new PointCloud);
+//     for (unsigned int i = 0; i < clouds.size(); ++i) {
+//         if (annotation == "" || annotation == annotations[i]) {
+//             *combined += *(clouds[i]->getPointCloud());
+//         }
+//     }
+//     return combined;
+// }
 
-const std::vector<PointCloud::Ptr> MultiScanMeasurement::getCloudsByAnnotation(const std::string &annotation) {
-    std::vector<PointCloud::Ptr> result;
-    for (unsigned int i = 0; i < clouds.size(); ++i) {
-        if (annotation == annotations[i]) {
-            result.push_back(clouds[i]->getPointCloud());
-        }
-    }
-    return result;
-}
+// const std::vector<PointCloud::Ptr> MultiScanMeasurement::getCloudsByAnnotation(const std::string &annotation) {
+//     std::vector<PointCloud::Ptr> result;
+//     for (unsigned int i = 0; i < clouds.size(); ++i) {
+//         if (annotation == annotations[i]) {
+//             result.push_back(clouds[i]->getPointCloud());
+//         }
+//     }
+//     return result;
+// }
 
 PointCloud::Ptr MultiScanSensor::transform(PointCloud::ConstPtr source, const Transform tf) const {
     PointCloud::Ptr transformedCloud(new PointCloud);
@@ -180,17 +180,23 @@ PointCloud::Ptr MultiScanSensor::transform(PointCloud::ConstPtr source, const Tr
 PointCloud::Ptr MultiScanSensor::getAccumulatedCloud(const VertexObjectList& vertices) const {
     PointCloud::Ptr accu(new PointCloud);
 
-    for (VertexObjectList::const_reverse_iterator it = vertices.rbegin(); it != vertices.rend(); it++) {
-        Measurement::Ptr m = mMapper->getGraph()->getMeasurement(it->measurementUuid);
-        MultiScanMeasurement::Ptr pcl = boost::dynamic_pointer_cast<MultiScanMeasurement>(m);
-        if (!pcl) {
-            mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a MultiScanMeasurement cloud!");
-            throw slam3d::BadMeasurementType();
-        }
-        PointCloud::Ptr tempCloud = this->transform(pcl->getCombinedPointCloud(), (it->correctedPose * pcl->getSensorPose()));
-        *accu += *tempCloud;
-    }
-    return accu;
+	#pragma omp parallel for
+	for (size_t i = 0; i < vertices.size(); ++i)
+	{
+		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].measurementUuid);
+		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
+		if(!pcl)
+		{
+			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
+			throw BadMeasurementType();
+		}
+		
+		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (vertices[i].correctedPose));
+
+		#pragma omp critical 
+		*accu += *tempCloud; 
+	}
+	return accu;
 }
 
 Measurement::Ptr MultiScanSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const {

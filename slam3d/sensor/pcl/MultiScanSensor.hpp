@@ -29,10 +29,10 @@ class MultiScanMeasurement : public slam3d::PointCloudMeasurement {
      * 
      * @return const PointCloud::Ptr 
      */
-    const PointCloud::Ptr getCombinedPointCloud(const std::string& annotation = "");
+    // const PointCloud::Ptr getCombinedPointCloud(const std::string& annotation = "");
 
 
-    const std::vector<PointCloud::Ptr> getCloudsByAnnotation(const std::string &annotation);
+    // const std::vector<PointCloud::Ptr> getCloudsByAnnotation(const std::string &annotation);
 
 
 //  protected:
