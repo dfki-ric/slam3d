@@ -75,7 +75,7 @@ namespace slam3d
 		 * @param m pointer to a new measurement
 		 * @return id of the newly added vertex
 		 */
-		IdType addMeasurement(Measurement::Ptr m);
+		IdType addMeasurement(Measurement::Ptr m, const std::vector<Measurement::Ptr> submeasurements = std::vector<Measurement::Ptr>());
 
 		/**
 		 * @brief Add a new measurement from another robot.

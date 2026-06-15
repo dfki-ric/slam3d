@@ -158,12 +158,12 @@ bool Graph::optimized()
 	}
 }
 
-IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
+IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected, const std::vector<Measurement::Ptr> submeasurements)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
 	VertexObject vo;
-	vo.init(m, id);
+	vo.init(m, id, submeasurements);
 	vo.correctedPose = corrected;
 	vo.fixed = mFixNext;
 	mFixNext = false;

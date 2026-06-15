@@ -81,12 +81,12 @@ Transform Mapper::getCurrentPose()
 		return mStartPose;
 }
 
-IdType Mapper::addMeasurement(Measurement::Ptr m)
+IdType Mapper::addMeasurement(Measurement::Ptr m, const std::vector<Measurement::Ptr> submeasurements)
 {
 	const bool first = mLastIndex == 0;
 	// Add the vertex to the pose graph
 	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-	mLastIndex = mGraph->addVertex(m, getCurrentPose());
+	mLastIndex = mGraph->addVertex(m, getCurrentPose(), submeasurements);
 	
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)

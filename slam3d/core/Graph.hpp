@@ -243,7 +243,7 @@ namespace slam3d
 		 * @param m measurement
 		 * @param corrected initial pose for the new vertex
 		 */
-		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
+		IdType addVertex(Measurement::Ptr m, const Transform &corrected, const std::vector<Measurement::Ptr> submeasurements = std::vector<Measurement::Ptr>());
 
 		/**
 		 * @brief Add a placeholder constraint

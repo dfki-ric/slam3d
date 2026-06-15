@@ -84,8 +84,8 @@ Transform doNDT(PointCloud::Ptr source,
 	return Transform(tf_matrix);
 }
 
-Transform align(MultiScanMeasurement::Ptr source,
-                MultiScanMeasurement::Ptr target,
+Transform align(PointCloudMeasurement::Ptr source,
+                PointCloudMeasurement::Ptr target,
                 const Transform& guess,
                 const RegistrationParameters& config)
 {
@@ -129,25 +129,25 @@ Transform align(MultiScanMeasurement::Ptr source,
 }
 
 
-MultiScanMeasurement::MultiScanMeasurement(const std::vector<slam3d::PointCloudMeasurement::Ptr>& clouds, const std::string& r, const std::string& s, const boost::uuids::uuid id) : PointCloudMeasurement(std::make_shared<PointCloud>(),r, s, slam3d::Transform::Identity(), id), clouds(clouds) {
+// MultiScanMeasurement::MultiScanMeasurement(const std::vector<slam3d::PointCloudMeasurement::Ptr>& clouds, const std::string& r, const std::string& s, const boost::uuids::uuid id) : PointCloudMeasurement(std::make_shared<PointCloud>(),r, s, slam3d::Transform::Identity(), id), clouds(clouds) {
 
 	
-	// todo make this transform if frames differ
-	for (const auto& subcloud : clouds) {
-		PointCloud::Ptr tempCloud;
-		if (!subcloud->getSensorPose().isApprox(slam3d::Transform::Identity())) {
-			tempCloud = PointCloud::Ptr(new PointCloud);
-			pcl::transformPointCloud(*subcloud->getPointCloud(), *tempCloud, subcloud->getSensorPose().matrix());
-		} else {
-			tempCloud = subcloud->getPointCloud();
-		}
-		*mPointCloud.get() += *tempCloud.get();
-	}
+// 	// todo make this transform if frames differ
+// 	for (const auto& subcloud : clouds) {
+// 		PointCloud::Ptr tempCloud;
+// 		if (!subcloud->getSensorPose().isApprox(slam3d::Transform::Identity())) {
+// 			tempCloud = PointCloud::Ptr(new PointCloud);
+// 			pcl::transformPointCloud(*subcloud->getPointCloud(), *tempCloud, subcloud->getSensorPose().matrix());
+// 		} else {
+// 			tempCloud = subcloud->getPointCloud();
+// 		}
+// 		*mPointCloud.get() += *tempCloud.get();
+// 	}
 	
-	mPointCloud->header = clouds[0]->getPointCloud()->header;
-	mStamp.tv_sec  = clouds[0]->getPointCloud()->header.stamp / 1000000;
-	mStamp.tv_usec = clouds[0]->getPointCloud()->header.stamp % 1000000;
-}
+// 	mPointCloud->header = clouds[0]->getPointCloud()->header;
+// 	mStamp.tv_sec  = clouds[0]->getPointCloud()->header.stamp / 1000000;
+// 	mStamp.tv_usec = clouds[0]->getPointCloud()->header.stamp % 1000000;
+// }
 
 
 // const PointCloud::Ptr MultiScanMeasurement::getCombinedPointCloud(const std::string& annotation) {
@@ -208,8 +208,11 @@ Measurement::Ptr MultiScanSensor::createCombinedMeasurement(const VertexObjectLi
 	std::vector<slam3d::PointCloudMeasurement::Ptr> clouds;
 	PointCloudMeasurement::Ptr pcm (new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
 	clouds.push_back(pcm);
-	Measurement::Ptr m(new MultiScanMeasurement(clouds, "AccumulatedPointcloud", mName));
-	return m;
+
+
+
+	// Measurement::Ptr m(new PointCloudMeasurement(clouds, "AccumulatedPointcloud", mName, Transform::Identity()));
+	return pcm;
 }
 
 
@@ -223,10 +226,10 @@ Constraint::Ptr MultiScanSensor::createConstraint(const Measurement::Ptr& source
     Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
 
     // Cast to this sensors measurement type
-    MultiScanMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<MultiScanMeasurement>(source);
-    MultiScanMeasurement::Ptr targetCloud = boost::dynamic_pointer_cast<MultiScanMeasurement>(target);
+    PointCloudMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(source);
+    PointCloudMeasurement::Ptr targetCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(target);
     if (!sourceCloud || !targetCloud) {
-        mLogger->message(ERROR, "Measurement given to createConstraint() is not a MultiScanMeasurement!");
+        mLogger->message(ERROR, "Measurement given to createConstraint() is not a PointCloudMeasurement!");
         throw BadMeasurementType();
     }
 
@@ -247,43 +250,41 @@ Constraint::Ptr MultiScanSensor::createConstraint(const Measurement::Ptr& source
 
 }
 
+// void MultiScanSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
+// {
+// 	if(coarse)
+// 	{
+// 		mLogger->message(INFO, " = RegistrationParameters (Coarse) =");
+// 		mCoarseConfiguration = conf;
+// 	}else
+// 	{
+// 		mLogger->message(INFO, " = RegistrationParameters (Fine) =");
+// 		mFineConfiguration = conf;
+// 	}
+// 	mLogger->message(INFO, (boost::format("correspondence_randomness:    %1%") % conf.correspondence_randomness).str());
+// 	mLogger->message(INFO, (boost::format("euclidean_fitness_epsilon:    %1%") % conf.euclidean_fitness_epsilon).str());
+// 	mLogger->message(INFO, (boost::format("max_correspondence_distance:  %1%") % conf.max_correspondence_distance).str());
+// 	mLogger->message(INFO, (boost::format("max_fitness_score:            %1%") % conf.max_fitness_score).str());
+// 	mLogger->message(INFO, (boost::format("maximum_iterations:           %1%") % conf.maximum_iterations).str());
+// 	mLogger->message(INFO, (boost::format("maximum_optimizer_iterations: %1%") % conf.maximum_optimizer_iterations).str());
+// 	mLogger->message(INFO, (boost::format("point_cloud_density:          %1%") % conf.point_cloud_density).str());
+// 	mLogger->message(INFO, (boost::format("rotation_epsilon:             %1%") % conf.rotation_epsilon).str());
+// 	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
+// }
 
+// void MultiScanSensor::setMapResolution(double r)
+// {
+// 	mLogger->message(INFO, (boost::format("map_resolution:         %1%") % r).str());
+// 	mMapResolution = r;
+// }
 
-void MultiScanSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
-{
-	if(coarse)
-	{
-		mLogger->message(INFO, " = RegistrationParameters (Coarse) =");
-		mCoarseConfiguration = conf;
-	}else
-	{
-		mLogger->message(INFO, " = RegistrationParameters (Fine) =");
-		mFineConfiguration = conf;
-	}
-	mLogger->message(INFO, (boost::format("correspondence_randomness:    %1%") % conf.correspondence_randomness).str());
-	mLogger->message(INFO, (boost::format("euclidean_fitness_epsilon:    %1%") % conf.euclidean_fitness_epsilon).str());
-	mLogger->message(INFO, (boost::format("max_correspondence_distance:  %1%") % conf.max_correspondence_distance).str());
-	mLogger->message(INFO, (boost::format("max_fitness_score:            %1%") % conf.max_fitness_score).str());
-	mLogger->message(INFO, (boost::format("maximum_iterations:           %1%") % conf.maximum_iterations).str());
-	mLogger->message(INFO, (boost::format("maximum_optimizer_iterations: %1%") % conf.maximum_optimizer_iterations).str());
-	mLogger->message(INFO, (boost::format("point_cloud_density:          %1%") % conf.point_cloud_density).str());
-	mLogger->message(INFO, (boost::format("rotation_epsilon:             %1%") % conf.rotation_epsilon).str());
-	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
-}
-
-void MultiScanSensor::setMapResolution(double r)
-{
-	mLogger->message(INFO, (boost::format("map_resolution:         %1%") % r).str());
-	mMapResolution = r;
-}
-
-void MultiScanSensor::setMapOutlierRemoval(double r, unsigned n)
-{
-	mLogger->message(INFO, (boost::format("map_outlier_radius:     %1%") % r).str());
-	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());
-	mMapOutlierRadius = r;
-	mMapOutlierNeighbors = n;
-}
+// void MultiScanSensor::setMapOutlierRemoval(double r, unsigned n)
+// {
+// 	mLogger->message(INFO, (boost::format("map_outlier_radius:     %1%") % r).str());
+// 	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());
+// 	mMapOutlierRadius = r;
+// 	mMapOutlierNeighbors = n;
+// }
 
 
 }  // namespace slam3d

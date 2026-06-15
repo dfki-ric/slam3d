@@ -13,54 +13,54 @@
 
 namespace slam3d {
 
-class MultiScanMeasurement : public slam3d::PointCloudMeasurement {
- public:
-    typedef boost::shared_ptr<MultiScanMeasurement> Ptr;
+// class MultiScanMeasurement : public slam3d::PointCloudMeasurement {
+//  public:
+//     typedef boost::shared_ptr<MultiScanMeasurement> Ptr;
 
 
-    MultiScanMeasurement(const std::vector<slam3d::PointCloudMeasurement::Ptr>& clouds, const std::string& r, const std::string& s,
-                                const boost::uuids::uuid id = boost::uuids::nil_uuid());
+//     MultiScanMeasurement(const std::vector<slam3d::PointCloudMeasurement::Ptr>& clouds, const std::string& r, const std::string& s,
+//                                 const boost::uuids::uuid id = boost::uuids::nil_uuid());
 
 
-    const char* getTypeName() const override { return "slam3d::MultiScanMeasurement"; }
+//     const char* getTypeName() const override { return "slam3d::MultiScanMeasurement"; }
 
-    /**
-     * @brief returns the combined cloud (makes it compatible with PointCloudSensor functions)
-     * 
-     * @return const PointCloud::Ptr 
-     */
-    // const PointCloud::Ptr getCombinedPointCloud(const std::string& annotation = "");
-
-
-    // const std::vector<PointCloud::Ptr> getCloudsByAnnotation(const std::string &annotation);
+//     /**
+//      * @brief returns the combined cloud (makes it compatible with PointCloudSensor functions)
+//      * 
+//      * @return const PointCloud::Ptr 
+//      */
+//     // const PointCloud::Ptr getCombinedPointCloud(const std::string& annotation = "");
 
 
-//  protected:
-    friend class boost::serialization::access;
-    std::vector<slam3d::PointCloudMeasurement::Ptr> clouds;
-
-    std::vector<std::string> annotations;
-
-    std::map<boost::uuids::uuid, PointCloud::Ptr> cloudByUuid;
+//     // const std::vector<PointCloud::Ptr> getCloudsByAnnotation(const std::string &annotation);
 
 
- private:
-    friend class boost::serialization::access;
-    template <typename Archive>
-    void serialize(Archive &ar, const unsigned int version)
-    {
-        // Tell boost::serialization that this is derived from Measurement.
-        // It is required because we don't explicitely call Measurement::serialize()
-        // from within PointCloudMeasurement::serialize().
+// //  protected:
+//     friend class boost::serialization::access;
+//     std::vector<slam3d::PointCloudMeasurement::Ptr> clouds;
 
-        boost::serialization::void_cast_register<MultiScanMeasurement, Measurement>(
-            static_cast<MultiScanMeasurement *>(NULL),
-            static_cast<Measurement *>(NULL));
-    }
+//     std::vector<std::string> annotations;
 
-    // TODO serialize
+//     std::map<boost::uuids::uuid, PointCloud::Ptr> cloudByUuid;
 
-    };
+
+//  private:
+//     friend class boost::serialization::access;
+//     template <typename Archive>
+//     void serialize(Archive &ar, const unsigned int version)
+//     {
+//         // Tell boost::serialization that this is derived from Measurement.
+//         // It is required because we don't explicitely call Measurement::serialize()
+//         // from within PointCloudMeasurement::serialize().
+
+//         boost::serialization::void_cast_register<MultiScanMeasurement, Measurement>(
+//             static_cast<MultiScanMeasurement *>(NULL),
+//             static_cast<Measurement *>(NULL));
+//     }
+
+//     // TODO serialize
+
+//     };
 
 class MultiScanSensor : public slam3d::ScanSensor {
  public:
@@ -68,28 +68,28 @@ class MultiScanSensor : public slam3d::ScanSensor {
     ~MultiScanSensor() {};
 
 
-    /**
-     * @brief Sets parameters for the internal pointcloud registration.
-     * The standard set is always used to calculate the final transformation.
-     * A coarse set is used to initialize and verify loop-closures.
-     * @param param new configuration paramerters
-     * @param coarse whether to set coarse parameter set
-     */
-    void setRegistrationParameters(const RegistrationParameters& param, bool coarse);
+    // /**
+    //  * @brief Sets parameters for the internal pointcloud registration.
+    //  * The standard set is always used to calculate the final transformation.
+    //  * A coarse set is used to initialize and verify loop-closures.
+    //  * @param param new configuration paramerters
+    //  * @param coarse whether to set coarse parameter set
+    //  */
+    // void setRegistrationParameters(const RegistrationParameters& param, bool coarse);
     		
-    /**
-     * @brief Set density of points in accumulated map cloud.
-     * @param r
-     */
-    void setMapResolution(double r);
+    // /**
+    //  * @brief Set density of points in accumulated map cloud.
+    //  * @param r
+    //  */
+    // void setMapResolution(double r);
     
-    /**
-     * @brief Set parameters for outlier removal.
-     * @details An outlier is a point that has less then n neighbors within radius r.
-     * @param r
-     * @param n
-     */
-    void setMapOutlierRemoval(double r, unsigned n);
+    // /**
+    //  * @brief Set parameters for outlier removal.
+    //  * @details An outlier is a point that has less then n neighbors within radius r.
+    //  * @param r
+    //  * @param n
+    //  */
+    // void setMapOutlierRemoval(double r, unsigned n);
 		
 
     /**
@@ -146,49 +146,49 @@ class MultiScanSensor : public slam3d::ScanSensor {
 
 }  // namespace slam3d
 
-namespace boost {
-namespace serialization {
+// namespace boost {
+// namespace serialization {
 
-		template<class Archive>
-		inline void save_construct_data(Archive & ar, const slam3d::MultiScanMeasurement * m, const unsigned int file_version)
-		{
-			// save data required to construct instance
-			ar << m->clouds;
-            ar << m->annotations;
-            ar << m->cloudByUuid;
-			ar << m->getRobotName();
-			ar << m->getSensorName();
-			ar << m->getSensorPose();
-			ar << m->getUniqueId();
-		}
+// 		template<class Archive>
+// 		inline void save_construct_data(Archive & ar, const slam3d::MultiScanMeasurement * m, const unsigned int file_version)
+// 		{
+// 			// save data required to construct instance
+// 			ar << m->clouds;
+//             ar << m->annotations;
+//             ar << m->cloudByUuid;
+// 			ar << m->getRobotName();
+// 			ar << m->getSensorName();
+// 			ar << m->getSensorPose();
+// 			ar << m->getUniqueId();
+// 		}
 
-		template<class Archive>
-		inline void load_construct_data(Archive & ar, slam3d::MultiScanMeasurement * t, const unsigned int file_version)
-		{
-			// retrieve data from archive required to construct new instance
+// 		template<class Archive>
+// 		inline void load_construct_data(Archive & ar, slam3d::MultiScanMeasurement * t, const unsigned int file_version)
+// 		{
+// 			// retrieve data from archive required to construct new instance
 			
-            std::vector<slam3d::PointCloudMeasurement::Ptr> clouds;
-            std::vector<std::string> annotations;
-            std::map<boost::uuids::uuid, slam3d::PointCloud::Ptr> cloudByUuid;
+//             std::vector<slam3d::PointCloudMeasurement::Ptr> clouds;
+//             std::vector<std::string> annotations;
+//             std::map<boost::uuids::uuid, slam3d::PointCloud::Ptr> cloudByUuid;
 
-			std::string robot;
-			std::string sensor;
-			slam3d::Transform pose;
-			boost::uuids::uuid id;
-			ar >> clouds;
-            ar >> annotations;
-            ar >> cloudByUuid;
+// 			std::string robot;
+// 			std::string sensor;
+// 			slam3d::Transform pose;
+// 			boost::uuids::uuid id;
+// 			ar >> clouds;
+//             ar >> annotations;
+//             ar >> cloudByUuid;
 
-			ar >> robot;
-			ar >> sensor;
-			ar >> pose;
-			ar >> id;
+// 			ar >> robot;
+// 			ar >> sensor;
+// 			ar >> pose;
+// 			ar >> id;
 
-			// invoke inplace constructor to initialize instance of PointCloudMeasurement
-			::new(t)slam3d::MultiScanMeasurement(clouds, robot, sensor, id);
-		}
+// 			// invoke inplace constructor to initialize instance of PointCloudMeasurement
+// 			::new(t)slam3d::MultiScanMeasurement(clouds, robot, sensor, id);
+// 		}
 
-}  // namespace serialization
-}  // namespace boost
+// }  // namespace serialization
+// }  // namespace boost
 
-BOOST_CLASS_EXPORT_KEY(slam3d::MultiScanMeasurement)
+// BOOST_CLASS_EXPORT_KEY(slam3d::MultiScanMeasurement)

@@ -253,6 +253,37 @@ namespace YAML {
         }
 	};
 
+    template<> struct convert<slam3d::VertexData>
+	{
+        static bool decode(const Node& node, slam3d::VertexData& config)
+		{
+            checkAndSet(&config.index, node["index"]);
+            checkAndSet(&config.timestamp, node["timestamp"]);
+            checkAndSet(&config.label, node["label"]);
+            checkAndSet(&config.robotName, node["robotName"]);
+            checkAndSet(&config.sensorName, node["sensorName"]);
+            checkAndSet(&config.typeName, node["typeName"]);
+            checkAndSet(&config.measurementUuid,node["measurementUuid"]);
+            checkAndSet(&config.tags,node["tags"]);
+
+            return true;
+        }
+        static Node encode(const slam3d::VertexData& config)
+		{
+            Node node;
+            node["index"] = config.index;
+            node["timestamp"] = config.timestamp;
+            node["label"] = config.label;
+            node["robotName"] = config.robotName;
+            node["sensorName"] = config.sensorName;
+            node["typeName"] = config.typeName;
+            node["tags"] = config.tags;
+
+            return node;
+        }
+    };
+
+
     template<> struct convert<slam3d::VertexObject>
 	{
         static bool decode(const Node& node, slam3d::VertexObject& config)
@@ -266,6 +297,8 @@ namespace YAML {
             checkAndSet(&config.correctedPose, node["correctedPose"]);
             checkAndSet(&config.fixed, node["fixed"]);
             checkAndSet(&config.measurementUuid,node["measurementUuid"]);
+            checkAndSet(&config.tags,node["tags"]);
+            checkAndSet(&config.subVertices,node["subVertices"]);
 
             return true;
         }
@@ -281,6 +314,8 @@ namespace YAML {
             node["measurementUuid"] = config.measurementUuid;
             node["correctedPose"] = config.correctedPose;
             node["fixed"] = config.fixed;
+            node["tags"] = config.tags;
+            node["subVertices"] = config.subVertices;
             return node;
         }
     };
