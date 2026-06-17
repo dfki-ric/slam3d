@@ -104,7 +104,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	mLastTransform = mLastOdometry.inverse() * odom;
 	if(checkMinDistance(mLastTransform))
 	{
-		IdType newVertex = mMapper->addMeasurement(m);
+		IdType newVertex = mMapper->addMeasurement(m, submeasurements);
 		Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
 		if(mLinkPrevious)
 		{
