@@ -253,9 +253,9 @@ namespace YAML {
         }
 	};
 
-    template<> struct convert<slam3d::VertexData>
+    template<> struct convert<slam3d::VertexMeasurementData>
 	{
-        static bool decode(const Node& node, slam3d::VertexData& config)
+        static bool decode(const Node& node, slam3d::VertexMeasurementData& config)
 		{
             checkAndSet(&config.index, node["index"]);
             checkAndSet(&config.timestamp, node["timestamp"]);
@@ -268,7 +268,7 @@ namespace YAML {
 
             return true;
         }
-        static Node encode(const slam3d::VertexData& config)
+        static Node encode(const slam3d::VertexMeasurementData& config)
 		{
             Node node;
             node["index"] = config.index;
@@ -298,7 +298,7 @@ namespace YAML {
             checkAndSet(&config.fixed, node["fixed"]);
             checkAndSet(&config.measurementUuid,node["measurementUuid"]);
             checkAndSet(&config.tags,node["tags"]);
-            checkAndSet(&config.subVertices,node["subVertices"]);
+            checkAndSet(&config.subMeasurements,node["subMeasurements"]);
 
             return true;
         }
@@ -315,7 +315,7 @@ namespace YAML {
             node["correctedPose"] = config.correctedPose;
             node["fixed"] = config.fixed;
             node["tags"] = config.tags;
-            node["subVertices"] = config.subVertices;
+            node["subMeasurements"] = config.subMeasurements;
             return node;
         }
     };

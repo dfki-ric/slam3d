@@ -304,7 +304,7 @@ namespace slam3d
 	};
 	
 
-	struct VertexData
+	struct VertexMeasurementData
 	{
 		void init(const Measurement::Ptr m, const IdType i)
 		{
@@ -337,23 +337,24 @@ namespace slam3d
 	 * @details It contains a pointer to an abstract measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
 	 */
-	struct VertexObject : public VertexData
+	struct VertexObject : public VertexMeasurementData
 	{
-		void init(const Measurement::Ptr m, IdType i, const std::vector<Measurement::Ptr> subMeasurements = std::vector<Measurement::Ptr>())
+		void init(const Measurement::Ptr m, IdType i, const std::vector<Measurement::Ptr> subMeasurementPtrs = std::vector<Measurement::Ptr>())
 		{
-			VertexData::init(m, i);
+			VertexMeasurementData::init(m, i);
 
-			for (const auto &sub : subMeasurements) {
-				VertexData svd;
-				svd.init(sub, index);
-				subVertices.push_back(svd);
+			for (const auto &sub : subMeasurementPtrs) {
+				printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
+				VertexMeasurementData vmd;
+				vmd.init(sub, index);
+				subMeasurements.push_back(vmd);
 			}
 		}
 		
 		bool fixed = false;
 		Transform correctedPose;
 
-		std::vector<VertexData> subVertices;
+		std::vector<VertexMeasurementData> subMeasurements;
 	};
 
 	/**
