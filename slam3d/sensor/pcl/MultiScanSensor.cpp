@@ -205,10 +205,7 @@ Measurement::Ptr MultiScanSensor::createCombinedMeasurement(const VertexObjectLi
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
 	mLogger->message(DEBUG, (boost::format("Patch MultiScanMeasurement has %1% points.") % cloud->size()).str());
-	std::vector<slam3d::PointCloudMeasurement::Ptr> clouds;
 	PointCloudMeasurement::Ptr pcm (new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
-	clouds.push_back(pcm);
-
 
 
 	// Measurement::Ptr m(new PointCloudMeasurement(clouds, "AccumulatedPointcloud", mName, Transform::Identity()));

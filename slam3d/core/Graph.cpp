@@ -160,6 +160,11 @@ bool Graph::optimized()
 
 IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected, const std::vector<Measurement::Ptr> submeasurements)
 {
+	// add Measurement to storage first to make sure is is available when the VertexObject enters the Graph
+	mStorage->add(m);
+	for (const auto& sub: submeasurements) {
+		mStorage->add(sub);
+	}
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
 	VertexObject vo;
@@ -168,7 +173,6 @@ IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected, const st
 	vo.fixed = mFixNext;
 	mFixNext = false;
 	addVertex(vo);
-	mStorage->add(m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
