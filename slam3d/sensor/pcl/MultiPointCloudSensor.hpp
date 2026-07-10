@@ -6,7 +6,7 @@
 #include <slam3d/sensor/pcl/PointCloudSensor.hpp>
 
 #include <boost/uuid/uuid.hpp>
-#include <cloud_slam_types/cloud_slam_types.pb.h>
+// #include <cloud_slam_types/cloud_slam_types.pb.h>
 
 #include <boost/uuid/uuid_serialize.hpp>
 
@@ -62,10 +62,10 @@ namespace slam3d {
 
 //     };
 
-class MultiScanSensor : public slam3d::ScanSensor {
+class MultiPointCloudSensor : public slam3d::ScanSensor {
  public:
-    MultiScanSensor(const std::string& n, Logger* l): ScanSensor(n,l) {};
-    ~MultiScanSensor() {};
+    MultiPointCloudSensor(const std::string& n, Logger* l): ScanSensor(n,l) {};
+    ~MultiPointCloudSensor() {};
 
 
     // /**
@@ -104,10 +104,15 @@ class MultiScanSensor : public slam3d::ScanSensor {
      * @details The individual point clouds are transformed by their current pose in the graph,
      * no additional alignement or optimization is performed during this.
      * @param vertices
+     * @param tags optional list of tags to filter by. If non-empty, only vertices
+     *        carrying at least one of these tags are accumulated. Each tag is looked
+     *        up on the VertexObject itself and, if not found there, in its
+     *        subMeasurements.
      * @return accumulated pointcloud
      * @throw BadMeasurementType
      */
-    PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
+    PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices,
+                                        const std::vector<std::string>& tags = {}) const;
 
 
     /**
