@@ -1,4 +1,4 @@
-#include "MultiScanSensor.hpp"
+#include "MultiPointCloudSensor.hpp"
 
 #include <slam3d/core/Mapper.hpp>
 
@@ -173,7 +173,7 @@ Transform align(PointCloudMeasurement::Ptr source,
 //     return result;
 // }
 
-PointCloud::Ptr MultiScanSensor::transform(PointCloud::ConstPtr source, const Transform tf) const {
+PointCloud::Ptr MultiPointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const {
     PointCloud::Ptr transformedCloud(new PointCloud);
     pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
     return transformedCloud;
@@ -197,7 +197,7 @@ bool hasAnyTag(const std::vector<std::string>& have, const std::vector<std::stri
 
 }  // namespace
 
-PointCloud::Ptr MultiScanSensor::getAccumulatedCloud(const VertexObjectList& vertices,
+PointCloud::Ptr MultiPointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices,
                                                      const std::vector<std::string>& tags) const {
     PointCloud::Ptr accu(new PointCloud);
 
@@ -268,7 +268,7 @@ PointCloud::Ptr MultiScanSensor::getAccumulatedCloud(const VertexObjectList& ver
 	return accu;
 }
 
-Measurement::Ptr MultiScanSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const {
+Measurement::Ptr MultiPointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const {
 	printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
 	PointCloud::Ptr shifted(new PointCloud);
@@ -282,7 +282,7 @@ Measurement::Ptr MultiScanSensor::createCombinedMeasurement(const VertexObjectLi
 }
 
 
-Constraint::Ptr MultiScanSensor::createConstraint(const Measurement::Ptr& source,
+Constraint::Ptr MultiPointCloudSensor::createConstraint(const Measurement::Ptr& source,
                                              const Measurement::Ptr& target,
                                              const Transform& odometry,
                                              bool loop)
@@ -316,7 +316,7 @@ Constraint::Ptr MultiScanSensor::createConstraint(const Measurement::Ptr& source
 
 }
 
-// void MultiScanSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
+// void MultiPointCloudSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
 // {
 // 	if(coarse)
 // 	{
@@ -338,13 +338,13 @@ Constraint::Ptr MultiScanSensor::createConstraint(const Measurement::Ptr& source
 // 	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
 // }
 
-// void MultiScanSensor::setMapResolution(double r)
+// void MultiPointCloudSensor::setMapResolution(double r)
 // {
 // 	mLogger->message(INFO, (boost::format("map_resolution:         %1%") % r).str());
 // 	mMapResolution = r;
 // }
 
-// void MultiScanSensor::setMapOutlierRemoval(double r, unsigned n)
+// void MultiPointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
 // {
 // 	mLogger->message(INFO, (boost::format("map_outlier_radius:     %1%") % r).str());
 // 	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());

@@ -62,10 +62,10 @@ namespace slam3d {
 
 //     };
 
-class MultiScanSensor : public slam3d::ScanSensor {
+class MultiPointCloudSensor : public slam3d::ScanSensor {
  public:
-    MultiScanSensor(const std::string& n, Logger* l): ScanSensor(n,l) {};
-    ~MultiScanSensor() {};
+    MultiPointCloudSensor(const std::string& n, Logger* l): ScanSensor(n,l) {};
+    ~MultiPointCloudSensor() {};
 
 
     // /**

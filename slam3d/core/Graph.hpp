@@ -78,6 +78,7 @@ laser->addMeasurement(m);
 #include <slam3d/core/MeasurementStorage.hpp>
 
 #include <map>
+#include <set>
 
 namespace slam3d
 {
@@ -447,6 +448,12 @@ namespace slam3d
 		 * @throw InvalidVertex
 		 */
 		virtual float calculateGraphDistance(IdType source, IdType target) const = 0;
+
+		/**
+		 * @brief Get a list of tags within the graph by traversing all vertices.
+		 *  Graph implemetations may implement a faster solution
+		 */
+		virtual std::set<std::string> getTags(const StringSet& sensors = {}) const;
 
 	protected:
 		// Graph access

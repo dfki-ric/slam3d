@@ -279,3 +279,21 @@ const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radiu
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % result.size()).str());
 	return result;
 }
+
+std::set<std::string> Graph::getTags(const StringSet& sensors) const
+{
+	std::set<std::string> tags;
+	VertexObjectList allVertices = getVertices(sensors);
+
+	for (const auto& vertex : allVertices) {
+		for (const auto& tag : vertex.tags) {
+			tags.insert(tag);
+		}
+		for (const auto& sub : vertex.subMeasurements) {
+			for (const auto tag : sub.tags) {
+				tags.insert(tag);
+			}
+		}
+	}
+	return tags;
+}
