@@ -2,6 +2,9 @@
 
 #include <slam3d/core/Mapper.hpp>
 
+#include <algorithm>
+#include <utility>
+
 #include <pcl/common/transforms.h>
 
 
@@ -177,24 +180,90 @@ PointCloud::Ptr MultiScanSensor::transform(PointCloud::ConstPtr source, const Tr
 }
 
 
-PointCloud::Ptr MultiScanSensor::getAccumulatedCloud(const VertexObjectList& vertices) const {
+namespace {
+
+// Returns true if any of the requested tags is contained in 'have'.
+bool hasAnyTag(const std::vector<std::string>& have, const std::vector<std::string>& requested)
+{
+	for (const auto& tag : requested)
+	{
+		if (std::find(have.begin(), have.end(), tag) != have.end())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+}  // namespace
+
+PointCloud::Ptr MultiScanSensor::getAccumulatedCloud(const VertexObjectList& vertices,
+                                                     const std::vector<std::string>& tags) const {
     PointCloud::Ptr accu(new PointCloud);
+
+	// Exceptions must not escape an OpenMP structured block, so record a
+	// bad-measurement error in a shared flag and throw after the parallel region.
+	bool badMeasurementType = false;
 
 	#pragma omp parallel for
 	for (size_t i = 0; i < vertices.size(); ++i)
 	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].measurementUuid);
-		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
-		if(!pcl)
+		// Once a bad measurement was seen, cheaply skip the remaining iterations
+		// (we cannot break out of an OpenMP for loop).
+		#pragma omp flush(badMeasurementType)
+		if (badMeasurementType)
 		{
-			mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
-			throw BadMeasurementType();
+			continue;
 		}
-		
-		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (vertices[i].correctedPose));
 
-		#pragma omp critical 
-		*accu += *tempCloud; 
+		const VertexObject& vertex = vertices[i];
+
+		// Decide which measurements of this vertex to accumulate:
+		// - No tag filter, or the vertex itself carries a requested tag:
+		//   use the vertex' own (combined) measurement, positioned by correctedPose.
+		// - Otherwise the vertex is ignored and the tags are searched in its
+		//   subMeasurements; every matching subMeasurement is accumulated,
+		//   positioned by correctedPose * its own sensor pose.
+		// - Main VertexObject has no measurement and no tags given: use combined subs
+		std::vector<std::pair<Measurement::Ptr, Transform>> selected;
+		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertex.measurementUuid);
+		if (m && (tags.empty() || hasAnyTag(vertex.tags, tags)))
+		{
+			selected.emplace_back(m, vertex.correctedPose);
+		}
+		else
+		{
+			for (const auto& sub : vertex.subMeasurements)
+			{
+				if ((!m && tags.size() == 0)|| hasAnyTag(sub.tags, tags))
+				{
+					Measurement::Ptr sm = mMapper->getGraph()->getMeasurement(sub.measurementUuid);
+					selected.emplace_back(sm, vertex.correctedPose * m->getSensorPose());
+				}
+			}
+		}
+
+		for (const auto& sel : selected)
+		{
+			PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(sel.first);
+			if(!pcl)
+			{
+				mLogger->message(ERROR, "Measurement in getAccumulatedCloud() is not a point cloud!");
+				#pragma omp atomic write
+				badMeasurementType = true;
+				break;
+			}
+
+			PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), sel.second);
+
+			#pragma omp critical
+			*accu += *tempCloud;
+		}
+	}
+
+	if (badMeasurementType)
+	{
+		throw BadMeasurementType();
 	}
 	return accu;
 }
