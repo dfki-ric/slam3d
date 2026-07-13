@@ -227,7 +227,6 @@ PointCloud::Ptr MultiPointCloudSensor::getAccumulatedCloud(const VertexObjectLis
 }
 
 Measurement::Ptr MultiPointCloudSensor::createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const {
-	printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 	PointCloud::Ptr cloud = getAccumulatedCloud(vertices);
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
