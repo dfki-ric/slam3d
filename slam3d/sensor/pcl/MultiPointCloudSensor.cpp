@@ -19,7 +19,6 @@
 
 namespace slam3d {
 
-namespace {
 
 template <typename ICP_TYPE>
 Transform doICP(PointCloud::Ptr source,
@@ -137,6 +136,9 @@ PointCloud::Ptr MultiPointCloudSensor::transform(PointCloud::ConstPtr source, co
     pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
     return transformedCloud;
 }
+
+
+namespace {
 
 // Returns true if any of the requested tags is contained in 'have'.
 bool hasAnyTag(const std::vector<std::string>& have, const std::vector<std::string>& requested)
