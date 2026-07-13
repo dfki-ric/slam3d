@@ -50,6 +50,8 @@
 
 using namespace slam3d;
 
+namespace {
+
 template <typename ICP_TYPE>
 Transform doICP(PointCloud::Ptr source,
           PointCloud::Ptr target,
@@ -172,6 +174,8 @@ Transform align(PointCloudMeasurement::Ptr source,
 		throw NoMatch("ICP result is to far away from guess");
 	}
 	return result;
+}
+
 }
 
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
