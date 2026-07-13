@@ -86,26 +86,11 @@ void Graph::reloadToSolver()
 	// add all edges after vertices are defined
 	for (const auto& edge : getEdges())
 	{
-		printf("%s:%i %li->%li (%s : %s)\n", __PRETTY_FUNCTION__, __LINE__, edge.source, edge.target, edge.constraint->getTypeName(), edge.constraint->getSensorName().c_str());
 		if (edge.constraint->getType() != TENTATIVE)
 		{
 			mSolver->addEdge(edge.source, edge.target, edge.constraint);
 		}
 	}
-
-	// add all edges after vertices are defined
-	// for (const auto& vertex : vertices)
-	// {
-	// 	for (const auto& edge : getOutEdges(vertex.index))
-	// 	{
-	// 		if (edge.constraint->getType() != TENTATIVE && edge.source == vertex.index)
-	// 		{
-	// 			printf("%s:%i %li->%li (%s : %s)\n", __PRETTY_FUNCTION__, __LINE__, edge.source, edge.target, edge.constraint->getTypeName(), edge.constraint->getSensorName().c_str());
-	// 			mSolver->addEdge(edge.source, edge.target, edge.constraint);
-	// 		}
-	// 	}
-	// }
-
 }
 
 void Graph::writeGraphToFile(const std::string &name)

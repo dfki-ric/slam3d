@@ -131,48 +131,6 @@ Transform align(PointCloudMeasurement::Ptr source,
 	}
 }
 
-
-// MultiScanMeasurement::MultiScanMeasurement(const std::vector<slam3d::PointCloudMeasurement::Ptr>& clouds, const std::string& r, const std::string& s, const boost::uuids::uuid id) : PointCloudMeasurement(std::make_shared<PointCloud>(),r, s, slam3d::Transform::Identity(), id), clouds(clouds) {
-
-	
-// 	// todo make this transform if frames differ
-// 	for (const auto& subcloud : clouds) {
-// 		PointCloud::Ptr tempCloud;
-// 		if (!subcloud->getSensorPose().isApprox(slam3d::Transform::Identity())) {
-// 			tempCloud = PointCloud::Ptr(new PointCloud);
-// 			pcl::transformPointCloud(*subcloud->getPointCloud(), *tempCloud, subcloud->getSensorPose().matrix());
-// 		} else {
-// 			tempCloud = subcloud->getPointCloud();
-// 		}
-// 		*mPointCloud.get() += *tempCloud.get();
-// 	}
-	
-// 	mPointCloud->header = clouds[0]->getPointCloud()->header;
-// 	mStamp.tv_sec  = clouds[0]->getPointCloud()->header.stamp / 1000000;
-// 	mStamp.tv_usec = clouds[0]->getPointCloud()->header.stamp % 1000000;
-// }
-
-
-// const PointCloud::Ptr MultiScanMeasurement::getCombinedPointCloud(const std::string& annotation) {
-//     PointCloud::Ptr combined(new PointCloud);
-//     for (unsigned int i = 0; i < clouds.size(); ++i) {
-//         if (annotation == "" || annotation == annotations[i]) {
-//             *combined += *(clouds[i]->getPointCloud());
-//         }
-//     }
-//     return combined;
-// }
-
-// const std::vector<PointCloud::Ptr> MultiScanMeasurement::getCloudsByAnnotation(const std::string &annotation) {
-//     std::vector<PointCloud::Ptr> result;
-//     for (unsigned int i = 0; i < clouds.size(); ++i) {
-//         if (annotation == annotations[i]) {
-//             result.push_back(clouds[i]->getPointCloud());
-//         }
-//     }
-//     return result;
-// }
-
 PointCloud::Ptr MultiPointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const {
     PointCloud::Ptr transformedCloud(new PointCloud);
     pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
@@ -315,43 +273,6 @@ Constraint::Ptr MultiPointCloudSensor::createConstraint(const Measurement::Ptr& 
 
 
 }
-
-// void MultiPointCloudSensor::setRegistrationParameters(const RegistrationParameters& conf, bool coarse)
-// {
-// 	if(coarse)
-// 	{
-// 		mLogger->message(INFO, " = RegistrationParameters (Coarse) =");
-// 		mCoarseConfiguration = conf;
-// 	}else
-// 	{
-// 		mLogger->message(INFO, " = RegistrationParameters (Fine) =");
-// 		mFineConfiguration = conf;
-// 	}
-// 	mLogger->message(INFO, (boost::format("correspondence_randomness:    %1%") % conf.correspondence_randomness).str());
-// 	mLogger->message(INFO, (boost::format("euclidean_fitness_epsilon:    %1%") % conf.euclidean_fitness_epsilon).str());
-// 	mLogger->message(INFO, (boost::format("max_correspondence_distance:  %1%") % conf.max_correspondence_distance).str());
-// 	mLogger->message(INFO, (boost::format("max_fitness_score:            %1%") % conf.max_fitness_score).str());
-// 	mLogger->message(INFO, (boost::format("maximum_iterations:           %1%") % conf.maximum_iterations).str());
-// 	mLogger->message(INFO, (boost::format("maximum_optimizer_iterations: %1%") % conf.maximum_optimizer_iterations).str());
-// 	mLogger->message(INFO, (boost::format("point_cloud_density:          %1%") % conf.point_cloud_density).str());
-// 	mLogger->message(INFO, (boost::format("rotation_epsilon:             %1%") % conf.rotation_epsilon).str());
-// 	mLogger->message(INFO, (boost::format("transformation_epsilon:       %1%") % conf.transformation_epsilon).str());
-// }
-
-// void MultiPointCloudSensor::setMapResolution(double r)
-// {
-// 	mLogger->message(INFO, (boost::format("map_resolution:         %1%") % r).str());
-// 	mMapResolution = r;
-// }
-
-// void MultiPointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
-// {
-// 	mLogger->message(INFO, (boost::format("map_outlier_radius:     %1%") % r).str());
-// 	mLogger->message(INFO, (boost::format("map_outlier_neighbors:  %1%") % n).str());
-// 	mMapOutlierRadius = r;
-// 	mMapOutlierNeighbors = n;
-// }
-
 
 }  // namespace slam3d
 

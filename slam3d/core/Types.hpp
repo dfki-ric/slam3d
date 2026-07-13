@@ -344,7 +344,6 @@ namespace slam3d
 			VertexMeasurementData::init(m, i);
 
 			for (const auto &sub : subMeasurementPtrs) {
-				printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
 				VertexMeasurementData vmd;
 				vmd.init(sub, index);
 				subMeasurements.push_back(vmd);
