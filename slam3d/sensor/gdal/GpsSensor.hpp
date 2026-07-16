@@ -36,16 +36,20 @@ namespace slam3d
 		
 		GpsMeasurement(const Position& pos, const Covariance<3>& cov,
 		               timeval t, const std::string& r, const std::string& s,
-	                   const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
-		: Measurement(r, s, p, id), mPosition(pos), mCovariance(cov){ mStamp = t; }
-
+		               const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
+		: Measurement(r, s, p, id), mPosition(pos), mCovariance(cov)
+		{
+			mMetaData.timestamp = t;
+			mMetaData.typeName = getTypeName();
+		}
+		
 		~GpsMeasurement() {}
 		
 		const Position& getPosition() const { return mPosition; }
 		const Covariance<3>& getCovariance() const { return mCovariance; }
-
-		virtual const char* getTypeName() const { return "slam3d::GpsMeasurement"; }
 		
+		virtual const char* getTypeName() const { return "slam3d::GpsMeasurement"; }
+
 	protected:
 		Position mPosition;
 		Covariance<3> mCovariance;

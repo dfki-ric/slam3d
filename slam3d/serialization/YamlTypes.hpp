@@ -265,7 +265,7 @@ namespace YAML {
             checkAndSet(&config.typeName, node["typeName"]);
             checkAndSet(&config.correctedPose, node["correctedPose"]);
             checkAndSet(&config.fixed, node["fixed"]);
-            checkAndSet(&config.measurementUuid,node["measurementUuid"]);
+            checkAndSet(&config.uniqueId,node["measurementUuid"]);
 
             return true;
         }
@@ -278,7 +278,7 @@ namespace YAML {
             node["robotName"] = config.robotName;
             node["sensorName"] = config.sensorName;
             node["typeName"] = config.typeName;
-            node["measurementUuid"] = config.measurementUuid;
+            node["measurementUuid"] = config.uniqueId;
             node["correctedPose"] = config.correctedPose;
             node["fixed"] = config.fixed;
             return node;

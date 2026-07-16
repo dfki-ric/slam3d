@@ -1,5 +1,6 @@
 add_library(sensor-pcl SHARED
 	PointCloudSensor.cpp
+#	MultiPointCloudSensor.cpp
 )
 
 target_include_directories(sensor-pcl

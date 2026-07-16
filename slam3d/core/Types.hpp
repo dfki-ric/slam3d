@@ -98,6 +98,18 @@ namespace slam3d
 		IdType mNextID;
 	};
 	
+	struct MetaData
+	{
+		timeval timestamp;
+		std::string typeName;
+		std::string robotName;
+		std::string sensorName;
+		boost::uuids::uuid uniqueId;
+//		std::set<std::string> tags;
+		Transform sensorPose;
+		Transform inverseSensorPose;
+	};
+	
 	/**
 	 * @class Measurement
 	 * @brief Base class for a single reading from a sensor.
@@ -115,23 +127,18 @@ namespace slam3d
 		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
 		virtual ~Measurement(){}
 		
-		timeval getTimestamp() const { return mStamp; }
-		std::string getRobotName() const { return mRobotName; }
-		std::string getSensorName() const { return mSensorName; }
-		boost::uuids::uuid getUniqueId() const { return mUniqueId; }
-		Transform getSensorPose() const { return mSensorPose; }
-		Transform getInverseSensorPose() const { return mInverseSensorPose; }
+		timeval getTimestamp() const { return mMetaData.timestamp; }
+		std::string getRobotName() const { return mMetaData.robotName; }
+		std::string getSensorName() const { return mMetaData.sensorName; }
+		boost::uuids::uuid getUniqueId() const { return mMetaData.uniqueId; }
+		Transform getSensorPose() const { return mMetaData.sensorPose; }
+		Transform getInverseSensorPose() const { return mMetaData.inverseSensorPose; }
+		const MetaData& getMetaData() const { return mMetaData; }
 		
 		virtual const char* getTypeName() const = 0;
-		
+
 	protected:
-		timeval mStamp;
-		std::string mRobotName;
-		std::string mSensorName;
-		boost::uuids::uuid mUniqueId;
-		
-		Transform mSensorPose;
-		Transform mInverseSensorPose;
+		MetaData mMetaData;
 	};
 	
 	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION, POSE};
@@ -302,32 +309,23 @@ namespace slam3d
 	 * @details It contains a pointer to an abstract measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
 	 */
-	struct VertexObject
+	struct VertexObject : public MetaData
 	{
 		void init(const Measurement::Ptr m, IdType i)
 		{
+			static_cast<MetaData&>(*this) = m->getMetaData();
 			index = i;
-			robotName = m->getRobotName();
-			sensorName = m->getSensorName();
-			typeName = m->getTypeName();
-			timestamp = m->getTimestamp();
-			measurementUuid = m->getUniqueId();
-
 			boost::format frm("%1%:%2%(%3%)");
 			frm % robotName % sensorName % index;
 			label = frm.str();
 		}
 
+		std::vector<MetaData> subMeasurements;
+
 		std::string label;
 		IdType index;
-		std::string robotName;
-		std::string sensorName;
-		std::string typeName;
-		timeval timestamp;
 		bool fixed = false;
-
 		Transform correctedPose;
-		boost::uuids::uuid measurementUuid;
 	};
 
 	/**

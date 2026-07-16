@@ -233,7 +233,7 @@ const Transform Graph::getTransform(IdType source, IdType target) const
 
 Measurement::Ptr Graph::getMeasurement(IdType id)
 {
-	return mStorage->get(getVertex(id).measurementUuid);
+	return mStorage->get(getVertex(id).uniqueId);
 }
 
 Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)

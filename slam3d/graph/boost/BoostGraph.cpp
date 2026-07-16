@@ -35,9 +35,7 @@ void BoostGraph::init(const size_t &indexer_start)
 		vo.index = mIndexer.getNext();
 		vo.fixed = true;
 		vo.correctedPose = Transform::Identity();
-		vo.measurementUuid = boost::uuids::nil_uuid();
 		vo.label = "origin";
-		vo.typeName = "void";
 		addVertex(vo);
 	}
 }

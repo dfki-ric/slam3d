@@ -257,7 +257,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	#pragma omp parallel for
 	for (size_t i = 0; i < vertices.size(); ++i)
 	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].measurementUuid);
+		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].uniqueId);
 		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
 		if(!pcl)
 		{

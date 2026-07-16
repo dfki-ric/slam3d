@@ -67,19 +67,20 @@ namespace slam3d
 		: Measurement(r, s, p, id)
 		{
 			mPointCloud = cloud;
+			mMetaData.typeName = getTypeName();
 
 			// PCL header should contain microseconds
-			mStamp.tv_sec  = cloud->header.stamp / 1000000;
-			mStamp.tv_usec = cloud->header.stamp % 1000000;
+			mMetaData.timestamp.tv_sec  = cloud->header.stamp / 1000000;
+			mMetaData.timestamp.tv_usec = cloud->header.stamp % 1000000;
 		}
+
+		virtual const char* getTypeName() const { return "slam3d::PointCloudMeasurement"; }
 
 		/**
 		 * @brief Gets the point cloud contained within this measurement.
 		 * @return Constant shared pointer to the point cloud
 		 */
 		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
-
-		virtual const char* getTypeName() const { return "slam3d::PointCloudMeasurement"; }
 
 	protected:
 		PointCloud::Ptr mPointCloud;

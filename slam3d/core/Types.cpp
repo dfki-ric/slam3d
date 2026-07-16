@@ -7,14 +7,14 @@ using namespace slam3d;
 Measurement::Measurement(const std::string& r, const std::string& s,
                          const Transform& p, const boost::uuids::uuid id)
 {
-	mRobotName = r;
-	mSensorName = s;
-	mSensorPose = p;
-	mInverseSensorPose = p.inverse();
+	mMetaData.robotName = r;
+	mMetaData.sensorName = s;
+	mMetaData.sensorPose = p;
+	mMetaData.inverseSensorPose = p.inverse();
 	if(id.is_nil())
-		mUniqueId = boost::uuids::random_generator()();
+		mMetaData.uniqueId = boost::uuids::random_generator()();
 	else
-		mUniqueId = id;
+		mMetaData.uniqueId = id;
 }
 
 // Re-orthogonalize the rotation-matrix
