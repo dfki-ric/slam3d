@@ -257,7 +257,7 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 	#pragma omp parallel for
 	for (size_t i = 0; i < vertices.size(); ++i)
 	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(vertices[i].uniqueId);
+		Measurement::Ptr m = mMapper->getMeasurement(vertices[i].index);
 		PointCloudMeasurement::Ptr pcl = boost::dynamic_pointer_cast<PointCloudMeasurement>(m);
 		if(!pcl)
 		{
@@ -265,7 +265,9 @@ PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& ve
 			throw BadMeasurementType();
 		}
 		
-		PointCloud::Ptr tempCloud = transform(pcl->getPointCloud(), (vertices[i].correctedPose * pcl->getSensorPose()));
+		PointCloud::Ptr tempCloud = transform(
+			pcl->getPointCloud(),
+			(vertices[i].correctedPose * vertices[i].measurement.sensorPose));
 
 		#pragma omp critical 
 		*accu += *tempCloud; 
@@ -279,21 +281,24 @@ Measurement::Ptr PointCloudSensor::createCombinedMeasurement(const VertexObjectL
 	PointCloud::Ptr shifted(new PointCloud);
 	pcl::transformPointCloud(*cloud, *shifted, pose.inverse().matrix());
 	mLogger->message(DEBUG, (boost::format("Patch pointcloud has %1% points.") % cloud->size()).str());
-	Measurement::Ptr m(new PointCloudMeasurement(shifted, "AccumulatedPointcloud", mName, Transform::Identity()));
+	Measurement::Ptr m(new PointCloudMeasurement(shifted));
 	return m;
 }
 
 
 Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& source,
+                                                   const MetaData& source_data,
                                                    const Measurement::Ptr& target,
+                                                   const MetaData& target_data,
                                                    const Transform& odometry, bool loop)
 {
 	// Transform guess in sensor frame
-	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
+	Transform guess = source_data.inverseSensorPose * odometry * target_data.sensorPose;
 	
 	// Cast to this sensors measurement type
 	PointCloudMeasurement::Ptr sourceCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(source);
 	PointCloudMeasurement::Ptr targetCloud = boost::dynamic_pointer_cast<PointCloudMeasurement>(target);
+	
 	if(!sourceCloud || !targetCloud)
 	{
 		mLogger->message(ERROR, "Measurement given to createConstraint() is not a PointCloud!");
@@ -310,7 +315,7 @@ Constraint::Ptr PointCloudSensor::createConstraint(const Measurement::Ptr& sourc
 	Transform icp_result = align(sourceCloud, targetCloud, guess, mFineConfiguration);
 	
 	// Transform back to robot frame
-	Transform transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
+	Transform transform = source_data.sensorPose * icp_result * target_data.inverseSensorPose;
 	Covariance<6> covariance = Covariance<6>::Identity() * mCovarianceScale;
 	
 	return Constraint::Ptr(new SE3Constraint(mName, transform, covariance.inverse()));
@@ -425,13 +430,20 @@ void PointCloudSensor::loadPLY(const std::string& path, const std::string& robot
 	{
 		Transform pc_tr(pcl_cloud->sensor_orientation_.cast<ScalarType>());
 		pc_tr.translation() = pcl_cloud->sensor_origin_.block(0,0,3,1).cast<ScalarType>();
-		PointCloudMeasurement::Ptr initial_map(
-			new PointCloudMeasurement(pcl_cloud, robot, mName, pc_tr));
+		PointCloudMeasurement::Ptr initial_map(new PointCloudMeasurement(pcl_cloud));
+		
+		MetaData initial_map_md = initMetaData(
+			initial_map->getTimestamp(),
+			initial_map->getTypeName(),
+			robot,
+			mName,
+			pc_tr);
 		try
 		{
-			IdType id = mMapper->getGraph()->addVertex(initial_map, Transform::Identity());
+			IdType id = mMapper->getGraph()->addVertex(initial_map_md, Transform::Identity());
 			Constraint::Ptr prior(new PoseConstraint(mName, Transform::Identity(), Covariance<6>::Identity()));
 			mMapper->getGraph()->addConstraint(id, 0, prior);
+			mMapper->getMeasurementStorage()->add(initial_map, initial_map_md.uniqueId);
 			mLogger->message(INFO, "Successfully loaded initial map.");
 		}
 		catch(std::exception& e)

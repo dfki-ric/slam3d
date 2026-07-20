@@ -29,8 +29,8 @@
 
 using namespace slam3d;
 
-Graph::Graph(Logger* log, MeasurementStorage* storage)
- : mLogger(log), mStorage(storage), mSolver(nullptr)
+Graph::Graph(Logger* log)
+ : mLogger(log), mSolver(nullptr)
 {
 	init();
 }
@@ -146,21 +146,21 @@ bool Graph::optimized()
 	}
 }
 
-IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
+IdType Graph::addVertex(const MetaData& data, const Transform &corrected)
 {
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
 	VertexObject vo;
-	vo.init(m, id);
+	vo.init(data, id);
 	vo.correctedPose = corrected;
 	vo.fixed = mFixNext;
 	mFixNext = false;
 	addVertex(vo);
-	mStorage->add(m);
-	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
+	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).")
+		% id % data.robotName % data.sensorName).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
-	mUuidIndex.insert(UuidIndex::value_type(m->getUniqueId(), id));
+	mUuidIndex.insert(UuidIndex::value_type(data.uniqueId, id));
 	
 	// Add it to the SLAM-Backend for incremental optimization
 	if(mSolver)
@@ -229,16 +229,6 @@ const VertexObject Graph::getVertex(boost::uuids::uuid id) const
 const Transform Graph::getTransform(IdType source, IdType target) const
 {
 	return getVertex(source).correctedPose.inverse() * getVertex(target).correctedPose;
-}
-
-Measurement::Ptr Graph::getMeasurement(IdType id)
-{
-	return mStorage->get(getVertex(id).uniqueId);
-}
-
-Measurement::Ptr Graph::getMeasurement(boost::uuids::uuid id)
-{
-	return mStorage->get(id);
 }
 
 const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radius, const StringSet& sensors) const

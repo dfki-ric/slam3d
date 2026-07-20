@@ -110,6 +110,8 @@ namespace slam3d
 		Transform inverseSensorPose;
 	};
 	
+	MetaData initMetaData(timeval time, std::string type, std::string robot, std::string sensor, Transform pose);
+	
 	/**
 	 * @class Measurement
 	 * @brief Base class for a single reading from a sensor.
@@ -123,22 +125,10 @@ namespace slam3d
 		typedef boost::shared_ptr<Measurement> Ptr;
 		
 	public:
-		Measurement(const std::string& r, const std::string& s,
-		            const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid());
+		Measurement(){}
 		virtual ~Measurement(){}
 		
-		timeval getTimestamp() const { return mMetaData.timestamp; }
-		std::string getRobotName() const { return mMetaData.robotName; }
-		std::string getSensorName() const { return mMetaData.sensorName; }
-		boost::uuids::uuid getUniqueId() const { return mMetaData.uniqueId; }
-		Transform getSensorPose() const { return mMetaData.sensorPose; }
-		Transform getInverseSensorPose() const { return mMetaData.inverseSensorPose; }
-		const MetaData& getMetaData() const { return mMetaData; }
-		
 		virtual const char* getTypeName() const = 0;
-
-	protected:
-		MetaData mMetaData;
 	};
 	
 	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION, POSE};
@@ -306,20 +296,22 @@ namespace slam3d
 	/**
 	 * @struct VertexObject
 	 * @brief Object attached to a vertex in the pose graph.
-	 * @details It contains a pointer to an abstract measurement, which could
+	 * @details It contains the meta data of a measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
+	 * The UUID can be used to retrieve the measurement from a MeasurementStorage.
 	 */
-	struct VertexObject : public MetaData
+	struct VertexObject
 	{
-		void init(const Measurement::Ptr m, IdType i)
+		void init(const MetaData& d, IdType i)
 		{
-			static_cast<MetaData&>(*this) = m->getMetaData();
+			measurement = d;
 			index = i;
 			boost::format frm("%1%:%2%(%3%)");
-			frm % robotName % sensorName % index;
+			frm % measurement.robotName % measurement.sensorName % index;
 			label = frm.str();
 		}
 
+		MetaData measurement;
 		std::vector<MetaData> subMeasurements;
 
 		std::string label;

@@ -30,7 +30,7 @@
 
 using namespace slam3d;
 
-void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
+void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m, const MetaData& data)
 {
 	if(!mLastVertex)
 	{
@@ -42,10 +42,10 @@ void GpsSensor::addMeasurement(const GpsMeasurement::Ptr &m)
 			return;
 	}
 
-	mLastVertex = mMapper->addMeasurement(m);
+	mLastVertex = mMapper->addMeasurement(m, data);
 	Position rel_pos = m->getPosition() - mReference;
 	mLogger->message(DEBUG, (boost::format("GPS: relative pose (%1%, %2%, %3%)") % rel_pos(0) % rel_pos(1) % rel_pos(2)).str());
-	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, m->getCovariance(), m->getSensorPose()));
+	PositionConstraint::Ptr position(new PositionConstraint(mName, rel_pos, m->getCovariance(), data.sensorPose));
 	mMapper->getGraph()->addConstraint(mLastVertex, 0, position);
 	mLastPosition = m->getPosition();
 }

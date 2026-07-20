@@ -57,12 +57,14 @@ PM::TransformationParameters Scan2DSensor::convert3Dto2D(const Transform& in) co
 }
 
 Constraint::Ptr Scan2DSensor::createConstraint(const Measurement::Ptr& source,
+		                                       const MetaData& source_data,
 		                                       const Measurement::Ptr& target,
+		                                       const MetaData& target_data,
 		                                       const Transform& odometry,
 		                                       bool loop)
 {
 	// Transform guess in sensor frame
-	Transform guess = source->getInverseSensorPose() * odometry * target->getSensorPose();
+	Transform guess = source_data.inverseSensorPose * odometry * target_data.sensorPose;
 
 	// Cast to this sensors measurement type
 	Scan2DMeasurement::Ptr sourceScan = boost::dynamic_pointer_cast<Scan2DMeasurement>(source);
@@ -89,7 +91,7 @@ Constraint::Ptr Scan2DSensor::createConstraint(const Measurement::Ptr& source,
 	Transform icp_result = guess * convert2Dto3D(tp);
 
 	// Transform back to robot frame
-	Transform transform = source->getSensorPose() * icp_result * target->getInverseSensorPose();
+	Transform transform = source_data.sensorPose * icp_result * target_data.inverseSensorPose;
 	Covariance<6> covariance = Covariance<6>::Identity() * mCovarianceScale;
 	
 	return Constraint::Ptr(new SE3Constraint(mName, transform, covariance.inverse()));
@@ -101,20 +103,20 @@ Measurement::Ptr Scan2DSensor::createCombinedMeasurement(const VertexObjectList&
 	PM::DataPoints accu = createDataPoints();
 	for(VertexObjectList::const_iterator it = vertices.begin(); it != vertices.end(); it++)
 	{
-		Measurement::Ptr m = mMapper->getGraph()->getMeasurement(it->uniqueId);
+		Measurement::Ptr m = mMapper->getMeasurement(it->measurement.uniqueId);
 		Scan2DMeasurement::Ptr scan = boost::dynamic_pointer_cast<Scan2DMeasurement>(m);
 		if(!scan)
 		{
 			mLogger->message(WARNING, "Measurement is not a Scan2D!");
 			throw BadMeasurementType();
 		}
-		accu.concatenate(transformDataPoints(scan->getDataPoints(), it->correctedPose * scan->getSensorPose()));
+		accu.concatenate(transformDataPoints(scan->getDataPoints(), it->correctedPose * it->measurement.sensorPose ));
 	}
 
 	// Transform to target frame
 	PM::DataPoints accu_tf = transformDataPoints(accu, pose.inverse());	
 	timeval t;
-	return Scan2DMeasurement::Ptr(new Scan2DMeasurement(accu_tf, t, "AccumulatedScan", mName, Transform::Identity()));
+	return Scan2DMeasurement::Ptr(new Scan2DMeasurement(accu_tf));
 }
 
 PM::DataPoints Scan2DSensor::createDataPoints() const

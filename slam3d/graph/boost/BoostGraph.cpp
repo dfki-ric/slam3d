@@ -13,8 +13,8 @@
 
 using namespace slam3d;
 
-BoostGraph::BoostGraph(Logger* log, MeasurementStorage* storage)
- : Graph(log, storage)
+BoostGraph::BoostGraph(Logger* log)
+ : Graph(log)
 {
 	init();
 }
@@ -105,7 +105,7 @@ const VertexObjectList BoostGraph::getVertices(const StringSet& sensors) const
 	{
 		const VertexObject& vo = mPoseGraph[*it];
 		if(vo.index == 0) continue;
-		if(sensors.empty() || sensors.count(vo.sensorName))
+		if(sensors.empty() || sensors.count(vo.measurement.sensorName))
 		{
 			objectList.push_back(vo);
 		}
@@ -119,7 +119,7 @@ const VertexObjectList BoostGraph::getVerticesByType(const std::string& type) co
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		if(mPoseGraph[*it].typeName == type)
+		if(mPoseGraph[*it].measurement.typeName == type)
 		{
 			objectList.push_back(mPoseGraph[*it]);
 		}
@@ -133,7 +133,7 @@ const StringSet BoostGraph::getVertexSensors() const
 	VertexRange vertices = boost::vertices(mPoseGraph);
 	for(VertexIterator it = vertices.first; it != vertices.second; ++it)
 	{
-		sensors.insert(mPoseGraph[*it].sensorName);
+		sensors.insert(mPoseGraph[*it].measurement.sensorName);
 	}
 	return sensors;
 }

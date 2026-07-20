@@ -27,8 +27,9 @@ bool GraphSerialization::fromFile(Graph* graph, const std::string &graphfile)
 	for (const auto& vertex : config.get().vertices)
 	{
 		graph->addVertex(vertex);
-		if(vertex.index > maxId) maxId = vertex.index;
-		graph->mUuidIndex[vertex.uniqueId] = vertex.index;
+		if(vertex.index > maxId)
+			maxId = vertex.index;
+		graph->mUuidIndex[vertex.measurement.uniqueId] = vertex.index;
 	}
 	graph->mIndexer = Indexer(maxId+1);
 

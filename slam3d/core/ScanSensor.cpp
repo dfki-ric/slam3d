@@ -46,22 +46,23 @@ ScanSensor::~ScanSensor()
 {
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const MetaData& data)
 {
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m, data);
 		return true;
 	}
-
-	Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
 	try
 	{
-		Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
+		Constraint::Ptr c = createConstraint(
+			mMapper->getMeasurement(mLastVertex),
+			mMapper->getMetaData(mLastVertex),
+			m, data, mLastTransform, false);
 		SE3Constraint::Ptr se3 = boost::dynamic_pointer_cast<SE3Constraint>(c);
 		if(!se3 || checkMinDistance(mLastTransform = se3->getRelativePose()))
 		{
-			IdType newVertex = mMapper->addMeasurement(m);
+			IdType newVertex = mMapper->addMeasurement(m, data);
 			if(se3)
 			{
 				mMapper->getGraph()->setCorrectedPose(newVertex, getCurrentPose());
@@ -91,11 +92,11 @@ bool ScanSensor::checkMeasurementDistance(const Transform& odom)
 	return false;
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const MetaData& data, const Transform& odom)
 {
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m, data);
 		mLastOdometry = odom;
 		return true;
 	}
@@ -104,13 +105,15 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	mLastTransform = mLastOdometry.inverse() * odom;
 	if(checkMinDistance(mLastTransform))
 	{
-		IdType newVertex = mMapper->addMeasurement(m);
-		Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
+		IdType newVertex = mMapper->addMeasurement(m, data);
 		if(mLinkPrevious)
 		{
 			try
 			{
-				Constraint::Ptr c = createConstraint(source, m, mLastTransform, false);
+				Constraint::Ptr c = createConstraint(
+					mMapper->getMeasurement(mLastVertex),
+					mMapper->getMetaData(mLastVertex),
+					m, data, mLastTransform, false);
 				mMapper->getGraph()->addConstraint(mLastVertex, newVertex, c);
 
 				// Calculate the new pose relative from last pose
@@ -153,7 +156,10 @@ void ScanSensor::link(IdType source_id, IdType target_id, const Transform& guess
 	// Create the relative pose constraint
 	try
 	{
-		Constraint::Ptr se3 = createConstraint(source_m, target_m, guess, true);
+		Constraint::Ptr se3 = createConstraint(
+			source_m, mMapper->getMetaData(source_id),
+			target_m, mMapper->getMetaData(target_id),
+			guess, true);
 		mMapper->getGraph()->removeConstraint(source_id, target_id, mName);
 		mMapper->getGraph()->addConstraint(source_id, target_id, se3);
 	}catch(NoMatch &e)
@@ -216,7 +222,7 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 {
 	if(mPatchBuildingRange == 0)
 	{
-		return mMapper->getGraph()->getMeasurement(source);
+		return mMapper->getMeasurement(source);
 	}
 
 	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);

@@ -81,14 +81,14 @@ namespace slam3d
 		 * @brief Add a new measurement from this sensor.
 		 * @param scan
 		 */
-		bool addMeasurement(const Measurement::Ptr& scan);
+		bool addMeasurement(const Measurement::Ptr& scan, const MetaData& data);
 
 		/**
 		 * @brief Add a new measurement from this sensor together with an odometry pose.
 		 * @param scan
 		 * @param odom
 		 */
-		bool addMeasurement(const Measurement::Ptr& scan, const Transform& odom);
+		bool addMeasurement(const Measurement::Ptr& scan, const MetaData& data, const Transform& odom);
 
 		/**
 		 * @brief Check if a new measurement with given odometry would be added.
@@ -120,7 +120,9 @@ namespace slam3d
 		 * @param odometry
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
+		                                         const MetaData& source_data,
 		                                         const Measurement::Ptr& target,
+		                                         const MetaData& target_data,
 		                                         const Transform& odometry,
 		                                         bool loop) = 0;
 

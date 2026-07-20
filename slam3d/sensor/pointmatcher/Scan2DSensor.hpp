@@ -43,14 +43,7 @@ namespace slam3d
 	public:
 		typedef boost::shared_ptr<Scan2DMeasurement> Ptr;
 
-		Scan2DMeasurement(const PM::DataPoints& points, timeval t,
-		                  const std::string& r, const std::string& s,
-		                  const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
-		: Measurement(r, s, p, id), mDataPoints(points)
-		{
-			mMetaData.timestamp = t;
-			mMetaData.typeName = getTypeName();
-		}
+		Scan2DMeasurement(const PM::DataPoints& points) : mDataPoints(points){}
 
 		virtual const char* getTypeName() const { return "slam3d::Scan2DMeasurement"; }
 
@@ -95,9 +88,11 @@ namespace slam3d
 		 * @param odometry
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
+		                                         const MetaData& source_data,
 		                                         const Measurement::Ptr& target,
+		                                         const MetaData& target_data,
 		                                         const Transform& odometry,
-												 bool loop);
+												 bool loop) override;
 
 		/**
 		 * @brief Convert the 2D ICP result to a 3D transformation

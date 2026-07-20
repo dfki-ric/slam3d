@@ -20,7 +20,7 @@ namespace slam3d
 		 * @brief Add the given measurement to the storage
 		 * @param measurement 
 		 */
-		virtual void add(Measurement::Ptr measurement);
+		virtual void add(Measurement::Ptr measurement, const boost::uuids::uuid& uuid);
 
 		/**
 		 * @brief Get the measurement for a given UUID

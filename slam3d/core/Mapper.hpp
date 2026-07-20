@@ -28,14 +28,15 @@
 #include <slam3d/core/Sensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
 #include <slam3d/core/Graph.hpp>
+#include <slam3d/core/MeasurementStorage.hpp>
 
 namespace slam3d
 {
 	class Mapper
 	{
 	public:
-		Mapper(Graph* graph, Logger* log, const Transform& start = Transform::Identity());
-		virtual ~Mapper();
+		Mapper(Graph* graph, MeasurementStorage* storage, Logger* log, const Transform& start = Transform::Identity());
+		~Mapper();
 
 		/**
 		 * @brief Set the start pose. Must be called before the first node is added.
@@ -48,6 +49,12 @@ namespace slam3d
 		 * @return graph
 		 */
 		Graph* getGraph() { return mGraph; }
+
+		/**
+		 * @brief Access to the measurement storage.
+		 * @return storage
+		 */
+		MeasurementStorage* getMeasurementStorage() { return mStorage; }
 
 		/**
 		 * @brief Register a pose sensor to create spatial constraints.
@@ -75,7 +82,7 @@ namespace slam3d
 		 * @param m pointer to a new measurement
 		 * @return id of the newly added vertex
 		 */
-		IdType addMeasurement(Measurement::Ptr m);
+		IdType addMeasurement(Measurement::Ptr m, const MetaData& d);
 
 		/**
 		 * @brief Add a new measurement from another robot.
@@ -83,16 +90,16 @@ namespace slam3d
 		 * linked to the measurement with the given uuid. This enforces that
 		 * the graph stays connected even when external measurement cannot be
 		 * linked to local ones.
-		 * @param measurement pointer to a new measurement
+		 * @param measurement data of a new measurement
 		 * @param source_uuid uuid of another measurement
 		 * @param twc transform between measurement and source
 		 * @param sensor name of sensor that created the constraint (not the measurement!)
 		 */
-		virtual void addExternalMeasurement(Measurement::Ptr measurement,
-		                                    boost::uuids::uuid source_uuid,
-		                                    const Transform& transform,
-		                                    const Covariance<6>& information,
-		                                    const std::string& sensor);
+		void addExternalMeasurement(const MetaData& measurement,
+		                            boost::uuids::uuid source_uuid,
+		                            const Transform& transform,
+		                            const Covariance<6>& information,
+		                            const std::string& sensor);
 
 		/**
 		 * @brief Add a constraint from another robot between two measurements.
@@ -111,14 +118,19 @@ namespace slam3d
 		 * @details The pose is updated at least whenever a new node is added.
 		 * @return current robot pose in map coordinates
 		 */
-		virtual Transform getCurrentPose();
+		Transform getCurrentPose();
 
 		/**
 		 * @brief Get the id of the last vertex that was locally added to the graph.
 		 * @details This will not return external vertices from other robots.
 		 * @return vertex id
 		 */
-		virtual IdType getLastIndex() const { return mLastIndex; }
+		IdType getLastIndex() const { return mLastIndex; }
+
+		Measurement::Ptr getMeasurement(IdType id) const;
+		Measurement::Ptr getMeasurement(const boost::uuids::uuid& uuid) const;
+		
+		MetaData getMetaData(IdType id) const;
 
 		/**
 		 * @brief Fix the pose of the first node in graph.
@@ -133,6 +145,7 @@ namespace slam3d
 		PoseSensorList mPoseSensors;
 		Logger* mLogger;
 		Graph* mGraph;
+		MeasurementStorage* mStorage;
 		IdType mLastIndex;
 		Transform mStartPose;
 		bool mFixFirst = false;

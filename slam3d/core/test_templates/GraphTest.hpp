@@ -1,14 +1,6 @@
 #include <slam3d/core/Graph.hpp>
 #include <boost/test/unit_test.hpp>
 
-class TestMeasurement : public slam3d::Measurement
-{
-public:
-	TestMeasurement(const std::string& r, const std::string& s, const slam3d::Transform& p)
-		: Measurement(r, s, p) {}
-	const char* getTypeName() const { return "TestMeasurement"; }
-};
-
 template <class CONSTRAINT> boost::shared_ptr<CONSTRAINT>
 addAndGetConstraint(slam3d::Graph* graph, boost::shared_ptr<CONSTRAINT> constraint, slam3d::IdType from, slam3d::IdType to)
 {
@@ -26,9 +18,11 @@ addAndGetConstraint(slam3d::Graph* graph, boost::shared_ptr<CONSTRAINT> constrai
 
 void addVertexToGraph(slam3d::Graph* g, slam3d::IdType exp_id, const std::string& robot, const std::string& sensor)
 {
-	slam3d::Measurement::Ptr m(new TestMeasurement(robot, sensor, slam3d::Transform::Identity()));
-	slam3d::Transform tf = slam3d::Transform::Identity();
-	slam3d::IdType id = g->addVertex(m, tf);
+	slam3d::MetaData md;
+	md.robotName = robot;
+	md.sensorName = sensor;
+	md.inverseSensorPose = md.sensorPose = slam3d::Transform::Identity();
+	slam3d::IdType id = g->addVertex(md, slam3d::Transform::Identity());
 	BOOST_CHECK_EQUAL(id, exp_id);
 
 	slam3d::IdType query_res;

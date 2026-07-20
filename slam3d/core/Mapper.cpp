@@ -29,9 +29,10 @@
 
 using namespace slam3d;
 
-Mapper::Mapper(Graph* graph, Logger* log, const Transform& start)
+Mapper::Mapper(Graph* graph, MeasurementStorage* storage, Logger* log, const Transform& start)
 {
 	mGraph = graph;
+	mStorage = storage;
 	mLogger = log;
 	mLastIndex = 0;
 	mStartPose = start;
@@ -81,12 +82,13 @@ Transform Mapper::getCurrentPose()
 		return mStartPose;
 }
 
-IdType Mapper::addMeasurement(Measurement::Ptr m)
+IdType Mapper::addMeasurement(Measurement::Ptr m, const MetaData& d)
 {
 	const bool first = mLastIndex == 0;
 	// Add the vertex to the pose graph
-	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % m->getSensorName()).str());
-	mLastIndex = mGraph->addVertex(m, getCurrentPose());
+	mLogger->message(DEBUG, (boost::format("Add reading from own Sensor '%1%'.") % d.sensorName).str());
+	mLastIndex = mGraph->addVertex(d, getCurrentPose());
+	mStorage->add(m, d.uniqueId);
 	
 	// Call all registered PoseSensor's on the new vertex
 	for(PoseSensorList::iterator ps = mPoseSensors.begin(); ps != mPoseSensors.end(); ps++)
@@ -111,10 +113,10 @@ IdType Mapper::addMeasurement(Measurement::Ptr m)
 	return mLastIndex;
 }
 
-void Mapper::addExternalMeasurement(Measurement::Ptr m, boost::uuids::uuid s, const Transform& transform,
+void Mapper::addExternalMeasurement(const MetaData& m, boost::uuids::uuid s, const Transform& transform,
                                     const Covariance<6>& information, const std::string& sensor)
 {
-	if(mGraph->hasMeasurement(m->getUniqueId()))
+	if(mGraph->hasMeasurement(m.uniqueId))
 	{
 		throw DuplicateMeasurement();
 	}
@@ -141,4 +143,19 @@ void Mapper::addExternalConstraint(boost::uuids::uuid s, boost::uuids::uuid t, c
 		SE3Constraint::Ptr se3(new SE3Constraint(sensor, transform, information));
 		mGraph->addConstraint(source, target, se3);
 	}
+}
+
+Measurement::Ptr Mapper::getMeasurement(IdType id) const
+{
+	return mStorage->get(mGraph->getVertex(id).measurement.uniqueId);
+}
+
+Measurement::Ptr Mapper::getMeasurement(const boost::uuids::uuid& uuid) const
+{
+	return mStorage->get(uuid);
+}
+
+MetaData Mapper::getMetaData(IdType id) const
+{
+	return mGraph->getVertex(id).measurement;
 }

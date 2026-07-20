@@ -4,19 +4,6 @@
 
 using namespace slam3d;
 
-Measurement::Measurement(const std::string& r, const std::string& s,
-                         const Transform& p, const boost::uuids::uuid id)
-{
-	mMetaData.robotName = r;
-	mMetaData.sensorName = s;
-	mMetaData.sensorPose = p;
-	mMetaData.inverseSensorPose = p.inverse();
-	if(id.is_nil())
-		mMetaData.uniqueId = boost::uuids::random_generator()();
-	else
-		mMetaData.uniqueId = id;
-}
-
 // Re-orthogonalize the rotation-matrix
 Transform slam3d::orthogonalize(const Transform& t)
 {
@@ -25,4 +12,17 @@ Transform slam3d::orthogonalize(const Transform& t)
 	Transform res(t);
 	res.linear() = q.toRotationMatrix();
 	return res;
+}
+
+MetaData slam3d::initMetaData(timeval time, std::string type, std::string robot, std::string sensor, Transform pose)
+{
+	MetaData data;
+	data.timestamp = time;
+	data.typeName = type;
+	data.robotName = robot;
+	data.sensorName = sensor;
+	data.sensorPose = pose;
+	data.inverseSensorPose = pose.inverse();
+	data.uniqueId = boost::uuids::random_generator()();
+	return data;
 }

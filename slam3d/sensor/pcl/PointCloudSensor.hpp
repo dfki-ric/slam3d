@@ -56,22 +56,16 @@ namespace slam3d
 		/**
 		 * @brief Constructor from point cloud and sensor name.
 		 * @param cloud shared pointer to the PointCloud
-		 * @param r name of the robot that accquired this measurement
-		 * @param s name of the sensor managing this measurement
-		 * @param p pose of the sensor in the robot's coordinate frame
-		 * @param id unique identifier of this measurement
 		 */
-		PointCloudMeasurement(const PointCloud::Ptr &cloud,
-		                      const std::string& r, const std::string& s,
-		                      const Transform& p, const boost::uuids::uuid id = boost::uuids::nil_uuid())
-		: Measurement(r, s, p, id)
-		{
-			mPointCloud = cloud;
-			mMetaData.typeName = getTypeName();
+		PointCloudMeasurement(const PointCloud::Ptr &cloud):mPointCloud(cloud){}
 
+		timeval getTimestamp() const
+		{
+			timeval tv;
 			// PCL header should contain microseconds
-			mMetaData.timestamp.tv_sec  = cloud->header.stamp / 1000000;
-			mMetaData.timestamp.tv_usec = cloud->header.stamp % 1000000;
+			tv.tv_sec  = mPointCloud->header.stamp / 1000000;
+			tv.tv_usec = mPointCloud->header.stamp % 1000000;
+			return tv;
 		}
 
 		virtual const char* getTypeName() const { return "slam3d::PointCloudMeasurement"; }
@@ -135,7 +129,9 @@ namespace slam3d
 		 * @param loop whether this is a loop closure (true) or sequential match (false)
 		 */
 		virtual Constraint::Ptr createConstraint(const Measurement::Ptr& source,
+		                                         const MetaData& source_data,
 		                                         const Measurement::Ptr& target,
+		                                         const MetaData& target_data,
 		                                         const Transform& odometry,
 		                                         bool loop) override;
 		
@@ -350,10 +346,6 @@ namespace boost
 		{
 			// save data required to construct instance
 			ar << m->getPointCloud();
-			ar << m->getRobotName();
-			ar << m->getSensorName();
-			ar << m->getSensorPose();
-			ar << m->getUniqueId();
 		}
 
 		template<class Archive>
@@ -361,18 +353,10 @@ namespace boost
 		{
 			// retrieve data from archive required to construct new instance
 			slam3d::PointCloud::Ptr cloud;
-			std::string robot;
-			std::string sensor;
-			slam3d::Transform pose;
-			boost::uuids::uuid id;
 			ar >> cloud;
-			ar >> robot;
-			ar >> sensor;
-			ar >> pose;
-			ar >> id;
 
 			// invoke inplace constructor to initialize instance of PointCloudMeasurement
-			::new(t)slam3d::PointCloudMeasurement(cloud, robot, sensor, pose, id);
+			::new(t)slam3d::PointCloudMeasurement(cloud);
 		}
 	}
 }

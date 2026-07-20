@@ -41,41 +41,9 @@
  * The central component of this library is the Mapper class. The documentation is best read
  * by starting from there. This class is extended by registering Sensor modules, PoseSensor
  * modules and a Solver. A Graph module is required upon construction to hold the inserted data.
- * 
- * @section sec_example Programming example
- * 
- * Start by creating the graph and the mapper and registering the required modules.
- @code
-#include <slam3d/core/Mapper.hpp>
-#include <slam3d/core/FileLogger.hpp>
-
-#include <slam3d/graph/boost/BoostGraph.hpp>
-#include <slam3d/solver/g2o/G2oSolver.hpp>
-#include <slam3d/sensor/pcl/PointCloudSensor.hpp>
- 
-using namespace slam3d;
-
-Clock* clock = new Clock();
-Logger* logger = new Logger(*c);
-
-BoostGraph* graph = new BoostGraph(logger);
-Mapper* mapper = new Mapper(graph, logger);
-
-PointCloudSensor* laser = new PointCloudSensor("laser", logger, Transform::Identity());
-mapper->registerSensor(laser);
-
-G2oSolver* g2o = new G2oSolver(logger);
-graph->setSolver(g2o);
- @endcode
- * Within the callback of your sensor data, add the new measurements to the corresponding sensor module.
- @code
-PointCloudMeasurement::Ptr m(new PointCloudMeasurement(cloud, "my_robot", laser->getName(), laser->getSensorPose()));
-laser->addMeasurement(m);
- @endcode
  */
 
 #include <slam3d/core/Solver.hpp>
-#include <slam3d/core/MeasurementStorage.hpp>
 
 #include <map>
 
@@ -196,7 +164,7 @@ namespace slam3d
 	friend class GraphSerialization;
 
 	public:
-		Graph(Logger* log, MeasurementStorage* storage);
+		Graph(Logger* log);
 		virtual ~Graph();
 
 		/**
@@ -240,10 +208,10 @@ namespace slam3d
 		 * @details This method creates the VertexObject, adds the new vertex to
 		 * the solver, adds it to the index and then calls the method below to
 		 * actually add it to the graph.
-		 * @param m measurement
+		 * @param data measurement meta data
 		 * @param corrected initial pose for the new vertex
 		 */
-		IdType addVertex(Measurement::Ptr m, const Transform &corrected);
+		IdType addVertex(const MetaData& data, const Transform &corrected);
 
 		/**
 		 * @brief Add a placeholder constraint
@@ -351,20 +319,6 @@ namespace slam3d
 		 * @return constant reference to a vertex
 		 */
 		virtual const VertexObject getVertex(boost::uuids::uuid id) const;
-
-		/**
-		 * @brief Get a measurement for a given vertex id. 
-		 * @param id
-		 * @return measurement
-		 */
-		Measurement::Ptr getMeasurement(IdType id);
-
-		/**
-		 * @brief Get a measurement for a given uuid. 
-		 * @param id
-		 * @return measurement
-		 */
-		Measurement::Ptr getMeasurement(boost::uuids::uuid id);
 
 		/**
 		 * @brief Check if the measurement with this id is stored in the graph.
@@ -486,7 +440,6 @@ namespace slam3d
 	protected:
 		Solver* mSolver;
 		Logger* mLogger;
-		MeasurementStorage* mStorage;
 
 		Indexer mIndexer;
 

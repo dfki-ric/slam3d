@@ -5,13 +5,13 @@
 
 using namespace slam3d;
 
-void MeasurementStorage::add(Measurement::Ptr measurement)
+void MeasurementStorage::add(Measurement::Ptr measurement, const boost::uuids::uuid& uuid)
 {
-	if(measurement->getUniqueId().is_nil())
+	if(uuid.is_nil())
 	{
 		throw std::runtime_error("Measurement added to storage has nil-uuid.");
 	}
-	mMeasurements[measurement->getUniqueId()] = measurement;
+	mMeasurements[uuid] = measurement;
 }
 
 Measurement::Ptr MeasurementStorage::get(const boost::uuids::uuid& uuid)

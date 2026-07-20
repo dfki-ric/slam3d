@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(serialization)
 	{
 		slam3d::Transform tf;
 		initEigenTransform(&tf);
-		PointCloudMeasurement::Ptr pcl1 = boost::make_shared<PointCloudMeasurement>(pcl_cloud, ROBOT_NAME, SENSOR_NAME, tf);
+		PointCloudMeasurement::Ptr pcl1 = boost::make_shared<PointCloudMeasurement>(pcl_cloud);
 
 		Measurement::Ptr pcl2_base = test_serialization(pcl1);
 
@@ -80,14 +80,20 @@ BOOST_AUTO_TEST_CASE(map_building)
 	logger.setLogLevel(DEBUG);
 
 	MeasurementStorage storage;
-	BoostGraph graph(&logger, &storage);
-	Mapper mapper(&graph, &logger);
+	BoostGraph graph(&logger);
+	Mapper mapper(&graph, &storage, &logger);
 	PointCloudSensor sensor("pcl-test-sensor", &logger);
 
 	mapper.registerSensor(&sensor);
 
-	PointCloudMeasurement::Ptr m(new PointCloudMeasurement(pcl_cloud, "robot", sensor.getName(), Transform::Identity()));
-	sensor.addMeasurement(m);
+	PointCloudMeasurement::Ptr m(new PointCloudMeasurement(pcl_cloud));
+	MetaData data = initMetaData(
+		m->getTimestamp(),
+		m->getTypeName(),
+		ROBOT_NAME,
+		sensor.getName(),
+		Transform::Identity());
+	sensor.addMeasurement(m, data);
 	
 	VertexObjectList vertices = graph.getVertices({sensor.getName()});
 	BOOST_CHECK_EQUAL(vertices.size(), 1);
