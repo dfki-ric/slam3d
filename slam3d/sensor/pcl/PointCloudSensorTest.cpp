@@ -26,55 +26,54 @@ void initEigenTransform(slam3d::Transform* mat)
 			(*mat)(r, c) = r+c*mat->matrix().rows();
 }
 
+PointCloud::Ptr loadTestCloud()
+{
+	PointCloud::Ptr pcl_cloud(new PointCloud());
+	pcl::PLYReader ply_reader;
+	std::string test_file(TEST_FILE_PATH);
+	test_file += "/test.ply";
+	int result = ply_reader.read(test_file, *pcl_cloud);
+	BOOST_CHECK_GE(result, 0);
+	pcl_cloud->header.stamp = 1683104082;
+	pcl_cloud->header.frame_id = "test_frame";
+	pcl_cloud->header.seq = 54321;
+	return pcl_cloud;
+}
+
 BOOST_AUTO_TEST_CASE(serialization)
 {
 	Clock clock;
 	FileLogger logger(clock, "pcl_sensor_serialization.log");
 	logger.setLogLevel(DEBUG);
 	PointCloudSensor sensor("pcl-test-sensor", &logger);
+	PointCloud::Ptr pcl_cloud = loadTestCloud();
 
-	PointCloud::Ptr pcl_cloud(new PointCloud());
-	pcl::PLYReader ply_reader;
-	std::string test_file(TEST_FILE_PATH);
-	test_file += "/test.ply";
-	int result = ply_reader.read(test_file, *pcl_cloud);
-	pcl_cloud->header.stamp = 1683104082;
-	pcl_cloud->header.frame_id = "test_frame";
-	pcl_cloud->header.seq = 54321;
-	BOOST_CHECK_GE(result, 0);
+	slam3d::Transform tf;
+	initEigenTransform(&tf);
+	PointCloudMeasurement::Ptr pcl1 = boost::make_shared<PointCloudMeasurement>(pcl_cloud);
 
-	if(result >= 0)
+	Measurement::Ptr pcl2_base = test_serialization(pcl1);
+
+	PointCloudMeasurement::Ptr pcl2 = boost::dynamic_pointer_cast<PointCloudMeasurement>(pcl2_base);
+	BOOST_ASSERT(pcl2);
+	if(pcl2)
 	{
-		slam3d::Transform tf;
-		initEigenTransform(&tf);
-		PointCloudMeasurement::Ptr pcl1 = boost::make_shared<PointCloudMeasurement>(pcl_cloud);
-
-		Measurement::Ptr pcl2_base = test_serialization(pcl1);
-
-		PointCloudMeasurement::Ptr pcl2 = boost::dynamic_pointer_cast<PointCloudMeasurement>(pcl2_base);
-		BOOST_ASSERT(pcl2);
-		if(pcl2)
-		{
-			BOOST_CHECK_EQUAL(pcl1->getPointCloud()->size(), pcl2->getPointCloud()->size());
-		}
-
-		// check values of subtype slam3d::PointCloudMeasurement
-		BOOST_CHECK_EQUAL(pcl2->getTypeName(), "slam3d::PointCloudMeasurement");
-		BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.seq, 54321);
-		BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.frame_id, "test_frame");
-
-		BOOST_CHECK(pcl1->getPointCloud()->sensor_origin_.isApprox(pcl2->getPointCloud()->sensor_origin_));
-		BOOST_CHECK(pcl1->getPointCloud()->sensor_orientation_.isApprox(pcl2->getPointCloud()->sensor_orientation_));
+		BOOST_CHECK_EQUAL(pcl1->getPointCloud()->size(), pcl2->getPointCloud()->size());
 	}
+
+	// check values of subtype slam3d::PointCloudMeasurement
+	BOOST_CHECK_EQUAL(pcl2->getTypeName(), "slam3d::PointCloudMeasurement");
+	BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.seq, 54321);
+	BOOST_CHECK_EQUAL(pcl2->getPointCloud()->header.frame_id, "test_frame");
+
+	BOOST_CHECK(pcl1->getPointCloud()->sensor_origin_.isApprox(pcl2->getPointCloud()->sensor_origin_));
+	BOOST_CHECK(pcl1->getPointCloud()->sensor_orientation_.isApprox(pcl2->getPointCloud()->sensor_orientation_));
 }
 
 BOOST_AUTO_TEST_CASE(map_building)
 {
-	PointCloud::Ptr pcl_cloud(new PointCloud());
-	pcl_cloud->header.stamp = 1683104082;
-	pcl_cloud->header.frame_id = "test_frame";
-	pcl_cloud->header.seq = 54321;
-	
+	PointCloud::Ptr pcl_cloud = loadTestCloud();
+
 	Clock clock;
 	FileLogger logger(clock, "pcl_sensor_map_building.log");
 	logger.setLogLevel(DEBUG);
