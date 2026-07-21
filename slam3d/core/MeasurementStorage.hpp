@@ -17,6 +17,11 @@ namespace slam3d
 	{
 	public:
 		/**
+		 * @brief Destructor
+		 */
+		virtual ~MeasurementStorage(){}
+
+		/**
 		 * @brief Add the given measurement to the storage
 		 * @param measurement 
 		 */
