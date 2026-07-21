@@ -32,6 +32,7 @@ target_link_libraries(sensor-pcl
 # Install header files
 install(
 	FILES
+		PointCloudMeasurement.hpp
 		PointCloudSensor.hpp
 		RegistrationParameters.hpp
 	DESTINATION include/slam3d/sensor/pcl
