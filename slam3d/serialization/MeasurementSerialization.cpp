@@ -70,7 +70,7 @@ void MeasurementSerialization::fromDirectory(MeasurementStorage* storage, const 
 	{
 		if(entry.path().extension() == ".s3dm")
 		{
-			const boost::uuids::uuid id = boost::lexical_cast<boost::uuids::uuid>(entry.path().stem());
+			const boost::uuids::uuid id = boost::lexical_cast<boost::uuids::uuid>(entry.path().stem().string());
 			storage->add(fromFile(entry.path(), binary), id);
 		}
 	}
