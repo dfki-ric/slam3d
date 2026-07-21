@@ -6,8 +6,10 @@
 #include <slam3d/core/FileLogger.hpp>
 #include <slam3d/core/test_templates/MeasurementTests.hpp>
 #include <slam3d/graph/boost/BoostGraph.hpp>
+#include <slam3d/serialization/GraphSerialization.hpp>
+#include <slam3d/serialization/MeasurementSerialization.hpp>
 
-#include <sstream>
+#include <filesystem>
 
 #include "PointCloudSensor.hpp"
 
@@ -98,4 +100,20 @@ BOOST_AUTO_TEST_CASE(map_building)
 	BOOST_CHECK_EQUAL(vertices.size(), 1);
 	PointCloud::Ptr map;
 	BOOST_CHECK_NO_THROW(map = sensor.buildMap(vertices));
+
+	// Export
+	std::string dir("export_test");
+	std::filesystem::create_directory(dir);
+	slam3d::GraphSerialization::toFile(&graph, dir+"/graph.yml");
+	slam3d::MeasurementSerialization::toDirectory(&storage, dir, true);
+
+	// Import
+	slam3d::BoostGraph import_graph(&logger);
+	slam3d::MeasurementStorage import_storage;
+	slam3d::GraphSerialization::fromFile(&import_graph, dir+"/graph.yml");
+	slam3d::MeasurementSerialization::fromDirectory(&import_storage, dir, true);
+	
+	BOOST_CHECK_EQUAL(graph.getVertices().size(), import_graph.getVertices().size());
+	BOOST_CHECK_EQUAL(graph.getEdges().size(), import_graph.getEdges().size());
+	BOOST_CHECK_EQUAL(storage.getAllKeys().size(), import_storage.getAllKeys().size());
 }

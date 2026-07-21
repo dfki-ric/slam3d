@@ -1,5 +1,5 @@
 #include "MeasurementSerialization.hpp"
-#include "../sensor/pcl/PointCloudSensor.hpp"
+#include "../sensor/pcl/PointCloudMeasurement.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -10,6 +10,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
 

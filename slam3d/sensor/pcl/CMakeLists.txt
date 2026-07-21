@@ -68,6 +68,7 @@ target_link_libraries(pcl_sensor_test
 	${PCL_IO_LIBRARIES}
 	sensor-pcl
 	graph-boost
+	serialization
 )
 
 target_compile_definitions(pcl_sensor_test

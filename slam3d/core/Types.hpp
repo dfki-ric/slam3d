@@ -28,13 +28,7 @@
 #include <sys/time.h>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/uuid/nil_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/split_free.hpp>
-#include <boost/format.hpp>
+#include <boost/uuid/uuid.hpp>
 
 #include <Eigen/Geometry>
 
@@ -54,27 +48,6 @@ namespace slam3d
 	template <unsigned N> using Covariance = Eigen::Matrix<ScalarType,N,N>;
 	typedef std::set<std::string> StringSet;
 }
-
-namespace boost
-{
-	namespace serialization
-	{
-		template<class Archive>
-		void save(Archive & ar, const slam3d::Transform &tf, const unsigned int version)
-		{
-			ar & make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
-		}
-
-		template<class Archive>
-		void load(Archive & ar, slam3d::Transform &tf, const unsigned int version)
-		{
-			tf.setIdentity(); // init whole matrix
-			ar & make_array(tf.matrix().data(), tf.matrix().rows() * tf.matrix().cols());
-		}
-	} // namespace serialization
-} // namespace boost
-
-BOOST_SERIALIZATION_SPLIT_FREE(slam3d::Transform)
 
 namespace slam3d
 {
@@ -98,6 +71,10 @@ namespace slam3d
 		IdType mNextID;
 	};
 	
+	/**
+	 * @struct MetaData
+	 * @brief MetaData associated with a measurement
+	 */
 	struct MetaData
 	{
 		timeval timestamp;
@@ -302,14 +279,7 @@ namespace slam3d
 	 */
 	struct VertexObject
 	{
-		void init(const MetaData& d, IdType i)
-		{
-			measurement = d;
-			index = i;
-			boost::format frm("%1%:%2%(%3%)");
-			frm % measurement.robotName % measurement.sensorName % index;
-			label = frm.str();
-		}
+		void init(const MetaData& d, IdType i);
 
 		MetaData measurement;
 		std::vector<MetaData> subMeasurements;

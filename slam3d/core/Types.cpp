@@ -1,6 +1,7 @@
 #include "Types.hpp"
 
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/format.hpp>
 
 using namespace slam3d;
 
@@ -25,4 +26,13 @@ MetaData slam3d::initMetaData(timeval time, std::string type, std::string robot,
 	data.inverseSensorPose = pose.inverse();
 	data.uniqueId = boost::uuids::random_generator()();
 	return data;
+}
+
+void VertexObject::init(const MetaData& d, IdType i)
+{
+	measurement = d;
+	index = i;
+	boost::format frm("%1%:%2%(%3%)");
+	frm % measurement.robotName % measurement.sensorName % index;
+	label = frm.str();
 }

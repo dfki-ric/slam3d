@@ -5,6 +5,7 @@
 
 #include <boost/make_shared.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <slam3d/core/Types.hpp>
 
