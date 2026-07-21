@@ -29,71 +29,10 @@
 #include <slam3d/core/ScanSensor.hpp>
 #include <slam3d/core/PoseSensor.hpp>
 #include <slam3d/sensor/pcl/RegistrationParameters.hpp>
-
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/shared_ptr.hpp>
-#include <boost/serialization/export.hpp>
+#include <slam3d/sensor/pcl/PointCloudMeasurement.hpp>
 
 namespace slam3d
 {
-	typedef pcl::PointXYZ PointType;
-	typedef pcl::PointCloud<PointType> PointCloud;
-
-	/**
-	 * @class PointCloudMeasurement
-	 * @brief Specific Measurement of the PointCloudSensor. 
-	 */
-	class PointCloudMeasurement : public Measurement
-	{
-	public:
-		typedef boost::shared_ptr<PointCloudMeasurement> Ptr;
-	
-	public:
-		/**
-		 * @brief Constructor from point cloud and sensor name.
-		 * @param cloud shared pointer to the PointCloud
-		 */
-		PointCloudMeasurement(const PointCloud::Ptr &cloud):mPointCloud(cloud){}
-
-		timeval getTimestamp() const
-		{
-			timeval tv;
-			// PCL header should contain microseconds
-			tv.tv_sec  = mPointCloud->header.stamp / 1000000;
-			tv.tv_usec = mPointCloud->header.stamp % 1000000;
-			return tv;
-		}
-
-		virtual const char* getTypeName() const { return "slam3d::PointCloudMeasurement"; }
-
-		/**
-		 * @brief Gets the point cloud contained within this measurement.
-		 * @return Constant shared pointer to the point cloud
-		 */
-		const PointCloud::Ptr getPointCloud() const {return mPointCloud;}
-
-	protected:
-		PointCloud::Ptr mPointCloud;
-
-	private:
-		friend class boost::serialization::access;
-
-		template <typename Archive>
-		void serialize(Archive &ar, const unsigned int version)
-		{
-			// Tell boost::serialization that this is derived from Measurement.
-			// It is required because we don't explicitely call Measurement::serialize()
-			// from within PointCloudMeasurement::serialize().
-			boost::serialization::void_cast_register<PointCloudMeasurement, Measurement>(
-				static_cast<PointCloudMeasurement *>(NULL),
-				static_cast<Measurement *>(NULL));
-		}
-	};
-
 	/**
 	 * @class PointCloudSensor
 	 * @brief Plugin for the mapper that manages point cloud measurements.
@@ -221,7 +160,6 @@ namespace slam3d
 		 */
 		PointCloud::Ptr getAccumulatedCloud(const VertexObjectList& vertices) const;
 		
-
 		/**
 		 * @struct MapConfig
 		 * @brief configuration parameters for map building
@@ -234,20 +172,20 @@ namespace slam3d
 				cropBoxMin.setConstant(-std::numeric_limits<float>::infinity());
 				cropBoxMax.setConstant( std::numeric_limits<float>::infinity());
 			}
-
+			
 			double   resolution;
 			double   outlierRadius;
 			unsigned outlierNeighbors;
 			Eigen::Vector4f cropBoxMin;
 			Eigen::Vector4f cropBoxMax;
 		};
-
+		
 		/**
 		 * @brief Build an accumulated point cloud map from given vertices.
 		 * @param vertices
 		 */
 		PointCloud::Ptr buildMap(const VertexObjectList& vertices) const;
-
+		
 		/**
 		 * @brief Build an accumulated point cloud map from given vertices with custom map params.
 		 * @param vertices
@@ -265,14 +203,14 @@ namespace slam3d
 		 * @param radius
 		 */
 		void fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius);
-
+		
 		/**
 		 * @brief Load a PLY and add it as measurement to the graph.
 		 * @param path load ply from this file
 		 * @param robot the name which will be added to the measurement
 		 */
 		void loadPLY(const std::string& path, const std::string& robot);
-
+		
 	protected:
 		RegistrationParameters mFineConfiguration;
 		RegistrationParameters mCoarseConfiguration;
@@ -281,84 +219,3 @@ namespace slam3d
 		MapConfig mMapConfig;
 	};
 }
-
-namespace boost
-{
-	namespace serialization
-	{
-		template<class Archive>
-		void serialize(Archive & ar, pcl::PCLPointField & f, const unsigned int version)
-		{
-			ar & f.count;
-			ar & f.datatype;
-			ar & f.name;
-			ar & f.offset;
-		}
-
-		template<class Archive>
-		void serialize(Archive & ar, pcl::PCLHeader & h, const unsigned int version)
-		{
-			ar & h.frame_id;
-			ar & h.seq;
-			ar & h.stamp;
-		}
-
-		template<class Archive>
-		void serialize(Archive & ar, Eigen::Vector4f &point, const unsigned int version)
-		{
-			ar & point[0];
-			ar & point[1];
-			ar & point[2];
-			ar & point[3];
-		}
-
-		template<class Archive>
-		void serialize(Archive & ar, Eigen::Quaternionf &point, const unsigned int version)
-		{
-			ar & point.x();
-			ar & point.y();
-			ar & point.z();
-			ar & point.w();
-		}
-
-		template<class Archive>
-		void serialize(Archive & ar, slam3d::PointType &point, const unsigned int version)
-		{
-			ar & point.x;
-			ar & point.y;
-			ar & point.z;
-		}
-
-		template<class Archive>
-		void serialize(Archive & ar, slam3d::PointCloud &cloud, const unsigned int version)
-		{
-			ar & cloud.header;
-			ar & cloud.points;
-			ar & cloud.width;
-			ar & cloud.height;
-			ar & cloud.is_dense;
-			ar & cloud.sensor_origin_;
-			ar & cloud.sensor_orientation_;
-		}
-
-		template<class Archive>
-		inline void save_construct_data(Archive & ar, const slam3d::PointCloudMeasurement * m, const unsigned int file_version)
-		{
-			// save data required to construct instance
-			ar << m->getPointCloud();
-		}
-
-		template<class Archive>
-		inline void load_construct_data(Archive & ar, slam3d::PointCloudMeasurement * t, const unsigned int file_version)
-		{
-			// retrieve data from archive required to construct new instance
-			slam3d::PointCloud::Ptr cloud;
-			ar >> cloud;
-
-			// invoke inplace constructor to initialize instance of PointCloudMeasurement
-			::new(t)slam3d::PointCloudMeasurement(cloud);
-		}
-	}
-}
-
-BOOST_CLASS_EXPORT_KEY(slam3d::PointCloudMeasurement)
