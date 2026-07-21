@@ -23,6 +23,7 @@
   <Dependencies Name="Release"/>
   <VirtualDirectory Name="slam3d">
     <VirtualDirectory Name="serialization">
+      <File Name="slam3d/serialization/SerializationTest.cpp"/>
       <File Name="slam3d/serialization/YamlTypes.hpp"/>
       <File Name="slam3d/serialization/Yaml.hpp"/>
       <File Name="slam3d/serialization/slam3d_serialization.pc.in"/>
