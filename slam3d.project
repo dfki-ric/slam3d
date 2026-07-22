@@ -19,8 +19,6 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <VirtualDirectory Name="slam3d">
     <VirtualDirectory Name="serialization">
       <File Name="slam3d/serialization/SerializationTest.cpp"/>
@@ -223,4 +221,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

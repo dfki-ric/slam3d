@@ -1,6 +1,6 @@
 # pragma once
 
-#include <slam3d/core/Types.hpp>
+#include <slam3d/core/Sensor.hpp>
 #include <map>
 
 namespace slam3d
@@ -59,6 +59,24 @@ namespace slam3d
 		 * @brief Get a list of all available UUID's
 		 */
 		virtual std::vector<boost::uuids::uuid> getAllKeys() const;
+		
+		/**
+		 * @brief Get the measurement for a given UUID and cast to MTYPE
+		 * @param key
+		 * @throws std::out_of_range if no measurement exists for that UUID
+		 * @throws BadMeasurementType if the measurement is not a MTYPE
+		 */
+		template<typename MTYPE>
+		typename MTYPE::Ptr get(const boost::uuids::uuid& key)
+		{
+			Measurement::Ptr m = get(key);
+			typename MTYPE::Ptr result = boost::dynamic_pointer_cast<MTYPE>(m);
+			if(!result)
+			{
+				throw slam3d::BadMeasurementType();
+			}
+			return result;
+		}
 
 	private:
 		std::map<boost::uuids::uuid, Measurement::Ptr> mMeasurements;
