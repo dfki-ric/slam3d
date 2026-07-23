@@ -48,7 +48,7 @@ namespace slam3d
 		 * @throws std::out_of_range if no measurement exists for that UUID
 		 * @throws boost::bad_lexical_cast if the given string is no valid UUID
 		 */
-		Measurement::Ptr get(const std::string& key);
+		virtual Measurement::Ptr get(const std::string& key);
 
 		/**
 		 * @brief delete contents

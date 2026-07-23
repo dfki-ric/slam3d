@@ -82,7 +82,7 @@ namespace slam3d
 		std::string robotName;
 		std::string sensorName;
 		boost::uuids::uuid uniqueId;
-//		std::set<std::string> tags;
+		std::set<std::string> tags;
 		Transform sensorPose;
 		Transform inverseSensorPose;
 	};

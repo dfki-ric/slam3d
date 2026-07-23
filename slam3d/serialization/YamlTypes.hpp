@@ -278,6 +278,31 @@ namespace YAML
 		}
 	};
 
+	template<typename T> struct convert<std::set<T>>
+	{
+		static bool decode(const Node& node, std::set<T>& outSet)
+		{
+			std::vector<T> vec;
+			checkAndSet(&vec, node);
+			for(const T& val : vec)
+			{
+				outSet.insert(val);
+			}
+			return true;
+		}
+		static Node encode(const std::set<T>& inSet)
+		{
+			Node node;
+			std::vector<T> vec;
+			for(const T& val : inSet)
+			{
+				vec.push_back(val);
+			}
+			node = vec;
+			return node;
+		}
+	};
+
 	template<> struct convert<slam3d::MetaData>
 	{
 		static bool decode(const Node& node, slam3d::MetaData& meta)
@@ -288,6 +313,7 @@ namespace YAML
 			checkAndSet(&meta.typeName, node["typeName"]);
 			checkAndSet(&meta.uniqueId, node["uniqueId"]);
 			checkAndSet(&meta.sensorPose, node["sensorPose"]);
+			checkAndSet(&meta.tags, node["tags"]);
 			return true;
 		}
 		static Node encode(const slam3d::MetaData& meta)
@@ -299,6 +325,7 @@ namespace YAML
 			node["typeName"] = meta.typeName;
 			node["uniqueId"] = meta.uniqueId;
 			node["sensorPose"] = meta.sensorPose;
+			node["tags"] = meta.tags;
 			return node;
 		}
 	};
