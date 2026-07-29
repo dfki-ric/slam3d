@@ -97,6 +97,8 @@
       </VirtualDirectory>
       <File Name="slam3d/sensor/CMakeLists.txt"/>
       <VirtualDirectory Name="pcl">
+        <File Name="slam3d/sensor/pcl/MultiPointCloudSensor.hpp"/>
+        <File Name="slam3d/sensor/pcl/MultiPointCloudSensor.cpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudMeasurement.hpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensorTest.cpp"/>
         <File Name="slam3d/sensor/pcl/CMakeLists.txt"/>
