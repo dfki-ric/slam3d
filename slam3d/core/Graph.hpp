@@ -214,6 +214,13 @@ namespace slam3d
 		IdType addVertex(const MetaData& data, const Transform &corrected);
 
 		/**
+		 * @brief Add a sub-measurement to an existing vertex
+		 * @param id vertex to hold the sub-measurement
+		 * @param data measurement meta data
+		 */
+		void addSubMeasurement(IdType id, const MetaData& data);
+
+		/**
 		 * @brief Add a placeholder constraint
 		 * @param source_id
 		 * @param target_id

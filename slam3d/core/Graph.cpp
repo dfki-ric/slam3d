@@ -174,6 +174,13 @@ IdType Graph::addVertex(const MetaData& data, const Transform &corrected)
 	return id;
 }
 
+void Graph::addSubMeasurement(IdType id, const MetaData& data)
+{
+	VertexObject vo = getVertex(id);
+	vo.subMeasurements.push_back(data);
+	setVertex(id, vo);
+}
+
 void Graph::addTentativeConstraint(IdType source_id, IdType target_id, std::string& sensor)
 {
 	EdgeObject eo;
