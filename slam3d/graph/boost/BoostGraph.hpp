@@ -120,7 +120,6 @@ namespace slam3d
 		 */
 		const StringSet getEdgeSensors() const override;
 
-
 		/**
 		 * @brief Calculates the minimum number of edges between two vertices in the graph.
 		 * @param source
@@ -174,7 +173,6 @@ namespace slam3d
 		 * @param sensor
 		 */
 		void removeEdge(IdType source, IdType target, const std::string& sensor) override;
-
 		
 		/**
 		 * @brief Get the internal edge iterator for an edge.
@@ -183,6 +181,12 @@ namespace slam3d
 		 * @param sensor
 		 */
 		OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
+
+		/**
+		 * @brief Check if the given edge is a forward edge.
+		 * @param e
+		 */
+		bool isForward(const Edge& e) const;
 
 	private:
 		// The boost graph object
