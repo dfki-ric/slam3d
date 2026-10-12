@@ -10,7 +10,7 @@ add_library(core SHARED
 target_include_directories(core
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(core
@@ -24,22 +24,21 @@ target_compile_features(core PUBLIC cxx_alias_templates)
 
 # Install header files
 install(DIRECTORY ./
-	DESTINATION include/slam3d/core
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/core
 	FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Install the binaries
 install(TARGETS core EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file
 configure_file(slam3d_core.pc.in slam3d_core.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/core/slam3d_core.pc
-	DESTINATION lib/pkgconfig
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
 set_target_properties(core PROPERTIES

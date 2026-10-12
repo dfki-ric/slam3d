@@ -7,7 +7,7 @@ add_library(sensor-gdal SHARED
 target_include_directories(sensor-gdal
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 		${GDAL_INCLUDE_DIRS}
 )
 
@@ -21,14 +21,13 @@ install(
 		CoordTransformer.hpp
 		GpsSensor.hpp
 		GpsPoseSensor.hpp
-	DESTINATION include/slam3d/sensor/gdal
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/sensor/gdal
 )
 
 # Install the binaries
 install(TARGETS sensor-gdal EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file

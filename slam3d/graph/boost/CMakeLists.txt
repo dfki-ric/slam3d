@@ -6,7 +6,7 @@ add_library(graph-boost SHARED
 target_include_directories(graph-boost
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(graph-boost
@@ -19,21 +19,20 @@ target_link_libraries(graph-boost
 # Install header files
 install(
 	FILES BoostGraph.hpp
-	DESTINATION include/slam3d/graph/boost/
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/graph/boost/
 )
 
 # Install the binaries
 install(TARGETS graph-boost EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file
 configure_file(slam3d_graph_boost.pc.in slam3d_graph_boost.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/graph/boost/slam3d_graph_boost.pc
-	DESTINATION lib/pkgconfig
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
 set_target_properties(graph-boost PROPERTIES

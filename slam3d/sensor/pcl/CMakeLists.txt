@@ -5,7 +5,7 @@ add_library(sensor-pcl SHARED
 target_include_directories(sensor-pcl
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 		${PCL_INCLUDE_DIRS}
 )
 
@@ -33,14 +33,13 @@ install(
 	FILES
 		PointCloudSensor.hpp
 		RegistrationParameters.hpp
-	DESTINATION include/slam3d/sensor/pcl
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/sensor/pcl
 )
 
 # Install the binaries
 install(TARGETS sensor-pcl EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file

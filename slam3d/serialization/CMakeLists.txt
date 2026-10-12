@@ -6,7 +6,7 @@ add_library(serialization SHARED
 target_include_directories(serialization
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(serialization
@@ -23,19 +23,18 @@ install(
 	FILES
 		GraphSerialization.hpp
 		MeasurementSerialization.hpp
-	DESTINATION include/slam3d/serialization/
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/serialization/
 )
 
 # Install the binaries
 install(TARGETS serialization EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file
 configure_file(slam3d_serialization.pc.in slam3d_serialization.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/serialization/slam3d_serialization.pc
-	DESTINATION lib/pkgconfig
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
