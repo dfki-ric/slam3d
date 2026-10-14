@@ -46,11 +46,11 @@ ScanSensor::~ScanSensor()
 {
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const std::vector<Measurement::Ptr> submeasurements)
 {
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m, submeasurements);
 		return true;
 	}
 
@@ -91,11 +91,11 @@ bool ScanSensor::checkMeasurementDistance(const Transform& odom)
 	return false;
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom, const std::vector<Measurement::Ptr> submeasurements)
 {
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m, submeasurements);
 		mLastOdometry = odom;
 		return true;
 	}
@@ -104,7 +104,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	mLastTransform = mLastOdometry.inverse() * odom;
 	if(checkMinDistance(mLastTransform))
 	{
-		IdType newVertex = mMapper->addMeasurement(m);
+		IdType newVertex = mMapper->addMeasurement(m, submeasurements);
 		Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
 		if(mLinkPrevious)
 		{
