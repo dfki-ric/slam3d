@@ -1,5 +1,6 @@
 #include "MeasurementSerialization.hpp"
 #include "../sensor/pcl/PointCloudSensor.hpp"
+#include "../sensor/pcl/SplatMeasurement.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -12,6 +13,7 @@
 #include <boost/lexical_cast.hpp>
 
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
+BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::SplatMeasurement)
 
 using namespace slam3d;
 
