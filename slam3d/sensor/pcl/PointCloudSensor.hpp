@@ -124,7 +124,7 @@ namespace slam3d
 		 * @param pose origin of the accumulated pointcloud
 		 * @throw BadMeasurementType
 		 */		
-		Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const override;
+		virtual Measurement::Ptr createCombinedMeasurement(const VertexObjectList& vertices, Transform pose) const override;
 		
 		/**
 		 * @brief Create an ICP constraint between two point clouds.
@@ -179,7 +179,7 @@ namespace slam3d
 		 * @param source
 		 * @param resolution 
 		 */
-		static PointCloud::Ptr downsample(PointCloud::Ptr source, double resolution);
+		static PointCloud::Ptr downsample(PointCloud::Ptr source, double resolution, double maxrange = -1.0);
 		
 		/**
 		 * @brief Crop the source cloud to a square box with given corners.

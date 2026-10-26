@@ -46,11 +46,11 @@ ScanSensor::~ScanSensor()
 {
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const std::vector<Measurement::Ptr> submeasurements)
 {
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m, submeasurements);
 		return true;
 	}
 
@@ -91,11 +91,11 @@ bool ScanSensor::checkMeasurementDistance(const Transform& odom)
 	return false;
 }
 
-bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom)
+bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom, const std::vector<Measurement::Ptr> submeasurements)
 {
 	if(mLastVertex == 0)
 	{
-		mLastVertex = mMapper->addMeasurement(m);
+		mLastVertex = mMapper->addMeasurement(m, submeasurements);
 		mLastOdometry = odom;
 		return true;
 	}
@@ -104,7 +104,7 @@ bool ScanSensor::addMeasurement(const Measurement::Ptr& m, const Transform& odom
 	mLastTransform = mLastOdometry.inverse() * odom;
 	if(checkMinDistance(mLastTransform))
 	{
-		IdType newVertex = mMapper->addMeasurement(m);
+		IdType newVertex = mMapper->addMeasurement(m, submeasurements);
 		Measurement::Ptr source = mMapper->getGraph()->getMeasurement(mLastVertex);
 		if(mLinkPrevious)
 		{
@@ -219,8 +219,22 @@ Measurement::Ptr ScanSensor::buildPatch(IdType source)
 		return mMapper->getGraph()->getMeasurement(source);
 	}
 
-	VertexObjectList v_objects = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);
-	mLogger->message(DEBUG, (boost::format("Building pointcloud patch from %1% nodes.") % v_objects.size()).str());
+	// getVerticesInRange() is a graph-distance query and knows nothing about sensors, so it
+	// also returns whatever else is attached to these vertices - a camera image added by
+	// Mapper::addExternalMeasurement() sits exactly one edge away from the scan it belongs to.
+	// createCombinedMeasurement() can do nothing with those but throw, so they are dropped
+	// here. mLinkSensors is the same set linkToNeighbors() selects neighbors by (it holds
+	// this sensor's own name plus whatever addLinkSensor() added), so a patch is built from
+	// exactly the measurements this sensor also links against.
+	const VertexObjectList in_range = mMapper->getGraph()->getVerticesInRange(source, mPatchBuildingRange);
+	VertexObjectList v_objects;
+	for(const VertexObject& v : in_range)
+	{
+		if(mLinkSensors.count(v.sensorName) > 0)
+			v_objects.push_back(v);
+	}
+	mLogger->message(DEBUG, (boost::format("Building pointcloud patch from %1% of %2% nodes in range.")
+		% v_objects.size() % in_range.size()).str());
 	
 	if(mPatchSolver)
 	{

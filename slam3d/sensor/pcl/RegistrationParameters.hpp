@@ -44,6 +44,10 @@ namespace slam3d
 		// pointclouds will be downsampled to this density before the alignement
 		double point_cloud_density = 0.2;
 
+		// point with a coordinage higher than point_cloud_coord_limit or lower than 
+		// -point_cloud_coord_limit are ignored, only active when point_cloud_density > 0
+		double point_cloud_coord_limit = 80;
+
 		// maximum fitness score (e.g., sum of squared distances from the source to the target)
 		// to accept the registration result
 		double max_fitness_score = 2.0;
