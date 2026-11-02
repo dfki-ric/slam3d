@@ -18,6 +18,14 @@ bool GraphSerialization::toFile(Graph* graph, const std::string &graphfile)
 	return config.saveConfig(graphfile);
 }
 
+bool GraphSerialization::toFile(Graph* graph, const VertexObjectList &vertices, const std::string &graphfile)
+{
+	auto &config = Yaml<YamlGraph>::getInstance();
+	config.get().vertices = vertices;
+	config.get().edges = graph->getConnectingEdges(vertices);
+	return config.saveConfig(graphfile);
+}
+
 bool GraphSerialization::fromFile(Graph* graph, const std::string &graphfile)
 {
 	auto &config = Yaml<YamlGraph>::getInstance();
