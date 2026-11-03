@@ -27,7 +27,10 @@ namespace slam3d
 		 * @param vertices the vertices to save
 		 * @param graphfile file name of the exported graph
 		 */
-		static bool toFile(Graph* graph, const VertexObjectList &vertices, const std::string &graphfile = "slam3d_graph.yml");
+		static bool toFile(
+			const VertexObjectList &vertices,
+			const EdgeObjectList &edges,
+			const std::string &graphfile = "slam3d_graph.yml");
 
 		/**
 		 * @brief restores the graph from folder
