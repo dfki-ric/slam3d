@@ -127,8 +127,8 @@ Transform align(PointCloudMeasurement::Ptr source,
 	PointCloud::Ptr filtered_target = target->getPointCloud();
 	if(config.point_cloud_density > 0)
 	{
-		filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density);
-		filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density);
+		filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density, config.point_cloud_coord_limit);
+		filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density, config.point_cloud_coord_limit);
 	}
 	
 	// Make sure that there are enough points left (ICP will crash if not)
@@ -202,12 +202,15 @@ PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f
 	}
 }
 
-PointCloud::Ptr PointCloudSensor::downsample(PointCloud::Ptr in, double leaf_size)
+PointCloud::Ptr PointCloudSensor::downsample(PointCloud::Ptr in, double leaf_size, double maxrange)
 {
 	if(in->size() > 0 && leaf_size > 0)
 	{
 		PointCloud::Ptr out(new PointCloud);
 		pcl::VoxelGrid<PointType> grid;
+		if (maxrange>0) {
+			grid.setFilterLimits(-maxrange,maxrange);
+		}
 		grid.setLeafSize (leaf_size, leaf_size, leaf_size);
 		grid.setInputCloud(in);
 		grid.filter(*out);
