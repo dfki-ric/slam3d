@@ -124,6 +124,12 @@ namespace slam3d
 		
 		virtual const char* getTypeName() const = 0;
 		
+		std::vector<std::string> getTags() { return tags; }
+		void addTag(const std::string &tag)
+		{
+			tags.push_back(tag);
+		}
+
 	protected:
 		timeval mStamp;
 		std::string mRobotName;
@@ -132,6 +138,7 @@ namespace slam3d
 		
 		Transform mSensorPose;
 		Transform mInverseSensorPose;
+		std::vector<std::string> tags;
 	};
 	
 	enum ConstraintType {TENTATIVE, SE3, GRAVITY, POSITION, ORIENTATION, POSE};
@@ -296,38 +303,57 @@ namespace slam3d
 		const char* getTypeName() { return "Tentative"; }
 	};
 	
+
+	struct VertexMeasurementData
+	{
+		void init(const Measurement::Ptr m, const IdType i)
+		{
+			index = i;
+			sensorName = m->getSensorName();
+			typeName = m->getTypeName();
+			timestamp = m->getTimestamp();
+			measurementUuid = m->getUniqueId();
+			tags = m->getTags();
+			robotName = m->getRobotName();
+			boost::format frm("%1%:%2%(%3%)");
+			frm % robotName % sensorName % index;
+			label = frm.str();
+		}
+		IdType index;
+		timeval timestamp;
+		std::string label;
+		std::string robotName;
+		std::string sensorName;
+		std::string typeName;
+		
+		boost::uuids::uuid measurementUuid;
+		std::vector<std::string> tags;
+
+	};
+
 	/**
 	 * @struct VertexObject
 	 * @brief Object attached to a vertex in the pose graph.
 	 * @details It contains a pointer to an abstract measurement, which could
 	 * be anything, e.g. a range scan, point cloud or image.
 	 */
-	struct VertexObject
+	struct VertexObject : public VertexMeasurementData
 	{
-		void init(const Measurement::Ptr m, IdType i)
+		void init(const Measurement::Ptr m, IdType i, const std::vector<Measurement::Ptr> subMeasurementPtrs = std::vector<Measurement::Ptr>())
 		{
-			index = i;
-			robotName = m->getRobotName();
-			sensorName = m->getSensorName();
-			typeName = m->getTypeName();
-			timestamp = m->getTimestamp();
-			measurementUuid = m->getUniqueId();
+			VertexMeasurementData::init(m, i);
 
-			boost::format frm("%1%:%2%(%3%)");
-			frm % robotName % sensorName % index;
-			label = frm.str();
+			for (const auto &sub : subMeasurementPtrs) {
+				VertexMeasurementData vmd;
+				vmd.init(sub, index);
+				subMeasurements.push_back(vmd);
+			}
 		}
-
-		std::string label;
-		IdType index;
-		std::string robotName;
-		std::string sensorName;
-		std::string typeName;
-		timeval timestamp;
+		
 		bool fixed = false;
-
 		Transform correctedPose;
-		boost::uuids::uuid measurementUuid;
+
+		std::vector<VertexMeasurementData> subMeasurements;
 	};
 
 	/**

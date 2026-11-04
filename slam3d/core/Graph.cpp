@@ -84,14 +84,11 @@ void Graph::reloadToSolver()
 	}
 
 	// add all edges after vertices are defined
-	for (const auto& vertex : vertices)
+	for (const auto& edge : getEdges())
 	{
-		for (const auto& edge : getOutEdges(vertex.index))
+		if (edge.constraint->getType() != TENTATIVE)
 		{
-			if (edge.constraint->getType() != TENTATIVE)
-			{
-				mSolver->addEdge(edge.source, edge.target, edge.constraint);
-			}
+			mSolver->addEdge(edge.source, edge.target, edge.constraint);
 		}
 	}
 }
@@ -146,17 +143,21 @@ bool Graph::optimized()
 	}
 }
 
-IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected)
+IdType Graph::addVertex(Measurement::Ptr m, const Transform &corrected, const std::vector<Measurement::Ptr> submeasurements)
 {
+	// add Measurement to storage first to make sure is is available when the VertexObject enters the Graph
+	mStorage->add(m);
+	for (const auto& sub: submeasurements) {
+		mStorage->add(sub);
+	}
 	// Create the new VertexObject and add it to the PoseGraph
 	IdType id = mIndexer.getNext();
 	VertexObject vo;
-	vo.init(m, id);
+	vo.init(m, id, submeasurements);
 	vo.correctedPose = corrected;
 	vo.fixed = mFixNext;
 	mFixNext = false;
 	addVertex(vo);
-	mStorage->add(m);
 	mLogger->message(INFO, (boost::format("Created vertex %1% (from %2%:%3%).") % id % m->getRobotName() % m->getSensorName()).str());
 
 	// Add it to the uuid-index, so we can find it by its uuid
@@ -262,4 +263,22 @@ const VertexObjectList Graph::getNearbyVertices(const Transform &tf, float radiu
 	result.shrink_to_fit();
 	mLogger->message(DEBUG, (boost::format("Neighbor search found %1% vertices nearby.") % result.size()).str());
 	return result;
+}
+
+std::set<std::string> Graph::getTags(const StringSet& sensors) const
+{
+	std::set<std::string> tags;
+	VertexObjectList allVertices = getVertices(sensors);
+
+	for (const auto& vertex : allVertices) {
+		for (const auto& tag : vertex.tags) {
+			tags.insert(tag);
+		}
+		for (const auto& sub : vertex.subMeasurements) {
+			for (const auto tag : sub.tags) {
+				tags.insert(tag);
+			}
+		}
+	}
+	return tags;
 }
