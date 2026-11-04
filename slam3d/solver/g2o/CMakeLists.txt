@@ -9,7 +9,7 @@ add_library(solver-g2o SHARED
 target_include_directories(solver-g2o
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(solver-g2o
@@ -25,21 +25,20 @@ target_link_libraries(solver-g2o
 # Install header files
 install(
 	FILES G2oSolver.hpp
-	DESTINATION include/slam3d/solver/g2o
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/solver/g2o
 )
 
 # Install the binaries
 install(TARGETS solver-g2o EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file
 configure_file(slam3d_solver_g2o.pc.in slam3d_solver_g2o.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/solver/g2o/slam3d_solver_g2o.pc
-	DESTINATION lib/pkgconfig
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
 set_target_properties(solver-g2o PROPERTIES

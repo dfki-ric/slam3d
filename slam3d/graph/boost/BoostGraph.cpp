@@ -191,9 +191,8 @@ const EdgeObjectList BoostGraph::getEdges(const StringSet& sensors) const
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
 		const EdgeObject& eo = mPoseGraph[*it];
-		IdType source_id = mPoseGraph[boost::source(*it, mPoseGraph)].index;
 		bool add_sensor = sensors.empty() || sensors.count(eo.constraint->getSensorName());
-		if(add_sensor && eo.source == source_id)
+		if(add_sensor && isForward(*it))
 		{
 			objectList.push_back(eo);
 		}
@@ -226,10 +225,17 @@ const EdgeObjectList BoostGraph::getConnectingEdges(const VertexObjectList& vert
 	for(EdgeIterator it = edges.first; it != edges.second; ++it)
 	{
 		EdgeObject ed = mPoseGraph[*it];
-		if(v_ids.find(ed.source) != v_ids.end() && v_ids.find(ed.target) != v_ids.end())
+		if(isForward(*it) && v_ids.find(ed.source) != v_ids.end() && v_ids.find(ed.target) != v_ids.end())
 			objectList.push_back(ed);
 	}
 	return objectList;
+}
+
+bool BoostGraph::isForward(const Edge& e) const
+{
+	// Check that the edge's source is the same as the EdgeObject's
+	const IdType sid = mPoseGraph[boost::source(e, mPoseGraph)].index;
+	return mPoseGraph[e].source == sid;
 }
 
 void BoostGraph::writeGraphToFile(const std::string& name)

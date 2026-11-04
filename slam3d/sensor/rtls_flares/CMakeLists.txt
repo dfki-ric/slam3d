@@ -6,7 +6,7 @@ add_library(sensor-rtls SHARED
 target_include_directories(sensor-rtls
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-		$<INSTALL_INTERFACE:include>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(sensor-rtls
@@ -18,21 +18,20 @@ install(
 	FILES
 		FlareSensor.hpp
 		Status.hpp
-	DESTINATION include/slam3d/sensor/rtls_flares
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/sensor/rtls_flares
 )
 
 # Install the binaries
 install(TARGETS sensor-rtls EXPORT slam3d-targets
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install pkg-config file
 configure_file(slam3d_sensor_rtls_flares.pc.in slam3d_sensor_rtls_flares.pc @ONLY)
 install(
 	FILES ${PROJECT_BINARY_DIR}/slam3d/sensor/rtls_flares/slam3d_sensor_rtls_flares.pc
-	DESTINATION lib/pkgconfig
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
 set_target_properties(sensor-rtls PROPERTIES
