@@ -12,9 +12,14 @@ using namespace slam3d;
 
 bool GraphSerialization::toFile(Graph* graph, const std::string &graphfile)
 {
+	return toFile(graph->getVertices(), graph->getEdges(), graphfile);
+}
+
+bool GraphSerialization::toFile(const VertexObjectList &vertices, const EdgeObjectList &edges, const std::string &graphfile)
+{
 	auto &config = Yaml<YamlGraph>::getInstance();
-	config.get().vertices = graph->getVertices();
-	config.get().edges = graph->getEdges();
+	config.get().vertices = vertices;
+	config.get().edges = edges;
 	return config.saveConfig(graphfile);
 }
 
