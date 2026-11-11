@@ -19,8 +19,6 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <VirtualDirectory Name="slam3d">
     <VirtualDirectory Name="serialization">
       <File Name="slam3d/serialization/YamlTypes.hpp"/>
@@ -98,6 +96,11 @@
       </VirtualDirectory>
       <File Name="slam3d/sensor/CMakeLists.txt"/>
       <VirtualDirectory Name="pcl">
+        <File Name="slam3d/sensor/pcl/Common.cpp"/>
+        <File Name="slam3d/sensor/pcl/Common.hpp"/>
+        <File Name="slam3d/sensor/pcl/PointCloudMeasurement.hpp"/>
+        <File Name="slam3d/sensor/pcl/PointCloudReference.cpp"/>
+        <File Name="slam3d/sensor/pcl/PointCloudReference.hpp"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensorTest.cpp"/>
         <File Name="slam3d/sensor/pcl/CMakeLists.txt"/>
         <File Name="slam3d/sensor/pcl/PointCloudSensor.cpp"/>
@@ -221,4 +224,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

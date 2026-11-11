@@ -71,13 +71,6 @@ namespace slam3d
 		 */
 		virtual void handleNewVertex(IdType vertex) = 0;
 
-		/**
-		 * @brief Get the pose of the PoseSensor at the given time in its
-		 * own reference frame. (e.g. odometry coordinates)
-		 * @param stamp
-		 */
-		virtual Transform getPose(timeval stamp) = 0;
-
 		// Access methods
 		/**
 		 * @brief Get this sensor's registered name.

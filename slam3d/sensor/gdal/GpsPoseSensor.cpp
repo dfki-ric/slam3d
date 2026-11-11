@@ -39,13 +39,6 @@ void GpsPoseSensor::handleNewVertex(IdType vertex)
 	mHasNewData = false;
 }
 
-Transform GpsPoseSensor::getPose(timeval stamp)
-{
-	Transform pose = Transform::Identity();
-	pose.translation() = mPosition;
-	return pose;
-}
-
 void GpsPoseSensor::update(const timeval& t, const Position& p,
                            const Covariance<3>& c, const Transform& sp)
 {

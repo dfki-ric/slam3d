@@ -36,7 +36,6 @@ namespace slam3d
 		~GpsPoseSensor();
 
 		void handleNewVertex(IdType vertex) override;
-		Transform getPose(timeval stamp) override;
 		
 		void update(const timeval& t, const Position& p,
 		            const Covariance<3>& c, const Transform& sp);

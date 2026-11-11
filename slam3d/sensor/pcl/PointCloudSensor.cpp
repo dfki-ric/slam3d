@@ -1,42 +1,11 @@
-// slam3d - Frontend for graph-based SLAM
-// Copyright (C) 2017 S. Kasperski
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above copyright
-//   notice, this list of conditions and the following disclaimer in the
-//   documentation and/or other materials provided with the distribution.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-// IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-// TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-// PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-// TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #include "PointCloudSensor.hpp"
+#include "Common.hpp"
 
 #include <slam3d/core/Mapper.hpp>
 
-#ifdef USE_PCLOMP
-	#include <pclomp/gicp_omp.h>
-	#include <pclomp/ndt_omp.h>
-#endif
-
-#include <pcl/registration/gicp.h>
-#include <pcl/registration/ndt.h>
+#include <pcl/common/transforms.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/radius_outlier_removal.h>
-#include <pcl/filters/crop_box.h>
 #include <pcl/pcl_config.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
@@ -50,130 +19,6 @@
 
 using namespace slam3d;
 
-template <typename ICP_TYPE>
-Transform doICP(PointCloud::Ptr source,
-          PointCloud::Ptr target,
-          const Transform& guess,
-          const RegistrationParameters& config)
-{
-	ICP_TYPE icp;
-	icp.setMaxCorrespondenceDistance(config.max_correspondence_distance);
-	icp.setMaximumIterations(config.maximum_iterations);
-	icp.setTransformationEpsilon(config.transformation_epsilon);
-	icp.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
-	icp.setCorrespondenceRandomness(config.correspondence_randomness);
-	icp.setMaximumOptimizerIterations(config.maximum_optimizer_iterations);
-	icp.setRotationEpsilon(config.rotation_epsilon);
-	
-	PointCloud result;
-	icp.setInputSource(target);
-	icp.setInputTarget(source);
-	icp.align(result, guess.matrix().cast<float>());
-
-	// Check if ICP was successful (kind of...)
-	double score = icp.getFitnessScore(config.max_correspondence_distance);
-	if(!icp.hasConverged() || score > config.max_fitness_score)
-	{
-		throw NoMatch((boost::format("ICP failed with Fitness-Score %1% > %2%") % score % config.max_fitness_score).str());
-	}
-	
-	// Get estimated transform
-	Transform icp_result(Eigen::Isometry3f(icp.getFinalTransformation()));
-	return icp_result;
-}
-
-template <typename NDT_TYPE>
-Transform doNDT(PointCloud::Ptr source,
-                PointCloud::Ptr target,
-                const Transform& guess,
-                const RegistrationParameters& config)
-{
-	NDT_TYPE ndt;
-	ndt.setOulierRatio(config.outlier_ratio);
-	ndt.setMaxCorrespondenceDistance(config.max_correspondence_distance);
-	ndt.setMaximumIterations(config.maximum_iterations);
-	ndt.setTransformationEpsilon(config.transformation_epsilon);
-	ndt.setEuclideanFitnessEpsilon(config.euclidean_fitness_epsilon);
-	ndt.setStepSize(config.step_size);
-	ndt.setResolution(config.resolution);
-	
-	// Source and target are switched at this point!
-	// In the pose graph, our edge (with transform) goes from source to target,
-	// but ICP calculates the transformation from target to source.
-	ndt.setInputSource(target);
-	ndt.setInputTarget(source);
-	PointCloud result;
-	ndt.align(result, guess.matrix().cast<float>());
-
-	// Check if NDT was successful (kind of...)
-	double score = ndt.getFitnessScore(config.max_correspondence_distance);
-	if(!ndt.hasConverged() || score > config.max_fitness_score)
-	{
-		throw NoMatch((boost::format("NDT failed with Fitness-Score %1% > %2%") % score % config.max_fitness_score).str());
-	}
-	
-	// Get estimated transform
-	Eigen::Isometry3f tf_matrix(ndt.getFinalTransformation());
-	return Transform(tf_matrix);
-}
-
-Transform align(PointCloudMeasurement::Ptr source,
-                PointCloudMeasurement::Ptr target,
-                const Transform& guess,
-                const RegistrationParameters& config)
-{
-	// Downsample the scans
-	PointCloud::Ptr filtered_source = source->getPointCloud();
-	PointCloud::Ptr filtered_target = target->getPointCloud();
-	if(config.point_cloud_density > 0)
-	{
-		filtered_source = PointCloudSensor::downsample(source->getPointCloud(), config.point_cloud_density, config.point_cloud_coord_limit);
-		filtered_target = PointCloudSensor::downsample(target->getPointCloud(), config.point_cloud_density, config.point_cloud_coord_limit);
-	}
-	
-	// Make sure that there are enough points left (ICP will crash if not)
-	if(filtered_target->size() < 100 || filtered_source->size() < 100)
-		throw NoMatch("Too few points after filtering, you may have to decrease 'point_cloud_density'.");
-	
-	// Configure Generalized-ICP
-	Transform result;
-	switch(config.registration_algorithm)
-	{
-	case GICP:
-		result = doICP< pcl::GeneralizedIterativeClosestPoint<PointType, PointType> >
-			(filtered_source, filtered_target, guess, config);
-		break;
-	case NDT:
-		result = doNDT< pcl::NormalDistributionsTransform<PointType, PointType> >
-			(filtered_source, filtered_target, guess, config);
-		break;
-#ifdef USE_PCLOMP
-	case GICP_OMP:
-		result = doICP< pclomp::GeneralizedIterativeClosestPoint<PointType, PointType> >
-			(filtered_source, filtered_target, guess, config);
-		break;
-	case NDT_OMP:
-		result = doNDT< pclomp::NormalDistributionsTransform<PointType, PointType> >
-			(filtered_source, filtered_target, guess, config);
-		break;
-#else
-	case GICP_OMP:
-	case NDT_OMP:
-		throw std::runtime_error("OMP is not available, you need to rebuild SLAM3D with OMP or use another matching algorithm.");
-#endif
-	default:
-		throw std::runtime_error("Unknown registration algorithm specified.");
-	}
-	
-	const Transform delta = guess.inverse() * result;
-	const Eigen::AngleAxisd rot(delta.linear());
-	if(delta.translation().norm() > config.max_translation || rot.angle() > config.max_rotation)
-	{
-		throw NoMatch("ICP result is to far away from guess");
-	}
-	return result;
-}
-
 PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
  : ScanSensor(n, l)
 {
@@ -183,42 +28,6 @@ PointCloudSensor::PointCloudSensor(const std::string& n, Logger* l)
 PointCloudSensor::~PointCloudSensor()
 {
 
-}
-
-PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max)
-{
-	if(min.allFinite() && max.allFinite())
-	{
-		PointCloud::Ptr out (new PointCloud);
-		pcl::CropBox<PointType> cropBox;
-		cropBox.setInputCloud(in);
-		cropBox.setMin(min);
-		cropBox.setMax(max);
-		cropBox.filter(*out);
-		return out;
-	}else
-	{
-		return in;
-	}
-}
-
-PointCloud::Ptr PointCloudSensor::downsample(PointCloud::Ptr in, double leaf_size, double maxrange)
-{
-	if(in->size() > 0 && leaf_size > 0)
-	{
-		PointCloud::Ptr out(new PointCloud);
-		pcl::VoxelGrid<PointType> grid;
-		if (maxrange>0) {
-			grid.setFilterLimits(-maxrange,maxrange);
-		}
-		grid.setLeafSize (leaf_size, leaf_size, leaf_size);
-		grid.setInputCloud(in);
-		grid.filter(*out);
-		return out;
-	}else
-	{
-		return in;
-	}
 }
 
 PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::Ptr source)

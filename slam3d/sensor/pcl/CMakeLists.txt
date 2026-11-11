@@ -1,5 +1,7 @@
 add_library(sensor-pcl SHARED
+	Common.cpp
 	PointCloudSensor.cpp
+	PointCloudReference.cpp
 )
 
 target_include_directories(sensor-pcl
@@ -29,11 +31,9 @@ target_link_libraries(sensor-pcl
 )
 
 # Install header files
-install(
-	FILES
-		PointCloudSensor.hpp
-		RegistrationParameters.hpp
+install(DIRECTORY ./
 	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/slam3d/sensor/pcl
+	FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Install the binaries
