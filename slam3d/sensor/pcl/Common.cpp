@@ -96,4 +96,14 @@ namespace slam3d
 		}
 		return result;
 	}
+	
+	Transform relativeSensorPose(IdType source, IdType target, Graph* graph)
+	{
+		VertexObject sv = graph->getVertex(source);
+		VertexObject tv = graph->getVertex(target);
+		Measurement::Ptr sm = graph->getMeasurement(source);
+		Measurement::Ptr tm = graph->getMeasurement(target);
+		return sm->getInverseSensorPose() * sv.correctedPose.inverse()
+			* tv.correctedPose * tm->getSensorPose();
+	}
 }

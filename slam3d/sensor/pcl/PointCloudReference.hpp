@@ -10,7 +10,7 @@ namespace slam3d
 {
 	struct Reference
 	{
-		PointCloudMeasurement::Ptr pointcloud;
+		IdType vertex_id;
 		pcl::Registration<PointType, PointType>::Ptr registration;
 	};
 	
@@ -21,7 +21,7 @@ namespace slam3d
 
 		void handleNewVertex(IdType vertex) override;
 
-		void addReference(PointCloudMeasurement::Ptr ref);
+		void addReference(PointCloudMeasurement::Ptr ref, const Transform& pose);
 
 	protected:
 		std::vector<Reference> mReferences;

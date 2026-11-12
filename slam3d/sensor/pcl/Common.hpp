@@ -10,6 +10,7 @@
 
 #include <slam3d/core/Types.hpp>
 #include <slam3d/core/Sensor.hpp>
+#include <slam3d/core/Graph.hpp>
 #include <slam3d/sensor/pcl/PointCloudMeasurement.hpp>
 #include <slam3d/sensor/pcl/RegistrationParameters.hpp>
 
@@ -104,4 +105,6 @@ namespace slam3d
 		PointCloudMeasurement::Ptr target,
 		const Transform& guess,
 		const RegistrationParameters& config);
+
+	Transform relativeSensorPose(IdType source, IdType target, Graph* graph);
 }
