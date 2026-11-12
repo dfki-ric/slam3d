@@ -12,6 +12,7 @@ namespace slam3d
 	{
 		IdType vertex_id;
 		pcl::Registration<PointType, PointType>::Ptr registration;
+		double link_radius;
 	};
 	
 	class PointCloudReference : public PoseSensor
@@ -21,7 +22,7 @@ namespace slam3d
 
 		void handleNewVertex(IdType vertex) override;
 
-		void addReference(PointCloudMeasurement::Ptr ref, const Transform& pose);
+		void addReference(PointCloudMeasurement::Ptr ref, const Transform& pose, double rad);
 
 	protected:
 		std::vector<Reference> mReferences;

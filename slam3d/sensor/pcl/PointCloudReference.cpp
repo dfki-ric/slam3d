@@ -17,6 +17,11 @@ void PointCloudReference::handleNewVertex(IdType vertex)
 		VertexObject v = mGraph->getVertex(vertex);
 		for(auto& ref : mReferences)
 		{
+			// Check distance between reference and new vertex
+			auto dist = v.correctedPose.translation() - mGraph->getVertex(ref.vertex_id).correctedPose.translation();
+			if(dist.norm() > ref.link_radius)
+				continue;
+			
 			Measurement::Ptr m_ref = mGraph->getMeasurement(ref.vertex_id);
 			Transform guess = relativeSensorPose(ref.vertex_id, vertex, mGraph);
 			PointCloud result;
@@ -42,7 +47,7 @@ void PointCloudReference::handleNewVertex(IdType vertex)
 	}
 }
 
-void PointCloudReference::addReference(PointCloudMeasurement::Ptr pc, const Transform& pose)
+void PointCloudReference::addReference(PointCloudMeasurement::Ptr pc, const Transform& pose, double rad)
 {
 	Reference ref;
 	switch(mRegParams.registration_algorithm)
@@ -77,5 +82,6 @@ void PointCloudReference::addReference(PointCloudMeasurement::Ptr pc, const Tran
 	
 	mGraph->fixNext();
 	ref.vertex_id = mGraph->addVertex(pc, pose);
+	ref.link_radius = rad;
 	mReferences.push_back(ref);
 }
