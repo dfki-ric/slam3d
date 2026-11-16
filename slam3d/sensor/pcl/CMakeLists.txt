@@ -62,7 +62,6 @@ add_executable(pcl_sensor_test PointCloudSensorTest.cpp)
 
 target_link_libraries(pcl_sensor_test
 	Boost::unit_test_framework
-	Boost::system
 	${PCL_IO_LIBRARIES}
 	sensor-pcl
 	graph-boost
