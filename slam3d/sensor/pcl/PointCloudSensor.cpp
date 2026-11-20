@@ -55,13 +55,6 @@ PointCloud::Ptr PointCloudSensor::removeOutliers(PointCloud::Ptr in, double radi
 	}
 }
 
-PointCloud::Ptr PointCloudSensor::transform(PointCloud::ConstPtr source, const Transform tf) const
-{
-	PointCloud::Ptr transformedCloud(new PointCloud);
-	pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
-	return transformedCloud;
-}
-
 PointCloud::Ptr PointCloudSensor::getAccumulatedCloud(const VertexObjectList& vertices) const
 {
 	PointCloud::Ptr accu(new PointCloud);

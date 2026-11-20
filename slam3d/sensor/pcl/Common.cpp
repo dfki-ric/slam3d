@@ -4,6 +4,13 @@
 
 namespace slam3d
 {
+	PointCloud::Ptr transform(PointCloud::ConstPtr source, const Transform tf)
+	{
+		PointCloud::Ptr transformedCloud(new PointCloud);
+		pcl::transformPointCloud(*source, *transformedCloud, tf.matrix());
+		return transformedCloud;
+	}
+
 	PointCloud::Ptr downsample(PointCloud::Ptr in, double leaf_size, double maxrange)
 	{
 		if(in->size() > 0 && leaf_size > 0)

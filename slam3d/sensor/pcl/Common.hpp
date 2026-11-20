@@ -17,6 +17,13 @@
 namespace slam3d
 {
 	/**
+	 * @brief Transform source cloud by given transformation.
+	 * @param source
+	 * @param tf
+	 */
+	PointCloud::Ptr transform(PointCloud::ConstPtr source, const Transform tf);
+
+	/**
 	 * @brief Reduces the size of the source cloud by sampling with the given resolution.
 	 * @param source
 	 * @param resolution 
