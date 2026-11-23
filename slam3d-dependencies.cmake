@@ -23,7 +23,7 @@ endif()
 find_package(g2o REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread graph unit_test_framework serialization)
 find_package(PCL 1.8.1 REQUIRED COMPONENTS registration sample_consensus io)
-find_package(PCLOMP 1.0)
+find_package(pclomp 1.0)
 find_package(yaml-cpp)
 
 # Optional libraries
