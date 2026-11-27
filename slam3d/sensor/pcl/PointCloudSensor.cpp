@@ -30,6 +30,46 @@ PointCloudSensor::~PointCloudSensor()
 
 }
 
+PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max,
+                                       const Eigen::Affine3f& pose)
+{
+	if(min.allFinite() && max.allFinite())
+	{
+		PointCloud::Ptr out (new PointCloud);
+		pcl::CropBox<PointType> cropBox;
+		cropBox.setInputCloud(in);
+		cropBox.setMin(min);
+		cropBox.setMax(max);
+		// CropBox moves the points by this transform before comparing them with min and max:
+		// into the coordinates of the box
+		cropBox.setTransform(pose.inverse());
+		cropBox.filter(*out);
+		return out;
+	}else
+	{
+		return in;
+	}
+}
+
+PointCloud::Ptr PointCloudSensor::downsample(PointCloud::Ptr in, double leaf_size, double maxrange)
+{
+	if(in->size() > 0 && leaf_size > 0)
+	{
+		PointCloud::Ptr out(new PointCloud);
+		pcl::VoxelGrid<PointType> grid;
+		if (maxrange>0) {
+			grid.setFilterLimits(-maxrange,maxrange);
+		}
+		grid.setLeafSize (leaf_size, leaf_size, leaf_size);
+		grid.setInputCloud(in);
+		grid.filter(*out);
+		return out;
+	}else
+	{
+		return in;
+	}
+}
+
 PointCloud::Ptr PointCloudSensor::downsampleScan(PointCloud::Ptr source)
 {
 	if(mScanResolution > 0)

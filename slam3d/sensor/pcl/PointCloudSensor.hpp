@@ -86,6 +86,23 @@ namespace slam3d
 		                   const Eigen::Affine3f& pose = Eigen::Affine3f::Identity());
 		
 		/**
+		 * @brief Reduces the size of the source cloud by sampling with the given resolution.
+		 * @param source
+		 * @param resolution 
+		 */
+		static PointCloud::Ptr downsample(PointCloud::Ptr source, double resolution, double maxrange = -1.0);
+		
+		/**
+		 * @brief Crop the source cloud to a box with given corners.
+		 * @param source
+		 * @param min corner of the box in the coordinates of the box (see pose)
+		 * @param max corner of the box in the coordinates of the box (see pose)
+		 * @param pose pose of the box in the coordinates of the cloud, identity for a box along its axes
+		 */
+		static PointCloud::Ptr crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max,
+		                            const Eigen::Affine3f& pose = Eigen::Affine3f::Identity());
+		
+		/**
 		 * @brief Reduces the size of the source cloud by sampling with internal scan resolution.
 		 * @details This method might seem unneccessary and only exists so that ScanResolution
 		 * can be an internal parameter of PointCloudSensor. It should be called before a scan is 
