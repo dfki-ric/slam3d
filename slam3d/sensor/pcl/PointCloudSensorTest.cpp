@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "PointCloudSensor.hpp"
+#include "Common.hpp"
 
 
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
@@ -115,13 +116,13 @@ BOOST_AUTO_TEST_CASE(crop_turned_box)
 	cloud->push_back(PointType(corner.x() - 0.05f, 2.05f, 0.5f));
 	cloud->push_back(PointType(1 + 2.0f, 2, 0.5f));
 
-	PointCloud::Ptr turned = PointCloudSensor::crop(cloud, min, max, pose);
+	PointCloud::Ptr turned = slam3d::crop(cloud, min, max, pose);
 	BOOST_CHECK_EQUAL(turned->size(), 3);
 	for(size_t i = 0; i < turned->size(); ++i)
 		BOOST_CHECK_SMALL((turned->at(i).getVector3fMap() - cloud->at(i).getVector3fMap()).norm(), 1e-6f);
 
 	// without a pose the box is along the axes, (0..4, 0..2, 0..1): only (3, 2, 0.5) is in it
-	PointCloud::Ptr along = PointCloudSensor::crop(cloud, min, max);
+	PointCloud::Ptr along = slam3d::crop(cloud, min, max);
 	BOOST_REQUIRE_EQUAL(along->size(), 1);
 	BOOST_CHECK_EQUAL(along->at(0).x, 3.0f);
 

@@ -30,7 +30,8 @@ namespace slam3d
 		}
 	}
 
-	PointCloud::Ptr crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max)
+	PointCloud::Ptr crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max,
+	                     const Eigen::Affine3f& pose)
 	{
 		if(min.allFinite() && max.allFinite())
 		{
@@ -39,6 +40,9 @@ namespace slam3d
 			cropBox.setInputCloud(in);
 			cropBox.setMin(min);
 			cropBox.setMax(max);
+			// CropBox moves the points by this transform before comparing them with min and max:
+			// into the coordinates of the box
+			cropBox.setTransform(pose.inverse());
 			cropBox.filter(*out);
 			return out;
 		}else
