@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "PointCloudSensor.hpp"
+#include "Common.hpp"
 
 
 BOOST_CLASS_EXPORT_IMPLEMENT(slam3d::PointCloudMeasurement)
@@ -93,4 +94,39 @@ BOOST_AUTO_TEST_CASE(map_building)
 	BOOST_CHECK_EQUAL(vertices.size(), 1);
 	PointCloud::Ptr map;
 	BOOST_CHECK_NO_THROW(map = sensor.buildMap(vertices));
+}
+
+BOOST_AUTO_TEST_CASE(crop_turned_box)
+{
+	// a box of 4 x 2 x 1 from its corner, turned 45 degrees about z and moved to (1, 2, 0)
+	const Eigen::Vector4f min(0, 0, 0, 1);
+	const Eigen::Vector4f max(4, 2, 1, 1);
+	const Eigen::Affine3f pose = Eigen::Translation3f(1, 2, 0) * Eigen::AngleAxisf(M_PI / 4, Eigen::Vector3f::UnitZ());
+
+	PointCloud::Ptr cloud(new PointCloud);
+	// inside: the middle of the box, near its far corner and near its corner at (0, 2) in box coordinates
+	for(const Eigen::Vector3f& local : {Eigen::Vector3f(2, 1, 0.5f), Eigen::Vector3f(3.9f, 1.9f, 0.9f), Eigen::Vector3f(0.1f, 1.9f, 0.5f)})
+	{
+		const Eigen::Vector3f p = pose * local;
+		cloud->push_back(PointType(p.x(), p.y(), p.z()));
+	}
+	// outside: in the box along the map axes (from the two corners) but not in the turned box,
+	// and in the turned box's map-axes hull only
+	const Eigen::Vector3f corner = pose * Eigen::Vector3f(4, 2, 1);
+	cloud->push_back(PointType(corner.x() - 0.05f, 2.05f, 0.5f));
+	cloud->push_back(PointType(1 + 2.0f, 2, 0.5f));
+
+	PointCloud::Ptr turned = slam3d::crop(cloud, min, max, pose);
+	BOOST_CHECK_EQUAL(turned->size(), 3);
+	for(size_t i = 0; i < turned->size(); ++i)
+		BOOST_CHECK_SMALL((turned->at(i).getVector3fMap() - cloud->at(i).getVector3fMap()).norm(), 1e-6f);
+
+	// without a pose the box is along the axes, (0..4, 0..2, 0..1): only (3, 2, 0.5) is in it
+	PointCloud::Ptr along = slam3d::crop(cloud, min, max);
+	BOOST_REQUIRE_EQUAL(along->size(), 1);
+	BOOST_CHECK_EQUAL(along->at(0).x, 3.0f);
+
+	// the default map config crops along the map axes, as before the pose existed
+	PointCloudSensor::MapConfig config;
+	BOOST_CHECK(config.cropBoxPose.matrix().isIdentity());
 }

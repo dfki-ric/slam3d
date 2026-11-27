@@ -133,7 +133,7 @@ PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices, con
 	PointCloud::Ptr map = getAccumulatedCloud(vertices);
 	try
 	{
-		map = crop(map, config.cropBoxMin, config.cropBoxMax);
+		map = crop(map, config.cropBoxMin, config.cropBoxMax, config.cropBoxPose);
 		map = removeOutliers(map, config.outlierRadius, config.outlierNeighbors);
 		map = downsample(map, config.resolution);
 	}catch(std::exception &e)
@@ -188,10 +188,11 @@ void PointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
 	mMapConfig.outlierNeighbors = n;
 }
 
-void PointCloudSensor::setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max)
+void PointCloudSensor::setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max, const Eigen::Affine3f& pose)
 {
 	mMapConfig.cropBoxMin = min;
 	mMapConfig.cropBoxMax = max;
+	mMapConfig.cropBoxPose = pose;
 }
 
 void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)

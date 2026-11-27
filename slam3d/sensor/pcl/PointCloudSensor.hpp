@@ -78,10 +78,12 @@ namespace slam3d
 		
 		/**
 		 * @brief Set parameters for crop box filter.
-		 * @param min
-		 * @param max
+		 * @param min corner of the box in the coordinates of the box (see pose)
+		 * @param max corner of the box in the coordinates of the box (see pose)
+		 * @param pose pose of the box in map coordinates, identity for a box along the map axes
 		 */
-		void setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max);
+		void setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max,
+		                   const Eigen::Affine3f& pose = Eigen::Affine3f::Identity());
 		
 		/**
 		 * @brief Reduces the size of the source cloud by sampling with internal scan resolution.
@@ -119,7 +121,7 @@ namespace slam3d
 		struct MapConfig
 		{
 			// Default config performs no filtering
-			MapConfig():resolution(0.0),outlierRadius(0.0),outlierNeighbors(0)
+			MapConfig():resolution(0.0),outlierRadius(0.0),outlierNeighbors(0),cropBoxPose(Eigen::Affine3f::Identity())
 			{
 				cropBoxMin.setConstant(-std::numeric_limits<float>::infinity());
 				cropBoxMax.setConstant( std::numeric_limits<float>::infinity());
@@ -128,8 +130,11 @@ namespace slam3d
 			double   resolution;
 			double   outlierRadius;
 			unsigned outlierNeighbors;
+			// corners of the crop box in the coordinates of the box
 			Eigen::Vector4f cropBoxMin;
 			Eigen::Vector4f cropBoxMax;
+			// pose of the crop box in map coordinates, identity for a box along the map axes
+			Eigen::Affine3f cropBoxPose;
 		};
 
 		/**

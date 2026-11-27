@@ -31,12 +31,14 @@ namespace slam3d
 	PointCloud::Ptr downsample(PointCloud::Ptr source, double resolution, double maxrange = -1.0);
 	
 	/**
-	 * @brief Crop the source cloud to a square box with given corners.
+	 * @brief Crop the source cloud to a box with given corners.
 	 * @param source
-	 * @param min
-	 * @param max 
+	 * @param min corner of the box in the coordinates of the box (see pose)
+	 * @param max corner of the box in the coordinates of the box (see pose)
+	 * @param pose pose of the box in the coordinates of the cloud, identity for a box along its axes
 	 */
-	PointCloud::Ptr crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max);
+	PointCloud::Ptr crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max,
+	                     const Eigen::Affine3f& pose = Eigen::Affine3f::Identity());
 
 	pcl::Registration<PointType, PointType>::Ptr createRegistration(const RegistrationParameters& config);
 
