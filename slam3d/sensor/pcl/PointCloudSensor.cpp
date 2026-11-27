@@ -185,7 +185,8 @@ PointCloudSensor::~PointCloudSensor()
 
 }
 
-PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max)
+PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f& min, const Eigen::Vector4f& max,
+                                       const Eigen::Affine3f& pose)
 {
 	if(min.allFinite() && max.allFinite())
 	{
@@ -194,6 +195,9 @@ PointCloud::Ptr PointCloudSensor::crop(PointCloud::Ptr in, const Eigen::Vector4f
 		cropBox.setInputCloud(in);
 		cropBox.setMin(min);
 		cropBox.setMax(max);
+		// CropBox moves the points by this transform before comparing them with min and max:
+		// into the coordinates of the box
+		cropBox.setTransform(pose.inverse());
 		cropBox.filter(*out);
 		return out;
 	}else
@@ -331,7 +335,7 @@ PointCloud::Ptr PointCloudSensor::buildMap(const VertexObjectList& vertices, con
 	PointCloud::Ptr map = getAccumulatedCloud(vertices);
 	try
 	{
-		map = crop(map, config.cropBoxMin, config.cropBoxMax);
+		map = crop(map, config.cropBoxMin, config.cropBoxMax, config.cropBoxPose);
 		map = removeOutliers(map, config.outlierRadius, config.outlierNeighbors);
 		map = downsample(map, config.resolution);
 	}catch(std::exception &e)
@@ -386,10 +390,11 @@ void PointCloudSensor::setMapOutlierRemoval(double r, unsigned n)
 	mMapConfig.outlierNeighbors = n;
 }
 
-void PointCloudSensor::setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max)
+void PointCloudSensor::setMapCropBox(const Eigen::Vector4f& min, const Eigen::Vector4f& max, const Eigen::Affine3f& pose)
 {
 	mMapConfig.cropBoxMin = min;
 	mMapConfig.cropBoxMax = max;
+	mMapConfig.cropBoxPose = pose;
 }
 
 void PointCloudSensor::fillGroundPlane(PointCloud::Ptr cloud, ScalarType radius)
